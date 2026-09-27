@@ -2,6 +2,7 @@
 // Each action applies a validated, undoable edit to the JSON source.
 // Views cover the installation, a device, and a group address.
 // Rejected edits show a reason and restore values from the JSON source.
+import { fieldValue } from "./field-value";
 import { LitElement, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { live } from "lit/directives/live.js";
@@ -716,7 +717,7 @@ export class GuidedEditor extends LitElement {
                 class="g-inline"
                 aria-label=${t`Name of area ${a}`}
                 placeholder=${t`area name`}
-                .value=${live(name)}
+                .value=${fieldValue(name)}
                 @change=${(e: Event) =>
                   this.run(t`Area name`, (d) =>
                     E.setAreaName(
@@ -789,7 +790,7 @@ export class GuidedEditor extends LitElement {
           class="g-inline"
           aria-label=${t`Name of line ${line}`}
           placeholder=${t`line name`}
-          .value=${live(String(l.name ?? ""))}
+          .value=${fieldValue(String(l.name ?? ""))}
           @change=${(e: Event) =>
             this.run(t`Line name`, (d) =>
               E.setLineName(
@@ -1954,7 +1955,7 @@ export class GuidedEditor extends LitElement {
         class="g-filter"
         type="search"
         placeholder=${t`Filter: device, object, output…`}
-        .value=${live(m.filter)}
+        .value=${fieldValue(m.filter)}
         @input=${(e: Event) => {
           m.filter = (e.target as HTMLInputElement).value;
           this.requestUpdate();
@@ -2226,11 +2227,11 @@ export class GuidedEditor extends LitElement {
         area
           ? html`<textarea
               rows="2"
-              .value=${live(value)}
+              .value=${fieldValue(value)}
               @change=${(e: Event) => on((e.target as HTMLTextAreaElement).value)}
             ></textarea>`
           : html`<input
-              .value=${live(value)}
+              .value=${fieldValue(value)}
               @change=${(e: Event) => on((e.target as HTMLInputElement).value.trim())}
             />`
       }
@@ -2572,7 +2573,7 @@ export class GuidedEditor extends LitElement {
           type="number"
           step=${ms ? "0.1" : "any"}
           placeholder=${nullable ? nullLabel : ""}
-          .value=${live(String(shown))}
+          .value=${fieldValue(String(shown))}
           @change=${(e: Event) => {
             const s = (e.target as HTMLInputElement).value.trim();
             // An empty field becomes null if allowed by the schema; otherwise it returns to the default (as ↺ does).
@@ -2610,7 +2611,7 @@ export class GuidedEditor extends LitElement {
         }</span
       ><input
         placeholder=${isNull ? nullLabel : ""}
-        .value=${live(isNull || value === undefined ? "" : String(value))}
+        .value=${fieldValue(isNull || value === undefined ? "" : String(value))}
         @change=${(e: Event) => {
           const s = (e.target as HTMLInputElement).value;
           on(s === "" && nullable && !types.includes("string") ? null : s);

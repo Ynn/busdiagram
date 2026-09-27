@@ -4,6 +4,10 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Fixed
+
+- Designer: a guided form field no longer loses text being typed when the page re-renders before the edit is confirmed (for example when an extension finishes loading).
+
 ## [0.1.0] - 2026-09-28
 
 First public version.
