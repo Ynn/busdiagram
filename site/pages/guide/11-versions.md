@@ -38,6 +38,6 @@ Behavior identifiers carry their own version (`switchActuator/v1`). An incompati
 A page should load a known version of the library:
 
 - **Self-hosted file:** keep `bus-diagram.js` next to your pages and replace it deliberately when you update. Check its banner to know which version it is.
-- **CDN:** use a URL that contains the full version number. A URL without a version, or with a moving tag such as `latest`, can change the behavior of an existing page when a new version is released.
+- **CDN:** use a URL that contains the full version number, such as `https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js`. A URL without a version, or with a moving tag such as `latest`, can change the behavior of an existing page when a new version is released.
 
 Before updating across a major version (or a minor version before 1.0.0), read the corresponding section of `CHANGELOG.md` and validate your scenarios with the [designer](../designer/index.html) or `npm run validate`.

@@ -1,8 +1,9 @@
 # Release the library when a version tag (vX.Y.Z) is pushed.
 # 1. Check that the tag matches package.json and CHANGELOG.md, then run all checks.
 # 2. Create a GitHub release with the distributed files.
-# 3. Publish to npm only when the repository variable NPM_PUBLISH is "true", the
-#    NPM_TOKEN secret exists, and package.json is no longer marked private.
+# 3. Publish to npm when the repository variable NPM_PUBLISH is "true". Publishing uses
+#    npm trusted publishing (OpenID Connect, no token) once it is configured for this
+#    repository and workflow on npmjs.com; an NPM_TOKEN secret is used instead if present.
 name: Release
 
 on:
@@ -17,8 +18,8 @@ jobs:
   release:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
           cache: npm
@@ -41,4 +42,7 @@ jobs:
         if: vars.NPM_PUBLISH == 'true'
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish --provenance --access public
+        run: |
+          # Trusted publishing needs npm 11.5.1 or later.
+          npm install -g npm@latest
+          npm publish --provenance --access public

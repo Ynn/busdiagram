@@ -29,15 +29,3 @@ To embed the player in another page:
 An uncompressed form, `player.html#json=<percent-encoded JSON>`, is accepted as well; it is intended for links produced by scripts or [language models](language-models.html). The designer accepts the same `#json=` fragment.
 
 The player can also load a JSON file over HTTP: `player.html?src=scenarios/status-feedback.json`. Published example scenarios live in `docs/scenarios/`.
-
-## Publish the static site
-
-`docs/` is the generated static site: documentation, examples, designer, player, and scenario JSON. Its links are relative, so it can be hosted at a domain root or under a subpath. It also opens locally through `docs/index.html` for pages that do not fetch external JSON files.
-
-| Hosting | Configuration |
-| --- | --- |
-| GitHub Pages | Select **GitHub Actions** as the Pages source. The workflow in `.github/workflows/pages.yml` checks and builds pushes to `main`. Run it manually with **Run workflow** to deploy after the release review. |
-| Cloudflare Pages | Build with `npm run build` and publish the `docs` directory. |
-| Another static server | Copy the contents of `docs/`. |
-
-`docs/.nojekyll` tells GitHub Pages to serve these files without Jekyll processing. Browser tests cover offline pages and subpath hosting.

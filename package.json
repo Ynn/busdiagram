@@ -1,11 +1,18 @@
 {
   "name": "bus-diagram",
   "version": "0.1.0",
-  "private": true,
   "type": "module",
   "description": "Instructional diagrams of KNX installations, with a limited simulation layer.",
   "license": "AGPL-3.0-only",
   "author": "Yoann Maurel",
+  "homepage": "https://ynn.github.io/busdiagram/",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Ynn/busdiagram.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Ynn/busdiagram/issues"
+  },
   "keywords": [
     "knx",
     "diagram",
@@ -36,6 +43,7 @@
   ],
   "scripts": {
     "prepare": "node scripts/install-hook.mjs",
+    "prepublishOnly": "npm run check",
     "sync": "node scripts/sync-scenarios.mjs",
     "check:publication": "sh scripts/check-publication.sh",
     "check:version": "node scripts/check-version.mjs",

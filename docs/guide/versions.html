@@ -91,7 +91,7 @@
 <h2 id="pin-a-version"><a class="anchor" href="#pin-a-version">#</a>Pin a version</h2><p>A page should load a known version of the library:</p>
 <ul>
 <li><strong>Self-hosted file:</strong> keep <code>bus-diagram.js</code> next to your pages and replace it deliberately when you update. Check its banner to know which version it is.</li>
-<li><strong>CDN:</strong> use a URL that contains the full version number. A URL without a version, or with a moving tag such as <code>latest</code>, can change the behavior of an existing page when a new version is released.</li>
+<li><strong>CDN:</strong> use a URL that contains the full version number, such as <code>https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js</code>. A URL without a version, or with a moving tag such as <code>latest</code>, can change the behavior of an existing page when a new version is released.</li>
 </ul>
 <p>Before updating across a major version (or a minor version before 1.0.0), read the corresponding section of <code>CHANGELOG.md</code> and validate your scenarios with the <a href="../designer/index.html">designer</a> or <code>npm run validate</code>.</p>
 

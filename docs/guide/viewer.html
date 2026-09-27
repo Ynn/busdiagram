@@ -55,35 +55,13 @@
 <p>To embed the player in another page:</p>
 <pre class="code"><code>&lt;<span class="t">iframe</span> <span class="a">src</span>=<span class="s">"https://example.org/docs/player.html#d=compressed-scenario"</span> <span class="a">style</span>=<span class="s">"width:100%;aspect-ratio:16/9;border:0"</span>&gt;&lt;/<span class="t">iframe</span>&gt;</code></pre><p>An uncompressed form, <code>player.html#json=&lt;percent-encoded JSON&gt;</code>, is accepted as well; it is intended for links produced by scripts or <a href="language-models.html">language models</a>. The designer accepts the same <code>#json=</code> fragment.</p>
 <p>The player can also load a JSON file over HTTP: <code>player.html?src=scenarios/status-feedback.json</code>. Published example scenarios live in <code>docs/scenarios/</code>.</p>
-<h2 id="publish-the-static-site"><a class="anchor" href="#publish-the-static-site">#</a>Publish the static site</h2><p><code>docs/</code> is the generated static site: documentation, examples, designer, player, and scenario JSON. Its links are relative, so it can be hosted at a domain root or under a subpath. It also opens locally through <code>docs/index.html</code> for pages that do not fetch external JSON files.</p>
-<div class="table"><table>
-<thead>
-<tr>
-<th>Hosting</th>
-<th>Configuration</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>GitHub Pages</td>
-<td>Select <strong>GitHub Actions</strong> as the Pages source. The workflow in <code>.github/workflows/pages.yml</code> checks and builds pushes to <code>main</code>. Run it manually with <strong>Run workflow</strong> to deploy after the release review.</td>
-</tr>
-<tr>
-<td>Cloudflare Pages</td>
-<td>Build with <code>npm run build</code> and publish the <code>docs</code> directory.</td>
-</tr>
-<tr>
-<td>Another static server</td>
-<td>Copy the contents of <code>docs/</code>.</td>
-</tr>
-</tbody></table>
-</div><p><code>docs/.nojekyll</code> tells GitHub Pages to serve these files without Jekyll processing. Browser tests cover offline pages and subpath hosting.</p>
 
 <nav class="pager">
 <a href="../guide/slides.html">← Slides</a>
 <a href="../guide/languages.html">Languages →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#standalone-export">Standalone export</a></li><li><a href="#viewer-link-and-iframe">Viewer link and iframe</a></li><li><a href="#publish-the-static-site">Publish the static site</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#standalone-export">Standalone export</a></li><li><a href="#viewer-link-and-iframe">Viewer link and iframe</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>

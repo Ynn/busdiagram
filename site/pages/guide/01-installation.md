@@ -11,6 +11,8 @@ The library ships as one file, `bus-diagram.js`. It does not load external resou
 ## Get the file
 
 - **Download:** use the Download button at the top of this page or **Export → Library** in the [designer](../designer/index.html).
+- **npm:** `npm install bus-diagram` installs the classic script (`dist/bus-diagram.js`), the ES module (`dist/bus-diagram.esm.js`), and TypeScript declarations.
+- **CDN:** load a fixed version from jsDelivr, for example `<script src="https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js"></script>`. Always include the full version number; see [versions and releases](versions.html).
 - **Build from source:** run `npm install` and `npm run build`. The bundle is written to `dist/bus-diagram.js` and copied to `demo/` and `docs/assets/`.
 
 ## Add it to a page

@@ -52,6 +52,8 @@
 <h1 id="installation"><a class="anchor" href="#installation">#</a>Installation</h1><p>The library ships as one file, <code>bus-diagram.js</code>. It does not load external resources or contact a server. It works offline, including when a page is opened directly from disk with <code>file://</code>.</p>
 <h2 id="get-the-file"><a class="anchor" href="#get-the-file">#</a>Get the file</h2><ul>
 <li><strong>Download:</strong> use the Download button at the top of this page or <strong>Export → Library</strong> in the <a href="../designer/index.html">designer</a>.</li>
+<li><strong>npm:</strong> <code>npm install bus-diagram</code> installs the classic script (<code>dist/bus-diagram.js</code>), the ES module (<code>dist/bus-diagram.esm.js</code>), and TypeScript declarations.</li>
+<li><strong>CDN:</strong> load a fixed version from jsDelivr, for example <code>&lt;script src=&quot;https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js&quot;&gt;&lt;/script&gt;</code>. Always include the full version number; see <a href="versions.html">versions and releases</a>.</li>
 <li><strong>Build from source:</strong> run <code>npm install</code> and <code>npm run build</code>. The bundle is written to <code>dist/bus-diagram.js</code> and copied to <code>demo/</code> and <code>docs/assets/</code>.</li>
 </ul>
 <h2 id="add-it-to-a-page"><a class="anchor" href="#add-it-to-a-page">#</a>Add it to a page</h2><p>Load the script once, preferably in <code>&lt;head&gt;</code>:</p>
