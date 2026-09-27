@@ -1,0 +1,130 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home · BusDiagram</title>
+<link rel="stylesheet" href="assets/docs.css">
+<script src="assets/bus-diagram.js"></script>
+
+<script defer src="assets/search-index.js"></script>
+<script defer src="assets/docs.js" data-base=""></script>
+</head>
+<body class="home">
+<header class="site">
+  <a class="brand" href="index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="guide/installation.html">Guide</a>
+    <a href="examples/index.html">Examples</a>
+    <a href="reference/index.html">Reference</a>
+    <a href="designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout wide">
+
+<main>
+
+<div class="hero">
+<div><h1 id="busdiagram"><a class="anchor" href="#busdiagram">#</a>BusDiagram</h1><p class="lead">A tool for designing instructional diagrams of KNX TP and KNXnet/IP installations: topology, devices, communication objects, group addresses, and connected loads.</p><p>Describe an installation in JSON; the diagram is laid out from its addresses and can be embedded in a web page or presentation. Diagrams can be operated to follow telegrams through the topology. The library is a single JavaScript file and runs offline without a server.</p>
+</div>
+<div><figure class="example" id="ex1">
+<div class="demo"><bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:330px"><script type="application/json">{"formatVersion":2,"title":"Control multiple outputs","description":"A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/1","name":"L1–L2 lighting","dpt":"1.001"},{"address":"1/1/2","name":"L1–L4 lighting","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","description":"A four-key push-button: one device, one individual address, and one group object per key.","objects":[{"id":"key1","name":"Key 1","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"key2","name":"Key 2","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"key3","name":"Key 3","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"key4","name":"Key 4","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Key 1","press":{"object":"key1","value":1}},{"id":"button-1","label":"Key 2","press":{"object":"key2","value":0}},{"id":"button-2","label":"Key 3","press":{"object":"key3","value":1}},{"id":"button-3","label":"Key 4","press":{"object":"key4","value":0}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.","objects":[{"id":"c1","name":"Channel 1","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Channel 2","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Channel 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+
+
+</figure></div>
+</div><h2 id="get-started"><a class="anchor" href="#get-started">#</a>Get started</h2><ol>
+<li>Put <a href="assets/bus-diagram.js">bus-diagram.js</a> next to your page.</li>
+<li>Load the script once.</li>
+<li>Put the installation JSON inside a <code>&lt;bus-diagram&gt;</code> element. The <a href="designer/index.html">designer</a> can generate the JSON for you.</li>
+</ol>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;
+
+&lt;<span class="t">bus-diagram</span>&gt;
+  &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+    {
+      "formatVersion": 2,
+      "title": "My first installation",
+      "lines": [{ "address": "1.1" }],
+      "devices": [
+        {
+          "id": "pushButton",
+          "name": "Push button",
+          "address": "1.1.1",
+          "kind": "pushButton",
+          "behavior": "pushButton/v1",
+          "objects": [
+            {
+              "id": "b1",
+              "name": "Key 1",
+              "ga": "1/1/1",
+              "dpt": "1.001",
+              "port": "input",
+              "flags": { "W": true, "T": true }
+            }
+          ],
+          "buttons": [
+            {
+              "id": "b1",
+              "label": "Key 1",
+              "press": { "object": "b1", "value": "toggle" },
+              "led": "b1"
+            }
+          ]
+        },
+        {
+          "id": "switchActuator",
+          "name": "Switch actuator",
+          "address": "1.1.2",
+          "kind": "switchActuator",
+          "behavior": "switchActuator/v1",
+          "objects": [
+            {
+              "id": "c1",
+              "name": "Channel 1",
+              "ga": "1/1/1",
+              "dpt": "1.001",
+              "port": "switch",
+              "channel": "s1",
+              "flags": { "W": true, "T": false }
+            }
+          ],
+          "channels": [
+            { "id": "s1", "label": "L1", "equipment": { "type": "lamp" } }
+          ]
+        }
+      ]
+    }
+  &lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><p>This example connects a push button, switch actuator, and lamp to line 1.1. The <a href="guide/first-diagram.html">first diagram</a> guide explains each field.</p>
+<div class="cards">
+<a href="guide/installation.html"><b>Guide</b><span>Install the library, describe an installation, and embed the diagram in a page or slide.</span></a>
+<a href="examples/index.html"><b>Examples</b><span>Diagrams of typical installations and integration examples with copyable code.</span></a>
+<a href="reference/index.html"><b>Reference</b><span>Options, JSON fields, ports, DPTs, methods, events, and error codes.</span></a>
+<a href="designer/index.html"><b>Designer</b><span>Guided forms, a JSON editor, validation, preview, and export.</span></a>
+</div><h2 id="what-a-diagram-shows"><a class="anchor" href="#what-a-diagram-shows">#</a>What a diagram shows</h2><ul>
+<li><strong>Topology:</strong> lines, main lines, backbone, repeaters, segment couplers, and KNXnet/IP routers, laid out from the individual addresses.</li>
+<li><strong>Devices:</strong> push-buttons, actuators, gateways, thermostats, weather stations, logic modules, and supervisors with their communication objects, group addresses, and flags.</li>
+<li><strong>Connected loads:</strong> lamps, tunable white lights, shutters and venetian blinds, fans, electrical appliances, DALI groups, and radiators attached to actuator channels.</li>
+</ul>
+<h2 id="what-can-be-simulated"><a class="anchor" href="#what-can-be-simulated">#</a>What can be simulated</h2><p>The simulation is limited to what is needed to explain the diagram. See <a href="guide/limits.html">model and limits</a>.</p>
+<ul>
+<li><strong>Local controls:</strong> button presses, short and long presses, and setpoint entry.</li>
+<li><strong>Communication objects:</strong> value changes and the effect of the C, R, W, T, and U flags.</li>
+<li><strong>Telegrams:</strong> writes, reads, and responses; bus propagation, coupler filtering and routing, and reception by linked objects.</li>
+<li><strong>Actuators and loads:</strong> switch outputs, lamps, shutters, and status feedback.</li>
+<li><strong>Commissioning tools:</strong> group monitor, byte-level TP1 telegram view, and a <a href="guide/usb-interface.html">USB interface tool</a> for group reads and writes.</li>
+</ul>
+<p><strong>Step mode</strong> pauses at each event and explains what happened.</p>
+
+
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#get-started">Get started</a></li><li><a href="#what-a-diagram-shows">What a diagram shows</a></li><li><a href="#what-can-be-simulated">What can be simulated</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="designer/index.html">Designer</a> · <a href="THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

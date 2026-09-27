@@ -1,0 +1,105 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Languages · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li class="cur"><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="languages"><a class="anchor" href="#languages">#</a>Languages</h1><p>The component and designer support English and French. English is the source language; French wording is supplied by locale catalogs. Scenario titles, device names, and other values in scenario JSON are author-controlled content and are not translated automatically.</p>
+<h2 id="select-a-language"><a class="anchor" href="#select-a-language">#</a>Select a language</h2><p>The component uses the nearest <code>lang</code> attribute on itself or an ancestor:</p>
+<pre class="code"><code>&lt;<span class="t">html</span> <span class="a">lang</span>=<span class="s">"en"</span>&gt;
+  &lt;<span class="t">bus-diagram</span> <span class="a">src</span>=<span class="s">"scenarios/lighting-control.json"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;
+&lt;/<span class="t">html</span>&gt;</code></pre><p>Set <code>lang=&quot;fr&quot;</code> on one component to show that instance in French. Without an explicit language, the component can use the browser locale; English is the fallback for unsupported languages. The designer has its own language selector and remembers the chosen language.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Context</th>
+<th>Language setting</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>HTML page or browser-based slide</td>
+<td><code>lang</code> on the page, container, or component.</td>
+</tr>
+<tr>
+<td>Standalone export</td>
+<td>Language selected in the designer.</td>
+</tr>
+<tr>
+<td>Player</td>
+<td>Language in its link or <code>player.html?lang=fr#d=…</code>.</td>
+</tr>
+<tr>
+<td>DOM-free engine</td>
+<td><code>createSimulator(json, { lang: &quot;fr&quot; })</code>.</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td><code>buildScenario(json, undefined, BusDiagram.translator(&quot;fr&quot;))</code>.</td>
+</tr>
+</tbody></table>
+</div><h2 id="add-a-locale"><a class="anchor" href="#add-a-locale">#</a>Add a locale</h2><p>A catalog maps English messages to translated text. Numbered slots such as <code>{0}</code> and <code>{1}</code> preserve interpolated values:</p>
+<pre class="code"><code>BusDiagram.registerMessages(<span class="s">"de"</span>, {
+  <span class="k">"Group monitor"</span>: <span class="s">"Gruppenmonitor"</span>,
+  <span class="k">"unknown channel “{0}” in {1}"</span>: <span class="s">"unbekannter Kanal „{0}“ in {1}"</span>,
+});</code></pre><p>Load the catalog after the library and select <code>&lt;html lang=&quot;de&quot;&gt;</code>. Missing messages fall back to English. <code>BusDiagram.availableLanguages()</code> lists registered language codes. The French catalog in <code>src/i18n/fr.ts</code> provides a complete example; the designer has additional entries in <code>site/designer/fr.ts</code>.</p>
+<h2 id="messages-in-an-extension"><a class="anchor" href="#messages-in-an-extension">#</a>Messages in an extension</h2><p>An extension can localize its own status messages through <code>ctx.t</code>:</p>
+<pre class="code"><code>ctx.note(ctx.t<span class="s">`${label}: scheduled to switch on in ${delay} s`</span>);
+BusDiagram.registerMessages(<span class="s">"fr"</span>, {
+  <span class="k">"{0}: scheduled to switch on in {1} s"</span>: <span class="s">"{0} : allumage prévu dans {1} s"</span>,
+});</code></pre><p>Titles declared in behavior and equipment definitions are translated by the same catalog when it contains them.</p>
+
+<nav class="pager">
+<a href="../guide/viewer.html">← Standalone page and link</a>
+<a href="../guide/api.html">JavaScript API →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#select-a-language">Select a language</a></li><li><a href="#add-a-locale">Add a locale</a></li><li><a href="#messages-in-an-extension">Messages in an extension</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

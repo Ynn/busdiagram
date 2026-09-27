@@ -1,0 +1,206 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Display options · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html" class="cur">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../reference/index.html">Overview</a></li><li class="cur"><a href="../reference/options.html">Display options</a></li><li><a href="../reference/json.html">JSON scenario</a></li><li><a href="../reference/behaviors.html">Behaviors and equipment</a></li><li><a href="../reference/ports.html">Ports</a></li><li><a href="../reference/dpt.html">DPT</a></li><li><a href="../reference/api.html">JavaScript API</a></li><li><a href="../reference/events.html">Events</a></li><li><a href="../reference/errors.html">Error codes</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Reference</p>
+<h1 id="display-options"><a class="anchor" href="#display-options">#</a>Display options</h1><p>An option can be set as an HTML attribute (<code>monitor=&quot;false&quot;</code>) or as a JavaScript property (<code>{ monitor: false }</code>). JavaScript options take precedence. Invalid values are ignored. Boolean attributes accept <code>true</code>, <code>false</code>, or the attribute by itself for true.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">fit</span>=<span class="s">"contain"</span> <span class="a">toolbar</span>=<span class="s">"compact"</span> <span class="a">monitor</span>=<span class="s">"false"</span> <span class="a">style</span>=<span class="s">"height:520px"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code"><code><span class="kw">const</span> diagram = BusDiagram.create(<span class="s">"#diagram"</span>, scenario, {
+  fit: <span class="s">"contain"</span>,
+  toolbar: <span class="s">"compact"</span>,
+  monitor: <span class="kw">false</span>,
+});
+diagram.options = { monitor: <span class="kw">true</span> }; <span class="c">// Change an option later.</span></code></pre><h3 id="toolbar"><a class="anchor" href="#toolbar">#</a>toolbar</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>toolbar</code></td>
+<td><code>toolbar</code></td>
+<td>&quot;full&quot; | &quot;compact&quot; | &quot;none&quot;</td>
+<td>&quot;full&quot;</td>
+</tr>
+</tbody></table>
+</div><p>Toolbar above the diagram. ‘full’ shows the title, speed, filter tables, step control, pause, and reset. ‘compact’ shows three small floating buttons in a corner of the diagram, suitable for a slide. ‘none’ hides the controls while leaving the diagram interactive.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">toolbar</span>=<span class="s">"compact"</span>&gt;</code></pre><h3 id="monitor"><a class="anchor" href="#monitor">#</a>monitor</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>monitor</code></td>
+<td><code>monitor</code></td>
+<td>boolean</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Group monitor and telegram details below the diagram. Set to false when a slide or page needs only the diagram. Telegrams still travel over the bus.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">monitor</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="description"><a class="anchor" href="#description">#</a>description</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>description</code></td>
+<td><code>description</code></td>
+<td>boolean</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Scenario <code>description</code> below the toolbar. Hide when the page or slide already explains the interaction.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">description</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="hints"><a class="anchor" href="#hints">#</a>hints</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hints</code></td>
+<td><code>hints</code></td>
+<td>boolean</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Hint explaining short and long button presses. Shown only when a button distinguishes short and long presses.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">hints</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="fit"><a class="anchor" href="#fit">#</a>fit</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fit</code></td>
+<td><code>fit</code></td>
+<td>&quot;width&quot; | &quot;contain&quot;</td>
+<td>&quot;width&quot;</td>
+</tr>
+</tbody></table>
+</div><p>Diagram scaling. ‘width’ uses the available width between minScale and maxScale; oversized diagrams scroll horizontally instead of becoming unreadable. ‘contain’ fits the entire diagram within the component; give the component an explicit height, such as 100% of a slide.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">fit</span>=<span class="s">"contain"</span> <span class="a">style</span>=<span class="s">"height:560px"</span>&gt;</code></pre><h3 id="maxscale"><a class="anchor" href="#maxscale">#</a>maxScale</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>max-scale</code></td>
+<td><code>maxScale</code></td>
+<td>number</td>
+<td>1.2</td>
+</tr>
+</tbody></table>
+</div><p>Maximum diagram scale. Prevents a small diagram from becoming oversized on a large screen.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">max-scale</span>=<span class="s">"1"</span>&gt;</code></pre><h3 id="minscale"><a class="anchor" href="#minscale">#</a>minScale</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>min-scale</code></td>
+<td><code>minScale</code></td>
+<td>number</td>
+<td>0.7</td>
+</tr>
+</tbody></table>
+</div><p>Minimum scale in ‘width’ mode before horizontal scrolling. Below this scale, labels would become unreadable, so the diagram scrolls.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">min-scale</span>=<span class="s">"0.5"</span>&gt;</code></pre><h3 id="speed"><a class="anchor" href="#speed">#</a>speed</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>speed</code></td>
+<td><code>speed</code></td>
+<td>number</td>
+<td>scenario <code>options.speed</code>, otherwise 1</td>
+</tr>
+</tbody></table>
+</div><p>Initial simulation speed. 1 is real time, 0.35 is slower, and 2 is faster. The long-press threshold (0.5 real seconds) does not change.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">speed</span>=<span class="s">"0.35"</span>&gt;</code></pre><h3 id="stepmode"><a class="anchor" href="#stepmode">#</a>stepMode</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>step-mode</code></td>
+<td><code>stepMode</code></td>
+<td>boolean</td>
+<td>false</td>
+</tr>
+</tbody></table>
+</div><p>Start in step mode. Pause at each transmission, coupler decision, reception, output change, and scheduled event, with an explanation and a Next button.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">step-mode</span>&gt;</code></pre>
+<nav class="pager">
+<a href="../reference/index.html">← Overview</a>
+<a href="../reference/json.html">JSON scenario →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

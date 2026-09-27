@@ -1,0 +1,276 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extension · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+<script src="../assets/extensions/delayed-switch.js"></script><script src="../assets/extensions/led-lamp-view.js"></script>
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li class="cur"><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="extension-delayed-switching"><a class="anchor" href="#extension-delayed-switching">#</a>Extension: delayed switching</h1><p>Two scripts register a <code>delayedSwitch/v1</code> behavior and a <code>ledStrip</code> view without changing the library. Key 1 sends 1: L1 switches on after 2 seconds and L2, shown as an LED strip, after 1 second. Key 2 sends 0 to switch them off immediately and cancel pending switch-on events.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Extension · delayed switch","description":"The delayedSwitch/v1 behavior is loaded by an extension script. Key 1 sends 1 and the lamp turns on after 2 seconds; Key 2 sends 0 and cancels a pending turn-on. L2 uses the alternative ledStrip view with the same Boolean state.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/1","name":"Delayed lighting","dpt":"1.001"},{"address":"1/4/1","name":"L1 status feedback","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"key1","name":"Key 1 on","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"key2","name":"Key 2 off","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"status","name":"L1 status","ga":"1/4/1","dpt":"1.001","port":"display","flags":{"W":true,"T":false}}],"buttons":[{"id":"key1","label":"Key 1","press":{"object":"key1","value":1},"led":"status"},{"id":"key2","label":"Key 2","press":{"object":"key2","value":0}}]},{"id":"switchActuator","name":"Delayed switch","address":"1.1.2","kind":"switchActuator","behavior":"delayedSwitch/v1","objects":[{"id":"c1","name":"Channel 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"e1","name":"Status 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":false,"T":true}},{"id":"c2","name":"Channel 2","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","parameters":{"delayMs":2000},"equipment":{"type":"lamp"}},{"id":"s2","label":"L2","parameters":{"delayMs":1000},"equipment":{"type":"lamp","view":"ledStrip"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Extension · delayed switch",
+  "description": "The delayedSwitch/v1 behavior is loaded by an extension script. Key 1 sends 1 and the lamp turns on after 2 seconds; Key 2 sends 0 and cancels a pending turn-on. L2 uses the alternative ledStrip view with the same Boolean state.",
+  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "Delayed lighting", "dpt": "1.001" },
+    { "address": "1/4/1", "name": "L1 status feedback", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1 on",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key2",
+          "name": "Key 2 off",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "status",
+          "name": "L1 status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1",
+          "press": { "object": "key1", "value": 1 },
+          "led": "status"
+        },
+        { "id": "key2", "label": "Key 2", "press": { "object": "key2", "value": 0 } }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Delayed switch",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "delayedSwitch/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "e1",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "parameters": { "delayMs": 2000 },
+          "equipment": { "type": "lamp" }
+        },
+        {
+          "id": "s2",
+          "label": "L2",
+          "parameters": { "delayMs": 1000 },
+          "equipment": { "type": "lamp", "view": "ledStrip" }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Extension · delayed switch"</span>,
+  <span class="k">"description"</span>: <span class="s">"The delayedSwitch/v1 behavior is loaded by an extension script. Key 1 sends 1 and the lamp turns on after 2 seconds; Key 2 sends 0 and cancels a pending turn-on. L2 uses the alternative ledStrip view with the same Boolean state."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Delayed lighting"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 status feedback"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push button"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Key 1 on"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Key 2 off"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"status"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Key 1"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key1"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
+          <span class="k">"led"</span>: <span class="s">"status"</span>
+        },
+        { <span class="k">"id"</span>: <span class="s">"key2"</span>, <span class="k">"label"</span>: <span class="s">"Key 2"</span>, <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key2"</span>, <span class="k">"value"</span>: <span class="n">0</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Delayed switch"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"delayedSwitch/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"e1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Status 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"delayMs"</span>: <span class="n">2000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s2"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"delayMs"</span>: <span class="n">1000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span>, <span class="k">"view"</span>: <span class="s">"ledStrip"</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><h2 id="load-the-scripts"><a class="anchor" href="#load-the-scripts">#</a>Load the scripts</h2><pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;
+&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"extensions/delayed-switch.js"</span>&gt;&lt;/<span class="t">script</span>&gt;
+&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"extensions/led-lamp-view.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><h2 id="source"><a class="anchor" href="#source">#</a>Source</h2><p>The TypeScript source at <code>site/samples/extensions/delayed-switch.ts</code> is compiled into a classic script by <code>npm run build</code>. See the <a href="../guide/extensions.html">extension guide</a> for the behavior API.</p>
+
+<nav class="pager">
+<a href="../examples/programmatic-control.html">← Programmatic control</a>
+
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#load-the-scripts">Load the scripts</a></li><li><a href="#source">Source</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

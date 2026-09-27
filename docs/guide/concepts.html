@@ -1,0 +1,132 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Concepts · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li class="cur"><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="concepts"><a class="anchor" href="#concepts">#</a>Concepts</h1><p>A diagram separates user actions, KNX communication, actuator outputs, and connected equipment.</p>
+<pre class="code"><code>button press → device behavior → communication object → bus telegram
+                                                  ↓
+                                  receiving object (W flag)
+                                                  ↓
+                         behavior → output → lamp or shutter</code></pre><h2 id="device"><a class="anchor" href="#device">#</a>Device</h2><p>A KNX device has an individual address such as <code>1.1.10</code>. It contains communication objects and may also have buttons, inputs, and channels. Its <code>behavior</code> defines its logic, for example <code>pushButton/v1</code>, <code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>daliGateway/v1</code>, <code>roomThermostat/v1</code>, or a registered <a href="extensions.html">extension</a>. The <code>kind</code> field classifies the device and determines its representation.</p>
+<h2 id="communication-object"><a class="anchor" href="#communication-object">#</a>Communication object</h2><p>Each object has a value, a DPT that determines how to interpret it, one or more group addresses, and flags:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Enabled</th>
+<th>Disabled</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>C</code> communication</td>
+<td>Always enabled in this model.</td>
+<td>—</td>
+</tr>
+<tr>
+<td><code>W</code> write</td>
+<td>A received write updates the value and invokes the behavior.</td>
+<td>The telegram remains visible, but the value and behavior do not change.</td>
+</tr>
+<tr>
+<td><code>T</code> transmit</td>
+<td>The object can send its value.</td>
+<td>The value may change locally, but no telegram is sent.</td>
+</tr>
+<tr>
+<td><code>R</code> read</td>
+<td>The object responds to a read on its sending address.</td>
+<td>No response is sent.</td>
+</tr>
+<tr>
+<td><code>U</code> update</td>
+<td>A received response updates the object.</td>
+<td>Responses are ignored.</td>
+</tr>
+</tbody></table>
+</div><p><code>R</code> and <code>U</code> are optional in JSON; see their defaults in the <a href="usb-interface.html#r-and-u-flags">USB interface guide</a>. The object&#39;s <strong>port</strong> (<code>switch</code>, <code>status</code>, <code>move</code>, and so on) gives it a role in its behavior; see the <a href="../reference/ports.html">port reference</a>.</p>
+<h2 id="group-address-and-telegram"><a class="anchor" href="#group-address-and-telegram">#</a>Group address and telegram</h2><p>A group telegram has a source individual address, a destination group address, a service, and—on a write or response—payload data. The DPT is not transmitted: each device interprets the payload using its own object DPT. Every device on the line can receive the telegram, but only objects associated with its destination address process it.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Sent by</th>
+<th>Processed by</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GroupValueWrite</code></td>
+<td>A behavior with the T flag, or the USB interface panel.</td>
+<td>Associated objects with the W flag.</td>
+</tr>
+<tr>
+<td><code>GroupValueRead</code></td>
+<td>The USB interface panel.</td>
+<td>Associated objects with the R flag on their sending address.</td>
+</tr>
+<tr>
+<td><code>GroupValueResponse</code></td>
+<td>An object answering a read.</td>
+<td>Associated objects with the U flag.</td>
+</tr>
+</tbody></table>
+</div><h2 id="channel-and-connected-equipment"><a class="anchor" href="#channel-and-connected-equipment">#</a>Channel and connected equipment</h2><p>A channel is an actuator output, such as a relay or motor drive. Its behavior sends commands such as <code>on/off</code> or <code>up/down/stop</code>. Connected equipment, such as a lamp or shutter, responds to those commands and has its own physical state. It does not know about group addresses or DPTs.</p>
+<p>The separation makes it possible to show a <a href="shutters.html">miscalibrated shutter</a>: the actuator estimates position using its configured travel time while the connected shutter moves at its actual speed.</p>
+<h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Internal association</h2><p>When an object transmits, other objects in the <strong>same device</strong> that share the address may also receive the telegram if their W flag permits it. A status object can therefore control another output of the same actuator. This convention of the model is not implemented identically by every manufacturer.</p>
+
+<nav class="pager">
+<a href="../guide/first-diagram.html">← First diagram</a>
+<a href="../guide/scenario.html">Structure of a scenario →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#device">Device</a></li><li><a href="#communication-object">Communication object</a></li><li><a href="#group-address-and-telegram">Group address and telegram</a></li><li><a href="#channel-and-connected-equipment">Channel and connected equipment</a></li><li><a href="#internal-association">Internal association</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

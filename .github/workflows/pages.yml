@@ -1,0 +1,56 @@
+# Publish the documentation, designer, and player (docs/) on GitHub Pages.
+# Set Settings → Pages → Source to GitHub Actions.
+name: Documentation
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npm run lint && npm run typecheck && npm test
+      - run: npm run build
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+      - run: python -m pip install pre-commit==4.6.2
+      - run: npm run check:publication
+      # Run browser checks against rebuilt artifacts. Visual regression snapshots
+      # depend on the local Linux Chromium and are checked locally only.
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --grep-invert "reference screenshots"
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

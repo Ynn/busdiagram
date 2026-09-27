@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BusDiagram slides · example</title>
+<link rel="stylesheet" href="../assets/reveal/reveal.css">
+<link rel="stylesheet" href="../assets/reveal/theme/white.css">
+<style>.reveal h3{font-size:1.2em;margin-bottom:.3em}.reveal .note{font-size:.5em;color:#5f646d;margin:.4em 0 0}</style>
+<script src="../assets/bus-diagram.js"></script>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+<section><h2>The KNX bus</h2><p>Interactive slides: press a button.</p><p class="note">→ to continue</p></section>
+{% for slide in slides %}
+<section>
+  <h3>{{ slide.title }}</h3>
+  <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
+  <script type="application/json">{{ slide.scenario | safe }}</script>
+  </bus-diagram>
+  <p class="note">{{ slide.note }}</p>
+</section>
+{% endfor %}
+</div></div>
+<script src="../assets/reveal/reveal.js"></script>
+<script>Reveal.initialize({ hash: true, width: 1100, height: 700 });</script>
+</body>
+</html>

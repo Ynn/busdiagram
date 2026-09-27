@@ -1,0 +1,243 @@
+{
+  "formatVersion": 2,
+  "title": "Dimming actuator: switching, relative, and absolute dimming",
+  "description": "A short press switches the lamp on or off; a long press dims it with DPT 3.007 until the key is released. The numeric field sends an absolute level with DPT 5.001. The actuator reports its switching state and its level after each change.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1 switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/2/1",
+      "name": "L1 relative dimming",
+      "dpt": "3.007"
+    },
+    {
+      "address": "1/3/1",
+      "name": "L1 level",
+      "dpt": "5.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 switch status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/5/1",
+      "name": "L1 level status",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Two-key push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "on",
+          "name": "Key 1 on",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "up",
+          "name": "Key 1 brighter",
+          "ga": "1/2/1",
+          "dpt": "3.007",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "off",
+          "name": "Key 2 off",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "down",
+          "name": "Key 2 darker",
+          "ga": "1/2/1",
+          "dpt": "3.007",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "levelStatus",
+          "name": "Level status",
+          "ga": "1/5/1",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1 · Brighter",
+          "icon": "dimUp",
+          "short": {
+            "object": "on",
+            "value": 1
+          },
+          "long": {
+            "object": "up",
+            "value": 9
+          },
+          "release": {
+            "object": "up",
+            "value": 0
+          }
+        },
+        {
+          "id": "key2",
+          "label": "Key 2 · Darker",
+          "icon": "dimDown",
+          "short": {
+            "object": "off",
+            "value": 0
+          },
+          "long": {
+            "object": "down",
+            "value": 1
+          },
+          "release": {
+            "object": "down",
+            "value": 0
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
+    },
+    {
+      "id": "dimmerActuator",
+      "name": "Dimming actuator",
+      "address": "1.1.2",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "switch",
+          "name": "Switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "dim",
+          "name": "Relative dimming",
+          "ga": "1/2/1",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "value",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "status",
+          "name": "Switch status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "d1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "valueStatus",
+          "name": "Level status",
+          "ga": "1/5/1",
+          "dpt": "5.001",
+          "port": "valueStatus",
+          "channel": "d1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "d1",
+          "label": "L1",
+          "parameters": {
+            "dimTimeMs": 4000
+          },
+          "equipment": {
+            "type": "dimmableLamp"
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,860 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>BusDiagram slides · example</title>
+<link rel="stylesheet" href="../assets/reveal/reveal.css">
+<link rel="stylesheet" href="../assets/reveal/theme/white.css">
+<style>.reveal h3{font-size:1.2em;margin-bottom:.3em}.reveal .note{font-size:.5em;color:#5f646d;margin:.4em 0 0}</style>
+<script src="../assets/bus-diagram.js"></script>
+</head>
+<body>
+<div class="reveal"><div class="slides">
+<section><h2>The KNX bus</h2><p>Interactive slides: press a button.</p><p class="note">→ to continue</p></section>
+
+<section>
+  <h3>One telegram, multiple outputs</h3>
+  <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
+  <script type="application/json">{
+  "title": "Control multiple outputs",
+  "description": "A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1–L2 lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "L1–L4 lighting",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "address": "1.1.1",
+      "name": "Push-button",
+      "kind": "pushButton",
+      "description": "A four-key push-button: one device, one individual address, and one group object per key.",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1",
+          "ga": "1/1/1"
+        },
+        {
+          "id": "key2",
+          "name": "Key 2",
+          "ga": "1/1/1"
+        },
+        {
+          "id": "key3",
+          "name": "Key 3",
+          "ga": "1/1/2"
+        },
+        {
+          "id": "key4",
+          "name": "Key 4",
+          "ga": "1/1/2"
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "press": {
+            "object": "key1",
+            "value": 1
+          }
+        },
+        {
+          "label": "Key 2",
+          "press": {
+            "object": "key2",
+            "value": 0
+          }
+        },
+        {
+          "label": "Key 3",
+          "press": {
+            "object": "key3",
+            "value": 1
+          }
+        },
+        {
+          "label": "Key 4",
+          "press": {
+            "object": "key4",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "address": "1.1.2",
+      "name": "Four-output switching actuator",
+      "kind": "switchActuator",
+      "description": "One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.",
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1"
+        },
+        {
+          "id": "s2",
+          "label": "L2"
+        },
+        {
+          "id": "s3",
+          "label": "L3"
+        },
+        {
+          "id": "s4",
+          "label": "L4"
+        }
+      ],
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": ["1/1/1", "1/1/2"],
+          "role": "switch",
+          "channel": "s1"
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": ["1/1/1", "1/1/2"],
+          "role": "switch",
+          "channel": "s2"
+        },
+        {
+          "id": "c3",
+          "name": "Channel 3",
+          "ga": "1/1/2",
+          "role": "switch",
+          "channel": "s3"
+        },
+        {
+          "id": "c4",
+          "name": "Channel 4",
+          "ga": "1/1/2",
+          "role": "switch",
+          "channel": "s4"
+        }
+      ]
+    }
+  ]
+}
+</script>
+  </bus-diagram>
+  <p class="note">Key 3 turns on L1 through L4 with one telegram.</p>
+</section>
+
+<section>
+  <h3>Status feedback</h3>
+  <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
+  <script type="application/json">{
+  "title": "Toggle controls and status feedback",
+  "description": "Key 1 and Key 3 toggle L1; Key 2 toggles L1 through L4. Key 1 listens only to 1/1/1, so it can fall out of sync. Key 3 also listens to status feedback on 1/4/1 and stays synchronized. L1 status feedback also turns on L2.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1 lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "L1–L4 lighting group",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 status feedback",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/2",
+      "name": "L2 status feedback",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "address": "1.1.1",
+      "name": "Push-button",
+      "kind": "pushButton",
+      "description": "A toggle key sends the inverse of its object value. Without status feedback, that value only reflects the last value sent or received on its own addresses.",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1 toggle",
+          "ga": "1/1/1"
+        },
+        {
+          "id": "key2",
+          "name": "Key 2 group",
+          "ga": "1/1/2"
+        },
+        {
+          "id": "key3",
+          "name": "Key 3 + status",
+          "ga": ["1/1/1", "1/4/1"]
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "press": {
+            "object": "key1",
+            "value": "toggle"
+          },
+          "led": "key1"
+        },
+        {
+          "label": "Key 2",
+          "press": {
+            "object": "key2",
+            "value": "toggle"
+          },
+          "led": "key2"
+        },
+        {
+          "label": "Key 3",
+          "press": {
+            "object": "key3",
+            "value": "toggle"
+          },
+          "led": "key3"
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "address": "1.1.2",
+      "name": "Four-output switching actuator",
+      "kind": "switchActuator",
+      "description": "Status objects send the actual output value after each change.",
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1"
+        },
+        {
+          "id": "s2",
+          "label": "L2"
+        },
+        {
+          "id": "s3",
+          "label": "L3"
+        },
+        {
+          "id": "s4",
+          "label": "L4"
+        }
+      ],
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": ["1/1/1", "1/1/2"],
+          "role": "switch",
+          "channel": "s1"
+        },
+        {
+          "id": "e1",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "role": "status",
+          "channel": "s1"
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": ["1/1/2", "1/4/1"],
+          "role": "switch",
+          "channel": "s2"
+        },
+        {
+          "id": "e2",
+          "name": "Status 2",
+          "ga": "1/4/2",
+          "role": "status",
+          "channel": "s2"
+        },
+        {
+          "id": "c3",
+          "name": "Channel 3",
+          "ga": "1/1/2",
+          "role": "switch",
+          "channel": "s3"
+        },
+        {
+          "id": "c4",
+          "name": "Channel 4",
+          "ga": "1/1/2",
+          "role": "switch",
+          "channel": "s4"
+        }
+      ]
+    }
+  ]
+}
+</script>
+  </bus-diagram>
+  <p class="note">Press Key 2, then Key 1: the first press appears to have no effect.</p>
+</section>
+
+<section>
+  <h3>Misconfigured shutter</h3>
+  <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
+  <script type="application/json">{
+  "formatVersion": 2,
+  "title": "Shutter: estimated versus actual travel",
+  "description": "The actuator is configured for 20 seconds, while the real shutter takes 30 seconds. Compare this with a 30-second setting.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example installation"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "2/1/1",
+      "name": "Movement",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/1/2",
+      "name": "Stop / step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "2/1/3",
+      "name": "Position setpoint",
+      "dpt": "5.001"
+    },
+    {
+      "address": "2/1/4",
+      "name": "Estimated position",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Three-key push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "target",
+          "name": "Setpoint",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "feedback",
+          "name": "Received estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1 · Up",
+          "icon": "up",
+          "short": {
+            "object": "stop",
+            "value": 0
+          },
+          "long": {
+            "object": "move",
+            "value": 0
+          }
+        },
+        {
+          "id": "key2",
+          "label": "Key 2 · Down",
+          "icon": "down",
+          "short": {
+            "object": "stop",
+            "value": 1
+          },
+          "long": {
+            "object": "move",
+            "value": 1
+          }
+        },
+        {
+          "id": "key3",
+          "label": "Key 3 · 50 %",
+          "press": {
+            "object": "target",
+            "value": 50
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "position",
+          "type": "number",
+          "label": "Setpoint (%)",
+          "object": "target",
+          "min": 0,
+          "max": 100,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "target",
+          "name": "Requested position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "positionCommand",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "status",
+          "name": "Estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "s1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Shutter S1",
+          "parameters": {
+            "estimatedTravelTimeMs": 20000
+          },
+          "initialState": {
+            "estimatedPositionPct": 0
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 30000
+            },
+            "initialState": {
+              "positionPct": 0
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}
+</script>
+  </bus-diagram>
+  <p class="note">50% target: 50% estimated, 33% actual.</p>
+</section>
+
+<section>
+  <h3>Topology and filtering</h3>
+  <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
+  <script type="application/json">{
+  "title": "KNX topology: couplers, repeater, and KNXnet/IP routers",
+  "description": "Two areas are connected by an IP network. KNXnet/IP routers 1.0.0 and 2.0.0 act as area couplers. The installation has four lines, a line extension, and a supervisor on the IP network. Compare the route of a local command with that of a status telegram.",
+  "lines": [
+    {
+      "address": "1.1"
+    },
+    {
+      "address": "1.2"
+    },
+    {
+      "address": "2.1",
+      "extension": {
+        "address": "2.1.64",
+        "mode": "repeater",
+        "switchable": true
+      }
+    },
+    {
+      "address": "2.2",
+      "name": "no device"
+    }
+  ],
+  "topology": {
+    "ip": "areaCouplers"
+  },
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "Living-room lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/3/1",
+      "name": "Corridor lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "Living-room lighting status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/2",
+      "name": "Corridor lighting status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "2/1/1",
+      "name": "Shutter 1 up/down",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/2/1",
+      "name": "Shutter 1 stop/step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "2/4/1",
+      "name": "Shutter 1 position",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "sup",
+      "name": "Supervisor",
+      "kind": "supervisor",
+      "description": "The supervisor listens through the KNX/IP router. It sends no commands; it observes shutter commands and displays status feedback.",
+      "objects": [
+        {
+          "id": "pos",
+          "name": "Shutter 1 position",
+          "ga": "2/4/1",
+          "dpt": "5.001"
+        },
+        {
+          "id": "l1",
+          "name": "Living room",
+          "ga": "1/4/1"
+        },
+        {
+          "id": "l2",
+          "name": "Corridor",
+          "ga": "1/4/2"
+        }
+      ]
+    },
+    {
+      "id": "p1",
+      "address": "1.1.10",
+      "name": "Three-key push-button · living room",
+      "kind": "pushButton",
+      "description": "One device has a separate object for each key and function. Key 1 raises the shutter and Key 2 lowers it: long presses use 2/1/1; short presses use 2/2/1. Key 3 toggles the light through 1/1/1 and also listens to status feedback on 1/4/1.",
+      "objects": [
+        {
+          "id": "key1Long",
+          "name": "Key 1 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "key1Short",
+          "name": "Key 1 short press",
+          "ga": "2/2/1"
+        },
+        {
+          "id": "key2Long",
+          "name": "Key 2 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "key2Short",
+          "name": "Key 2 short press",
+          "ga": "2/2/1"
+        },
+        {
+          "id": "key3",
+          "name": "Key 3",
+          "ga": ["1/1/1", "1/4/1"]
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "icon": "up",
+          "long": {
+            "object": "key1Long",
+            "value": 0
+          },
+          "short": {
+            "object": "key1Short",
+            "value": 0
+          }
+        },
+        {
+          "label": "Key 2",
+          "icon": "down",
+          "long": {
+            "object": "key2Long",
+            "value": 1
+          },
+          "short": {
+            "object": "key2Short",
+            "value": 1
+          }
+        },
+        {
+          "label": "Key 3",
+          "press": {
+            "object": "key3",
+            "value": "toggle"
+          },
+          "led": "key3"
+        }
+      ]
+    },
+    {
+      "id": "c1",
+      "address": "1.1.20",
+      "name": "Switching actuator",
+      "kind": "switchActuator",
+      "channels": [
+        {
+          "id": "a",
+          "label": "Living room"
+        }
+      ],
+      "objects": [
+        {
+          "id": "cmd",
+          "name": "Channel 1",
+          "ga": "1/1/1",
+          "role": "switch"
+        },
+        {
+          "id": "status",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "role": "status"
+        }
+      ]
+    },
+    {
+      "id": "p2",
+      "address": "1.2.10",
+      "name": "One-key push-button · entrance",
+      "kind": "pushButton",
+      "description": "One shutter key: a long press reverses direction through 2/1/1; a short press stops through 2/2/1. Its 2/1/1 object listens to the bus. If device 1.1.10 lowers the shutter, the next long press raises it.",
+      "objects": [
+        {
+          "id": "md",
+          "name": "Key 1 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "st",
+          "name": "Key 1 short press",
+          "ga": "2/2/1"
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "long": {
+            "object": "md",
+            "value": "toggle"
+          },
+          "short": {
+            "object": "st",
+            "value": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "p3",
+      "address": "2.1.5",
+      "name": "Push-button · corridor",
+      "kind": "pushButton",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1",
+          "ga": ["1/3/1", "1/4/2"]
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "press": {
+            "object": "key1",
+            "value": "toggle"
+          },
+          "led": "key1"
+        }
+      ]
+    },
+    {
+      "id": "c2",
+      "address": "2.1.6",
+      "name": "Switching actuator",
+      "kind": "switchActuator",
+      "channels": [
+        {
+          "id": "a",
+          "label": "Corridor"
+        }
+      ],
+      "objects": [
+        {
+          "id": "cmd",
+          "name": "Channel 1",
+          "ga": "1/3/1",
+          "role": "switch"
+        },
+        {
+          "id": "status",
+          "name": "Status 1",
+          "ga": "1/4/2",
+          "role": "status"
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "address": "2.1.20",
+      "downstream": true,
+      "name": "Shutter actuator",
+      "kind": "shutterActuator",
+      "channels": [
+        {
+          "id": "shutter1",
+          "label": "Shutter 1",
+          "travel": 12
+        }
+      ],
+      "objects": [
+        {
+          "id": "md",
+          "name": "MD 1",
+          "ga": "2/1/1",
+          "role": "move"
+        },
+        {
+          "id": "st",
+          "name": "Stop 1",
+          "ga": "2/2/1",
+          "role": "stop"
+        },
+        {
+          "id": "pos",
+          "name": "Position 1",
+          "ga": "2/4/1",
+          "role": "position"
+        }
+      ]
+    }
+  ]
+}
+</script>
+  </bus-diagram>
+  <p class="note">Compare the local Key 3 with a long press on Key 2 (2/1/1 crosses the IP network).</p>
+</section>
+
+</div></div>
+<script src="../assets/reveal/reveal.js"></script>
+<script>Reveal.initialize({ hash: true, width: 1100, height: 700 });</script>
+</body>
+</html>

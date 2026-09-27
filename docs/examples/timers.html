@@ -1,0 +1,405 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Timers · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li class="cur"><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="timers"><a class="anchor" href="#timers">#</a>Timers</h1><p>The actuator handles the delay: one on telegram starts the timer, and the output switches off locally. Use status feedback in the bus monitor to measure the duration. Each new detection restarts L3&#39;s delay. The clock of this example is a push-button that simulates its scheduled times; the <a href="time-schedule.html">time schedule example</a> uses a simulated clock, a clock master, and a weekly time switch.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Timer, clock, and presence detection","description":"The actuator handles the delay: one on telegram is enough, and it switches off locally. Observe status telegrams in the monitor to measure the elapsed time.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/1","name":"L1 timer","dpt":"1.001"},{"address":"1/1/2","name":"L2 clock","dpt":"1.001"},{"address":"1/1/3","name":"L3 presence","dpt":"1.001"},{"address":"1/4/1","name":"L1 status feedback","dpt":"1.001"},{"address":"1/4/3","name":"L3 status feedback","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"key1","name":"Key 1","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Key 1","press":{"object":"key1","value":1}}]},{"id":"clk","name":"Weekly clock","address":"1.1.4","kind":"sensor","behavior":"pushButton/v1","description":"The buttons simulate the clock reaching its scheduled times.","objects":[{"id":"c1","name":"Channel A","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"8:00","icon":"clock","press":{"object":"c1","value":1}},{"id":"button-1","label":"8:05","icon":"clock","press":{"object":"c1","value":0}}]},{"id":"pir","name":"Presence detector","address":"1.1.5","kind":"sensor","behavior":"pushButton/v1","objects":[{"id":"p","name":"Presence","ga":"1/1/3","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Passage","icon":"presence","press":{"object":"p","value":1}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"L1 uses a 10-second timer. L3 has a 30-second delay restarted on each detection. L4 is unused.","objects":[{"id":"c1","name":"Channel 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"e1","name":"Status 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":true,"T":true}},{"id":"c2","name":"Channel 2","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":"1/1/3","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"e3","name":"Status 3","ga":"1/4/3","dpt":"1.001","port":"status","channel":"s3","flags":{"W":true,"T":true}},{"id":"c4","name":"Channel 4","ga":[],"dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","parameters":{"timerMs":10000},"equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","parameters":{"timerMs":30000},"equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=timers" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Timer, clock, and presence detection",
+  "description": "The actuator handles the delay: one on telegram is enough, and it switches off locally. Observe status telegrams in the monitor to measure the elapsed time.",
+  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "L1 timer", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "L2 clock", "dpt": "1.001" },
+    { "address": "1/1/3", "name": "L3 presence", "dpt": "1.001" },
+    { "address": "1/4/1", "name": "L1 status feedback", "dpt": "1.001" },
+    { "address": "1/4/3", "name": "L3 status feedback", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "buttons": [{ "id": "button-0", "label": "Key 1", "press": { "object": "key1", "value": 1 } }]
+    },
+    {
+      "id": "clk",
+      "name": "Weekly clock",
+      "address": "1.1.4",
+      "kind": "sensor",
+      "behavior": "pushButton/v1",
+      "description": "The buttons simulate the clock reaching its scheduled times.",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel A",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "button-0",
+          "label": "8:00",
+          "icon": "clock",
+          "press": { "object": "c1", "value": 1 }
+        },
+        {
+          "id": "button-1",
+          "label": "8:05",
+          "icon": "clock",
+          "press": { "object": "c1", "value": 0 }
+        }
+      ]
+    },
+    {
+      "id": "pir",
+      "name": "Presence detector",
+      "address": "1.1.5",
+      "kind": "sensor",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "p",
+          "name": "Presence",
+          "ga": "1/1/3",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "button-0",
+          "label": "Passage",
+          "icon": "presence",
+          "press": { "object": "p", "value": 1 }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Four-output switching actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "description": "L1 uses a 10-second timer. L3 has a 30-second delay restarted on each detection. L4 is unused.",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "e1",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c3",
+          "name": "Channel 3",
+          "ga": "1/1/3",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "e3",
+          "name": "Status 3",
+          "ga": "1/4/3",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "c4",
+          "name": "Channel 4",
+          "ga": [],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "parameters": { "timerMs": 10000 },
+          "equipment": { "type": "lamp" }
+        },
+        { "id": "s2", "label": "L2", "equipment": { "type": "lamp" } },
+        {
+          "id": "s3",
+          "label": "L3",
+          "parameters": { "timerMs": 30000 },
+          "equipment": { "type": "lamp" }
+        },
+        { "id": "s4", "label": "L4", "equipment": { "type": "lamp" } }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Timer, clock, and presence detection"</span>,
+  <span class="k">"description"</span>: <span class="s">"The actuator handles the delay: one on telegram is enough, and it switches off locally. Observe status telegrams in the monitor to measure the elapsed time."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 timer"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 clock"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/3"</span>, <span class="k">"name"</span>: <span class="s">"L3 presence"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 status feedback"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/3"</span>, <span class="k">"name"</span>: <span class="s">"L3 status feedback"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Key 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [{ <span class="k">"id"</span>: <span class="s">"button-0"</span>, <span class="k">"label"</span>: <span class="s">"Key 1"</span>, <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key1"</span>, <span class="k">"value"</span>: <span class="n">1</span> } }]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"clk"</span>,
+      <span class="k">"name"</span>: <span class="s">"Weekly clock"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"sensor"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"The buttons simulate the clock reaching its scheduled times."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel A"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"button-0"</span>,
+          <span class="k">"label"</span>: <span class="s">"8:00"</span>,
+          <span class="k">"icon"</span>: <span class="s">"clock"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"c1"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"button-1"</span>,
+          <span class="k">"label"</span>: <span class="s">"8:05"</span>,
+          <span class="k">"icon"</span>: <span class="s">"clock"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"c1"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"pir"</span>,
+      <span class="k">"name"</span>: <span class="s">"Presence detector"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.5"</span>,
+      <span class="k">"kind"</span>: <span class="s">"sensor"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"p"</span>,
+          <span class="k">"name"</span>: <span class="s">"Presence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"button-0"</span>,
+          <span class="k">"label"</span>: <span class="s">"Passage"</span>,
+          <span class="k">"icon"</span>: <span class="s">"presence"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"p"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Four-output switching actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"L1 uses a 10-second timer. L3 has a 30-second delay restarted on each detection. L4 is unused."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"e1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Status 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 3"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"e3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Status 3"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Channel 4"</span>,
+          <span class="k">"ga"</span>: [],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"timerMs"</span>: <span class="n">10000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"L2"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        {
+          <span class="k">"id"</span>: <span class="s">"s3"</span>,
+          <span class="k">"label"</span>: <span class="s">"L3"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"timerMs"</span>: <span class="n">30000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        { <span class="k">"id"</span>: <span class="s">"s4"</span>, <span class="k">"label"</span>: <span class="s">"L4"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/scenes.html">← Scenes</a>
+<a href="../examples/priority-control.html">Priority control →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

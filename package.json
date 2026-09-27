@@ -1,0 +1,83 @@
+{
+  "name": "bus-diagram",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Instructional diagrams of KNX installations, with a limited simulation layer.",
+  "license": "AGPL-3.0-only",
+  "author": "Yoann Maurel",
+  "keywords": [
+    "knx",
+    "diagram",
+    "web-component",
+    "education",
+    "building-automation"
+  ],
+  "main": "./dist/bus-diagram.js",
+  "module": "./dist/bus-diagram.esm.js",
+  "browser": "./dist/bus-diagram.js",
+  "unpkg": "./dist/bus-diagram.js",
+  "jsdelivr": "./dist/bus-diagram.js",
+  "types": "./dist/types/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/bus-diagram.esm.js",
+      "default": "./dist/bus-diagram.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "LICENSE",
+    "NOTICE",
+    "README.md",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "prepare": "node scripts/install-hook.mjs",
+    "sync": "node scripts/sync-scenarios.mjs",
+    "check:publication": "sh scripts/check-publication.sh",
+    "check:version": "node scripts/check-version.mjs",
+    "dev": "vite demo",
+    "build": "vite build && tsc -p tsconfig.types.json && node scripts/verify-build.mjs && node site/samples/extensions/build.mjs && node scripts/copy-demo-assets.mjs && node scripts/build-site.mjs",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint src/knx src/ui src/equipment src/i18n src/core.ts src/index.ts tests/knx tests/e2e/demo.spec.ts tests/e2e/lifecycle.spec.ts tests/e2e/site.spec.ts site site/samples/extensions scripts/sync-scenarios.mjs scripts/copy-demo-assets.mjs scripts/build-site.mjs scripts/build-notices.mjs scripts/install-hook.mjs scripts/site-data.mjs scripts/site-reference.mjs scripts/validate.mjs scripts/check-version.mjs scripts/llm-reference.mjs eleventy.config.js",
+    "format": "prettier --write src/knx src/ui src/equipment src/i18n site src/core.ts src/index.ts tests/knx tests/e2e/demo.spec.ts tests/e2e/lifecycle.spec.ts site/samples/extensions scenarios",
+    "test": "vitest run",
+    "test:e2e": "npm run sync && npm run build && playwright test",
+    "check": "npm run lint && npm run typecheck && npm run check:version && npm run test && npm run build",
+    "schema": "UPDATE_SCHEMA=1 vitest run tests/knx/contract.test.ts",
+    "validate": "node scripts/validate.mjs",
+    "build:site": "node scripts/build-site.mjs"
+  },
+  "dependencies": {
+    "lit": "3.3.3"
+  },
+  "devDependencies": {
+    "@11ty/eleventy": "3.1.6",
+    "@codemirror/autocomplete": "6.20.3",
+    "@codemirror/commands": "6.11.1",
+    "@codemirror/lang-json": "6.0.2",
+    "@codemirror/language": "6.12.4",
+    "@codemirror/lint": "6.9.7",
+    "@codemirror/state": "6.7.6",
+    "@codemirror/view": "6.43.13",
+    "@eslint/js": "10.0.1",
+    "@lezer/common": "1.5.3",
+    "@playwright/test": "1.63.0",
+    "@types/node": "26.6.2",
+    "ajv": "8.20.0",
+    "codemirror": "6.0.2",
+    "eslint": "10.11.0",
+    "globals": "17.12.0",
+    "json-schema-to-typescript": "16.0.0",
+    "marked": "18.0.14",
+    "prettier": "3.9.9",
+    "reveal.js": "6.0.2",
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.70.1",
+    "vite": "8.3.0",
+    "vitest": "5.0.1"
+  }
+}

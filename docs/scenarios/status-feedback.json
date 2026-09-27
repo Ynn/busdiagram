@@ -1,0 +1,232 @@
+{
+  "formatVersion": 2,
+  "title": "Toggle controls and status feedback",
+  "description": "Key 1 and Key 3 toggle L1; Key 2 toggles L1 through L4. Key 1 listens only to 1/1/1, so it can fall out of sync. Key 3 also listens to status feedback on 1/4/1 and stays synchronized. L1 status feedback also turns on L2.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1 lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "L1–L4 lighting group",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 status feedback",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/2",
+      "name": "L2 status feedback",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "description": "A toggle key sends the inverse of its object value. Without status feedback, that value only reflects the last value sent or received on its own addresses.",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1 toggle",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "key2",
+          "name": "Key 2 group",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "key3",
+          "name": "Key 3 + status",
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "button-0",
+          "label": "Key 1",
+          "press": {
+            "object": "key1",
+            "value": "toggle"
+          },
+          "led": "key1"
+        },
+        {
+          "id": "button-1",
+          "label": "Key 2",
+          "press": {
+            "object": "key2",
+            "value": "toggle"
+          },
+          "led": "key2"
+        },
+        {
+          "id": "button-2",
+          "label": "Key 3",
+          "press": {
+            "object": "key3",
+            "value": "toggle"
+          },
+          "led": "key3"
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Four-output switching actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "description": "Status objects send the actual output value after each change.",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "e1",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": [
+            "1/1/2",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "e2",
+          "name": "Status 2",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "c3",
+          "name": "Channel 3",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "c4",
+          "name": "Channel 4",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "L2",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s3",
+          "label": "L3",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s4",
+          "label": "L4",
+          "equipment": {
+            "type": "lamp"
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

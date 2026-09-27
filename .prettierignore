@@ -1,0 +1,8 @@
+docs/
+dist/
+node_modules/
+package-lock.json
+src/knx/scenario-v2.generated.ts
+schema/scenario-v2.schema.json
+examples/extensions/*.js
+demo/

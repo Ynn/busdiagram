@@ -1,0 +1,424 @@
+{
+  "formatVersion": 2,
+  "title": "Energy metering and load shedding",
+  "description": "A switching actuator with metering reports the power (DPT 14.056) and energy (DPT 13.010) of each output, and its total power. Above 3500 W, it sets its power limit object and switches off the water heater, which is marked for load shedding; after 20 seconds the heater is switched on again if its command still requests it. Switch on the oven and the water heater to reach the limit. Energy is counted 60 times faster than real time.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Kitchen"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "5/0/1",
+      "name": "Oven switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/0/2",
+      "name": "Water heater switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/0/3",
+      "name": "Lighting switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/1/1",
+      "name": "Oven status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/1/2",
+      "name": "Water heater status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/1/3",
+      "name": "Lighting status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/2/1",
+      "name": "Oven power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "5/2/2",
+      "name": "Water heater power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "5/2/3",
+      "name": "Lighting power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "5/3/1",
+      "name": "Oven energy",
+      "dpt": "13.010"
+    },
+    {
+      "address": "5/3/2",
+      "name": "Water heater energy",
+      "dpt": "13.010"
+    },
+    {
+      "address": "5/3/3",
+      "name": "Lighting energy",
+      "dpt": "13.010"
+    },
+    {
+      "address": "5/4/0",
+      "name": "Total power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "5/4/1",
+      "name": "Power limit reached",
+      "dpt": "1.005"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Three-key push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "k1",
+          "name": "Oven",
+          "ga": [
+            "5/0/1",
+            "5/1/1"
+          ],
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "k2",
+          "name": "Water heater",
+          "ga": [
+            "5/0/2",
+            "5/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "k3",
+          "name": "Lighting",
+          "ga": [
+            "5/0/3",
+            "5/1/3"
+          ],
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1 · Oven",
+          "press": {
+            "object": "k1",
+            "value": "toggle"
+          },
+          "led": "k1"
+        },
+        {
+          "id": "key2",
+          "label": "Key 2 · Water heater",
+          "press": {
+            "object": "k2",
+            "value": "toggle"
+          },
+          "led": "k2"
+        },
+        {
+          "id": "key3",
+          "label": "Key 3 · Lighting",
+          "press": {
+            "object": "k3",
+            "value": "toggle"
+          },
+          "led": "k3"
+        }
+      ]
+    },
+    {
+      "id": "energyActuator",
+      "name": "Switching actuator with metering",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "parameters": {
+        "powerLimitW": 3500
+      },
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Oven switch",
+          "ga": "5/0/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "c1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st1",
+          "name": "Oven status",
+          "ga": "5/1/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "c1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "p1",
+          "name": "Oven power",
+          "ga": "5/2/1",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "c1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "e1",
+          "name": "Oven energy",
+          "ga": "5/3/1",
+          "dpt": "13.010",
+          "port": "energy",
+          "channel": "c1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sw2",
+          "name": "Water heater switch",
+          "ga": "5/0/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "c2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st2",
+          "name": "Water heater status",
+          "ga": "5/1/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "c2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "p2",
+          "name": "Water heater power",
+          "ga": "5/2/2",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "c2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "e2",
+          "name": "Water heater energy",
+          "ga": "5/3/2",
+          "dpt": "13.010",
+          "port": "energy",
+          "channel": "c2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sw3",
+          "name": "Lighting switch",
+          "ga": "5/0/3",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "c3",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st3",
+          "name": "Lighting status",
+          "ga": "5/1/3",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "c3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "p3",
+          "name": "Lighting power",
+          "ga": "5/2/3",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "c3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "e3",
+          "name": "Lighting energy",
+          "ga": "5/3/3",
+          "dpt": "13.010",
+          "port": "energy",
+          "channel": "c3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "total",
+          "name": "Total power",
+          "ga": "5/4/0",
+          "dpt": "14.056",
+          "port": "totalPower",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "limit",
+          "name": "Power limit reached",
+          "ga": "5/4/1",
+          "dpt": "1.005",
+          "port": "powerLimit",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "c1",
+          "label": "Oven",
+          "equipment": {
+            "type": "appliance",
+            "parameters": {
+              "powerW": 2500
+            }
+          }
+        },
+        {
+          "id": "c2",
+          "label": "Water heater",
+          "parameters": {
+            "loadShedding": true
+          },
+          "equipment": {
+            "type": "appliance",
+            "parameters": {
+              "powerW": 1500
+            }
+          }
+        },
+        {
+          "id": "c3",
+          "label": "Lighting",
+          "equipment": {
+            "type": "lamp",
+            "parameters": {
+              "powerW": 200
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "energyDisplay",
+      "name": "Energy display",
+      "address": "1.1.3",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "total",
+          "name": "Total power",
+          "ga": "5/4/0",
+          "dpt": "14.056",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "limit",
+          "name": "Power limit reached",
+          "ga": "5/4/1",
+          "dpt": "1.005",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "e2",
+          "name": "Water heater energy",
+          "ga": "5/3/2",
+          "dpt": "13.010",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

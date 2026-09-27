@@ -1,0 +1,44 @@
+# Release the library when a version tag (vX.Y.Z) is pushed.
+# 1. Check that the tag matches package.json and CHANGELOG.md, then run all checks.
+# 2. Create a GitHub release with the distributed files.
+# 3. Publish to npm only when the repository variable NPM_PUBLISH is "true", the
+#    NPM_TOKEN secret exists, and package.json is no longer marked private.
+name: Release
+
+on:
+  push:
+    tags: ["v*.*.*"]
+
+permissions:
+  contents: write
+  id-token: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          registry-url: https://registry.npmjs.org
+      - run: npm ci
+      - run: node scripts/check-version.mjs "$GITHUB_REF_NAME"
+      - run: npm run check
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --grep-invert "reference screenshots"
+      - name: Create the GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp dist/bus-diagram.js dist/bus-diagram.esm.js dist/THIRD_PARTY_NOTICES.txt .
+          gh release create "$GITHUB_REF_NAME" \
+            bus-diagram.js bus-diagram.esm.js THIRD_PARTY_NOTICES.txt \
+            --title "$GITHUB_REF_NAME" \
+            --notes "See CHANGELOG.md for the changes in this version."
+      - name: Publish to npm
+        if: vars.NPM_PUBLISH == 'true'
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance --access public

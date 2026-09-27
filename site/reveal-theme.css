@@ -1,0 +1,13 @@
+/* Clear theme of the slideshow, without external police. */
+.reveal {
+  color: #1c1e23;
+  background: #fff;
+  font: 40px/1.35 system-ui, sans-serif;
+}
+.reveal h1, .reveal h2, .reveal h3 {
+  font-family: inherit;
+  font-weight: 650;
+  line-height: 1.15;
+  text-transform: none;
+}
+.reveal a { color: #08795a; }

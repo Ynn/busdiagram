@@ -1,0 +1,255 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scenes · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li class="cur"><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="scenes"><a class="anchor" href="#scenes">#</a>Scenes</h1><p>A one-byte group address (DPT 17.001) carries the scene number minus one. Each actuator channel stores its own preset. Scene 1 (Arrival) turns on L1 and L2 and opens the shutter; scene 2 (Departure) switches off the lights and closes the shutter.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Scenes","description":"One one-byte group address (DPT 17.001) carries the scene number. Each actuator stores the state to apply for each channel. The transmitted bus value is the scene number minus one.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"3/1/1","name":"Living-room scenes","dpt":"17.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"arrival","name":"Key 1 Arrival","ga":"3/1/1","dpt":"17.001","port":"input","flags":{"W":true,"T":true}},{"id":"departure","name":"Key 2 Departure","ga":"3/1/1","dpt":"17.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Key 1","icon":"scene","press":{"object":"arrival","value":0}},{"id":"button-1","label":"Key 2","press":{"object":"departure","value":1}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"Scene 1 (Arrival) turns on L1 and L2. Scene 2 (Departure) turns everything off.","objects":[{"id":"sc","name":"Scene","ga":"3/1/1","dpt":"17.001","port":"scene","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"},"scenes":{"1":1,"2":0}},{"id":"s2","label":"L2","equipment":{"type":"lamp"},"scenes":{"1":1,"2":0}},{"id":"s3","label":"L3","equipment":{"type":"lamp"},"scenes":{"1":0,"2":0}},{"id":"s4","label":"L4","equipment":{"type":"lamp"},"scenes":{"1":0,"2":0}}]},{"id":"shutterActuator","name":"Shutter actuator","address":"1.1.3","kind":"shutterActuator","behavior":"shutterActuator/v1","description":"Scene 1 (Arrival) opens the shutter. Scene 2 (Departure) closes it.","objects":[{"id":"sc","name":"Scene","ga":"3/1/1","dpt":"17.001","port":"scene","channel":"shutter1","flags":{"W":true,"T":false}}],"channels":[{"id":"shutter1","label":"Shutter 1","parameters":{"estimatedTravelTimeMs":10000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":10000}},"scenes":{"1":0,"2":100}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=scenes" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Scenes",
+  "description": "One one-byte group address (DPT 17.001) carries the scene number. Each actuator stores the state to apply for each channel. The transmitted bus value is the scene number minus one.",
+  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "groupAddresses": [{ "address": "3/1/1", "name": "Living-room scenes", "dpt": "17.001" }],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "arrival",
+          "name": "Key 1 Arrival",
+          "ga": "3/1/1",
+          "dpt": "17.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "departure",
+          "name": "Key 2 Departure",
+          "ga": "3/1/1",
+          "dpt": "17.001",
+          "port": "input",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "button-0",
+          "label": "Key 1",
+          "icon": "scene",
+          "press": { "object": "arrival", "value": 0 }
+        },
+        { "id": "button-1", "label": "Key 2", "press": { "object": "departure", "value": 1 } }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Four-output switching actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "description": "Scene 1 (Arrival) turns on L1 and L2. Scene 2 (Departure) turns everything off.",
+      "objects": [
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "3/1/1",
+          "dpt": "17.001",
+          "port": "scene",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "s1", "label": "L1", "equipment": { "type": "lamp" }, "scenes": { "1": 1, "2": 0 } },
+        { "id": "s2", "label": "L2", "equipment": { "type": "lamp" }, "scenes": { "1": 1, "2": 0 } },
+        { "id": "s3", "label": "L3", "equipment": { "type": "lamp" }, "scenes": { "1": 0, "2": 0 } },
+        { "id": "s4", "label": "L4", "equipment": { "type": "lamp" }, "scenes": { "1": 0, "2": 0 } }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "description": "Scene 1 (Arrival) opens the shutter. Scene 2 (Departure) closes it.",
+      "objects": [
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "3/1/1",
+          "dpt": "17.001",
+          "port": "scene",
+          "channel": "shutter1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "shutter1",
+          "label": "Shutter 1",
+          "parameters": { "estimatedTravelTimeMs": 10000 },
+          "equipment": { "type": "shutter", "parameters": { "actualTravelTimeMs": 10000 } },
+          "scenes": { "1": 0, "2": 100 }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Scenes"</span>,
+  <span class="k">"description"</span>: <span class="s">"One one-byte group address (DPT 17.001) carries the scene number. Each actuator stores the state to apply for each channel. The transmitted bus value is the scene number minus one."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"groupAddresses"</span>: [{ <span class="k">"address"</span>: <span class="s">"3/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room scenes"</span>, <span class="k">"dpt"</span>: <span class="s">"17.001"</span> }],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"arrival"</span>,
+          <span class="k">"name"</span>: <span class="s">"Key 1 Arrival"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"17.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"departure"</span>,
+          <span class="k">"name"</span>: <span class="s">"Key 2 Departure"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"17.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"button-0"</span>,
+          <span class="k">"label"</span>: <span class="s">"Key 1"</span>,
+          <span class="k">"icon"</span>: <span class="s">"scene"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"arrival"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+        },
+        { <span class="k">"id"</span>: <span class="s">"button-1"</span>, <span class="k">"label"</span>: <span class="s">"Key 2"</span>, <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"departure"</span>, <span class="k">"value"</span>: <span class="n">1</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Four-output switching actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Scene 1 (Arrival) turns on L1 and L2. Scene 2 (Departure) turns everything off."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"17.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"s1"</span>, <span class="k">"label"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span>, <span class="k">"2"</span>: <span class="n">0</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"L2"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span>, <span class="k">"2"</span>: <span class="n">0</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s3"</span>, <span class="k">"label"</span>: <span class="s">"L3"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span>, <span class="k">"2"</span>: <span class="n">0</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s4"</span>, <span class="k">"label"</span>: <span class="s">"L4"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span>, <span class="k">"2"</span>: <span class="n">0</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Shutter actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Scene 1 (Arrival) opens the shutter. Scene 2 (Departure) closes it."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"17.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Shutter 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">10000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">10000</span> } },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span>, <span class="k">"2"</span>: <span class="n">100</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/tunable-white.html">← Tunable white</a>
+<a href="../examples/timers.html">Timers →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

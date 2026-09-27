@@ -1,0 +1,105 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Format 1 and conversion · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li class="cur"><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="format-1-and-conversion"><a class="anchor" href="#format-1-and-conversion">#</a>Format 1 and conversion</h1><p>Older scenarios use format 1: they omit <code>formatVersion</code>, use <code>role</code> instead of <code>port</code>, and express some durations in seconds. BusDiagram still accepts them.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Format 1</th>
+<th>Format 2</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>kind</code> alone</td>
+<td><code>kind</code> plus a behavior ID, such as <code>pushButton/v1</code> or <code>switchActuator/v1</code>.</td>
+</tr>
+<tr>
+<td><code>role: sensor / display / switch / status</code></td>
+<td><code>port: input / display / switch / status</code>.</td>
+</tr>
+<tr>
+<td><code>role: move / stop / position / scene / forced</code></td>
+<td><code>port: move / stopStep / positionStatus / scene / forced</code>.</td>
+</tr>
+<tr>
+<td><code>travel: 12</code> seconds</td>
+<td><code>estimatedTravelTimeMs: 12000</code> and <code>actualTravelTimeMs: 12000</code>.</td>
+</tr>
+<tr>
+<td><code>timer: 10</code> seconds</td>
+<td><code>timerMs: 10000</code>.</td>
+</tr>
+<tr>
+<td><code>load: lamp / shutter / none</code></td>
+<td><code>equipment: { &quot;type&quot;: &quot;lamp&quot; }</code>, <code>{ &quot;type&quot;: &quot;shutter&quot; }</code>, or <code>null</code>.</td>
+</tr>
+<tr>
+<td>Buttons without IDs</td>
+<td>Generated <code>button-0</code>, <code>button-1</code>, and so on.</td>
+</tr>
+<tr>
+<td>Missing flags</td>
+<td>Defaults based on object role.</td>
+</tr>
+</tbody></table>
+</div><p>A format-1 <code>role: &quot;position&quot;</code> is position <strong>feedback</strong>, not a command setpoint.</p>
+<p>Open a scenario in the designer and choose <strong>Convert to format 2</strong>, or call <code>BusDiagram.toV2(BusDiagram.buildScenario(json))</code> in JavaScript. The converter omits optional values equal to their defaults. Format 2 adds explicit flags, position commands, numeric inputs, disconnected channels, equipment configuration, extension behaviors, and stricter validation.</p>
+
+<nav class="pager">
+<a href="../guide/limits.html">← Model and limits</a>
+
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

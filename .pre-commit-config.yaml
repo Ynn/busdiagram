@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    rev: v8.24.2
+    hooks:
+      - id: gitleaks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-added-large-files
+        args: [--maxkb=5000]
+      - id: check-case-conflict
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: check-symlinks
+  - repo: local
+    hooks:
+      - id: forbidden-publication-paths
+        name: Block local, generated, and credential files
+        language: fail
+        entry: "Move this file outside the public repository"
+        files: '(^|/)(\.local|node_modules|dist|tmp|coverage|test-results|playwright-report|blob-report|\.venv|venv|\.cache|\.aws|\.ssh|\.secrets|\.npmrc|\.netrc|\.envrc|credentials\.json)(/|$)|(^|/)\.env(\.|$)|\.(pem|key|p8|p12|pfx|kdbx|map|tsbuildinfo|bak|orig|rej|swo|swn|log)$'

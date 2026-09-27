@@ -1,0 +1,334 @@
+{
+  "formatVersion": 2,
+  "title": "Weather protection: wind alarm and sun protection",
+  "description": "A weather station sends wind speed and brightness. Above 10 m/s, its wind alarm raises the shutter and locks it until the alarm ends. Above 40,000 lx, it requests sun protection; a logic module forwards this request to the shutter only while automatic mode (Key 3) is enabled. Enter values in the station's fields to follow the telegrams.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Facade"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "2/1/1",
+      "name": "Shutter movement",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/1/2",
+      "name": "Shutter stop / step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "2/1/4",
+      "name": "Estimated position",
+      "dpt": "5.001"
+    },
+    {
+      "address": "2/6/1",
+      "name": "Wind alarm",
+      "dpt": "1.005"
+    },
+    {
+      "address": "2/6/2",
+      "name": "Sun protection request",
+      "dpt": "1.001"
+    },
+    {
+      "address": "2/6/3",
+      "name": "Automatic sun protection",
+      "dpt": "1.003"
+    },
+    {
+      "address": "2/6/4",
+      "name": "Wind speed",
+      "dpt": "9.005"
+    },
+    {
+      "address": "2/6/5",
+      "name": "Brightness",
+      "dpt": "9.004"
+    }
+  ],
+  "devices": [
+    {
+      "id": "weatherStation",
+      "name": "Weather station",
+      "address": "1.1.10",
+      "kind": "weatherStation",
+      "behavior": "weatherStation/v1",
+      "parameters": {
+        "windThreshold": 10,
+        "brightnessThreshold": 40000
+      },
+      "objects": [
+        {
+          "id": "wind",
+          "name": "Wind speed",
+          "ga": "2/6/4",
+          "dpt": "9.005",
+          "port": "wind",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "brightness",
+          "name": "Brightness",
+          "ga": "2/6/5",
+          "dpt": "9.004",
+          "port": "brightness",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "windAlarm",
+          "name": "Wind alarm",
+          "ga": "2/6/1",
+          "dpt": "1.005",
+          "port": "windAlarm",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sun",
+          "name": "Sun protection",
+          "ga": "2/6/2",
+          "dpt": "1.001",
+          "port": "sunProtection",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "wind",
+          "type": "number",
+          "label": "Wind (m/s)",
+          "object": "wind",
+          "min": 0,
+          "max": 40,
+          "step": 1
+        },
+        {
+          "id": "brightness",
+          "type": "number",
+          "label": "Brightness (lx)",
+          "object": "brightness",
+          "min": 0,
+          "max": 100000,
+          "step": 5000
+        }
+      ]
+    },
+    {
+      "id": "pushButton",
+      "name": "Three-key push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "auto",
+          "name": "Automatic mode",
+          "ga": "2/6/3",
+          "dpt": "1.003",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1 · Up",
+          "icon": "up",
+          "short": {
+            "object": "stop",
+            "value": 0
+          },
+          "long": {
+            "object": "move",
+            "value": 0
+          }
+        },
+        {
+          "id": "key2",
+          "label": "Key 2 · Down",
+          "icon": "down",
+          "short": {
+            "object": "stop",
+            "value": 1
+          },
+          "long": {
+            "object": "move",
+            "value": 1
+          }
+        },
+        {
+          "id": "key3",
+          "label": "Key 3 · Automatic",
+          "press": {
+            "object": "auto",
+            "value": "toggle"
+          },
+          "led": "auto"
+        }
+      ]
+    },
+    {
+      "id": "logicModule",
+      "name": "Logic module",
+      "address": "1.1.20",
+      "kind": "logicModule",
+      "behavior": "logicGate/v1",
+      "parameters": {
+        "operation": "and"
+      },
+      "objects": [
+        {
+          "id": "sunIn",
+          "name": "Sun protection request",
+          "ga": "2/6/2",
+          "dpt": "1.001",
+          "port": "logicIn",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "autoIn",
+          "name": "Automatic mode",
+          "ga": "2/6/3",
+          "dpt": "1.003",
+          "port": "logicIn",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "out",
+          "name": "Shutter movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "logicOut",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "wind",
+          "name": "Wind alarm",
+          "ga": "2/6/1",
+          "dpt": "1.005",
+          "port": "windAlarm",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "status",
+          "name": "Estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "s1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Shutter S1",
+          "parameters": {
+            "estimatedTravelTimeMs": 20000
+          },
+          "initialState": {
+            "estimatedPositionPct": 0
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 20000
+            },
+            "initialState": {
+              "positionPct": 0
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

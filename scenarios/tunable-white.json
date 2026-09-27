@@ -1,0 +1,256 @@
+{
+  "formatVersion": 2,
+  "title": "Tunable white: level and colour temperature",
+  "description": "A dimming actuator drives a tunable white light. Keys 1 to 3 send a colour temperature with DPT 7.600 (2700 K warm, 4000 K neutral, 6500 K cold); the numeric fields send a level (DPT 5.001) and any colour temperature. Requests outside the 2700–6500 K range of the channel are limited to it, and the actuator reports the applied value.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Office"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "Ceiling light switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/3/1",
+      "name": "Ceiling light level",
+      "dpt": "5.001"
+    },
+    {
+      "address": "1/6/1",
+      "name": "Ceiling light colour temperature",
+      "dpt": "7.600"
+    },
+    {
+      "address": "1/6/2",
+      "name": "Colour temperature status",
+      "dpt": "7.600"
+    },
+    {
+      "address": "1/5/1",
+      "name": "Level status",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "warm",
+          "name": "Warm white",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "neutral",
+          "name": "Neutral white",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "cold",
+          "name": "Cold white",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "onoff",
+          "name": "Switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "colour",
+          "name": "Colour temperature",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "warm",
+          "label": "Key 1 · 2700 K",
+          "press": {
+            "object": "warm",
+            "value": 2700
+          }
+        },
+        {
+          "id": "neutral",
+          "label": "Key 2 · 4000 K",
+          "press": {
+            "object": "neutral",
+            "value": 4000
+          }
+        },
+        {
+          "id": "cold",
+          "label": "Key 3 · 6500 K",
+          "press": {
+            "object": "cold",
+            "value": 6500
+          }
+        },
+        {
+          "id": "onoff",
+          "label": "Key 4 · On/off",
+          "icon": "toggle",
+          "press": {
+            "object": "onoff",
+            "value": "toggle"
+          },
+          "led": "onoff"
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "colour",
+          "type": "number",
+          "label": "Colour (K)",
+          "object": "colour",
+          "min": 2000,
+          "max": 7000,
+          "step": 100
+        }
+      ]
+    },
+    {
+      "id": "dimmer",
+      "name": "Tunable white actuator",
+      "address": "1.1.2",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "switch",
+          "name": "Switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "value",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "colour",
+          "name": "Colour temperature",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "colourTemperature",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "colourStatus",
+          "name": "Colour temperature status",
+          "ga": "1/6/2",
+          "dpt": "7.600",
+          "port": "colourTemperatureStatus",
+          "channel": "d1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "valueStatus",
+          "name": "Level status",
+          "ga": "1/5/1",
+          "dpt": "5.001",
+          "port": "valueStatus",
+          "channel": "d1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "d1",
+          "label": "Ceiling",
+          "parameters": {
+            "valueFadeMs": 1500
+          },
+          "initialState": {
+            "levelPct": 80,
+            "colourTemperatureK": 4000
+          },
+          "equipment": {
+            "type": "dimmableLamp"
+          }
+        }
+      ]
+    }
+  ]
+}

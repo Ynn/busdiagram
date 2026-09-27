@@ -1,0 +1,193 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Error codes · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html" class="cur">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../reference/index.html">Overview</a></li><li><a href="../reference/options.html">Display options</a></li><li><a href="../reference/json.html">JSON scenario</a></li><li><a href="../reference/behaviors.html">Behaviors and equipment</a></li><li><a href="../reference/ports.html">Ports</a></li><li><a href="../reference/dpt.html">DPT</a></li><li><a href="../reference/api.html">JavaScript API</a></li><li><a href="../reference/events.html">Events</a></li><li class="cur"><a href="../reference/errors.html">Error codes</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Reference</p>
+<h1 id="error-codes"><a class="anchor" href="#error-codes">#</a>Error codes</h1><p>Each validation problem has a JSON <code>path</code>, a <code>code</code>, and a localized <code>message</code>.</p>
+<h2 id="scenario-validation"><a class="anchor" href="#scenario-validation">#</a>Scenario validation</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>type</code></td>
+<td>Wrong value type.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>Missing required field or parameter.</td>
+</tr>
+<tr>
+<td><code>unknown-field</code></td>
+<td>Unknown format-2 field or behavior parameter.</td>
+</tr>
+<tr>
+<td><code>enum</code></td>
+<td>Value outside the allowed choices.</td>
+</tr>
+<tr>
+<td><code>range</code></td>
+<td>Number outside its allowed range.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td>Unsupported <code>formatVersion</code>.</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>Invalid identifier syntax.</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td>Malformed or out-of-range individual, line, or group address.</td>
+</tr>
+<tr>
+<td><code>duplicate</code></td>
+<td>Duplicate identifier or address.</td>
+</tr>
+<tr>
+<td><code>reference</code></td>
+<td>Reference to a missing line, channel, object, coupler, or topology level.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>Port not accepted by a behavior, or an invalid channel association.</td>
+</tr>
+<tr>
+<td><code>dpt</code></td>
+<td>Unsupported DPT or DPT incompatible with a port.</td>
+</tr>
+<tr>
+<td><code>association</code></td>
+<td>Incompatible payload sizes on one group address.</td>
+</tr>
+<tr>
+<td><code>no-ga</code></td>
+<td>A control action refers to an object without a group address.</td>
+</tr>
+<tr>
+<td><code>toggle</code></td>
+<td><code>&quot;toggle&quot;</code> used with an object that is not one bit.</td>
+</tr>
+<tr>
+<td><code>conflict</code></td>
+<td>Mutually incompatible actions or topology settings.</td>
+</tr>
+<tr>
+<td><code>incompatible</code></td>
+<td>Button, input, or equipment incompatible with its behavior.</td>
+</tr>
+<tr>
+<td><code>unknown-behavior</code></td>
+<td>Behavior ID has not been registered.</td>
+</tr>
+<tr>
+<td><code>unknown-equipment</code></td>
+<td>Equipment type has not been registered.</td>
+</tr>
+<tr>
+<td><code>unknown-room</code></td>
+<td>Referenced room is not declared in <code>rooms</code>.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>A text value does not have the expected format, such as <code>clock.start</code>.</td>
+</tr>
+</tbody></table>
+</div><h2 id="during-simulation"><a class="anchor" href="#during-simulation">#</a>During simulation</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>extension-error</code></td>
+<td>An extension threw an exception; the simulation pauses.</td>
+</tr>
+<tr>
+<td><code>cascade</code></td>
+<td>Too many events occurred at the same simulated time.</td>
+</tr>
+<tr>
+<td><code>incompatible-command</code></td>
+<td>Equipment cannot apply a behavior&#39;s output command.</td>
+</tr>
+<tr>
+<td><code>no-ga</code></td>
+<td>A send was requested for an object without a group address and was ignored.</td>
+</tr>
+<tr>
+<td><code>view-error</code></td>
+<td>An equipment view failed; a warning frame replaces it while simulation continues.</td>
+</tr>
+</tbody></table>
+</div><h2 id="configuration-warnings"><a class="anchor" href="#configuration-warnings">#</a>Configuration warnings</h2><p>These warnings do not stop the simulation. They are shown above the diagram, and in <code>getState().diagnostics</code>, when a parameter that compensates a property of the load disagrees with that property. A scenario can keep such a mismatch on purpose to illustrate a commissioning error.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config-valve</code></td>
+<td>The heating actuator output (<code>valveType</code>) and the connected radiator valve (<code>normallyOpen</code>) disagree; the valve opens when no heat is requested.</td>
+</tr>
+<tr>
+<td><code>config-wiring</code></td>
+<td>The shutter actuator output inversion (<code>invertOutput</code>) and the motor wiring of the shutter (<code>wiringReversed</code>) disagree; the shutter moves opposite to the commands.</td>
+</tr>
+<tr>
+<td><code>config-contact</code></td>
+<td>The window contact type (<code>contactType</code>) and the input inversion (<code>invert</code>) disagree; open and closed are reported the wrong way round.</td>
+</tr>
+<tr>
+<td><code>config-polarity</code></td>
+<td>A group address links DPT 1.009 (1 = closed) and DPT 1.019 (1 = open), whose values have opposite meanings.</td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../reference/events.html">← Events</a>
+
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#scenario-validation">Scenario validation</a></li><li><a href="#during-simulation">During simulation</a></li><li><a href="#configuration-warnings">Configuration warnings</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

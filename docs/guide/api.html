@@ -1,0 +1,87 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript API · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li class="cur"><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="javascript-api"><a class="anchor" href="#javascript-api">#</a>JavaScript API</h1><p>The bundle exposes <code>window.BusDiagram</code>. The <a href="../reference/api.html">API reference</a> lists all methods; this chapter shows common tasks.</p>
+<h2 id="create-a-diagram"><a class="anchor" href="#create-a-diagram">#</a>Create a diagram</h2><pre class="code"><code><span class="kw">const</span> diagram = BusDiagram.create(<span class="s">"#diagram"</span>, scenario, { toolbar: <span class="s">"compact"</span> });</code></pre><p>The target may be a selector or an element. A <code>&lt;bus-diagram&gt;</code> target is reused; for another element, the method adds a component inside it. The scenario may be a JSON object, a JSON URL, or a <code>#id</code> reference to a JSON block. The returned value is the component itself. See the <a href="../reference/options.html">options reference</a>.</p>
+<h2 id="control-simulated-time"><a class="anchor" href="#control-simulated-time">#</a>Control simulated time</h2><pre class="code"><code>diagram.pause();
+diagram.advance(<span class="n">1300</span>); <span class="c">// Advance 1.3 simulated seconds, even while paused.</span>
+diagram.play();
+diagram.reset();
+diagram.setSpeed(<span class="n">0.35</span>);
+diagram.stepToNextEvent();</code></pre><p>See the <a href="../examples/programmatic-control.html">programmatic control example</a>.</p>
+<h2 id="read-state"><a class="anchor" href="#read-state">#</a>Read state</h2><pre class="code"><code><span class="kw">const</span> state = diagram.getState();
+state.timeMs;
+state.objects[<span class="s">"pushButton/key1"</span>].value;
+state.channels[<span class="s">"shutter/s1"</span>].state.estimatedPositionPct;
+state.equipment[<span class="s">"shutter/s1"</span>].state.positionPct;</code></pre><p><code>getState()</code> returns a serializable copy. Editing it does not change the simulation.</p>
+<h2 id="subscribe-to-events"><a class="anchor" href="#subscribe-to-events">#</a>Subscribe to events</h2><pre class="code"><code>diagram.on(<span class="s">"telegram"</span>, (telegram) =&gt; {
+  console.log(telegram.source, telegram.destination, telegram.value);
+});
+diagram.on(<span class="s">"error"</span>, (error) =&gt; console.warn(error.message, error.details));</code></pre><p>Each telegram produces one event, including automatic status feedback. The component also emits DOM events such as <code>bd-telegram</code>, <code>bd-ready</code>, and <code>bd-error</code>. See the <a href="../examples/events.html">event example</a>.</p>
+<h2 id="use-the-usb-interface"><a class="anchor" href="#use-the-usb-interface">#</a>Use the USB interface</h2><p>If the scenario contains a USB interface, these methods send group telegrams from it:</p>
+<pre class="code"><code>diagram.groupWrite(<span class="s">"1/1/1"</span>, <span class="n">1</span>);
+diagram.groupRead(<span class="s">"1/4/1"</span>);</code></pre><p>See the <a href="usb-interface.html">USB interface guide</a>.</p>
+<h2 id="act-on-a-room"><a class="anchor" href="#act-on-a-room">#</a>Act on a room</h2><p>In a <a href="hvac.html">heating scenario</a>, <code>roomAction</code> can open a window or change outside temperature:</p>
+<pre class="code"><code>diagram.roomAction(<span class="s">"living"</span>, <span class="s">"window"</span>, <span class="n">1</span>);
+diagram.getState().rooms.living.temperatureC;</code></pre><h2 id="set-the-simulated-clock"><a class="anchor" href="#set-the-simulated-clock">#</a>Set the simulated clock</h2><p>In a scenario with a <a href="time.html#simulated-clock">simulated clock</a>, <code>setClock</code> moves it to another local date and time; <code>getState().clock</code> returns the current clock time and speed:</p>
+<pre class="code"><code>diagram.setClock(<span class="s">"2026-10-01T06:59:30"</span>);
+<span class="kw">new</span> Date(diagram.getState().clock.nowMs).toISOString(); <span class="c">// clock time, read as UTC fields</span></code></pre><h2 id="use-the-engine-without-a-page"><a class="anchor" href="#use-the-engine-without-a-page">#</a>Use the engine without a page</h2><p><code>createSimulator(json)</code> from <code>src/core.ts</code> creates a DOM-free simulation for tests or tools. It exposes <code>input()</code>, <code>groupWrite()</code>, <code>groupRead()</code>, <code>advance()</code>, <code>getState()</code>, and <code>subscribe()</code>.</p>
+
+<nav class="pager">
+<a href="../guide/languages.html">← Languages</a>
+<a href="../guide/versions.html">Versions and releases →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#create-a-diagram">Create a diagram</a></li><li><a href="#control-simulated-time">Control simulated time</a></li><li><a href="#read-state">Read state</a></li><li><a href="#subscribe-to-events">Subscribe to events</a></li><li><a href="#use-the-usb-interface">Use the USB interface</a></li><li><a href="#act-on-a-room">Act on a room</a></li><li><a href="#set-the-simulated-clock">Set the simulated clock</a></li><li><a href="#use-the-engine-without-a-page">Use the engine without a page</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

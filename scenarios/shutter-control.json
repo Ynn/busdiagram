@@ -1,0 +1,240 @@
+{
+  "title": "Control roller shutters",
+  "description": "A shutter uses two objects: up/down for a long press and stop/step for a short press. Key 4 lowers the shutter and turns on L1 with one telegram. The supervisor displays the reported position.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line"
+    }
+  ],
+  "ipRouter": {
+    "address": "1.1.0",
+    "name": "KNX/IP router"
+  },
+  "groupAddresses": [
+    {
+      "address": "2/1/1",
+      "name": "Shutter 1 up/down",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/2/1",
+      "name": "Shutter 1 stop/step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "2/1/2",
+      "name": "Shutter 1 down + light",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/4/1",
+      "name": "Shutter 1 position",
+      "dpt": "5.001"
+    },
+    {
+      "address": "1/1/1",
+      "name": "L1 lighting",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "sup",
+      "name": "Supervisor",
+      "kind": "supervisor",
+      "description": "The supervisor does not control the actuator; it observes commands and displays position feedback.",
+      "objects": [
+        {
+          "id": "md",
+          "name": "Shutter 1 direction",
+          "ga": "2/1/1",
+          "dpt": "1.008"
+        },
+        {
+          "id": "pos",
+          "name": "Shutter 1 position",
+          "ga": "2/4/1",
+          "dpt": "5.001"
+        }
+      ]
+    },
+    {
+      "id": "pushButton",
+      "address": "1.1.1",
+      "name": "Push-button",
+      "kind": "pushButton",
+      "description": "Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light.",
+      "objects": [
+        {
+          "id": "key1Long",
+          "name": "Key 1 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "key1Short",
+          "name": "Key 1 short press",
+          "ga": "2/2/1"
+        },
+        {
+          "id": "key2Long",
+          "name": "Key 2 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "key2Short",
+          "name": "Key 2 short press",
+          "ga": "2/2/1"
+        },
+        {
+          "id": "key3Long",
+          "name": "Key 3 long press",
+          "ga": "2/1/1"
+        },
+        {
+          "id": "key3Short",
+          "name": "Key 3 short press",
+          "ga": "2/2/1"
+        },
+        {
+          "id": "key4",
+          "name": "Key 4",
+          "ga": "2/1/2",
+          "dpt": "1.008"
+        }
+      ],
+      "buttons": [
+        {
+          "label": "Key 1",
+          "long": {
+            "object": "key1Long",
+            "value": "toggle"
+          },
+          "short": {
+            "object": "key1Short",
+            "value": 0
+          }
+        },
+        {
+          "label": "Key 2",
+          "icon": "up",
+          "long": {
+            "object": "key2Long",
+            "value": 0
+          },
+          "short": {
+            "object": "key2Short",
+            "value": 0
+          }
+        },
+        {
+          "label": "Key 3",
+          "icon": "down",
+          "long": {
+            "object": "key3Long",
+            "value": 1
+          },
+          "short": {
+            "object": "key3Short",
+            "value": 1
+          }
+        },
+        {
+          "label": "Key 4",
+          "icon": "down",
+          "press": {
+            "object": "key4",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "address": "1.1.3",
+      "name": "Shutter actuator",
+      "kind": "shutterActuator",
+      "channels": [
+        {
+          "id": "shutter1",
+          "label": "Shutter 1",
+          "travel": 10
+        }
+      ],
+      "objects": [
+        {
+          "id": "md",
+          "name": "MD 1",
+          "ga": ["2/1/1", "2/1/2"],
+          "role": "move"
+        },
+        {
+          "id": "st",
+          "name": "Stop 1",
+          "ga": "2/2/1",
+          "role": "stop"
+        },
+        {
+          "id": "pos",
+          "name": "Position 1",
+          "ga": "2/4/1",
+          "role": "position"
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "address": "1.1.2",
+      "name": "Four-output switching actuator",
+      "kind": "switchActuator",
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1"
+        },
+        {
+          "id": "s2",
+          "label": "L2"
+        },
+        {
+          "id": "s3",
+          "label": "L3"
+        },
+        {
+          "id": "s4",
+          "label": "L4"
+        }
+      ],
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": ["1/1/1", "2/1/2"],
+          "role": "switch",
+          "channel": "s1"
+        },
+        {
+          "id": "c2",
+          "name": "Channel 2",
+          "ga": [],
+          "role": "switch",
+          "channel": "s2"
+        },
+        {
+          "id": "c3",
+          "name": "Channel 3",
+          "ga": [],
+          "role": "switch",
+          "channel": "s3"
+        },
+        {
+          "id": "c4",
+          "name": "Channel 4",
+          "ga": [],
+          "role": "switch",
+          "channel": "s4"
+        }
+      ]
+    }
+  ]
+}

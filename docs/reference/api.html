@@ -1,0 +1,217 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JavaScript API · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html" class="cur">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../reference/index.html">Overview</a></li><li><a href="../reference/options.html">Display options</a></li><li><a href="../reference/json.html">JSON scenario</a></li><li><a href="../reference/behaviors.html">Behaviors and equipment</a></li><li><a href="../reference/ports.html">Ports</a></li><li><a href="../reference/dpt.html">DPT</a></li><li class="cur"><a href="../reference/api.html">JavaScript API</a></li><li><a href="../reference/events.html">Events</a></li><li><a href="../reference/errors.html">Error codes</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Reference</p>
+<h1 id="javascript-api"><a class="anchor" href="#javascript-api">#</a>JavaScript API</h1><p>Load <code>bus-diagram.js</code> to expose <code>window.BusDiagram</code>.</p>
+<h2 id="global-functions"><a class="anchor" href="#global-functions">#</a>Global functions</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>create(target, scenario?, options?)</code></td>
+<td>Create or reuse a <code>&lt;bus-diagram&gt;</code> at a selector or element; return the component.</td>
+</tr>
+<tr>
+<td><code>registerBehavior(id, definition)</code></td>
+<td>Register an extension behavior; duplicate IDs are rejected.</td>
+</tr>
+<tr>
+<td><code>registerEquipment(id, definition)</code></td>
+<td>Register an equipment model.</td>
+</tr>
+<tr>
+<td><code>registerEquipmentView(id, { size, render })</code></td>
+<td>Register an equipment drawing.</td>
+</tr>
+<tr>
+<td><code>buildScenario(json, registry?, t?)</code></td>
+<td>Validate and normalize JSON; raise <code>ScenarioError</code> with <code>{ path, code, message }</code> details on failure.</td>
+</tr>
+<tr>
+<td><code>toV2(scenario)</code></td>
+<td>Convert a normalized scenario to format-2 JSON.</td>
+</tr>
+<tr>
+<td><code>createSimulator(json, options?)</code></td>
+<td>Create a simulation without a DOM component.</td>
+</tr>
+<tr>
+<td><code>registerMessages(language, messages)</code></td>
+<td>Add or extend a locale catalog; see <a href="../guide/languages.html">languages</a>.</td>
+</tr>
+<tr>
+<td><code>availableLanguages()</code></td>
+<td>List available locale codes.</td>
+</tr>
+<tr>
+<td><code>translator(language)</code></td>
+<td>Get a translation function for validation and engine messages.</td>
+</tr>
+<tr>
+<td><code>html</code>, <code>svg</code>, <code>nothing</code></td>
+<td>Lit helpers for extension views.</td>
+</tr>
+<tr>
+<td><code>OPTION_DOCS</code>, <code>DEFAULT_OPTIONS</code></td>
+<td>Display-option metadata and defaults.</td>
+</tr>
+</tbody></table>
+</div><h2 id="bus-diagram-element"><a class="anchor" href="#bus-diagram-element">#</a><code>&lt;bus-diagram&gt;</code> element</h2><h3 id="attributes-and-properties"><a class="anchor" href="#attributes-and-properties">#</a>Attributes and properties</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Name</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>scenario</code> attribute</td>
+<td>Select a JSON <code>&lt;script&gt;</code> block by <code>#id</code>.</td>
+</tr>
+<tr>
+<td><code>src</code> attribute</td>
+<td>Load a JSON file URL over HTTP.</td>
+</tr>
+<tr>
+<td><code>options</code> property</td>
+<td>JavaScript display options, overriding attributes.</td>
+</tr>
+<tr>
+<td><code>view</code> property</td>
+<td>Effective display options.</td>
+</tr>
+<tr>
+<td><code>simulation</code> property</td>
+<td>Underlying simulation for advanced use.</td>
+</tr>
+</tbody></table>
+</div><h3 id="methods"><a class="anchor" href="#methods">#</a>Methods</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>load(json)</code></td>
+<td>Validate and replace the scenario, or display its errors.</td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>Restore initial state and time zero.</td>
+</tr>
+<tr>
+<td><code>play()</code>, <code>pause()</code></td>
+<td>Resume or pause simulated time.</td>
+</tr>
+<tr>
+<td><code>advance(ms)</code></td>
+<td>Advance by a nonnegative number of simulated milliseconds, even while paused.</td>
+</tr>
+<tr>
+<td><code>stepToNextEvent()</code></td>
+<td>Advance to the next explanatory event; return <code>{ timeMs, events }</code> or <code>null</code>.</td>
+</tr>
+<tr>
+<td><code>setSpeed(n)</code></td>
+<td>Set a positive simulation speed.</td>
+</tr>
+<tr>
+<td><code>getState()</code></td>
+<td>Return a serializable copy of current state.</td>
+</tr>
+<tr>
+<td><code>on(name, handler)</code></td>
+<td>Subscribe to <code>telegram</code>, <code>ready</code>, or <code>error</code>; return an unsubscribe function.</td>
+</tr>
+<tr>
+<td><code>groupWrite(address, value, interface?)</code></td>
+<td>Write a group value through the scenario&#39;s USB interface.</td>
+</tr>
+<tr>
+<td><code>groupRead(address, interface?)</code></td>
+<td>Read a group value through the USB interface.</td>
+</tr>
+<tr>
+<td><code>roomAction(roomId, action, value)</code></td>
+<td>Set a room&#39;s window state or outside temperature.</td>
+</tr>
+<tr>
+<td><code>setClock(value)</code></td>
+<td>Set the simulated clock to a local date and time (<code>YYYY-MM-DDTHH:MM[:SS]</code>).</td>
+</tr>
+</tbody></table>
+</div><h3 id="getstate-example"><a class="anchor" href="#getstate-example">#</a><code>getState()</code> example</h3><pre class="code"><code>{
+  <span class="k">"timeMs"</span>: <span class="n">11639</span>,
+  <span class="k">"paused"</span>: <span class="kw">false</span>,
+  <span class="k">"faulted"</span>: <span class="kw">false</span>,
+  <span class="k">"objects"</span>: {
+    <span class="k">"pushButton/feedback"</span>: {
+      <span class="k">"value"</span>: <span class="n">50.19607843137255</span>,
+      <span class="k">"updatedAtMs"</span>: <span class="n">11939</span>,
+      <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span>, <span class="k">"R"</span>: <span class="kw">false</span>, <span class="k">"U"</span>: <span class="kw">true</span> }
+    }
+  },
+  <span class="k">"channels"</span>: {
+    <span class="k">"shutter/s1"</span>: {
+      <span class="k">"output"</span>: { <span class="k">"type"</span>: <span class="s">"motor"</span>, <span class="k">"direction"</span>: <span class="s">"stop"</span> },
+      <span class="k">"state"</span>: { <span class="k">"estimatedPositionPct"</span>: <span class="n">50.19607843137255</span>, <span class="k">"phase"</span>: <span class="s">"idle"</span> }
+    }
+  },
+  <span class="k">"equipment"</span>: {
+    <span class="k">"shutter/s1"</span>: {
+      <span class="k">"type"</span>: <span class="s">"shutter"</span>,
+      <span class="k">"state"</span>: { <span class="k">"positionPct"</span>: <span class="n">33.46</span>, <span class="k">"drive"</span>: <span class="s">"stop"</span>, <span class="k">"moving"</span>: <span class="kw">false</span>, <span class="k">"limit"</span>: <span class="kw">null</span> }
+    }
+  },
+  <span class="k">"rooms"</span>: {
+    <span class="k">"living"</span>: { <span class="k">"temperatureC"</span>: <span class="n">20.8</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span>, <span class="k">"windowOpen"</span>: <span class="kw">false</span> }
+  },
+  <span class="k">"telegramsInFlight"</span>: <span class="n">0</span>,
+  <span class="k">"diagnostics"</span>: []
+}</code></pre><p>The <code>objects</code> map uses <code>deviceId/objectId</code> identifiers. <code>channels</code> and <code>equipment</code> use <code>deviceId/channelId</code>; <code>rooms</code> uses room IDs. Unknown values are <code>null</code>.</p>
+
+<nav class="pager">
+<a href="../reference/dpt.html">← DPT</a>
+<a href="../reference/events.html">Events →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#global-functions">Global functions</a></li><li><a href="#bus-diagram-element">&lt;bus-diagram&gt; element</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

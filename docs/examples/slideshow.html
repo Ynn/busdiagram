@@ -1,0 +1,71 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>reveal.js slideshow · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li class="cur"><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="reveal-js-slideshow"><a class="anchor" href="#reveal-js-slideshow">#</a>reveal.js slideshow</h1><p>The offline <a href="https://revealjs.com">reveal.js</a> slideshow embeds an interactive diagram. Arrow keys change slides. On a slide, use the mouse or focus a diagram control with Tab and activate it with Space or Enter.</p>
+<iframe src="slideshow-demo.html" title="Interactive KNX slideshow" style="width:100%;aspect-ratio:16/10;border:1px solid #dedbd2;border-radius:10px"></iframe><p><a href="slideshow-demo.html">Open slideshow in full screen</a></p>
+<h2 id="slide-code"><a class="anchor" href="#slide-code">#</a>Slide code</h2><pre class="code"><code>&lt;<span class="t">section</span>&gt;
+  &lt;<span class="t">h3</span>&gt;Status feedback&lt;/<span class="t">h3</span>&gt;
+  &lt;<span class="t">bus-diagram</span>
+    <span class="a">fit</span>=<span class="s">"contain"</span>
+    <span class="a">toolbar</span>=<span class="s">"compact"</span>
+    <span class="a">monitor</span>=<span class="s">"false"</span>
+    <span class="a">description</span>=<span class="s">"false"</span>
+    <span class="a">style</span>=<span class="s">"height:520px"</span>&gt;
+    &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+      { "formatVersion": 2, "title": "Example", "lines": [{ "address": "1.1" }], "devices": [] }
+    &lt;/<span class="t">script</span>&gt;
+  &lt;/<span class="t">bus-diagram</span>&gt;
+&lt;/<span class="t">section</span>&gt;</code></pre><p>The page loads <code>reveal.css</code>, <code>reveal.js</code>, and <code>bus-diagram.js</code>. See the <a href="../guide/slides.html">slides guide</a> for presentation options.</p>
+
+<nav class="pager">
+<a href="../examples/fit-diagram.html">← Fit the diagram</a>
+<a href="../examples/two-instances.html">Two independent diagrams →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

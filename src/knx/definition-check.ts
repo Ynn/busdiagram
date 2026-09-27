@@ -1,0 +1,230 @@
+// Control of extension definitions to record: parameter diagrams are
+// a flat subset of JSON Schema (scalar values). An incorrect definition is
+// refused with the list of his problems; an accepted definition is copied and frozen.
+import type {
+  BehaviorDefinition,
+  EquipmentDefinition,
+  JsonObject,
+  ParamSchema,
+} from "./contracts";
+import { isSupportedDpt } from "./dpt";
+import { validateParams } from "./params";
+import { hostTranslator } from "../i18n";
+
+const TYPES = ["integer", "number", "boolean", "string", "null"];
+const PROP_KEYS = [
+  "title",
+  "unit",
+  "expert",
+  "type",
+  "description",
+  "minimum",
+  "maximum",
+  "exclusiveMinimum",
+  "exclusiveMaximum",
+  "enum",
+  "enumTitles",
+  "nullTitle",
+  "default",
+];
+const NUMERIC = ["minimum", "maximum", "exclusiveMinimum", "exclusiveMaximum"];
+
+export function checkParamSchema(
+  schema: unknown,
+  where: string,
+  out: string[],
+) {
+  const t = hostTranslator();
+  if (schema === undefined) return;
+  const s = schema as ParamSchema;
+  if (
+    !s ||
+    typeof s !== "object" ||
+    s.type !== "object" ||
+    !s.properties ||
+    typeof s.properties !== "object"
+  ) {
+    out.push(t`${where}: { type: "object", properties: { … } } expected`);
+    return;
+  }
+  for (const k of Object.keys(s))
+    if (
+      ![
+        "type",
+        "description",
+        "properties",
+        "required",
+        "additionalProperties",
+      ].includes(k)
+    )
+      out.push(
+        t`${where}.${k}: unsupported keyword (subset: type, properties, required, additionalProperties)`,
+      );
+  if (s.additionalProperties !== undefined && s.additionalProperties !== false)
+    out.push(t`${where}.additionalProperties: only false is supported`);
+  (s.required ?? []).forEach((r) => {
+    if (!Object.hasOwn(s.properties, r))
+      out.push(t`${where}.required: “${r}” is not a declared property`);
+  });
+  for (const [name, p] of Object.entries(s.properties)) {
+    const at = `${where}.properties.${name}`;
+    if (!p || typeof p !== "object") {
+      out.push(t`${at}: object expected`);
+      continue;
+    }
+    for (const k of Object.keys(p))
+      if (!PROP_KEYS.includes(k))
+        out.push(t`${at}.${k}: unsupported keyword (scalar values only)`);
+    const types = Array.isArray(p.type) ? p.type : [p.type];
+    if (!types.length || types.some((t) => !TYPES.includes(t as string)))
+      out.push(
+        t`${at}.type: ${TYPES.join(", ")} (or a list of these types) expected`,
+      );
+    NUMERIC.forEach((k) => {
+      const v = (p as unknown as Record<string, unknown>)[k];
+      if (v !== undefined && (typeof v !== "number" || !Number.isFinite(v)))
+        out.push(t`${at}.${k}: finite number expected`);
+    });
+    if (p.enum !== undefined && (!Array.isArray(p.enum) || !p.enum.length))
+      out.push(t`${at}.enum: non-empty list expected`);
+    if (
+      p.enumTitles !== undefined &&
+      (!Array.isArray(p.enum) ||
+        !Array.isArray(p.enumTitles) ||
+        p.enumTitles.length !== p.enum.length ||
+        p.enumTitles.some((x) => typeof x !== "string"))
+    )
+      out.push(t`${at}.enumTitles: one label (text) per “enum” value expected`);
+    if (p.default !== undefined) {
+      // The default value must respect the constraints it accompanies.
+      const problems: { path: string; message: string; code: string }[] = [];
+      validateParams(
+        { type: "object", properties: { [name]: p } },
+        { [name]: p.default },
+        at,
+        problems,
+      );
+      problems.forEach((x) => out.push(t`${at}.default: ${x.message}`));
+    }
+  }
+}
+
+function deepFreezeClone<T>(v: T): T {
+  if (v === undefined) return v;
+  const c = structuredClone(v);
+  const freeze = (x: unknown) => {
+    if (x && typeof x === "object") {
+      Object.values(x).forEach(freeze);
+      Object.freeze(x);
+    }
+  };
+  freeze(c);
+  return c;
+}
+
+export function checkBehavior<S>(
+  id: string,
+  d: BehaviorDefinition<S>,
+): BehaviorDefinition<S> {
+  const t = hostTranslator();
+  const out: string[] = [];
+  if (!d || typeof d !== "object")
+    throw new TypeError(t`Behavior “${id}”: definition expected`);
+  if (typeof d.createState !== "function")
+    out.push(t`createState: function required`);
+  if (!d.ports || typeof d.ports !== "object")
+    out.push(t`ports: object required (possibly empty)`);
+  else
+    for (const [name, port] of Object.entries(d.ports)) {
+      if (!port || typeof port !== "object") {
+        out.push(t`ports.${name}: object expected`);
+        continue;
+      }
+      if (
+        port.dpts !== "any" &&
+        (!Array.isArray(port.dpts) || port.dpts.some((x) => !isSupportedDpt(x)))
+      )
+        out.push(
+          t`ports.${name}.dpts: "any" or list of supported DPTs expected`,
+        );
+      if (
+        port.channel !== undefined &&
+        !["required", "optional", "none"].includes(port.channel)
+      )
+        out.push(
+          t`ports.${name}.channel: "required", "optional" or "none" expected`,
+        );
+      if (
+        port.direction !== undefined &&
+        !["in", "out"].includes(port.direction)
+      )
+        out.push(t`ports.${name}.direction: "in" or "out" expected`);
+    }
+  if (d.output !== undefined && !["switch", "motor", "dim"].includes(d.output))
+    out.push(t`output: "switch", "motor" or "dim" expected`);
+  [
+    "onInit",
+    "onInput",
+    "onObjectWrite",
+    "onTick",
+    "onTimer",
+    "onRoomChange",
+    "channelState",
+    "deviceState",
+  ].forEach((h) => {
+    const f = (d as unknown as Record<string, unknown>)[h];
+    if (f !== undefined && typeof f !== "function")
+      out.push(t`${h}: function expected`);
+  });
+  checkParamSchema(d.parameters, "parameters", out);
+  checkParamSchema(d.channelParameters, "channelParameters", out);
+  checkParamSchema(d.channelInitialState, "channelInitialState", out);
+  if (out.length)
+    throw new TypeError(
+      t`Invalid behavior “${id}”:` + `\n• ${out.join("\n• ")}`,
+    );
+  return Object.freeze({
+    ...d,
+    ports: deepFreezeClone(d.ports),
+    parameters: deepFreezeClone(d.parameters),
+    channelParameters: deepFreezeClone(d.channelParameters),
+    channelInitialState: deepFreezeClone(d.channelInitialState),
+  });
+}
+
+export function checkEquipment<S extends Record<string, unknown>>(
+  id: string,
+  d: EquipmentDefinition<S & JsonObject>,
+) {
+  const t = hostTranslator();
+  const out: string[] = [];
+  if (!d || typeof d !== "object")
+    throw new TypeError(t`Equipment “${id}”: definition expected`);
+  if (typeof d.create !== "function") out.push(t`create: function required`);
+  if (typeof d.applyCommand !== "function")
+    out.push(t`applyCommand: function required`);
+  if (d.advance !== undefined && typeof d.advance !== "function")
+    out.push(t`advance: function expected`);
+  if (d.interact !== undefined && typeof d.interact !== "function")
+    out.push(t`interact: function expected`);
+  if (
+    d.checkParameters !== undefined &&
+    typeof d.checkParameters !== "function"
+  )
+    out.push(t`checkParameters: function expected`);
+  if (d.heatOutput !== undefined && typeof d.heatOutput !== "function")
+    out.push(t`heatOutput: function expected`);
+  if (!["switch", "motor", "dim"].includes(d.accepts))
+    out.push(t`accepts: "switch", "motor" or "dim" expected`);
+  checkParamSchema(d.parameters, "parameters", out);
+  checkParamSchema(d.initialState, "initialState", out);
+  if (out.length)
+    throw new TypeError(
+      t`Invalid equipment “${id}”:` + `\n• ${out.join("\n• ")}`,
+    );
+  return Object.freeze({
+    ...d,
+    parameters: deepFreezeClone(d.parameters),
+    initialState: deepFreezeClone(d.initialState),
+  });
+}

@@ -1,0 +1,112 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diagnosing an error · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li class="cur"><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="diagnose-errors"><a class="anchor" href="#diagnose-errors">#</a>Diagnose errors</h1><p>An invalid scenario does not start. The component lists every validation error with its JSON path.</p>
+<pre class="code"><code>Invalid scenario:
+• devices[1].objects[0].dpt: DPT 5.001 is incompatible with port "switch" (expected 1.001)
+• devices[1].channels[0].parameters.estimatedTravelTimeMs: required parameter
+• devices[0].behavior: unknown behavior "delayedSwitch/v1" (is its extension loaded?)</code></pre><h2 id="read-a-path"><a class="anchor" href="#read-a-path">#</a>Read a path</h2><p><code>devices[1].objects[0].dpt</code> points to the second device, its first object, and that object&#39;s <code>dpt</code> field. The <a href="../designer/index.html">designer</a> highlights the field and can move the cursor to it.</p>
+<h2 id="common-causes"><a class="anchor" href="#common-causes">#</a>Common causes</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Symptom</th>
+<th>Check</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Invalid JSON at line N</td>
+<td>Missing comma or closing quote.</td>
+</tr>
+<tr>
+<td>Undeclared line</td>
+<td>Add its address to <code>lines</code> or correct the device address.</td>
+</tr>
+<tr>
+<td>Unknown object ID</td>
+<td>A button or indicator refers to another device&#39;s object, or contains a typo.</td>
+</tr>
+<tr>
+<td>Port requires a channel</td>
+<td>Add <code>&quot;channel&quot;: &quot;s1&quot;</code> and declare channel <code>s1</code>.</td>
+</tr>
+<tr>
+<td>Incompatible DPT</td>
+<td>Use a DPT accepted by the <a href="../reference/ports.html">port</a>.</td>
+</tr>
+<tr>
+<td>Mixed group payload sizes</td>
+<td>Do not associate one-bit and one-byte objects with the same address.</td>
+</tr>
+<tr>
+<td>Unknown field</td>
+<td>Check the format-2 field name.</td>
+</tr>
+<tr>
+<td>Unknown behavior</td>
+<td>Check its ID and load its extension script before the component.</td>
+</tr>
+</tbody></table>
+</div><p>See the <a href="../reference/errors.html">error-code reference</a> for all codes.</p>
+<h2 id="errors-during-simulation"><a class="anchor" href="#errors-during-simulation">#</a>Errors during simulation</h2><p>An extension exception or an event cascade pauses the affected diagram and shows an error banner. <strong>Reset</strong> restores the initial state.</p>
+<pre class="code"><code>diagram.addEventListener(<span class="s">"bd-error"</span>, (event) =&gt; {
+  console.log(event.detail.message);
+  console.table(event.detail.details); <span class="c">// Array of { path, code, message }.</span>
+});</code></pre>
+<nav class="pager">
+<a href="../guide/time.html">← Time and step mode</a>
+<a href="../guide/limits.html">Model and limits →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#read-a-path">Read a path</a></li><li><a href="#common-causes">Common causes</a></li><li><a href="#errors-during-simulation">Errors during simulation</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

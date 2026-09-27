@@ -1,0 +1,2120 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Behaviors and equipment · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html" class="cur">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../reference/index.html">Overview</a></li><li><a href="../reference/options.html">Display options</a></li><li><a href="../reference/json.html">JSON scenario</a></li><li class="cur"><a href="../reference/behaviors.html">Behaviors and equipment</a></li><li><a href="../reference/ports.html">Ports</a></li><li><a href="../reference/dpt.html">DPT</a></li><li><a href="../reference/api.html">JavaScript API</a></li><li><a href="../reference/events.html">Events</a></li><li><a href="../reference/errors.html">Error codes</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Reference</p>
+<h1 id="behaviors-and-equipment"><a class="anchor" href="#behaviors-and-equipment">#</a>Behaviors and equipment</h1><p>These tables are generated from registered definitions. An extension can register additional behaviors or equipment; see the <a href="../guide/extensions.html">extension guide</a>.</p>
+<h2 id="behaviors"><a class="anchor" href="#behaviors">#</a>Behaviors</h2><h3 id="pushbutton-v1"><a class="anchor" href="#pushbutton-v1">#</a>pushButton/v1</h3><p>Push button or sensor: each gesture writes a value into a local object, then transmits it. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>input</code></td>
+<td>any</td>
+<td>none</td>
+<td>object sent by a key or input</td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td>any</td>
+<td>none</td>
+<td>object receiving a value (indicator or feedback)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>longPressMs</code></td>
+<td>integer</td>
+<td><code>500</code></td>
+<td>≥ 100 ; ≤ 10000</td>
+<td>Press duration that counts as a long press (ms), for keys with short and long actions.</td>
+</tr>
+</tbody></table>
+</div><h3 id="switchactuator-v1"><a class="anchor" href="#switchactuator-v1">#</a>switchActuator/v1</h3><p>Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering. Output command: <code>switch</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Channel switch command (0 = off, 1 = on).</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Relay status feedback, sent after each effective change.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001</td>
+<td>optional (all channels when omitted)</td>
+<td>Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.</td>
+</tr>
+<tr>
+<td><code>forced</code></td>
+<td>2.001</td>
+<td>required</td>
+<td>Priority override (2 = force off, 3 = force on, 0/1 = end override).</td>
+</tr>
+<tr>
+<td><code>power</code></td>
+<td>14.056</td>
+<td>required</td>
+<td>electrical power (W) drawn by the load of the channel</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>13.010</td>
+<td>required</td>
+<td>active energy (Wh) counted for the channel, sent cyclically</td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>14.056</td>
+<td>none</td>
+<td>sum of the power of all channels (W)</td>
+</tr>
+<tr>
+<td><code>powerLimit</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>meterIntervalMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>≥ 1000</td>
+<td>Cyclic sending of power and energy values (ms), for channels with metering objects.</td>
+</tr>
+<tr>
+<td><code>powerSendDeltaW</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Send a power value when it changes by at least this many watts.</td>
+</tr>
+<tr>
+<td><code>energyTimeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>&gt; 0</td>
+<td>Energy counting speed: 60 counts one simulated second as one minute, so that the counter moves visibly; 1 counts real time.</td>
+</tr>
+<tr>
+<td><code>powerLimitW</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Total power (W) of the actuator outputs at which the powerLimit object is set, for load shedding (0 disables it).</td>
+</tr>
+<tr>
+<td><code>sheddingTimeMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 0</td>
+<td>A shed output is switched on again after this time, if its command still requests it; it is shed again if the limit is still exceeded.</td>
+</tr>
+<tr>
+<td><code>powerLimitHysteresisW</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0</td>
+<td>The powerLimit object is reset below limit − hysteresis (W).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>timerMs</code></td>
+<td>integer</td>
+<td>null</td>
+<td><code>null</code></td>
+<td>&gt; 0</td>
+</tr>
+<tr>
+<td><code>timerRetrigger</code></td>
+<td>string</td>
+<td><code>&quot;restart&quot;</code></td>
+<td>&quot;restart&quot; (Restarts), &quot;none&quot; (No effect), &quot;add&quot; (Extends)</td>
+<td>When 1 is received during a timer: restart begins a full period, none ignores it, and add extends the period (up to five times).</td>
+</tr>
+<tr>
+<td><code>timerWarningMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Time before the timer ends when the output briefly opens for one second as a warning (0 disables the warning).</td>
+</tr>
+<tr>
+<td><code>timerOffAllowed</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Allow a 0 write to switch off before the timer ends; otherwise ignore it.</td>
+</tr>
+<tr>
+<td><code>loadShedding</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Switch this output off while the total power limit of the actuator is exceeded (load shedding).</td>
+</tr>
+<tr>
+<td><code>relayMode</code></td>
+<td>string</td>
+<td><code>&quot;normallyOpen&quot;</code></td>
+<td>&quot;normallyOpen&quot; (Normally open), &quot;normallyClosed&quot; (Normally closed)</td>
+<td>normallyOpen closes the contact when the channel is on; normallyClosed closes it when the channel is off, so the load is powered while the switching state is 0. Status feedback reports the switching state, not the contact.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Delay before sending status feedback (ms).</td>
+</tr>
+<tr>
+<td><code>afterForcing</code></td>
+<td>string</td>
+<td><code>&quot;lastCommand&quot;</code></td>
+<td>&quot;lastCommand&quot; (Last command), &quot;previous&quot; (Previous state), &quot;unchanged&quot; (Unchanged), &quot;on&quot; (Start), &quot;off&quot; (Stop), &quot;toggle&quot; (Toggle)</td>
+<td>State after a priority override ends: follow the latest command received during the override, restore the previous state, keep the forced state, switch on, switch off, or invert the forced state.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="shutteractuator-v1"><a class="anchor" href="#shutteractuator-v1">#</a>shutterActuator/v1</h3><p>Shutter actuator without sensor: position estimated from the configured travel time. Output command: <code>motor</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>move</code></td>
+<td>1.008</td>
+<td>required</td>
+<td>Shutter: 0 raises toward 0%, 1 lowers toward 100%.</td>
+</tr>
+<tr>
+<td><code>stopStep</code></td>
+<td>1.007</td>
+<td>required</td>
+<td>Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).</td>
+</tr>
+<tr>
+<td><code>positionCommand</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Shutter target position in percent.</td>
+</tr>
+<tr>
+<td><code>positionStatus</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Actuator&#39;s estimated shutter position, sent after stopping.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001</td>
+<td>optional (all channels when omitted)</td>
+<td>Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.</td>
+</tr>
+<tr>
+<td><code>slatCommand</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>slat angle (0 % open, 100 % closed) of a venetian blind</td>
+</tr>
+<tr>
+<td><code>slatStatus</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>estimated slat angle, sent after stopping</td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>optional (all channels when omitted)</td>
+<td>1 raises the shutter and locks it against other commands; 0 releases it in place</td>
+</tr>
+</tbody></table>
+</div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>estimatedTravelTimeMs</code> (required)</td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Travel time configured in the actuator (ms).</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Delay before starting or reversing motion (ms).</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Delay before sending position feedback (ms).</td>
+</tr>
+<tr>
+<td><code>slatTravelMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Venetian blind: time configured for the slats to turn from open to closed (ms). A movement first turns the slats; a short press at rest turns them by slatStepPct. 0 for a roller shutter without slats.</td>
+</tr>
+<tr>
+<td><code>slatStepPct</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Slat angle change for a short press at rest (%).</td>
+</tr>
+<tr>
+<td><code>stepPct</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Step size for a stop/step command from rest (%); 0 means stop only for a roller shutter without slats.</td>
+</tr>
+<tr>
+<td><code>endSupplementPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Extra travel time toward 0% or 100%, as a percentage of full travel. The motor runs even if the estimate is already at the limit; the end stop recalibrates the estimate (often 5–10% on a real actuator).</td>
+</tr>
+<tr>
+<td><code>invertOutput</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>estimatedPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>estimatedSlatPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="display-v1"><a class="anchor" href="#display-v1">#</a>display/v1</h3><p>Display / supervisor: receives and shows values, with no output or retransmission.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>display</code></td>
+<td>any</td>
+<td>none</td>
+<td>Object that receives and displays a value, such as an indicator or supervisor.</td>
+</tr>
+</tbody></table>
+</div><p><em>No parameters.</em></p>
+<h3 id="passive-v1"><a class="anchor" href="#passive-v1">#</a>passive/v1</h3><p>Device without logic: it only keeps the values of its objects.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>input</code></td>
+<td>any</td>
+<td>none</td>
+<td>Object written by a button or numeric input, then transmitted.</td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td>any</td>
+<td>none</td>
+<td>Object that receives and displays a value, such as an indicator or supervisor.</td>
+</tr>
+</tbody></table>
+</div><p><em>No parameters.</em></p>
+<h3 id="presencedetector-v1"><a class="anchor" href="#presencedetector-v1">#</a>presenceDetector/v1</h3><p>Presence detector: sends 1 on first detection, 0 when its hold time ends (restarted by each detection). Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>input</code></td>
+<td>1.001</td>
+<td>none</td>
+<td>output object: 1 on detection, 0 when the timer expires</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>holdMs</code></td>
+<td>integer</td>
+<td><code>10000</code></td>
+<td>&gt; 0</td>
+<td>Time with no detected presence before sending 0 (ms); restarted on each detection.</td>
+</tr>
+<tr>
+<td><code>retrigger</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Each activation restarts the timer; otherwise it runs from the first activation.</td>
+</tr>
+<tr>
+<td><code>sendOnEnd</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off.</td>
+</tr>
+</tbody></table>
+</div><h3 id="usbinterface-v1"><a class="anchor" href="#usbinterface-v1">#</a>usbInterface/v1</h3><p>USB interface: writes and reads group addresses from the USB interface panel of the diagram.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+</table>
+</div><p><em>No parameters.</em></p>
+<h3 id="dimmeractuator-v1"><a class="anchor" href="#dimmeractuator-v1">#</a>dimmerActuator/v1</h3><p>Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback. Output command: <code>dim</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Channel switch command (0 = off, 1 = on).</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>required</td>
+<td>Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value in percent (5.001); zero switches off.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Relay status feedback, sent after each effective change.</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value feedback (5.001), sent after a transition.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001</td>
+<td>optional (all channels when omitted)</td>
+<td>Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.</td>
+</tr>
+<tr>
+<td><code>colourTemperature</code></td>
+<td>7.600</td>
+<td>required</td>
+<td>colour temperature setpoint (K) of a tunable white channel</td>
+</tr>
+<tr>
+<td><code>colourTemperatureStatus</code></td>
+<td>7.600</td>
+<td>required</td>
+<td>applied colour temperature (K)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onLevel</code></td>
+<td>string</td>
+<td><code>&quot;fixed&quot;</code></td>
+<td>&quot;fixed&quot; (Set value), &quot;last&quot; (Last value)</td>
+<td>Level when switched on: fixed uses onLevelPct; last restores the level before switch-off.</td>
+</tr>
+<tr>
+<td><code>onLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Level reached when a value of 1 is received (fixed mode).</td>
+</tr>
+<tr>
+<td><code>dimTimeMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>&gt; 0</td>
+<td>Time for a 0–100% relative dimming transition (DPT 3.007); smaller steps take less time.</td>
+</tr>
+<tr>
+<td><code>switchFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Transition time when switching on or off (0 means immediate).</td>
+</tr>
+<tr>
+<td><code>valueFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Transition time to a received value (5.001) or scene preset.</td>
+</tr>
+<tr>
+<td><code>minLevelPct</code></td>
+<td>number</td>
+<td><code>1</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Minimum relative dimming level.</td>
+</tr>
+<tr>
+<td><code>maxLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 50 ; ≤ 100</td>
+<td>Upper limit for relative dimming and received values.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>An increase command turns on a channel that is off.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>A decrease command may dim to off; otherwise it stops at the minimum level.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Delay before sending status feedback (ms), after a transition completes.</td>
+</tr>
+<tr>
+<td><code>minColourK</code></td>
+<td>integer</td>
+<td><code>2700</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.</td>
+</tr>
+<tr>
+<td><code>maxColourK</code></td>
+<td>integer</td>
+<td><code>6500</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>colourTemperatureK</code></td>
+<td>integer</td>
+<td><code>4000</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Colour temperature (K) at start, for a channel with a colourTemperature object.</td>
+</tr>
+</tbody></table>
+</div><h3 id="daligateway-v1"><a class="anchor" href="#daligateway-v1">#</a>daliGateway/v1</h3><p>KNX/DALI gateway: each channel is a DALI group of ballasts; broadcast, scenes and fault reporting. Output command: <code>dim</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Channel switch command (0 = off, 1 = on).</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>required</td>
+<td>Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value in percent (5.001); zero switches off.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>Relay status feedback, sent after each effective change.</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value feedback (5.001), sent after a transition.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001</td>
+<td>optional (all channels when omitted)</td>
+<td>Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>1.005</td>
+<td>required</td>
+<td>lamp or ballast fault in the group</td>
+</tr>
+<tr>
+<td><code>broadcastSwitch</code></td>
+<td>1.001</td>
+<td>none</td>
+<td>Switch all groups with a DALI broadcast.</td>
+</tr>
+<tr>
+<td><code>broadcastValue</code></td>
+<td>5.001</td>
+<td>none</td>
+<td>Set all group levels with a DALI broadcast.</td>
+</tr>
+<tr>
+<td><code>generalError</code></td>
+<td>1.005</td>
+<td>none</td>
+<td>Fault on the DALI line across all groups (1.005).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pollMs</code></td>
+<td>integer</td>
+<td><code>2000</code></td>
+<td>≥ 500</td>
+<td>Interval between ballast status polls for faults.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onLevel</code></td>
+<td>string</td>
+<td><code>&quot;fixed&quot;</code></td>
+<td>&quot;fixed&quot; (Set value), &quot;last&quot; (Last value)</td>
+<td>Level when switched on: fixed uses onLevelPct; last restores the level before switch-off.</td>
+</tr>
+<tr>
+<td><code>onLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Level reached when a value of 1 is received (fixed mode).</td>
+</tr>
+<tr>
+<td><code>dimTimeMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>&gt; 0</td>
+<td>Time for a 0–100% relative dimming transition (DPT 3.007); smaller steps take less time.</td>
+</tr>
+<tr>
+<td><code>switchFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Transition time when switching on or off (0 means immediate).</td>
+</tr>
+<tr>
+<td><code>valueFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Transition time to a received value (5.001) or scene preset.</td>
+</tr>
+<tr>
+<td><code>minLevelPct</code></td>
+<td>number</td>
+<td><code>1</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Minimum relative dimming level.</td>
+</tr>
+<tr>
+<td><code>maxLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 50 ; ≤ 100</td>
+<td>Upper limit for relative dimming and received values.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>An increase command turns on a channel that is off.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>A decrease command may dim to off; otherwise it stops at the minimum level.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Delay before sending status feedback (ms), after a transition completes.</td>
+</tr>
+<tr>
+<td><code>minColourK</code></td>
+<td>integer</td>
+<td><code>2700</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.</td>
+</tr>
+<tr>
+<td><code>maxColourK</code></td>
+<td>integer</td>
+<td><code>6500</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>colourTemperatureK</code></td>
+<td>integer</td>
+<td><code>4000</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Colour temperature (K) at start, for a channel with a colourTemperature object.</td>
+</tr>
+</tbody></table>
+</div><h3 id="roomthermostat-v1"><a class="anchor" href="#roomthermostat-v1">#</a>roomThermostat/v1</h3><p>Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>actualTemp</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>Thermostat: measured temperature (9.001), sent on change.</td>
+</tr>
+<tr>
+<td><code>externalTemp</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>replaces the internal sensor after a value is received</td>
+</tr>
+<tr>
+<td><code>baseSetpoint</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>Thermostat: base heating comfort setpoint (9.001).</td>
+</tr>
+<tr>
+<td><code>setpointShift</code></td>
+<td>9.002</td>
+<td>none</td>
+<td>base setpoint = configured setpoint + offset</td>
+</tr>
+<tr>
+<td><code>setpointStatus</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>Thermostat: current setpoint (9.001).</td>
+</tr>
+<tr>
+<td><code>hvacMode</code></td>
+<td>20.102</td>
+<td>none</td>
+<td>Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).</td>
+</tr>
+<tr>
+<td><code>hvacModeStatus</code></td>
+<td>20.102</td>
+<td>none</td>
+<td>Thermostat: current mode (20.102).</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td>1.018, 1.001</td>
+<td>none</td>
+<td>1 = presence: comfort mode</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>1.019, 1.001, 1.009</td>
+<td>none</td>
+<td>open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority</td>
+</tr>
+<tr>
+<td><code>heatCool</code></td>
+<td>1.100</td>
+<td>none</td>
+<td>1 = heating, 0 = cooling</td>
+</tr>
+<tr>
+<td><code>heatCoolStatus</code></td>
+<td>1.100</td>
+<td>none</td>
+<td>Thermostat: current heating or cooling mode.</td>
+</tr>
+<tr>
+<td><code>heatingValue</code></td>
+<td>5.001</td>
+<td>none</td>
+<td>continuous control value from 0 to 100%</td>
+</tr>
+<tr>
+<td><code>heatingSwitch</code></td>
+<td>1.001</td>
+<td>none</td>
+<td>two-point control, or PWM under PI control</td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>5.001</td>
+<td>none</td>
+<td>Thermostat: continuous cooling control value (5.001).</td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>1.001</td>
+<td>none</td>
+<td>Thermostat: one-bit cooling command.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>controlType</code></td>
+<td>string</td>
+<td><code>&quot;pi&quot;</code></td>
+<td>&quot;pi&quot; (PI (continuous or PWM)), &quot;twoPoint&quot; (Two-point)</td>
+<td>pi uses proportional-integral control with a continuous value (5.001) or PWM (1 bit); twoPoint uses on/off control with hysteresis.</td>
+</tr>
+<tr>
+<td><code>comfortC</code></td>
+<td>number</td>
+<td><code>21</code></td>
+<td>≥ 5 ; ≤ 35</td>
+<td>Initial heating comfort setpoint (°C); the baseSetpoint object can replace it.</td>
+</tr>
+<tr>
+<td><code>standbyShiftK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0 ; ≤ 10</td>
+<td>Standby setpoint offset (K): lower for heating, higher for cooling.</td>
+</tr>
+<tr>
+<td><code>economyShiftK</code></td>
+<td>number</td>
+<td><code>4</code></td>
+<td>≥ 0 ; ≤ 15</td>
+<td>Economy or night setpoint offset (K): lower for heating, higher for cooling.</td>
+</tr>
+<tr>
+<td><code>frostProtectionC</code></td>
+<td>number</td>
+<td><code>7</code></td>
+<td>≥ 3 ; ≤ 15</td>
+<td>Heating setpoint in protection mode (°C).</td>
+</tr>
+<tr>
+<td><code>heatProtectionC</code></td>
+<td>number</td>
+<td><code>35</code></td>
+<td>≥ 25 ; ≤ 45</td>
+<td>Cooling setpoint in protection mode (°C).</td>
+</tr>
+<tr>
+<td><code>deadZoneK</code></td>
+<td>number</td>
+<td><code>3</code></td>
+<td>≥ 0 ; ≤ 10</td>
+<td>Difference between heating and cooling comfort setpoints (K), for example 21 °C and 24 °C.</td>
+</tr>
+<tr>
+<td><code>minSetpointC</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 0 ; ≤ 30</td>
+<td></td>
+</tr>
+<tr>
+<td><code>maxSetpointC</code></td>
+<td>number</td>
+<td><code>35</code></td>
+<td>≥ 10 ; ≤ 50</td>
+<td></td>
+</tr>
+<tr>
+<td><code>hysteresisK</code></td>
+<td>number</td>
+<td><code>0.5</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>Two-point control switches on again when temperature differs from the setpoint by this amount (K).</td>
+</tr>
+<tr>
+<td><code>proportionalBandK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0.5 ; ≤ 10</td>
+<td>Temperature difference (K) that produces 100% output from the proportional term.</td>
+</tr>
+<tr>
+<td><code>integralTimeMs</code></td>
+<td>integer</td>
+<td><code>120000</code></td>
+<td>≥ 0</td>
+<td>PI integral time: a constant error doubles the proportional response after this duration (0 selects P control). Real installations use 60–240 minutes; the default follows compressed simulated room time.</td>
+</tr>
+<tr>
+<td><code>pwmCycleMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 1000</td>
+<td>PWM cycle period for a 1-bit control object (real installations typically use 10–20 minutes).</td>
+</tr>
+<tr>
+<td><code>controlPeriodMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>valueSendDeltaPct</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 1 ; ≤ 50</td>
+<td>Send the control value when it changes by at least this many percentage points.</td>
+</tr>
+<tr>
+<td><code>externalTempTimeoutMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>If no externalTemp value arrives within this time, control uses the internal sensor again until a new value arrives (0 disables monitoring).</td>
+</tr>
+<tr>
+<td><code>valueCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Periodically resend the control value (0 disables it); needed when the actuator monitors incoming values.</td>
+</tr>
+<tr>
+<td><code>temperatureSendDeltaK</code></td>
+<td>number</td>
+<td><code>0.2</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>Send measured temperature when it changes by at least this amount (K).</td>
+</tr>
+<tr>
+<td><code>temperatureCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode. Output command: <code>switch</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value in percent (5.001); zero switches off.</td>
+</tr>
+<tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>two-point or thermostat PWM control</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Brightness value feedback (5.001), sent after a transition.</td>
+</tr>
+<tr>
+<td><code>fault</code></td>
+<td>1.005</td>
+<td>required</td>
+<td>missing control value: fallback program</td>
+</tr>
+</tbody></table>
+</div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>valveType</code></td>
+<td>string</td>
+<td><code>&quot;normallyClosed&quot;</code></td>
+<td>&quot;normallyClosed&quot; (Closed when de-energised), &quot;normallyOpen&quot; (Open when de-energised)</td>
+<td>normallyClosed: valve closed without power (common); normallyOpen: valve open without power, so the output is inverted.</td>
+</tr>
+<tr>
+<td><code>cycleMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 1000</td>
+<td>PWM period for a continuous control value: powered time equals value × period (real installations typically use 10–20 minutes).</td>
+</tr>
+<tr>
+<td><code>monitoringMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>If no control value arrives within this time, enter fallback mode and report a fault (0 disables monitoring).</td>
+</tr>
+<tr>
+<td><code>emergencyPct</code></td>
+<td>number</td>
+<td><code>30</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Control value applied in fallback mode.</td>
+</tr>
+</tbody></table>
+</div><h3 id="windowcontact-v1"><a class="anchor" href="#windowcontact-v1">#</a>windowContact/v1</h3><p>Window contact (binary input): sends the opening and closing of its room&#39;s window.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>contact</code></td>
+<td>1.019, 1.001, 1.009</td>
+<td>none</td>
+<td>1.019 / 1.001: 1 means open; 1.009: 1 means closed</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>contactType</code></td>
+<td>string</td>
+<td><code>&quot;normallyOpen&quot;</code></td>
+<td>&quot;normallyOpen&quot; (Normally open), &quot;normallyClosed&quot; (Normally closed)</td>
+<td>Physical contact: a normally open contact is closed while the window is closed; a normally closed contact is open while the window is closed.</td>
+</tr>
+<tr>
+<td><code>invert</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Interpret the electrical input for a normally closed contact. The transmitted value always follows the DPT (1.019: 1 = open; 1.009: 1 = closed).</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Send contact state when the simulation starts, as after bus power returns, so a thermostat can detect an already open window.</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 0</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="temperaturesensor-v1"><a class="anchor" href="#temperaturesensor-v1">#</a>temperatureSensor/v1</h3><p>Room temperature sensor: sends its room&#39;s temperature on change and cyclically.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>temperature</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>Sensor: room temperature (9.001).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sendDeltaK</code></td>
+<td>number</td>
+<td><code>0.2</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>Temperature change (K) that triggers a transmission.</td>
+</tr>
+<tr>
+<td><code>cyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Periodic retransmission (0 disables it).</td>
+</tr>
+</tbody></table>
+</div><h3 id="logicgate-v1"><a class="anchor" href="#logicgate-v1">#</a>logicGate/v1</h3><p>Logic module: combines one-bit inputs (AND, OR, XOR, NOT) and sends the result; an optional enable object blocks the output.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>logicIn</code></td>
+<td>1.001, 1.002, 1.003, 1.005, 1.018, 1.019</td>
+<td>none</td>
+<td>one-bit input of the logic function</td>
+</tr>
+<tr>
+<td><code>enable</code></td>
+<td>1.003, 1.001</td>
+<td>none</td>
+<td>0 blocks the output; 1 enables it again and sends the current result</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>10.001</td>
+<td>none</td>
+<td>time received from a clock master, used by the time window</td>
+</tr>
+<tr>
+<td><code>logicOut</code></td>
+<td>1.001, 1.002, 1.003, 1.005, 1.008, 1.009</td>
+<td>none</td>
+<td>result of the logic function</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>operation</code></td>
+<td>string</td>
+<td><code>&quot;and&quot;</code></td>
+<td>&quot;and&quot; (AND), &quot;or&quot; (OR), &quot;xor&quot; (XOR), &quot;not&quot; (NOT (first input))</td>
+<td>Logic function applied to the inputs; an input with no value yet counts as 0.</td>
+</tr>
+<tr>
+<td><code>activeFrom</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Start of a daily time window (HH:MM). With activeTo and a time object, the output is 1 only inside the window; the window may cross midnight.</td>
+</tr>
+<tr>
+<td><code>activeTo</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>End of the daily time window (HH:MM), excluded.</td>
+</tr>
+<tr>
+<td><code>sendOnChangeOnly</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Send the result only when it differs from the last transmitted value.</td>
+</tr>
+</tbody></table>
+</div><h3 id="weatherstation-v1"><a class="anchor" href="#weatherstation-v1">#</a>weatherStation/v1</h3><p>Weather station: sends measured wind speed, brightness, and temperature; sets one-bit outputs when wind or brightness thresholds are reached. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>wind</code></td>
+<td>9.005</td>
+<td>none</td>
+<td>measured wind speed (m/s), sent when entered</td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>9.004</td>
+<td>none</td>
+<td>measured brightness (lux), sent when entered</td>
+</tr>
+<tr>
+<td><code>outdoorTemp</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>measured outdoor temperature (°C), sent when entered</td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when the wind threshold is reached, 0 after hysteresis</td>
+</tr>
+<tr>
+<td><code>sunProtection</code></td>
+<td>1.001, 1.002</td>
+<td>none</td>
+<td>1 when the brightness threshold is reached, 0 after hysteresis</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>windThreshold</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Wind speed (m/s) at which the wind alarm is set.</td>
+</tr>
+<tr>
+<td><code>windHysteresis</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0</td>
+<td>The alarm is reset when the wind speed falls below threshold − hysteresis (m/s).</td>
+</tr>
+<tr>
+<td><code>brightnessThreshold</code></td>
+<td>number</td>
+<td><code>40000</code></td>
+<td>≥ 0</td>
+<td>Brightness (lux) at which sun protection is requested.</td>
+</tr>
+<tr>
+<td><code>setsRoomOutdoorTemperature</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>An entered outdoor temperature also becomes the outdoor temperature of every room in the thermal model, so that the building reacts to it.</td>
+</tr>
+<tr>
+<td><code>brightnessHysteresis</code></td>
+<td>number</td>
+<td><code>5000</code></td>
+<td>≥ 0</td>
+<td>The request is reset when brightness falls below threshold − hysteresis (lux).</td>
+</tr>
+</tbody></table>
+</div><h3 id="airqualitysensor-v1"><a class="anchor" href="#airqualitysensor-v1">#</a>airQualitySensor/v1</h3><p>Air quality sensor: sends measured temperature, relative humidity, and CO₂; sets alarms at thresholds and controls ventilation in three steps. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>temperature</code></td>
+<td>9.001</td>
+<td>none</td>
+<td>measured temperature (°C), sent when entered</td>
+</tr>
+<tr>
+<td><code>humidity</code></td>
+<td>9.007</td>
+<td>none</td>
+<td>measured relative humidity (%), sent when entered</td>
+</tr>
+<tr>
+<td><code>co2</code></td>
+<td>9.008</td>
+<td>none</td>
+<td>measured CO₂ concentration (ppm), sent when entered</td>
+</tr>
+<tr>
+<td><code>co2Alarm</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when the CO₂ alarm threshold is reached, 0 after hysteresis</td>
+</tr>
+<tr>
+<td><code>humidityAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when the humidity alarm threshold is reached, 0 after hysteresis</td>
+</tr>
+<tr>
+<td><code>ventilation</code></td>
+<td>5.001</td>
+<td>none</td>
+<td>control value (%) of the current ventilation step</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>co2AlarmPpm</code></td>
+<td>number</td>
+<td><code>1500</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>CO₂ concentration (ppm) at which the CO₂ alarm is set.</td>
+</tr>
+<tr>
+<td><code>co2AlarmHysteresisPpm</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>The CO₂ alarm is reset below threshold − hysteresis (ppm).</td>
+</tr>
+<tr>
+<td><code>humidityAlarmPct</code></td>
+<td>number</td>
+<td><code>70</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Relative humidity (%) at which the humidity alarm is set.</td>
+</tr>
+<tr>
+<td><code>humidityAlarmHysteresisPct</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>The humidity alarm is reset below threshold − hysteresis (%).</td>
+</tr>
+<tr>
+<td><code>step1Ppm</code></td>
+<td>number</td>
+<td><code>800</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>CO₂ concentration (ppm) between ventilation steps 0 and 1.</td>
+</tr>
+<tr>
+<td><code>step2Ppm</code></td>
+<td>number</td>
+<td><code>1000</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>CO₂ concentration (ppm) between ventilation steps 1 and 2.</td>
+</tr>
+<tr>
+<td><code>step3Ppm</code></td>
+<td>number</td>
+<td><code>1200</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>CO₂ concentration (ppm) between ventilation steps 2 and 3.</td>
+</tr>
+<tr>
+<td><code>stepHysteresisPpm</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>A step changes only above threshold + hysteresis or below threshold − hysteresis (ppm).</td>
+</tr>
+<tr>
+<td><code>step0Pct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Ventilation control value (%) sent in step 0.</td>
+</tr>
+<tr>
+<td><code>step1Pct</code></td>
+<td>number</td>
+<td><code>33</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Ventilation control value (%) sent in step 1.</td>
+</tr>
+<tr>
+<td><code>step2Pct</code></td>
+<td>number</td>
+<td><code>66</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Ventilation control value (%) sent in step 2.</td>
+</tr>
+<tr>
+<td><code>step3Pct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Ventilation control value (%) sent in step 3.</td>
+</tr>
+<tr>
+<td><code>minStepTimeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>A step is kept at least this long before the next change (0 disables it).</td>
+</tr>
+</tbody></table>
+</div><h3 id="clockmaster-v1"><a class="anchor" href="#clockmaster-v1">#</a>clockMaster/v1</h3><p>Clock master: sends the time of day (10.001) and the date (11.001) of the simulated clock at a fixed period and after the clock is set.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>time</code></td>
+<td>10.001</td>
+<td>none</td>
+<td>day of week and time of the simulated clock</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>11.001</td>
+<td>none</td>
+<td>date of the simulated clock</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sendPeriodMin</code></td>
+<td>integer</td>
+<td><code>1</code></td>
+<td>≥ 0 ; ≤ 1440</td>
+<td>Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set.</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Send time and date shortly after the simulation starts.</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 0</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="timeswitch-v1"><a class="anchor" href="#timeswitch-v1">#</a>timeSwitch/v1</h3><p>Weekly time switch: sends the programmed value on its output objects at the programmed times of the simulated clock.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>output</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>none</td>
+<td>object that receives the programmed values</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>program</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Switching points separated by semicolons: days, time, and value, for example “Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0”. Days: Mon … Sun, ranges (Mon-Fri), lists (Sat,Sun), or Daily.</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>At start, and after the clock is set, send the value of the most recent switching point.</td>
+</tr>
+</tbody></table>
+</div><h2 id="equipment"><a class="anchor" href="#equipment">#</a>Equipment</h2><h3 id="lamp"><a class="anchor" href="#lamp">#</a>lamp</h3><p>Lamp: lit while the relay output is closed. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Electrical power (W) drawn while the lamp is on; used by metering actuators. Any switched load can be represented with a matching power.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="shutter"><a class="anchor" href="#shutter">#</a>shutter</h3><p>Roller shutter: receives up/down/stop commands and moves through its actual travel, limited to 0–100%. Accepted commands: <code>motor</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>actualTravelTimeMs</code> (required)</td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Actual time for one complete travel (ms).</td>
+</tr>
+<tr>
+<td><code>slatTravelMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Venetian blind: time for the slats to turn from open to closed (ms). The motor first turns the slats, then moves the blind. 0 describes a roller shutter without slats.</td>
+</tr>
+<tr>
+<td><code>wiringReversed</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Physical wiring with the up and down wires swapped: the motor turns opposite to the command. The actuator&#39;s “Inverted wiring” parameter compensates it.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>positionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>slatPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="dimmablelamp"><a class="anchor" href="#dimmablelamp">#</a>dimmableLamp</h3><p>Dimmable lamp: follows the commanded level with the requested fade; a tunable white lamp also follows the commanded colour temperature. Accepted commands: <code>dim</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Electrical power (W) at full level; the drawn power is proportional to the level.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="daligroup"><a class="anchor" href="#daligroup">#</a>daliGroup</h3><p>DALI ballasts in a group: each has a short address (0–63) and follows the commanded level. Accepted commands: <code>dim</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ballasts</code></td>
+<td>integer</td>
+<td><code>2</code></td>
+<td>≥ 1 ; ≤ 16</td>
+<td>Number of ballasts (luminaires) in the group.</td>
+</tr>
+<tr>
+<td><code>firstAddress</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 63</td>
+<td>Short DALI address of the first ballast; subsequent ballasts use consecutive addresses.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 16</td>
+<td>Number of ballasts initially reporting a lamp or ballast fault.</td>
+</tr>
+</tbody></table>
+</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiator with a thermoelectric valve: gradual opening while powered; heat or cooling output is proportional to valve opening. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openingTimeMs</code></td>
+<td>integer</td>
+<td><code>8000</code></td>
+<td>≥ 1000</td>
+<td>Time for the valve to open fully (ms). Real valves take about 3 minutes; this is compressed like room time and should be short relative to the PWM period.</td>
+</tr>
+<tr>
+<td><code>normallyOpen</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Normally open valve: applying power closes it.</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>25</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Temperature difference (K) from outdoors that this radiator can maintain alone with the valve fully open.</td>
+</tr>
+<tr>
+<td><code>emitter</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Heating), &quot;cooling&quot; (Cooling)</td>
+<td>heating warms the room; cooling cools it, for example a fan coil with condensate drainage. Humidity and condensation are not modeled.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="fan"><a class="anchor" href="#fan">#</a>fan</h3><p>Ventilation fan: runs at the commanded speed (0–100 %) after a short ramp. Accepted commands: <code>dim</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Electrical power (W) at full speed; the drawn power is proportional to the speed.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="appliance"><a class="anchor" href="#appliance">#</a>appliance</h3><p>Electrical appliance on a switched output (oven, water heater, socket): draws its rated power while powered. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>2000</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Electrical power (W) drawn while the appliance is powered.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../reference/json.html">← JSON scenario</a>
+<a href="../reference/ports.html">Ports →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#behaviors">Behaviors</a></li><li><a href="#equipment">Equipment</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

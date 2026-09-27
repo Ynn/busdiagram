@@ -1,0 +1,102 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time and step mode · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li class="cur"><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="time-and-step-mode"><a class="anchor" href="#time-and-step-mode">#</a>Time and step mode</h1><h2 id="observable-timing"><a class="anchor" href="#observable-timing">#</a>Observable timing</h2><p>The simulation slows telegram propagation so each event can be inspected. These values are model settings, not physical KNX bus timings. For comparison, on a twisted-pair line at 9600 bit/s, a switching telegram and its acknowledgement occupy the bus for about 20 ms.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Event</th>
+<th>Simulated delay</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Object transmission onto the bus</td>
+<td>550 ms</td>
+</tr>
+<tr>
+<td>Between adjacent devices on a line</td>
+<td>250 ms</td>
+</tr>
+<tr>
+<td>Coupler input, decision, and output</td>
+<td>150 + 900 + 150 ms</td>
+</tr>
+<tr>
+<td>Bus arrival at a receiving object</td>
+<td>500 ms</td>
+</tr>
+<tr>
+<td>Default status feedback or motor start</td>
+<td>300 ms</td>
+</tr>
+</tbody></table>
+</div><p>A lamp or motor changes only after the receiving object processes the telegram.</p>
+<h2 id="speed-and-pause"><a class="anchor" href="#speed-and-pause">#</a>Speed and pause</h2><p>Speed controls multiply simulated time: slower, normal, faster, and ×5. The button long-press threshold (<code>longPressMs</code>, 0.5 s by default) uses real time. While paused, a button press is registered but its telegram waits for simulation time to resume. A hidden tab or slide pauses without later catching up.</p>
+<h2 id="simulated-clock"><a class="anchor" href="#simulated-clock">#</a>Simulated clock</h2><p>A scenario can declare a simulated wall clock. Clock masters, time switches, and time windows use it:</p>
+<pre class="code"><code><span class="k">"clock"</span>: { <span class="k">"start"</span>: <span class="s">"2026-09-28T21:57:00"</span>, <span class="k">"speed"</span>: <span class="n">60</span> }</code></pre><ul>
+<li><code>start</code> is the local date and time at the start of the simulation, without a time zone.</li>
+<li><code>speed</code> is the number of clock seconds per simulated second (1 by default, at most 3600). With 60, one clock minute passes every simulated second.</li>
+</ul>
+<p>The clock follows simulated time: it stops while the simulation is paused, and the speed controls apply to it as to everything else. With a clock, simulated time keeps running even when the bus is idle.</p>
+<p>The diagram shows the date and time in a badge at its bottom left. <strong>Set time</strong> opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> does the same.</p>
+<h2 id="step-mode"><a class="anchor" href="#step-mode">#</a>Step mode</h2><p>Step mode stops at explanatory events, including telegram transmission, a coupler&#39;s route/filter decision, an object&#39;s acceptance or rejection due to W, output changes, and timer expiry. Press <strong>Next</strong> to continue to the following event.</p>
+<h2 id="determinism"><a class="anchor" href="#determinism">#</a>Determinism</h2><p>Time advances in whole milliseconds through an event queue. Advancing by 20 seconds in one call or in smaller steps gives the same final state for the same inputs.</p>
+
+<nav class="pager">
+<a href="../guide/extensions.html">← Extensions</a>
+<a href="../guide/errors.html">Diagnosing an error →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#observable-timing">Observable timing</a></li><li><a href="#speed-and-pause">Speed and pause</a></li><li><a href="#simulated-clock">Simulated clock</a></li><li><a href="#step-mode">Step mode</a></li><li><a href="#determinism">Determinism</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

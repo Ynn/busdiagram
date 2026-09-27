@@ -1,0 +1,12 @@
+#!/bin/sh
+set -eu
+if ! command -v pre-commit >/dev/null 2>&1; then
+  echo 'pre-commit is required: install it with uv tool install pre-commit' >&2
+  exit 1
+fi
+check_status=0
+pre-commit run --hook-stage pre-commit || check_status=1
+if [ -f .local/publication-rules.yaml ]; then
+  pre-commit run --config .local/publication-rules.yaml --hook-stage pre-commit || check_status=1
+fi
+exit "$check_status"

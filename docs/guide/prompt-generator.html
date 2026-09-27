@@ -1,0 +1,85 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Prompt generator · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+<script src="../assets/llm-reference.js"></script><script src="../assets/prompt-generator.js"></script>
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li class="cur"><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="prompt-generator"><a class="anchor" href="#prompt-generator">#</a>Prompt generator</h1><p>This page prepares a complete request for a language model: your description of the installation, the rules of the scenario format, the catalogs of behaviors and DPTs, and optionally an example to start from. Paste the generated text into the assistant of your choice, then paste its answer below to check it. Nothing is sent from this page; everything runs in the browser. See <a href="language-models.html">generate with a language model</a> for the method and its limits.</p>
+<div id="pg" class="pg"><h2 id="1-describe-the-installation"><a class="anchor" href="#1-describe-the-installation">#</a>1. Describe the installation</h2><div class="pg-field"><label for="pg-description">Installation</label>
+<textarea id="pg-description" rows="7" placeholder="Example: one line 1.1 named Office. A four-key push-button (1.1.1): keys 1 and 2 switch the ceiling lights L1 and L2; keys 3 and 4 raise and lower the shutter (long press moves, short press stops). A four-output switching actuator (1.1.2) with status feedback and a shutter actuator (1.1.3) with position feedback."></textarea></div><div class="pg-row">
+<div class="pg-field"><label for="pg-example">Start from an example</label>
+<select id="pg-example"><option value="">None</option></select></div>
+<div class="pg-field"><label for="pg-names">Display text</label>
+<select id="pg-names">
+<option value="en">English</option>
+<option value="fr">French</option>
+<option value="same">Language of the request</option>
+</select></div>
+<div class="pg-check"><input type="checkbox" id="pg-catalogs" checked><label for="pg-catalogs">Include the catalogs of behaviors, equipment, and DPTs</label></div>
+</div><h2 id="2-copy-the-request"><a class="anchor" href="#2-copy-the-request">#</a>2. Copy the request</h2><div class="pg-field"><label for="pg-prompt">Generated request</label>
+<textarea id="pg-prompt" class="pg-out" rows="12" readonly></textarea></div>
+<div class="pg-actions"><button type="button" class="pg-btn primary" id="pg-copy" data-label="Copy the request">Copy the request</button> <span id="pg-size" class="pg-size"></span></div><h2 id="3-check-the-answer"><a class="anchor" href="#3-check-the-answer">#</a>3. Check the answer</h2><div class="pg-field"><label for="pg-answer">Answer of the model (JSON, with or without a code block)</label>
+<textarea id="pg-answer" rows="8" spellcheck="false"></textarea></div>
+<div class="pg-actions"><button type="button" class="pg-btn" id="pg-check">Check</button> <a id="pg-open" class="pg-btn" hidden target="_blank" rel="noopener">Open in the designer</a></div>
+<div id="pg-result" class="pg-result" aria-live="polite"></div>
+<div id="pg-correction-box" hidden>
+<div class="pg-field"><label for="pg-correction">Correction request</label>
+<textarea id="pg-correction" class="pg-out" rows="6" readonly></textarea></div>
+<div class="pg-actions"><button type="button" class="pg-btn" id="pg-copy-correction" data-label="Copy the correction request">Copy the correction request</button></div>
+</div></div><p>Repeat steps 2 and 3 with the correction request until the scenario is valid, then open it in the designer to review the diagram. Validation confirms that the scenario is consistent; it does not confirm that it matches the intended installation.</p>
+
+<nav class="pager">
+<a href="../guide/language-models.html">← Generate with a language model</a>
+<a href="../guide/embedding.html">Embed in a page →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#1-describe-the-installation">1. Describe the installation</a></li><li><a href="#2-copy-the-request">2. Copy the request</a></li><li><a href="#3-check-the-answer">3. Check the answer</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

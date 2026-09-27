@@ -1,0 +1,267 @@
+{
+  "formatVersion": 2,
+  "title": "Time schedule: clock master, time switch, and time window",
+  "description": "The simulated clock starts on Monday at 21:57 and runs 60 times faster than simulated time. The clock master sends the time and date every clock minute. The time switch switches the corridor light off at 22:00 (on at 07:00 on weekdays). The logic module lets the presence detector switch the garden light only between 22:00 and 06:00: press the detector before and after 22:00. Use Set time on the clock badge to jump to another time.",
+  "clock": {
+    "start": "2026-09-28T21:57:00",
+    "speed": 60
+  },
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "House"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "6/0/1",
+      "name": "Time of day",
+      "dpt": "10.001"
+    },
+    {
+      "address": "6/0/2",
+      "name": "Date",
+      "dpt": "11.001"
+    },
+    {
+      "address": "6/1/1",
+      "name": "Corridor light (program)",
+      "dpt": "1.001"
+    },
+    {
+      "address": "6/2/1",
+      "name": "Garden presence",
+      "dpt": "1.001"
+    },
+    {
+      "address": "6/2/2",
+      "name": "Garden light",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "clock",
+      "name": "Clock master",
+      "address": "1.1.20",
+      "kind": "clock",
+      "behavior": "clockMaster/v1",
+      "parameters": {
+        "sendPeriodMin": 1
+      },
+      "objects": [
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": {
+            "W": false,
+            "T": true,
+            "R": true
+          }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "date",
+          "flags": {
+            "W": false,
+            "T": true,
+            "R": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "timeSwitch",
+      "name": "Weekly time switch",
+      "address": "1.1.21",
+      "kind": "timeSwitch",
+      "behavior": "timeSwitch/v1",
+      "parameters": {
+        "program": "Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"
+      },
+      "objects": [
+        {
+          "id": "out",
+          "name": "Corridor light",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "output",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "presence",
+      "name": "Garden presence detector",
+      "address": "1.1.3",
+      "kind": "presenceDetector",
+      "behavior": "presenceDetector/v1",
+      "parameters": {
+        "holdMs": 8000
+      },
+      "objects": [
+        {
+          "id": "p",
+          "name": "Presence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "motion",
+          "label": "Motion",
+          "icon": "presence",
+          "press": {
+            "object": "p",
+            "value": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "logic",
+      "name": "Night logic",
+      "address": "1.1.22",
+      "kind": "logicModule",
+      "behavior": "logicGate/v1",
+      "parameters": {
+        "operation": "and",
+        "activeFrom": "22:00",
+        "activeTo": "06:00"
+      },
+      "objects": [
+        {
+          "id": "presence",
+          "name": "Presence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "logicIn",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "out",
+          "name": "Garden light",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "logicOut",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switching actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Corridor",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "c2",
+          "name": "Garden",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Corridor",
+          "initialState": {
+            "on": true
+          },
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "Garden",
+          "equipment": {
+            "type": "lamp"
+          }
+        }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Time display",
+      "address": "1.1.23",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ]
+    }
+  ]
+}

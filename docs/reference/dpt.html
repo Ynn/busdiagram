@@ -1,0 +1,277 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPT · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html" class="cur">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../reference/index.html">Overview</a></li><li><a href="../reference/options.html">Display options</a></li><li><a href="../reference/json.html">JSON scenario</a></li><li><a href="../reference/behaviors.html">Behaviors and equipment</a></li><li><a href="../reference/ports.html">Ports</a></li><li class="cur"><a href="../reference/dpt.html">DPT</a></li><li><a href="../reference/api.html">JavaScript API</a></li><li><a href="../reference/events.html">Events</a></li><li><a href="../reference/errors.html">Error codes</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Reference</p>
+<h1 id="supported-dpts"><a class="anchor" href="#supported-dpts">#</a>Supported DPTs</h1><p>A telegram does <strong>not</strong> transmit its DPT. Each receiving object interprets the payload using its own DPT. Object state stores the decoded value: for DPT 5.001, an entered value of 50% encodes as byte <code>0x80</code> and decodes to about 50.196%. The diagram rounds it while the inspector shows more precision.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>DPT</th>
+<th>Name</th>
+<th>Size</th>
+<th>Range</th>
+<th>Examples: value → encoded bytes → display</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1.001</code></td>
+<td>Switch</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Off ; 1 → <code>0x01</code> → On</td>
+</tr>
+<tr>
+<td><code>1.002</code></td>
+<td>Boolean</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → False ; 1 → <code>0x01</code> → True</td>
+</tr>
+<tr>
+<td><code>1.003</code></td>
+<td>Enable</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Disabled ; 1 → <code>0x01</code> → Enabled</td>
+</tr>
+<tr>
+<td><code>1.005</code></td>
+<td>Alarm</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → No alarm ; 1 → <code>0x01</code> → Alarm</td>
+</tr>
+<tr>
+<td><code>1.007</code></td>
+<td>Step</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Step decrease ; 1 → <code>0x01</code> → Step increase</td>
+</tr>
+<tr>
+<td><code>1.008</code></td>
+<td>Up/Down</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Up ; 1 → <code>0x01</code> → Down</td>
+</tr>
+<tr>
+<td><code>1.009</code></td>
+<td>Open/Closed</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Open ; 1 → <code>0x01</code> → Closed</td>
+</tr>
+<tr>
+<td><code>1.010</code></td>
+<td>Start/Stop</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Stop ; 1 → <code>0x01</code> → Start</td>
+</tr>
+<tr>
+<td><code>1.011</code></td>
+<td>State</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Inactive ; 1 → <code>0x01</code> → Active</td>
+</tr>
+<tr>
+<td><code>1.012</code></td>
+<td>Invert</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Not inverted ; 1 → <code>0x01</code> → Inverted</td>
+</tr>
+<tr>
+<td><code>1.017</code></td>
+<td>Trigger</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Triggered ; 1 → <code>0x01</code> → Triggered</td>
+</tr>
+<tr>
+<td><code>1.018</code></td>
+<td>Occupation</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Vacant ; 1 → <code>0x01</code> → Occupied</td>
+</tr>
+<tr>
+<td><code>1.019</code></td>
+<td>Window/Door</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Closed ; 1 → <code>0x01</code> → Open</td>
+</tr>
+<tr>
+<td><code>1.100</code></td>
+<td>Heating/Cooling</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Cooling ; 1 → <code>0x01</code> → Heating</td>
+</tr>
+<tr>
+<td><code>2.001</code></td>
+<td>Priority control</td>
+<td>2 bits</td>
+<td>0 … 3</td>
+<td>0 → <code>0x00</code> → No forcing ; 2 → <code>0x02</code> → Forced off ; 3 → <code>0x03</code> → Forced on</td>
+</tr>
+<tr>
+<td><code>3.007</code></td>
+<td>Relative dimming</td>
+<td>4 bits</td>
+<td>0 … 15</td>
+<td>0 → <code>0x00</code> → Stop dimming ; 15 → <code>0x0F</code> → Increase by 1.6 %</td>
+</tr>
+<tr>
+<td><code>5.001</code></td>
+<td>Percentage</td>
+<td>1 byte</td>
+<td>0 … 100</td>
+<td>0 → <code>0x00</code> → 0 % ; 50 → <code>0x80</code> → 50 % ; 100 → <code>0xFF</code> → 100 %</td>
+</tr>
+<tr>
+<td><code>5.010</code></td>
+<td>Counter</td>
+<td>1 byte</td>
+<td>0 … 255</td>
+<td>0 → <code>0x00</code> → 0 ; 255 → <code>0xFF</code> → 255</td>
+</tr>
+<tr>
+<td><code>17.001</code></td>
+<td>Scene number</td>
+<td>1 byte</td>
+<td>0 … 63</td>
+<td>0 → <code>0x00</code> → Scene 1 ; 63 → <code>0x3F</code> → Scene 64</td>
+</tr>
+<tr>
+<td><code>20.102</code></td>
+<td>HVAC mode</td>
+<td>1 byte</td>
+<td>0 … 4</td>
+<td>1 → <code>0x01</code> → Comfort ; 3 → <code>0x03</code> → Economy ; 4 → <code>0x04</code> → Protection</td>
+</tr>
+<tr>
+<td><code>9.001</code></td>
+<td>Temperature</td>
+<td>2 bytes</td>
+<td>-273 … 670433.28</td>
+<td>21 → <code>0x0C1A</code> → 21.0 °C ; -5.5 → <code>0x85DA</code> → -5.5 °C ; 45.2 → <code>0x146A</code> → 45.2 °C</td>
+</tr>
+<tr>
+<td><code>9.002</code></td>
+<td>Temperature difference</td>
+<td>2 bytes</td>
+<td>-671088.64 … 670433.28</td>
+<td>-2 → <code>0x8738</code> → -2.0 K ; 0.5 → <code>0x0032</code> → +0.5 K</td>
+</tr>
+<tr>
+<td><code>9.004</code></td>
+<td>Lux</td>
+<td>2 bytes</td>
+<td>0 … 670433.28</td>
+<td>350 → <code>0x2C46</code> → 350 lx ; 42000 → <code>0x6401</code> → 42,000 lx</td>
+</tr>
+<tr>
+<td><code>9.005</code></td>
+<td>Wind speed</td>
+<td>2 bytes</td>
+<td>0 … 670433.28</td>
+<td>3.5 → <code>0x015E</code> → 3.5 m/s ; 14.2 → <code>0x058C</code> → 14.2 m/s</td>
+</tr>
+<tr>
+<td><code>9.007</code></td>
+<td>Humidity</td>
+<td>2 bytes</td>
+<td>0 … 670433.28</td>
+<td>45 → <code>0x1465</code> → 45.0 % ; 72.5 → <code>0x1715</code> → 72.5 %</td>
+</tr>
+<tr>
+<td><code>9.008</code></td>
+<td>Air quality</td>
+<td>2 bytes</td>
+<td>0 … 670433.28</td>
+<td>650 → <code>0x2FEF</code> → 650 ppm ; 1400 → <code>0x3C46</code> → 1,400 ppm</td>
+</tr>
+<tr>
+<td><code>7.600</code></td>
+<td>Colour temperature</td>
+<td>2 bytes</td>
+<td>0 … 65535</td>
+<td>2700 → <code>0x0A8C</code> → 2700 K ; 6500 → <code>0x1964</code> → 6500 K</td>
+</tr>
+<tr>
+<td><code>10.001</code></td>
+<td>Time of day</td>
+<td>24 bits</td>
+<td>0 … 691199</td>
+<td>114900 → <code>0x273700</code> → Mon 07:55:00 ; 81000 → <code>0x161E00</code> → 22:30:00</td>
+</tr>
+<tr>
+<td><code>11.001</code></td>
+<td>Date</td>
+<td>24 bits</td>
+<td>19900101 … 20891231</td>
+<td>20260928 → <code>0x1C091A</code> → 2026-09-28 ; 19991231 → <code>0x1F0C63</code> → 1999-12-31</td>
+</tr>
+<tr>
+<td><code>13.010</code></td>
+<td>Active energy</td>
+<td>32 bits</td>
+<td>-2147483648 … 2147483647</td>
+<td>0 → <code>0x00</code> → 0 Wh ; 12500 → <code>0x30D4</code> → 12,500 Wh</td>
+</tr>
+<tr>
+<td><code>14.056</code></td>
+<td>Power</td>
+<td>32 bits</td>
+<td>-3.4e+38 … 3.4e+38</td>
+<td>60 → <code>0x42700000</code> → 60 W ; 1250.5 → <code>0x449C5000</code> → 1,250.5 W</td>
+</tr>
+</tbody></table>
+</div><p>One- and two-bit values occupy the low bits of the APCI byte. One-byte values use an additional payload byte.</p>
+
+<nav class="pager">
+<a href="../reference/ports.html">← Ports</a>
+<a href="../reference/api.html">JavaScript API →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

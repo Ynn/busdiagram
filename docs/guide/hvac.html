@@ -1,0 +1,697 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Heating · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li class="cur"><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<h1 id="heating-and-air-conditioning-hvac"><a class="anchor" href="#heating-and-air-conditioning-hvac">#</a>Heating and air conditioning (HVAC)</h1><p>This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler, heat pump, or water circuit. Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.</p>
+<h2 id="rooms-and-thermal-model"><a class="anchor" href="#rooms-and-thermal-model">#</a>Rooms and thermal model</h2><p>Each entry in <code>rooms</code> stores a room&#39;s temperature, outside temperature, and thermal time constant. Temperature moves toward the outside temperature while heating or cooling equipment adds or removes heat. A radiator&#39;s <code>powerK</code> is not a power in watts: it is the temperature difference, in K, that the radiator alone could maintain above the outside temperature with its valve fully open. An open window multiplies the heat loss by eight. The default <code>timeConstantMs</code> is 300 seconds in the accelerated model.</p>
+<pre class="code"><code><span class="k">"rooms"</span>: [
+  { <span class="k">"id"</span>: <span class="s">"living"</span>, <span class="k">"name"</span>: <span class="s">"Living room"</span>, <span class="k">"temperatureC"</span>: <span class="n">18</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span> }
+]</code></pre><p>Assign a thermostat or window contact to a room with <code>&quot;room&quot;: &quot;living&quot;</code>. A radiator channel uses <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. The <strong>Rooms</strong> panel shows temperature, setpoints, valve positions, and window state. <code>roomAction(roomId, &quot;window&quot; | &quot;outside&quot;, value)</code> offers the same controls from JavaScript. An outdoor temperature entered on a <a href="devices.html#weather-station-weatherstation-v1">weather station</a> also becomes the outside temperature of every room, unless its <code>setsRoomOutdoorTemperature</code> parameter is <code>false</code>.</p>
+<p>The physical window and the bus are distinct. Opening the window in the <strong>Rooms</strong> panel changes the heat loss and makes the window contact send a telegram. A telegram written directly to a thermostat window object, for example from the USB interface panel, changes the thermostat mode but does not open the physical window; this can represent a contact fault.</p>
+<h2 id="relevant-dpts"><a class="anchor" href="#relevant-dpts">#</a>Relevant DPTs</h2><div class="table"><table>
+<thead>
+<tr>
+<th>DPT</th>
+<th>Size</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>9.001</td>
+<td>2 bytes</td>
+<td>Temperature in °C, encoded as a KNX two-byte float.</td>
+</tr>
+<tr>
+<td>9.002</td>
+<td>2 bytes</td>
+<td>Temperature difference in K.</td>
+</tr>
+<tr>
+<td>20.102</td>
+<td>1 byte</td>
+<td>HVAC mode: 0 auto, 1 comfort, 2 standby, 3 economy, 4 building protection.</td>
+</tr>
+<tr>
+<td>1.019</td>
+<td>1 bit</td>
+<td>Window state; 1 means open.</td>
+</tr>
+<tr>
+<td>1.009</td>
+<td>1 bit</td>
+<td>Open/closed; 1 means closed.</td>
+</tr>
+<tr>
+<td>1.100</td>
+<td>1 bit</td>
+<td>1 means heating, 0 means cooling.</td>
+</tr>
+<tr>
+<td>5.001</td>
+<td>1 byte</td>
+<td>Continuous control value from 0 to 100%.</td>
+</tr>
+</tbody></table>
+</div><p>A DPT 9.001 value uses two payload bytes after the APCI. Until an object receives or measures a value, a 9.xxx object can remain unknown.</p>
+<h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Room thermostat</h2><p><code>roomThermostat/v1</code> measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.</p>
+<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint.</p>
+<p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output at the setpoint and restarts below the <code>hysteresisK</code> threshold.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Direction</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>actualTemp</code></td>
+<td>9.001</td>
+<td>Send</td>
+<td>Measured temperature.</td>
+</tr>
+<tr>
+<td><code>externalTemp</code></td>
+<td>9.001</td>
+<td>Receive</td>
+<td>Replaces the internal sensor. With <code>externalTempTimeoutMs</code>, the internal sensor is used again when no value arrives within that time.</td>
+</tr>
+<tr>
+<td><code>baseSetpoint</code></td>
+<td>9.001</td>
+<td>Receive</td>
+<td>Base comfort setpoint.</td>
+</tr>
+<tr>
+<td><code>setpointShift</code></td>
+<td>9.002</td>
+<td>Receive</td>
+<td>Setpoint offset.</td>
+</tr>
+<tr>
+<td><code>setpointStatus</code></td>
+<td>9.001</td>
+<td>Send</td>
+<td>Current setpoint.</td>
+</tr>
+<tr>
+<td><code>hvacMode</code> / <code>hvacModeStatus</code></td>
+<td>20.102</td>
+<td>Receive / send</td>
+<td>Requested and current mode.</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td>1.018 or 1.001</td>
+<td>Receive</td>
+<td>Presence requests comfort.</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>1.019, 1.001, or 1.009</td>
+<td>Receive</td>
+<td>Open window requests protection; with 1.009, 0 means open.</td>
+</tr>
+<tr>
+<td><code>heatCool</code> / <code>heatCoolStatus</code></td>
+<td>1.100</td>
+<td>Receive / send</td>
+<td>Heating or cooling selection.</td>
+</tr>
+<tr>
+<td><code>heatingValue</code> / <code>coolingValue</code></td>
+<td>5.001</td>
+<td>Send</td>
+<td>Continuous control value.</td>
+</tr>
+<tr>
+<td><code>heatingSwitch</code> / <code>coolingSwitch</code></td>
+<td>1.001</td>
+<td>Send</td>
+<td>One-bit control or PWM.</td>
+</tr>
+</tbody></table>
+</div><h2 id="heating-actuator-and-valve"><a class="anchor" href="#heating-actuator-and-valve">#</a>Heating actuator and valve</h2><p><code>heatingActuator/v1</code> drives a thermoelectric valve. A continuous <code>value</code> command is converted to PWM using <code>cycleMs</code>; a one-bit <code>switch</code> command is applied directly. <code>valveType</code> tells the actuator whether its valve is normally closed or normally open; the radiator&#39;s <code>normallyOpen</code> parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for <code>monitoringMs</code>, the actuator uses <code>emergencyPct</code> and reports a <code>fault</code>. Its <code>valueStatus</code> object reports the applied control value. When monitoring is enabled, the thermostat&#39;s <code>valueCyclicMs</code> should send often enough to prevent a false fault.</p>
+<p>A <code>radiator</code> load opens and closes its valve over <code>openingTimeMs</code>, then heats or cools the assigned room. Short PWM cycles can prevent the valve from opening fully, so choose a cycle appropriate to the modeled travel time. A switching actuator can also control a radiator with two-point regulation.</p>
+<pre class="code"><code>{
+  <span class="k">"id"</span>: <span class="s">"heat"</span>,
+  <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+  <span class="k">"kind"</span>: <span class="s">"heatingActuator"</span>,
+  <span class="k">"behavior"</span>: <span class="s">"heatingActuator/v1"</span>,
+  <span class="k">"objects"</span>: [
+    { <span class="k">"id"</span>: <span class="s">"value"</span>, <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span>, <span class="k">"port"</span>: <span class="s">"value"</span>, <span class="k">"channel"</span>: <span class="s">"h1"</span>, <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> } },
+    { <span class="k">"id"</span>: <span class="s">"status"</span>, <span class="k">"ga"</span>: <span class="s">"3/4/4"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span>, <span class="k">"port"</span>: <span class="s">"valueStatus"</span>, <span class="k">"channel"</span>: <span class="s">"h1"</span>, <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> } }
+  ],
+  <span class="k">"channels"</span>: [{
+    <span class="k">"id"</span>: <span class="s">"h1"</span>, <span class="k">"label"</span>: <span class="s">"H1 living room"</span>,
+    <span class="k">"parameters"</span>: { <span class="k">"cycleMs"</span>: <span class="n">20000</span> },
+    <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"living"</span> }
+  }]
+}</code></pre><h2 id="sensors"><a class="anchor" href="#sensors">#</a>Sensors</h2><p><code>windowContact/v1</code> sends changes to its <code>contact</code> object. The transmitted value always follows the DPT: with DPT 1.019 or 1.001, 1 means open; with DPT 1.009, 1 means closed. <code>contactType</code> describes the physical contact (normally open by default) and <code>invert</code> tells the input to interpret a normally closed contact; when they disagree, open and closed are reported the wrong way round and a configuration warning is shown. By default it also sends its initial state after <code>startDelayMs</code>, so a thermostat can learn that a window starts open. Set <code>sendOnStart: false</code> to suppress that telegram. <code>temperatureSensor/v1</code> transmits room temperature when it changes and, optionally, at a fixed interval.</p>
+<h2 id="example"><a class="anchor" href="#example">#</a>Example</h2><p>The <a href="../examples/hvac.html">room-heating example</a> combines PI control in the living room, two-point control in the bedroom, a window contact, and a central mode set through the USB interface panel.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Room-by-room heating control","description":"Two rooms are heated. In the living room, a PI thermostat sends a DPT 5.001 control value to a heating actuator, which drives a thermoelectric valve with PWM. The bedroom uses two-point (one-bit) control through a switching actuator. Open the living-room window in the Rooms panel: the contact switches the thermostat to frost protection. Write central mode 3/2/0 (DPT 20.102) from the USB interface panel; the thermostat Presence key restores comfort mode.","lines":[{"address":"1.1","name":"Heating example"}],"rooms":[{"id":"livingRoom","name":"Living room","temperatureC":18},{"id":"bedroom","name":"Bedroom","temperatureC":17}],"groupAddresses":[{"address":"3/0/1","name":"Living-room heating control","dpt":"5.001"},{"address":"3/0/2","name":"Bedroom heating control","dpt":"1.001"},{"address":"3/1/1","name":"Living-room base setpoint","dpt":"9.001"},{"address":"3/2/0","name":"Central mode","dpt":"20.102"},{"address":"3/2/1","name":"Living-room presence","dpt":"1.018"},{"address":"3/3/1","name":"Living-room window","dpt":"1.019"},{"address":"3/4/1","name":"Living-room temperature","dpt":"9.001"},{"address":"3/4/2","name":"Living-room current setpoint","dpt":"9.001"},{"address":"3/4/3","name":"Living-room current mode","dpt":"20.102"},{"address":"3/4/4","name":"Living-room valve status","dpt":"5.001"},{"address":"3/4/5","name":"Bedroom temperature","dpt":"9.001"}],"devices":[{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"livingThermostat","name":"Living-room thermostat","address":"1.1.1","kind":"thermostat","behavior":"roomThermostat/v1","room":"livingRoom","objects":[{"id":"temp","name":"Measured temperature","ga":"3/4/1","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"base","name":"Base setpoint","ga":"3/1/1","dpt":"9.001","port":"baseSetpoint","flags":{"W":true,"T":false}},{"id":"mode","name":"Mode (preset)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"presence","name":"Presence","ga":"3/2/1","dpt":"1.018","port":"presence","flags":{"W":true,"T":true}},{"id":"win","name":"Window","ga":"3/3/1","dpt":"1.019","port":"window","flags":{"W":true,"T":false}},{"id":"sp","name":"Current setpoint","ga":"3/4/2","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"ms","name":"Current mode","ga":"3/4/3","dpt":"20.102","port":"hvacModeStatus","flags":{"W":false,"T":true}},{"id":"val","name":"Heating control","ga":"3/0/1","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}}],"buttons":[{"id":"presence","label":"Presence","icon":"presence","press":{"object":"presence","value":"toggle"},"led":"presence"}],"inputs":[{"id":"setpoint","type":"number","label":"Setpoint °C","object":"base","min":15,"max":28,"step":0.5}]},{"id":"windowContact","name":"Living-room window contact","address":"1.1.2","kind":"binaryInput","behavior":"windowContact/v1","room":"livingRoom","objects":[{"id":"c","name":"Living-room window","ga":"3/3/1","dpt":"1.019","port":"contact","flags":{"W":false,"T":true}}]},{"id":"heatingActuator","name":"Heating actuator","address":"1.1.3","kind":"heatingActuator","behavior":"heatingActuator/v1","objects":[{"id":"v1","name":"H1 control value","ga":"3/0/1","dpt":"5.001","port":"value","channel":"h1","flags":{"W":true,"T":false}},{"id":"s1","name":"H1 control status","ga":"3/4/4","dpt":"5.001","port":"valueStatus","channel":"h1","flags":{"W":false,"T":true}}],"channels":[{"id":"h1","label":"H1 living room","equipment":{"type":"radiator","room":"livingRoom"}}]},{"id":"bedroomThermostat","name":"Bedroom thermostat","address":"1.1.4","kind":"thermostat","behavior":"roomThermostat/v1","parameters":{"controlType":"twoPoint","comfortC":19},"room":"bedroom","objects":[{"id":"temp","name":"Measured temperature","ga":"3/4/5","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"mode","name":"Mode (preset)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"sw","name":"One-bit heating control","ga":"3/0/2","dpt":"1.001","port":"heatingSwitch","flags":{"W":false,"T":true}}]},{"id":"switchActuator","name":"Switching actuator","address":"1.1.5","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"a","name":"Bedroom radiator","ga":"3/0/2","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"Bedroom actuator","equipment":{"type":"radiator","room":"bedroom","parameters":{"powerK":20}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=room-heating" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Room-by-room heating control",
+  "description": "Two rooms are heated. In the living room, a PI thermostat sends a DPT 5.001 control value to a heating actuator, which drives a thermoelectric valve with PWM. The bedroom uses two-point (one-bit) control through a switching actuator. Open the living-room window in the Rooms panel: the contact switches the thermostat to frost protection. Write central mode 3/2/0 (DPT 20.102) from the USB interface panel; the thermostat Presence key restores comfort mode.",
+  "lines": [{ "address": "1.1", "name": "Heating example" }],
+  "rooms": [
+    { "id": "livingRoom", "name": "Living room", "temperatureC": 18 },
+    { "id": "bedroom", "name": "Bedroom", "temperatureC": 17 }
+  ],
+  "groupAddresses": [
+    { "address": "3/0/1", "name": "Living-room heating control", "dpt": "5.001" },
+    { "address": "3/0/2", "name": "Bedroom heating control", "dpt": "1.001" },
+    { "address": "3/1/1", "name": "Living-room base setpoint", "dpt": "9.001" },
+    { "address": "3/2/0", "name": "Central mode", "dpt": "20.102" },
+    { "address": "3/2/1", "name": "Living-room presence", "dpt": "1.018" },
+    { "address": "3/3/1", "name": "Living-room window", "dpt": "1.019" },
+    { "address": "3/4/1", "name": "Living-room temperature", "dpt": "9.001" },
+    { "address": "3/4/2", "name": "Living-room current setpoint", "dpt": "9.001" },
+    { "address": "3/4/3", "name": "Living-room current mode", "dpt": "20.102" },
+    { "address": "3/4/4", "name": "Living-room valve status", "dpt": "5.001" },
+    { "address": "3/4/5", "name": "Bedroom temperature", "dpt": "9.001" }
+  ],
+  "devices": [
+    {
+      "id": "usbInterface",
+      "name": "USB interface",
+      "address": "1.1.255",
+      "kind": "interface",
+      "behavior": "usbInterface/v1",
+      "objects": []
+    },
+    {
+      "id": "livingThermostat",
+      "name": "Living-room thermostat",
+      "address": "1.1.1",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "room": "livingRoom",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Measured temperature",
+          "ga": "3/4/1",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "base",
+          "name": "Base setpoint",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "baseSetpoint",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "mode",
+          "name": "Mode (preset)",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "hvacMode",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "presence",
+          "name": "Presence",
+          "ga": "3/2/1",
+          "dpt": "1.018",
+          "port": "presence",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "win",
+          "name": "Window",
+          "ga": "3/3/1",
+          "dpt": "1.019",
+          "port": "window",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sp",
+          "name": "Current setpoint",
+          "ga": "3/4/2",
+          "dpt": "9.001",
+          "port": "setpointStatus",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "ms",
+          "name": "Current mode",
+          "ga": "3/4/3",
+          "dpt": "20.102",
+          "port": "hvacModeStatus",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "val",
+          "name": "Heating control",
+          "ga": "3/0/1",
+          "dpt": "5.001",
+          "port": "heatingValue",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "presence",
+          "label": "Presence",
+          "icon": "presence",
+          "press": { "object": "presence", "value": "toggle" },
+          "led": "presence"
+        }
+      ],
+      "inputs": [
+        {
+          "id": "setpoint",
+          "type": "number",
+          "label": "Setpoint °C",
+          "object": "base",
+          "min": 15,
+          "max": 28,
+          "step": 0.5
+        }
+      ]
+    },
+    {
+      "id": "windowContact",
+      "name": "Living-room window contact",
+      "address": "1.1.2",
+      "kind": "binaryInput",
+      "behavior": "windowContact/v1",
+      "room": "livingRoom",
+      "objects": [
+        {
+          "id": "c",
+          "name": "Living-room window",
+          "ga": "3/3/1",
+          "dpt": "1.019",
+          "port": "contact",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "heatingActuator",
+      "name": "Heating actuator",
+      "address": "1.1.3",
+      "kind": "heatingActuator",
+      "behavior": "heatingActuator/v1",
+      "objects": [
+        {
+          "id": "v1",
+          "name": "H1 control value",
+          "ga": "3/0/1",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "h1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "s1",
+          "name": "H1 control status",
+          "ga": "3/4/4",
+          "dpt": "5.001",
+          "port": "valueStatus",
+          "channel": "h1",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "h1",
+          "label": "H1 living room",
+          "equipment": { "type": "radiator", "room": "livingRoom" }
+        }
+      ]
+    },
+    {
+      "id": "bedroomThermostat",
+      "name": "Bedroom thermostat",
+      "address": "1.1.4",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "parameters": { "controlType": "twoPoint", "comfortC": 19 },
+      "room": "bedroom",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Measured temperature",
+          "ga": "3/4/5",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mode",
+          "name": "Mode (preset)",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "hvacMode",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sw",
+          "name": "One-bit heating control",
+          "ga": "3/0/2",
+          "dpt": "1.001",
+          "port": "heatingSwitch",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switching actuator",
+      "address": "1.1.5",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "a",
+          "name": "Bedroom radiator",
+          "ga": "3/0/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "Bedroom actuator",
+          "equipment": { "type": "radiator", "room": "bedroom", "parameters": { "powerK": 20 } }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Room-by-room heating control"</span>,
+  <span class="k">"description"</span>: <span class="s">"Two rooms are heated. In the living room, a PI thermostat sends a DPT 5.001 control value to a heating actuator, which drives a thermoelectric valve with PWM. The bedroom uses two-point (one-bit) control through a switching actuator. Open the living-room window in the Rooms panel: the contact switches the thermostat to frost protection. Write central mode 3/2/0 (DPT 20.102) from the USB interface panel; the thermostat Presence key restores comfort mode."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Heating example"</span> }],
+  <span class="k">"rooms"</span>: [
+    { <span class="k">"id"</span>: <span class="s">"livingRoom"</span>, <span class="k">"name"</span>: <span class="s">"Living room"</span>, <span class="k">"temperatureC"</span>: <span class="n">18</span> },
+    { <span class="k">"id"</span>: <span class="s">"bedroom"</span>, <span class="k">"name"</span>: <span class="s">"Bedroom"</span>, <span class="k">"temperatureC"</span>: <span class="n">17</span> }
+  ],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"3/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room heating control"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Bedroom heating control"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room base setpoint"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/0"</span>, <span class="k">"name"</span>: <span class="s">"Central mode"</span>, <span class="k">"dpt"</span>: <span class="s">"20.102"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room presence"</span>, <span class="k">"dpt"</span>: <span class="s">"1.018"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room window"</span>, <span class="k">"dpt"</span>: <span class="s">"1.019"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Living-room temperature"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/2"</span>, <span class="k">"name"</span>: <span class="s">"Living-room current setpoint"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/3"</span>, <span class="k">"name"</span>: <span class="s">"Living-room current mode"</span>, <span class="k">"dpt"</span>: <span class="s">"20.102"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/4"</span>, <span class="k">"name"</span>: <span class="s">"Living-room valve status"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/5"</span>, <span class="k">"name"</span>: <span class="s">"Bedroom temperature"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"usbInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"USB interface"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.255"</span>,
+      <span class="k">"kind"</span>: <span class="s">"interface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"usbInterface/v1"</span>,
+      <span class="k">"objects"</span>: []
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"livingThermostat"</span>,
+      <span class="k">"name"</span>: <span class="s">"Living-room thermostat"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"thermostat"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"roomThermostat/v1"</span>,
+      <span class="k">"room"</span>: <span class="s">"livingRoom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"temp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Measured temperature"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"actualTemp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"base"</span>,
+          <span class="k">"name"</span>: <span class="s">"Base setpoint"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"baseSetpoint"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode (preset)"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacMode"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"name"</span>: <span class="s">"Presence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.018"</span>,
+          <span class="k">"port"</span>: <span class="s">"presence"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"win"</span>,
+          <span class="k">"name"</span>: <span class="s">"Window"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.019"</span>,
+          <span class="k">"port"</span>: <span class="s">"window"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Current setpoint"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"setpointStatus"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"ms"</span>,
+          <span class="k">"name"</span>: <span class="s">"Current mode"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacModeStatus"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"val"</span>,
+          <span class="k">"name"</span>: <span class="s">"Heating control"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatingValue"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"label"</span>: <span class="s">"Presence"</span>,
+          <span class="k">"icon"</span>: <span class="s">"presence"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"presence"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> },
+          <span class="k">"led"</span>: <span class="s">"presence"</span>
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"setpoint"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Setpoint °C"</span>,
+          <span class="k">"object"</span>: <span class="s">"base"</span>,
+          <span class="k">"min"</span>: <span class="n">15</span>,
+          <span class="k">"max"</span>: <span class="n">28</span>,
+          <span class="k">"step"</span>: <span class="n">0.5</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"windowContact"</span>,
+      <span class="k">"name"</span>: <span class="s">"Living-room window contact"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"binaryInput"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"windowContact/v1"</span>,
+      <span class="k">"room"</span>: <span class="s">"livingRoom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c"</span>,
+          <span class="k">"name"</span>: <span class="s">"Living-room window"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.019"</span>,
+          <span class="k">"port"</span>: <span class="s">"contact"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"heatingActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Heating actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"heatingActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"heatingActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"v1"</span>,
+          <span class="k">"name"</span>: <span class="s">"H1 control value"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"name"</span>: <span class="s">"H1 control status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"valueStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"h1"</span>,
+          <span class="k">"label"</span>: <span class="s">"H1 living room"</span>,
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"livingRoom"</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"bedroomThermostat"</span>,
+      <span class="k">"name"</span>: <span class="s">"Bedroom thermostat"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"thermostat"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"roomThermostat/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"controlType"</span>: <span class="s">"twoPoint"</span>, <span class="k">"comfortC"</span>: <span class="n">19</span> },
+      <span class="k">"room"</span>: <span class="s">"bedroom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"temp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Measured temperature"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"actualTemp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode (preset)"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacMode"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"One-bit heating control"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatingSwitch"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switching actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.5"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"name"</span>: <span class="s">"Bedroom radiator"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"label"</span>: <span class="s">"Bedroom actuator"</span>,
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"bedroom"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerK"</span>: <span class="n">20</span> } }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, time schedules, heat production (boiler, heat pump, water circuit, summer or winter changeover), fan coils, ventilation, humidity, or BACnet. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
+
+<nav class="pager">
+<a href="../guide/dali.html">← Dimming and DALI</a>
+<a href="../guide/topology.html">Topology and supervision →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#rooms-and-thermal-model">Rooms and thermal model</a></li><li><a href="#relevant-dpts">Relevant DPTs</a></li><li><a href="#room-thermostat">Room thermostat</a></li><li><a href="#heating-actuator-and-valve">Heating actuator and valve</a></li><li><a href="#sensors">Sensors</a></li><li><a href="#example">Example</a></li><li><a href="#model-limits">Model limits</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

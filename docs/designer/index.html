@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>"
+    />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>BusDiagram designer</title>
+    <link rel="stylesheet" href="designer.css" />
+    <script defer src="designer.js"></script>
+  </head>
+  <body>
+    <header class="top">
+      <a class="brand" href="../index.html" data-title="Documentation"
+        >Bus<span>Diagram</span></a
+      >
+      <h1 data-t="Designer"></h1>
+      <div class="tools">
+        <select id="templates" data-aria="Start from a template">
+          <option value="" data-t="Start from a template…"></option>
+        </select>
+        <button
+          id="open"
+          data-t="Open…"
+          data-title="Open a .json file"
+        ></button>
+        <input id="file" type="file" accept=".json,application/json" hidden />
+        <button
+          id="load-ext"
+          data-t="Extensions…"
+          data-title="Load, replace or remove extensions (.js)"
+        ></button>
+        <input
+          id="ext-file"
+          type="file"
+          accept=".js,text/javascript"
+          hidden
+          multiple
+        />
+        <details class="menu">
+          <summary data-t="Export"></summary>
+          <div>
+            <button
+              id="export-snippet"
+              data-t="Code to paste into a page…"
+            ></button>
+            <button id="export-page" data-t="Standalone page (.html)"></button>
+            <button id="export-json" data-t="JSON file"></button>
+            <button id="export-link" data-t="Player link…"></button>
+            <button
+              id="export-bundle"
+              data-t="bus-diagram.js library"
+            ></button>
+          </div>
+        </details>
+        <select id="lang" data-aria="Language"></select>
+        <a
+          class="help"
+          href="../guide/designer.html"
+          target="_blank"
+          data-t="Help"
+        ></a>
+      </div>
+    </header>
+    <main class="split">
+      <section class="left">
+        <nav class="tabs" role="tablist">
+          <button id="tab-guided" role="tab" data-t="Guided"></button>
+          <button id="tab-json" role="tab">JSON</button>
+        </nav>
+        <div id="pane-guided" class="pane">
+          <bd-guided id="guided"></bd-guided>
+        </div>
+        <div id="pane-json" class="pane">
+          <div class="pane-tools">
+            <select id="insert" data-aria="Insert a device">
+              <option value="" data-t="+ Insert…"></option>
+            </select>
+            <select id="target-line" data-aria="Line to insert on"></select>
+            <button
+              id="format"
+              data-t="Format"
+              data-title="Reformat the JSON"
+            ></button>
+            <button
+              id="to-v2"
+              data-t="→ Format 2"
+              data-title="Convert a format 1 scenario to format 2"
+            ></button>
+          </div>
+          <div id="editor" data-aria="JSON scenario"></div>
+          <p
+            class="tip"
+            data-t="Ctrl+Space: suggestions (fields, ports, DPTs, declared group addresses, objects and channels of the device)."
+          ></p>
+        </div>
+        <div class="status"><span id="status"></span></div>
+        <ul id="problems"></ul>
+      </section>
+      <section class="right">
+        <div class="opts">
+          <label
+            ><span data-t="Toolbar"></span>
+            <select id="opt-toolbar">
+              <option value="full" data-t="full"></option>
+              <option value="compact" data-t="compact"></option>
+              <option value="none" data-t="none"></option>
+            </select>
+          </label>
+          <label
+            ><input id="opt-monitor" type="checkbox" checked />
+            <span data-t="Monitor"></span
+          ></label>
+          <label
+            ><input id="opt-description" type="checkbox" checked />
+            <span data-t="Description"></span
+          ></label>
+          <label
+            ><input id="opt-slide" type="checkbox" />
+            <span data-t="16:9 slide"></span
+          ></label>
+        </div>
+        <div id="frame"><bus-diagram id="preview"></bus-diagram></div>
+      </section>
+    </main>
+    <dialog id="code-dialog">
+      <h2 id="code-title"></h2>
+      <p id="code-note"></p>
+      <textarea id="code-text" readonly spellcheck="false"></textarea>
+      <div class="actions">
+        <a id="code-open" target="_blank" hidden data-t="Open"></a>
+        <button id="code-copy" data-t="Copy"></button>
+        <button id="code-close" data-t="Close"></button>
+      </div>
+    </dialog>
+    <dialog id="ext-dialog">
+      <h2 data-t="Extensions"></h2>
+      <p
+        data-t="Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded."
+      ></p>
+      <div id="ext-list"></div>
+      <div class="actions">
+        <button id="ext-add" data-t="Load an extension…"></button>
+        <button id="ext-close" data-t="Close"></button>
+      </div>
+    </dialog>
+    <div id="toast" role="status"></div>
+  </body>
+</html>

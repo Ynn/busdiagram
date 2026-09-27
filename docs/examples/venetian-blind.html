@@ -1,0 +1,407 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Venetian blind · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li class="cur"><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="venetian-blind"><a class="anchor" href="#venetian-blind">#</a>Venetian blind</h1><p>A venetian blind uses one motor for two things: it first turns the slats, then moves the blind. Going down, the slats close before the blind starts to descend; going up, they open before it rises.</p>
+<ul>
+<li>A long press on Key 1 or Key 2 moves the blind (DPT 1.008 on 2/1/1).</li>
+<li>A short press at rest turns the slats by one step (DPT 1.007 on 2/1/2); during a movement it stops the blind.</li>
+<li>The numeric fields send a position (2/1/3) and a slat angle (2/1/4), both in DPT 5.001: 0 % is open or at the top, 100 % is closed or at the bottom.</li>
+</ul>
+<p>The actuator has no sensor: it estimates the position and the slat angle from its configured travel and slat rotation times, and reports them on 2/1/5 and 2/1/6 after each stop. Select the actuator to compare the estimate with the actual blind.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Venetian blind: travel and slat angle","description":"A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop.","lines":[{"address":"1.1","name":"Office"}],"groupAddresses":[{"address":"2/1/1","name":"Blind movement","dpt":"1.008"},{"address":"2/1/2","name":"Blind stop / slat step","dpt":"1.007"},{"address":"2/1/3","name":"Blind position","dpt":"5.001"},{"address":"2/1/4","name":"Slat angle","dpt":"5.001"},{"address":"2/1/5","name":"Blind position status","dpt":"5.001"},{"address":"2/1/6","name":"Slat angle status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Blind push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"input","flags":{"W":false,"T":true}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"input","flags":{"W":false,"T":true}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"key1","label":"Key 1 · Up","icon":"up","short":{"object":"stop","value":0},"long":{"object":"move","value":0}},{"id":"key2","label":"Key 2 · Down","icon":"down","short":{"object":"stop","value":1},"long":{"object":"move","value":1}}],"inputs":[{"id":"pos","type":"number","label":"Position (%)","object":"pos","min":0,"max":100,"step":10},{"id":"slat","type":"number","label":"Slats (%)","object":"slat","min":0,"max":100,"step":10}]},{"id":"blindActuator","name":"Blind actuator","address":"1.1.2","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"b1","flags":{"W":true,"T":false}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"b1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"positionCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"slatCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"posStatus","name":"Position status","ga":"2/1/5","dpt":"5.001","port":"positionStatus","channel":"b1","flags":{"W":false,"T":true}},{"id":"slatStatus","name":"Slat angle status","ga":"2/1/6","dpt":"5.001","port":"slatStatus","channel":"b1","flags":{"W":false,"T":true}}],"channels":[{"id":"b1","label":"Blind B1","parameters":{"estimatedTravelTimeMs":20000,"slatTravelMs":2000},"equipment":{"type":"shutter","view":"venetianBlind","parameters":{"actualTravelTimeMs":20000,"slatTravelMs":2000}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=venetian-blind" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Venetian blind: travel and slat angle",
+  "description": "A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop.",
+  "lines": [{ "address": "1.1", "name": "Office" }],
+  "groupAddresses": [
+    { "address": "2/1/1", "name": "Blind movement", "dpt": "1.008" },
+    { "address": "2/1/2", "name": "Blind stop / slat step", "dpt": "1.007" },
+    { "address": "2/1/3", "name": "Blind position", "dpt": "5.001" },
+    { "address": "2/1/4", "name": "Slat angle", "dpt": "5.001" },
+    { "address": "2/1/5", "name": "Blind position status", "dpt": "5.001" },
+    { "address": "2/1/6", "name": "Slat angle status", "dpt": "5.001" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Blind push-button",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "slat",
+          "name": "Slat angle",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "key1",
+          "label": "Key 1 · Up",
+          "icon": "up",
+          "short": { "object": "stop", "value": 0 },
+          "long": { "object": "move", "value": 0 }
+        },
+        {
+          "id": "key2",
+          "label": "Key 2 · Down",
+          "icon": "down",
+          "short": { "object": "stop", "value": 1 },
+          "long": { "object": "move", "value": 1 }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "pos",
+          "type": "number",
+          "label": "Position (%)",
+          "object": "pos",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "slat",
+          "type": "number",
+          "label": "Slats (%)",
+          "object": "slat",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
+    },
+    {
+      "id": "blindActuator",
+      "name": "Blind actuator",
+      "address": "1.1.2",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "positionCommand",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "slat",
+          "name": "Slat angle",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "slatCommand",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "posStatus",
+          "name": "Position status",
+          "ga": "2/1/5",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "b1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "slatStatus",
+          "name": "Slat angle status",
+          "ga": "2/1/6",
+          "dpt": "5.001",
+          "port": "slatStatus",
+          "channel": "b1",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "b1",
+          "label": "Blind B1",
+          "parameters": { "estimatedTravelTimeMs": 20000, "slatTravelMs": 2000 },
+          "equipment": {
+            "type": "shutter",
+            "view": "venetianBlind",
+            "parameters": { "actualTravelTimeMs": 20000, "slatTravelMs": 2000 }
+          }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Venetian blind: travel and slat angle"</span>,
+  <span class="k">"description"</span>: <span class="s">"A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Office"</span> }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Blind movement"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Blind stop / slat step"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/3"</span>, <span class="k">"name"</span>: <span class="s">"Blind position"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/4"</span>, <span class="k">"name"</span>: <span class="s">"Slat angle"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/5"</span>, <span class="k">"name"</span>: <span class="s">"Blind position status"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/6"</span>, <span class="k">"name"</span>: <span class="s">"Slat angle status"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Blind push-button"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"move"</span>,
+          <span class="k">"name"</span>: <span class="s">"Movement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop"</span>,
+          <span class="k">"name"</span>: <span class="s">"Stop / slat step"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"name"</span>: <span class="s">"Slat angle"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Key 1 · Up"</span>,
+          <span class="k">"icon"</span>: <span class="s">"up"</span>,
+          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"stop"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
+          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"move"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Key 2 · Down"</span>,
+          <span class="k">"icon"</span>: <span class="s">"down"</span>,
+          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"stop"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
+          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"move"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Position (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"pos"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Slats (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"slat"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"blindActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Blind actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"move"</span>,
+          <span class="k">"name"</span>: <span class="s">"Movement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop"</span>,
+          <span class="k">"name"</span>: <span class="s">"Stop / slat step"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionCommand"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"name"</span>: <span class="s">"Slat angle"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"slatCommand"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"posStatus"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slatStatus"</span>,
+          <span class="k">"name"</span>: <span class="s">"Slat angle status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/6"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"slatStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"b1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Blind B1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">20000</span>, <span class="k">"slatTravelMs"</span>: <span class="n">2000</span> },
+          <span class="k">"equipment"</span>: {
+            <span class="k">"type"</span>: <span class="s">"shutter"</span>,
+            <span class="k">"view"</span>: <span class="s">"venetianBlind"</span>,
+            <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">20000</span>, <span class="k">"slatTravelMs"</span>: <span class="n">2000</span> }
+          }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/shutter-control.html">← Shutter control</a>
+<a href="../examples/dimming.html">Dimming →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

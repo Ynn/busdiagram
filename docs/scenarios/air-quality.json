@@ -1,0 +1,231 @@
+{
+  "formatVersion": 2,
+  "title": "Air quality: CO₂ and humidity control",
+  "description": "A room sensor sends temperature, relative humidity, and CO₂. Its step controller converts the CO₂ concentration into a ventilation control value (0, 33, 66, or 100 %) for the fan connected to a dimming actuator. Above 1500 ppm it also sets a CO₂ alarm, shown on the alarm display. Enter values in the sensor fields to follow the telegrams.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Meeting room"
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "4/1/1",
+      "name": "Room temperature",
+      "dpt": "9.001"
+    },
+    {
+      "address": "4/1/2",
+      "name": "Relative humidity",
+      "dpt": "9.007"
+    },
+    {
+      "address": "4/1/3",
+      "name": "CO₂ concentration",
+      "dpt": "9.008"
+    },
+    {
+      "address": "4/2/1",
+      "name": "Ventilation control value",
+      "dpt": "5.001"
+    },
+    {
+      "address": "4/2/2",
+      "name": "CO₂ alarm",
+      "dpt": "1.005"
+    },
+    {
+      "address": "4/2/3",
+      "name": "Humidity alarm",
+      "dpt": "1.005"
+    },
+    {
+      "address": "4/2/4",
+      "name": "Fan speed status",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "airSensor",
+      "name": "CO₂ sensor",
+      "address": "1.1.10",
+      "kind": "sensor",
+      "behavior": "airQualitySensor/v1",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Temperature",
+          "ga": "4/1/1",
+          "dpt": "9.001",
+          "port": "temperature",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "hum",
+          "name": "Relative humidity",
+          "ga": "4/1/2",
+          "dpt": "9.007",
+          "port": "humidity",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "co2",
+          "name": "CO₂",
+          "ga": "4/1/3",
+          "dpt": "9.008",
+          "port": "co2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "vent",
+          "name": "Ventilation",
+          "ga": "4/2/1",
+          "dpt": "5.001",
+          "port": "ventilation",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "co2Alarm",
+          "name": "CO₂ alarm",
+          "ga": "4/2/2",
+          "dpt": "1.005",
+          "port": "co2Alarm",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "humAlarm",
+          "name": "Humidity alarm",
+          "ga": "4/2/3",
+          "dpt": "1.005",
+          "port": "humidityAlarm",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "temp",
+          "type": "number",
+          "label": "Temperature (°C)",
+          "object": "temp",
+          "min": 10,
+          "max": 35,
+          "step": 0.5
+        },
+        {
+          "id": "hum",
+          "type": "number",
+          "label": "Humidity (%)",
+          "object": "hum",
+          "min": 0,
+          "max": 100,
+          "step": 5
+        },
+        {
+          "id": "co2",
+          "type": "number",
+          "label": "CO₂ (ppm)",
+          "object": "co2",
+          "min": 400,
+          "max": 3000,
+          "step": 100
+        }
+      ]
+    },
+    {
+      "id": "fanActuator",
+      "name": "Fan actuator",
+      "address": "1.1.2",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "value",
+          "name": "Fan speed",
+          "ga": "4/2/1",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "f1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "status",
+          "name": "Fan speed status",
+          "ga": "4/2/4",
+          "dpt": "5.001",
+          "port": "valueStatus",
+          "channel": "f1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "f1",
+          "label": "Fan",
+          "equipment": {
+            "type": "fan"
+          }
+        }
+      ]
+    },
+    {
+      "id": "indicator",
+      "name": "Alarm display",
+      "address": "1.1.3",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "alarm",
+          "name": "CO₂ alarm",
+          "ga": "4/2/2",
+          "dpt": "1.005",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "hum",
+          "name": "Humidity alarm",
+          "ga": "4/2/3",
+          "dpt": "1.005",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

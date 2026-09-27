@@ -1,0 +1,87 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>All examples · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li class="cur"><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="examples"><a class="anchor" href="#examples">#</a>Examples</h1><p>Each example is a diagram of a typical installation or an integration pattern. Every example page shows the diagram, which can be operated, with <strong>HTML</strong> and <strong>JSON</strong> tabs to inspect or copy the code and a link to open it in the <a href="../designer/index.html">designer</a>. The scenario files are also published as JSON in the <code>scenarios/</code> directory of the site.</p>
+<h2 id="installations"><a class="anchor" href="#installations">#</a>Installations</h2><div class="examples-list">
+<a href="lighting-control.html">Control several outputs<small>One push-button and one four-output actuator; a single telegram switches several outputs.</small></a>
+<a href="status-feedback.html">Status feedback<small>Two toggle keys on the same output, with and without status feedback.</small></a>
+<a href="shutter-control.html">Shutter control<small>Long press moves the shutter, short press stops it or steps the slats; an IP supervisor shows the position.</small></a>
+<a href="venetian-blind.html">Venetian blind<small>Long press moves the blind after the slats have turned; short press turns the slats; slat angle setpoint and feedback.</small></a>
+<a href="dimming.html">Dimming<small>A dimming actuator driven by switching, relative dimming, and an absolute level.</small></a>
+<a href="tunable-white.html">Tunable white<small>A dimming actuator adjusts the level and the colour temperature of a tunable white light.</small></a>
+<a href="scenes.html">Scenes<small>One scene address recalls a preset on each actuator channel.</small></a>
+<a href="timers.html">Timers<small>Timed outputs, a clock, and a presence detector handled by the actuator.</small></a>
+<a href="priority-control.html">Priority control<small>A priority command overrides normal switching until it is released.</small></a>
+</div><h2 id="systems-and-mechanisms"><a class="anchor" href="#systems-and-mechanisms">#</a>Systems and mechanisms</h2><div class="examples-list">
+<a href="shutter-calibration.html">Miscalibrated shutter<small>The actuator estimates the shutter position from its configured travel time; compare it with the actual position.</small></a>
+<a href="object-flags.html">Flags W and T<small>Ignored writes and blocked transmissions on a six-output actuator.</small></a>
+<a href="topology.html">Full topology<small>Two areas coupled by KNXnet/IP routers, with line couplers, a line extension, and a supervisor.</small></a>
+<a href="dali.html">DALI gateway<small>A KNX/DALI gateway translates telegrams into commands for two DALI groups and reports ballast faults.</small></a>
+<a href="hvac.html">Heating per room<small>PI and two-point room control, PWM valve actuation, window contact, and operating modes.</small></a>
+<a href="weather-protection.html">Weather protection<small>A weather station raises the shutter on wind; a logic module applies sun protection in automatic mode.</small></a>
+<a href="air-quality.html">Air quality<small>A CO₂ sensor controls a ventilation fan in three steps and sets CO₂ and humidity alarms.</small></a>
+<a href="energy-metering.html">Energy metering<small>A switching actuator with metering reports power and energy per output, and sheds a load above a power limit.</small></a>
+<a href="time-schedule.html">Time schedule<small>A simulated clock drives a clock master, a weekly time switch, and a night time window in a logic module.</small></a>
+<a href="usb-interface.html">USB interface tool<small>Group writes and reads from a commissioning computer connected through a USB interface.</small></a>
+</div><h2 id="integration"><a class="anchor" href="#integration">#</a>Integration</h2><div class="examples-list">
+<a href="display-options.html">Display options<small>Compact toolbar, hidden monitor and description, and a slower simulation.</small></a>
+<a href="fit-diagram.html">Fit the diagram<small>Keep a large diagram inside a fixed frame.</small></a>
+<a href="slideshow.html">reveal.js slideshow<small>Interactive diagrams inside presentation slides.</small></a>
+<a href="two-instances.html">Two independent diagrams<small>The same installation twice, each with its own clock and state.</small></a>
+<a href="javascript.html">Create a diagram with JavaScript<small>Create a diagram in an element from a script.</small></a>
+<a href="events.html">Telegram events<small>Build an event log next to the diagram.</small></a>
+<a href="programmatic-control.html">Programmatic control<small>Pause, advance, reset, and read the state from page buttons.</small></a>
+<a href="extension.html">Extension<small>Add a behavior and an equipment view without changing the library.</small></a>
+</div>
+<nav class="pager">
+<span></span>
+<a href="../examples/lighting-control.html">Control several outputs →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#installations">Installations</a></li><li><a href="#systems-and-mechanisms">Systems and mechanisms</a></li><li><a href="#integration">Integration</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>

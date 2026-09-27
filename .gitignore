@@ -1,0 +1,68 @@
+# Dependencies and local workspace
+node_modules
+
+/tmp
+.local
+.venv
+venv
+
+# Local credentials and private data
+.env
+.env.*
+.envrc
+.npmrc
+.netrc
+.aws
+.ssh
+.secrets
+credentials.json
+*.pem
+*.key
+*.p8
+*.p12
+*.pfx
+*.kdbx
+
+# Build artifacts
+dist
+.cache
+*.map
+*.tsbuildinfo
+.eslintcache
+
+# Test output
+test-results
+playwright-report
+blob-report
+coverage
+
+# Unused legacy sources
+src/components
+src/domain
+src/layout
+src/styles
+schema/knx-scenario.schema.json
+scripts/sync-embedded-scenarios.mjs
+scripts/generate-schema.mjs
+tests/engine.test.ts
+tests/layout.test.ts
+tests/scenario-fixture.ts
+tests/validate.test.ts
+
+# Tools and operating system
+__pycache__
+*.pyc
+.vite
+*.log
+npm-debug.log*
+.DS_Store
+Thumbs.db
+.vscode
+.idea
+*.swp
+*.swo
+*.swn
+*.bak
+*.orig
+*.rej
+*~

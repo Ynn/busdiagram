@@ -1,0 +1,435 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Time schedule · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css">
+<script src="../assets/bus-diagram.js"></script>
+
+<script defer src="../assets/search-index.js"></script>
+<script defer src="../assets/docs.js" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li class="cur"><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="time-schedule"><a class="anchor" href="#time-schedule">#</a>Time schedule</h1><p>The scenario declares a <a href="../guide/time.html#simulated-clock">simulated clock</a> that starts on Monday at 21:57 and runs 60 times faster than simulated time. Its date and time appear in the badge at the bottom left of the diagram.</p>
+<ul>
+<li><strong>Clock master:</strong> sends the time of day (DPT 10.001 on 6/0/1) and the date (DPT 11.001 on 6/0/2) every clock minute. The time display receives both.</li>
+<li><strong>Weekly time switch:</strong> its program switches the corridor light on at 07:00 and off at 22:00 on weekdays, and at 08:30 and 23:00 at weekends. Watch the corridor light go off at 22:00.</li>
+<li><strong>Night logic:</strong> the logic module forwards the garden presence detector to the garden light only between 22:00 and 06:00, using the time received from the clock master. Press <strong>Motion</strong> before 22:00, then after.</li>
+</ul>
+<p>Use <strong>Set time</strong> on the clock badge to jump, for example, to 06:59 on a weekday and see the corridor light come on.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Time schedule: clock master, time switch, and time window","description":"The simulated clock starts on Monday at 21:57 and runs 60 times faster than simulated time. The clock master sends the time and date every clock minute. The time switch switches the corridor light off at 22:00 (on at 07:00 on weekdays). The logic module lets the presence detector switch the garden light only between 22:00 and 06:00: press the detector before and after 22:00. Use Set time on the clock badge to jump to another time.","lines":[{"address":"1.1","name":"House"}],"clock":{"start":"2026-09-28T21:57:00","speed":60},"groupAddresses":[{"address":"6/0/1","name":"Time of day","dpt":"10.001"},{"address":"6/0/2","name":"Date","dpt":"11.001"},{"address":"6/1/1","name":"Corridor light (program)","dpt":"1.001"},{"address":"6/2/1","name":"Garden presence","dpt":"1.001"},{"address":"6/2/2","name":"Garden light","dpt":"1.001"}],"devices":[{"id":"clock","name":"Clock master","address":"1.1.20","kind":"clock","behavior":"clockMaster/v1","objects":[{"id":"time","name":"Time of day","ga":"6/0/1","dpt":"10.001","port":"time","flags":{"W":false,"T":true,"R":true}},{"id":"date","name":"Date","ga":"6/0/2","dpt":"11.001","port":"date","flags":{"W":false,"T":true,"R":true}}]},{"id":"timeSwitch","name":"Weekly time switch","address":"1.1.21","kind":"timeSwitch","behavior":"timeSwitch/v1","parameters":{"program":"Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"},"objects":[{"id":"out","name":"Corridor light","ga":"6/1/1","dpt":"1.001","port":"output","flags":{"W":false,"T":true}}]},{"id":"presence","name":"Garden presence detector","address":"1.1.3","kind":"presenceDetector","behavior":"presenceDetector/v1","parameters":{"holdMs":8000},"objects":[{"id":"p","name":"Presence","ga":"6/2/1","dpt":"1.001","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"motion","label":"Motion","icon":"presence","press":{"object":"p","value":1}}]},{"id":"logic","name":"Night logic","address":"1.1.22","kind":"logicModule","behavior":"logicGate/v1","parameters":{"activeFrom":"22:00","activeTo":"06:00"},"objects":[{"id":"presence","name":"Presence","ga":"6/2/1","dpt":"1.001","port":"logicIn","flags":{"W":true,"T":false}},{"id":"time","name":"Time of day","ga":"6/0/1","dpt":"10.001","port":"time","flags":{"W":true,"T":false}},{"id":"out","name":"Garden light","ga":"6/2/2","dpt":"1.001","port":"logicOut","flags":{"W":false,"T":true}}]},{"id":"switchActuator","name":"Switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Corridor","ga":"6/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Garden","ga":"6/2/2","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"Corridor","initialState":{"on":true},"equipment":{"type":"lamp"}},{"id":"s2","label":"Garden","equipment":{"type":"lamp"}}]},{"id":"display","name":"Time display","address":"1.1.23","kind":"display","behavior":"display/v1","objects":[{"id":"time","name":"Time of day","ga":"6/0/1","dpt":"10.001","port":"display","flags":{"W":true,"T":false}},{"id":"date","name":"Date","ga":"6/0/2","dpt":"11.001","port":"display","flags":{"W":true,"T":false}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=time-schedule" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Time schedule: clock master, time switch, and time window",
+  "description": "The simulated clock starts on Monday at 21:57 and runs 60 times faster than simulated time. The clock master sends the time and date every clock minute. The time switch switches the corridor light off at 22:00 (on at 07:00 on weekdays). The logic module lets the presence detector switch the garden light only between 22:00 and 06:00: press the detector before and after 22:00. Use Set time on the clock badge to jump to another time.",
+  "lines": [{ "address": "1.1", "name": "House" }],
+  "clock": { "start": "2026-09-28T21:57:00", "speed": 60 },
+  "groupAddresses": [
+    { "address": "6/0/1", "name": "Time of day", "dpt": "10.001" },
+    { "address": "6/0/2", "name": "Date", "dpt": "11.001" },
+    { "address": "6/1/1", "name": "Corridor light (program)", "dpt": "1.001" },
+    { "address": "6/2/1", "name": "Garden presence", "dpt": "1.001" },
+    { "address": "6/2/2", "name": "Garden light", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "clock",
+      "name": "Clock master",
+      "address": "1.1.20",
+      "kind": "clock",
+      "behavior": "clockMaster/v1",
+      "objects": [
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": { "W": false, "T": true, "R": true }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "date",
+          "flags": { "W": false, "T": true, "R": true }
+        }
+      ]
+    },
+    {
+      "id": "timeSwitch",
+      "name": "Weekly time switch",
+      "address": "1.1.21",
+      "kind": "timeSwitch",
+      "behavior": "timeSwitch/v1",
+      "parameters": {
+        "program": "Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"
+      },
+      "objects": [
+        {
+          "id": "out",
+          "name": "Corridor light",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "output",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "presence",
+      "name": "Garden presence detector",
+      "address": "1.1.3",
+      "kind": "presenceDetector",
+      "behavior": "presenceDetector/v1",
+      "parameters": { "holdMs": 8000 },
+      "objects": [
+        {
+          "id": "p",
+          "name": "Presence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "motion",
+          "label": "Motion",
+          "icon": "presence",
+          "press": { "object": "p", "value": 1 }
+        }
+      ]
+    },
+    {
+      "id": "logic",
+      "name": "Night logic",
+      "address": "1.1.22",
+      "kind": "logicModule",
+      "behavior": "logicGate/v1",
+      "parameters": { "activeFrom": "22:00", "activeTo": "06:00" },
+      "objects": [
+        {
+          "id": "presence",
+          "name": "Presence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "logicIn",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "out",
+          "name": "Garden light",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "logicOut",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switching actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Corridor",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c2",
+          "name": "Garden",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Corridor",
+          "initialState": { "on": true },
+          "equipment": { "type": "lamp" }
+        },
+        { "id": "s2", "label": "Garden", "equipment": { "type": "lamp" } }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Time display",
+      "address": "1.1.23",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "time",
+          "name": "Time of day",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Time schedule: clock master, time switch, and time window"</span>,
+  <span class="k">"description"</span>: <span class="s">"The simulated clock starts on Monday at 21:57 and runs 60 times faster than simulated time. The clock master sends the time and date every clock minute. The time switch switches the corridor light off at 22:00 (on at 07:00 on weekdays). The logic module lets the presence detector switch the garden light only between 22:00 and 06:00: press the detector before and after 22:00. Use Set time on the clock badge to jump to another time."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"House"</span> }],
+  <span class="k">"clock"</span>: { <span class="k">"start"</span>: <span class="s">"2026-09-28T21:57:00"</span>, <span class="k">"speed"</span>: <span class="n">60</span> },
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"6/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Time of day"</span>, <span class="k">"dpt"</span>: <span class="s">"10.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Date"</span>, <span class="k">"dpt"</span>: <span class="s">"11.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Corridor light (program)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Garden presence"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/2/2"</span>, <span class="k">"name"</span>: <span class="s">"Garden light"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"clock"</span>,
+      <span class="k">"name"</span>: <span class="s">"Clock master"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.20"</span>,
+      <span class="k">"kind"</span>: <span class="s">"clock"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"clockMaster/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Time of day"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"time"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span>, <span class="k">"R"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"date"</span>,
+          <span class="k">"name"</span>: <span class="s">"Date"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"11.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"date"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span>, <span class="k">"R"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"timeSwitch"</span>,
+      <span class="k">"name"</span>: <span class="s">"Weekly time switch"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.21"</span>,
+      <span class="k">"kind"</span>: <span class="s">"timeSwitch"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"timeSwitch/v1"</span>,
+      <span class="k">"parameters"</span>: {
+        <span class="k">"program"</span>: <span class="s">"Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"</span>
+      },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"out"</span>,
+          <span class="k">"name"</span>: <span class="s">"Corridor light"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"output"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"presence"</span>,
+      <span class="k">"name"</span>: <span class="s">"Garden presence detector"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"presenceDetector"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"presenceDetector/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"holdMs"</span>: <span class="n">8000</span> },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"p"</span>,
+          <span class="k">"name"</span>: <span class="s">"Presence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"motion"</span>,
+          <span class="k">"label"</span>: <span class="s">"Motion"</span>,
+          <span class="k">"icon"</span>: <span class="s">"presence"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"p"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"logic"</span>,
+      <span class="k">"name"</span>: <span class="s">"Night logic"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.22"</span>,
+      <span class="k">"kind"</span>: <span class="s">"logicModule"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"logicGate/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"activeFrom"</span>: <span class="s">"22:00"</span>, <span class="k">"activeTo"</span>: <span class="s">"06:00"</span> },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"name"</span>: <span class="s">"Presence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"logicIn"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Time of day"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"time"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"out"</span>,
+          <span class="k">"name"</span>: <span class="s">"Garden light"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"logicOut"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switching actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Corridor"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Garden"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Corridor"</span>,
+          <span class="k">"initialState"</span>: { <span class="k">"on"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"Garden"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"display"</span>,
+      <span class="k">"name"</span>: <span class="s">"Time display"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.23"</span>,
+      <span class="k">"kind"</span>: <span class="s">"display"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"display/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Time of day"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"date"</span>,
+          <span class="k">"name"</span>: <span class="s">"Date"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"11.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/energy-metering.html">← Energy metering</a>
+<a href="../examples/usb-interface.html">USB interface tool →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.1.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+</body>
+</html>
