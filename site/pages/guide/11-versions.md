@@ -12,7 +12,7 @@ BusDiagram follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). A
 
 - In a page: `BusDiagram.version`, for example `"0.1.0"`.
 - In a file: the first line of `bus-diagram.js` and `bus-diagram.esm.js` is a banner such as `/*! BusDiagram v0.1.0 | AGPL-3.0-only … */`. Standalone pages exported by the designer embed the library with this banner.
-- In the documentation: the footer of every page shows the version it describes.
+- In the documentation: the footer of every page shows the version it describes. The published documentation, designer, and player always correspond to the latest released version.
 
 ## What the version covers
 
@@ -38,6 +38,14 @@ Behavior identifiers carry their own version (`switchActuator/v1`). An incompati
 A page should load a known version of the library:
 
 - **Self-hosted file:** keep `bus-diagram.js` next to your pages and replace it deliberately when you update. Check its banner to know which version it is.
-- **CDN:** use a URL that contains the full version number, such as `https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js`. A URL without a version, or with a moving tag such as `latest`, can change the behavior of an existing page when a new version is released.
+- **CDN:** use a URL that contains the full version number. A URL without a version, a version range such as `@0` or `@0.1`, or a moving tag such as `latest` can change the behavior of an existing page when a new version is released. For version {{version}}:
+
+  ```html
+  {{cdn-tag}}
+  ```
+
+  The `integrity` attribute holds the SHA-384 hash of the published file (Subresource Integrity). Keep it when copying the tag; when changing the version, take the new tag from the [installation page](installation.html) or the designer, since the hash differs for each version.
+- **Standalone page:** a page exported by the designer embeds the library. It keeps its version and works offline.
+- **Code from the designer:** **Export → Code to paste into a page** loads the version of the designer that produced it from the CDN, with its integrity hash. A diagram designed today keeps working with the library it was checked against.
 
 Before updating across a major version (or a minor version before 1.0.0), read the corresponding section of `CHANGELOG.md` and validate your scenarios with the [designer](../designer/index.html) or `npm run validate`.

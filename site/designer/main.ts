@@ -30,6 +30,7 @@ import {
   standalonePage,
   wrapExtension,
 } from "../shared/embed";
+import { cdnTag } from "../shared/cdn.js";
 import { formatJson } from "../shared/format-json";
 import { SchemaNavigator, scenarioCompletion } from "./completion";
 import type { Doc } from "./edit";
@@ -115,9 +116,8 @@ applyPageTexts();
 
 // The extension scripts are for window.BusDiagram: this is the designer's instance,
 // shared with the preview. They are stored to reopen a project that uses them.
-(
-  window as unknown as { BusDiagram: typeof BusDiagramApi }
-).BusDiagram = BusDiagramApi;
+(window as unknown as { BusDiagram: typeof BusDiagramApi }).BusDiagram =
+  BusDiagramApi;
 const EXTENSIONS = "bus-diagram-designer-extensions";
 interface LoadedExtension {
   name: string;
@@ -819,6 +819,25 @@ $("#code-close").addEventListener("click", () =>
   $<HTMLDialogElement>("#code-dialog").close(),
 );
 
+// Subresource Integrity hash of the embedded bundle, which is the file published on npm
+// for this version. Unavailable outside a secure context: the tag is then left without it.
+let bundleIntegrity: Promise<string | undefined> | undefined;
+const integrity = () =>
+  (bundleIntegrity ??= (async () => {
+    try {
+      const digest = await crypto.subtle.digest(
+        "SHA-384",
+        new TextEncoder().encode(bundleSource),
+      );
+      let binary = "";
+      for (const byte of new Uint8Array(digest))
+        binary += String.fromCharCode(byte);
+      return `sha384-${btoa(binary)}`;
+    } catch {
+      return undefined;
+    }
+  })());
+
 $("#export-snippet").addEventListener("click", async () => {
   const data = current();
   if (!data) return;
@@ -836,8 +855,8 @@ $("#export-snippet").addEventListener("click", async () => {
     .join("");
   showCode(
     t`Code to paste into the page`,
-    `<!-- ${t`Once per page, preferably in <head>:`} -->\n<script src="bus-diagram.js"></script>\n${extScripts}\n${embedSnippet(data, o, style)}`,
-    t`HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the tag. Download bus-diagram.js from the Export menu. The interface language follows the page's lang attribute.` +
+    `<!-- ${t`Once per page, preferably in <head>:`} -->\n${cdnTag(BusDiagramApi.version, await integrity())}\n${extScripts}\n${embedSnippet(data, o, style)}`,
+    t`HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the code. The first tag loads version ${BusDiagramApi.version} of the library from a CDN; this exact version stays available and does not change. To work offline, download bus-diagram.js from the Export menu, place it next to the page, and use <script src="bus-diagram.js"></script> instead. The interface language follows the page's lang attribute.` +
       (extensions.length && !raw
         ? " " +
           t`The extensions are embedded in the code: loaded as-is through <script src> tags, they would conflict (global variables with the same name).`

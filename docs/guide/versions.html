@@ -53,7 +53,7 @@
 <h2 id="find-the-version"><a class="anchor" href="#find-the-version">#</a>Find the version</h2><ul>
 <li>In a page: <code>BusDiagram.version</code>, for example <code>&quot;0.1.0&quot;</code>.</li>
 <li>In a file: the first line of <code>bus-diagram.js</code> and <code>bus-diagram.esm.js</code> is a banner such as <code>/*! BusDiagram v0.1.0 | AGPL-3.0-only … */</code>. Standalone pages exported by the designer embed the library with this banner.</li>
-<li>In the documentation: the footer of every page shows the version it describes.</li>
+<li>In the documentation: the footer of every page shows the version it describes. The published documentation, designer, and player always correspond to the latest released version.</li>
 </ul>
 <h2 id="what-the-version-covers"><a class="anchor" href="#what-the-version-covers">#</a>What the version covers</h2><p>The public interface is what the <a href="../reference/index.html">reference</a> documents:</p>
 <ul>
@@ -90,8 +90,15 @@
 </div><p>Behavior identifiers carry their own version (<code>switchActuator/v1</code>). An incompatible change of a behavior introduces a new identifier (<code>switchActuator/v2</code>) rather than changing the meaning of an existing one. The scenario format has its own number (<code>formatVersion</code>), independent of the library version; older formats remain readable, as <a href="format-v1.html">format 1</a> is today.</p>
 <h2 id="pin-a-version"><a class="anchor" href="#pin-a-version">#</a>Pin a version</h2><p>A page should load a known version of the library:</p>
 <ul>
-<li><strong>Self-hosted file:</strong> keep <code>bus-diagram.js</code> next to your pages and replace it deliberately when you update. Check its banner to know which version it is.</li>
-<li><strong>CDN:</strong> use a URL that contains the full version number, such as <code>https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js</code>. A URL without a version, or with a moving tag such as <code>latest</code>, can change the behavior of an existing page when a new version is released.</li>
+<li><p><strong>Self-hosted file:</strong> keep <code>bus-diagram.js</code> next to your pages and replace it deliberately when you update. Check its banner to know which version it is.</p>
+</li>
+<li><p><strong>CDN:</strong> use a URL that contains the full version number. A URL without a version, a version range such as <code>@0</code> or <code>@0.1</code>, or a moving tag such as <code>latest</code> can change the behavior of an existing page when a new version is released. For version 0.1.0:</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-wA6pZaNrhPtwaiOxqBPIR25/8dlqQW4dtIatNNX2QaqNJe2R1U0E8/DsyIxoFZY+"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The <code>integrity</code> attribute holds the SHA-384 hash of the published file (Subresource Integrity). Keep it when copying the tag; when changing the version, take the new tag from the <a href="installation.html">installation page</a> or the designer, since the hash differs for each version.</p>
+</li>
+<li><p><strong>Standalone page:</strong> a page exported by the designer embeds the library. It keeps its version and works offline.</p>
+</li>
+<li><p><strong>Code from the designer:</strong> <strong>Export → Code to paste into a page</strong> loads the version of the designer that produced it from the CDN, with its integrity hash. A diagram designed today keeps working with the library it was checked against.</p>
+</li>
 </ul>
 <p>Before updating across a major version (or a minor version before 1.0.0), read the corresponding section of <code>CHANGELOG.md</code> and validate your scenarios with the <a href="../designer/index.html">designer</a> or <code>npm run validate</code>.</p>
 

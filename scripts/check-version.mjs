@@ -1,5 +1,5 @@
 // Version consistency (Semantic Versioning 2.0.0): package.json holds a valid version,
-// CHANGELOG.md documents it, and a release tag (vX.Y.Z), when given, matches it.
+// CHANGELOG.md documents it, README.md refers to it, and a release tag (vX.Y.Z), when given, matches it.
 // Usage: node scripts/check-version.mjs [tag]
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -28,6 +28,12 @@ if (
 const escaped = pkg.version.replace(/[.+]/g, "\\$&");
 if (!new RegExp(`^## \\[${escaped}\\]`, "m").test(changelog))
   problems.push(`CHANGELOG.md has no "## [${pkg.version}]" section`);
+const readme = await readFile(resolve(root, "README.md"), "utf8");
+for (const [, found] of readme.matchAll(/bus-diagram@([^/\s"'`]+)/g))
+  if (found !== pkg.version)
+    problems.push(
+      `README.md refers to version ${found}, not ${pkg.version} (npm version updates it)`,
+    );
 const tag = process.argv[2] ?? "";
 if (tag && tag !== `v${pkg.version}`)
   problems.push(`tag "${tag}" does not match version v${pkg.version}`);

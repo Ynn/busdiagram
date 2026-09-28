@@ -6,13 +6,13 @@ order: 1
 
 # Installation
 
-The library ships as one file, `bus-diagram.js`. It does not load external resources or contact a server. It works offline, including when a page is opened directly from disk with `file://`.
+The library ships as one file, `bus-diagram.js`. It does not load external resources or contact a server. Hosted next to your pages, it works offline, including when a page is opened directly from disk with `file://`. This documentation describes version {{version}}.
 
 ## Get the file
 
 - **Download:** use the Download button at the top of this page or **Export → Library** in the [designer](../designer/index.html).
 - **npm:** `npm install bus-diagram` installs the classic script (`dist/bus-diagram.js`), the ES module (`dist/bus-diagram.esm.js`), and TypeScript declarations.
-- **CDN:** load a fixed version from jsDelivr, for example `<script src="https://cdn.jsdelivr.net/npm/bus-diagram@0.1.0/dist/bus-diagram.js"></script>`. Always include the full version number; see [versions and releases](versions.html).
+- **CDN:** load an exact version from jsDelivr (see below). The page then needs a network connection.
 - **Build from source:** run `npm install` and `npm run build`. The bundle is written to `dist/bus-diagram.js` and copied to `demo/` and `docs/assets/`.
 
 ## Add it to a page
@@ -24,6 +24,14 @@ Load the script once, preferably in `<head>`:
 ```
 
 The path is relative to your HTML file. For a page in `example/` and a bundle in `example/assets/`, use `src="assets/bus-diagram.js"`.
+
+To load it from the CDN instead, use this tag, which pins version {{version}}:
+
+```html
+{{cdn-tag}}
+```
+
+The URL contains the full version number, so the page keeps the library it was written for when new versions are published. The `integrity` attribute makes the browser refuse a file that differs from the published one. The designer's **Export → Code to paste into a page** produces the same tag. See [versions and releases](versions.html) before changing the version.
 
 The `defer` attribute is supported. Load [extension scripts](extensions.html) after the library.
 

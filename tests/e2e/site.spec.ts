@@ -1,5 +1,6 @@
 import { expect, test } from "@playwright/test";
-import type { Page } from "@playwright/test";
+import type { BrowserContext, Page } from "@playwright/test";
+import { createHash } from "node:crypto";
 import {
   existsSync,
   readFileSync,
@@ -18,6 +19,23 @@ const url = (p: string) => {
     (hash !== undefined ? `#${hash}` : "")
   );
 };
+
+// Pasted code loads the library from the CDN at the version of the build; serve the local
+// bundle instead, so the integrity hash in the code is checked against the built file.
+const { version } = JSON.parse(readFileSync("package.json", "utf8")) as {
+  version: string;
+};
+const CDN_URL = `https://cdn.jsdelivr.net/npm/bus-diagram@${version}/dist/bus-diagram.js`;
+const BUNDLE = readFileSync(join(DOCS, "assets/bus-diagram.js"));
+const INTEGRITY = `sha384-${createHash("sha384").update(BUNDLE).digest("base64")}`;
+const serveCdn = (context: BrowserContext) =>
+  context.route(CDN_URL, (route) =>
+    route.fulfill({
+      body: BUNDLE,
+      contentType: "text/javascript",
+      headers: { "access-control-allow-origin": "*" },
+    }),
+  );
 
 function htmlPages(dir = DOCS): string[] {
   return readdirSync(dir).flatMap((f) => {
@@ -311,12 +329,17 @@ test.describe("designer", () => {
     expect(snippet).toContain(
       '<bus-diagram fit="contain" style="height:540px">',
     );
+    // The library is pinned to the designer's version, with its integrity hash.
+    expect(snippet).toContain(
+      `<script src="${CDN_URL}" integrity="${INTEGRITY}" crossorigin="anonymous"></script>`,
+    );
     // The code works as pasted into a page.
     const host = info.outputPath("colle.html");
     writeFileSync(
       host,
-      `<!doctype html><meta charset="utf-8"><body>${snippet.replace('src="bus-diagram.js"', `src="${pathToFileURL(join(DOCS, "assets/bus-diagram.js")).href}"`)}</body>`,
+      `<!doctype html><meta charset="utf-8"><body>${snippet}</body>`,
     );
+    await serveCdn(context);
     const pasted = await context.newPage();
     await pasted.goto(pathToFileURL(host).href);
     await expect(pasted.locator("bus-diagram .card")).toHaveCount(2);
@@ -813,10 +836,8 @@ test.describe("guided designer", () => {
     expect(code).not.toContain('<script src="alpha.js">');
     expect(code).toContain('registerBehavior("beta/v1"');
     const host = info.outputPath("host.html");
-    writeFileSync(
-      host,
-      `<!doctype html><meta charset="utf-8">${code.replace('<script src="bus-diagram.js"></script>', `<script src="${pathToFileURL(join(DOCS, "assets/bus-diagram.js")).href}"></script>`)}`,
-    );
+    writeFileSync(host, `<!doctype html><meta charset="utf-8">${code}`);
+    await serveCdn(fresh);
     const hostPage = await fresh.newPage();
     const w3 = watch(hostPage);
     await hostPage.goto(pathToFileURL(host).href);
@@ -1360,4 +1381,13 @@ test("prompt generator builds a request, checks an answer, and prepares a correc
     /designer\/index\.html#json=/,
   );
   expect(w.errors).toEqual([]);
+});
+
+test("documentation pins the built version on the CDN with its integrity hash", () => {
+  for (const page of ["guide/installation.html", "guide/versions.html"]) {
+    const html = readFileSync(join(DOCS, page), "utf8");
+    expect(html).toContain(CDN_URL);
+    expect(html).toContain(INTEGRITY);
+    expect(html).not.toMatch(/\{\{(version|cdn-url|cdn-tag)\}\}/);
+  }
 });

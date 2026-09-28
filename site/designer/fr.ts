@@ -117,8 +117,8 @@ export const designerFr: Record<string, string> = {
   "Code to paste into the page": "Code à coller dans la page",
   "Once per page, preferably in <head>:":
     "Une fois par page, de préférence dans <head> :",
-  "HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the tag. Download bus-diagram.js from the Export menu. The interface language follows the page's lang attribute.":
-    "Page HTML, Markdown (Hugo, Pandoc), diapositive reveal.js : collez la balise. Le fichier bus-diagram.js se télécharge ci-dessous (menu Exporter). La langue de l'interface suit l'attribut lang de la page.",
+  'HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the code. The first tag loads version {0} of the library from a CDN; this exact version stays available and does not change. To work offline, download bus-diagram.js from the Export menu, place it next to the page, and use <script src="bus-diagram.js"></script> instead. The interface language follows the page\'s lang attribute.':
+    "Page HTML, Markdown (Hugo, Pandoc), diapositive reveal.js : collez le code. La première balise charge la version {0} de la bibliothèque depuis un CDN ; cette version exacte reste disponible et ne change pas. Pour travailler hors ligne, téléchargez bus-diagram.js (menu Exporter), placez-le à côté de la page et utilisez <script src=\"bus-diagram.js\"></script> à la place. La langue de l'interface suit l'attribut lang de la page.",
   "Player link": "Lien de lecture",
   "The scenario is stored in the link itself (nothing is sent to a server). Use it in an iframe or presentation software that displays web pages, once the documentation is published.":
     "Le scénario est contenu dans le lien lui-même (rien n'est envoyé sur un serveur). Utilisez-le dans une iframe ou un logiciel de présentation qui affiche des pages web, une fois la documentation publiée.",

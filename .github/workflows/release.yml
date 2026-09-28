@@ -1,48 +1,190 @@
-# Release the library when a version tag (vX.Y.Z) is pushed.
-# 1. Check that the tag matches package.json and CHANGELOG.md, then run all checks.
-# 2. Create a GitHub release with the distributed files.
-# 3. Publish to npm when the repository variable NPM_PUBLISH is "true". Publishing uses
-#    npm trusted publishing (OpenID Connect, no token) once it is configured for this
-#    repository and workflow on npmjs.com; an NPM_TOKEN secret is used instead if present.
+# Release a version from its tag (vX.Y.Z), created by `npm version patch|minor|major`.
+# 1. build:    check that the tag matches package.json, CHANGELOG.md, and README.md, then
+#              run every check and build the package and the documentation site once.
+# 2. npm:      stage that build on npm (trusted publishing, no token). Staged publishing
+#              keeps the version private until a maintainer approves it with 2FA, on
+#              npmjs.com (package page, Staged Packages tab) or with `npm stage approve`.
+# 3. approval: wait until the version is public on npm, then check that the published
+#              file is identical to the build, since the site refers to it by integrity hash.
+# 4. github:   create the GitHub release with the distributed files and the CHANGELOG notes.
+# 5. pages:    deploy the documentation, designer, and player built from the same tag, so
+#              the site always describes and pins a version that exists on npm.
+# Every step can be rerun: run this workflow manually on the tag (Actions → Release → Run
+# workflow, "Use workflow from": the tag) to finish an interrupted release, for example
+# after an approval given later than the waiting time, or to redeploy the site.
 name: Release
 
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_dispatch:
 
-permissions:
-  contents: write
-  id-token: write
+permissions: {}
+
+concurrency:
+  group: release
+  cancel-in-progress: false
 
 jobs:
-  release:
+  build:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - if: github.ref_type != 'tag'
+        run: |
+          echo "::error::Run this workflow on a version tag, not on a branch."
+          exit 1
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: node scripts/check-version.mjs "$GITHUB_REF_NAME"
+      - run: npm run check
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-go@v7
+        with:
+          go-version: '1.24'
+          cache: false
+      - run: python -m pip install pre-commit==4.6.2
+      - run: npm run check:publication
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --grep-invert "reference screenshots"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: dist
+          path: dist
+          if-no-files-found: error
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+
+  npm:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: npm
+    permissions:
+      contents: read
+      id-token: write
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version-file: .node-version
-          cache: npm
           registry-url: https://registry.npmjs.org
-      - run: npm ci
-      - run: node scripts/check-version.mjs "$GITHUB_REF_NAME"
-      - run: npm run check
-      - run: npx playwright install --with-deps chromium
-      - run: npx playwright test --grep-invert "reference screenshots"
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      - name: Stage the version on npm
+        run: |
+          # Staged publishing needs npm 11.15.0 or later.
+          npm install -g npm@latest
+          version=$(node -p "require('./package.json').version")
+          if npm view "bus-diagram@$version" version >/dev/null 2>&1; then
+            echo "bus-diagram@$version is already public."
+            exit 0
+          fi
+          if npm stage list bus-diagram --json 2>/dev/null | grep -q "\"$version\""; then
+            echo "bus-diagram@$version is already staged."
+          else
+            # The checks ran in the build job; stage exactly the files it built.
+            npm stage publish --access public --ignore-scripts
+          fi
+          {
+            echo "### bus-diagram@$version is waiting for approval"
+            echo
+            echo "Approve it on https://www.npmjs.com/package/bus-diagram (Staged Packages tab)"
+            echo "or with \`npm stage list bus-diagram\` then \`npm stage approve <stage-id>\`."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  approval:
+    needs: npm
+    runs-on: ubuntu-latest
+    timeout-minutes: 130
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
+      - name: Wait for the approval on npm
+        run: |
+          version=$(node -p "require('./package.json').version")
+          # Two hours at most; after that, rerun the workflow on the tag once approved.
+          for _ in $(seq 240); do
+            npm view "bus-diagram@$version" version >/dev/null 2>&1 && break
+            sleep 30
+          done
+          npm view "bus-diagram@$version" version >/dev/null 2>&1 || {
+            echo "::error::bus-diagram@$version was not approved in time. Approve it, then rerun this workflow on the tag."
+            exit 1
+          }
+      - name: Check the published file
+        run: |
+          version=$(node -p "require('./package.json').version")
+          mkdir -p published
+          npm pack "bus-diagram@$version" --pack-destination published --silent
+          tar -xzf published/*.tgz -C published
+          cmp dist/bus-diagram.js published/package/dist/bus-diagram.js || {
+            echo "::error::The published bus-diagram.js differs from this build."
+            exit 1
+          }
+
+  github:
+    needs: approval
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          name: dist
+          path: dist
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME already exists."
+            exit 0
+          fi
+          version="${GITHUB_REF_NAME#v}"
+          # Notes: the CHANGELOG.md section of this version, without its heading.
+          awk -v v="$version" '
+            index($0, "## [" v "]") == 1 { on = 1; next }
+            on && /^## \[/ { exit }
+            on { print }
+          ' CHANGELOG.md > notes.md
+          {
+            echo
+            echo "npm: https://www.npmjs.com/package/bus-diagram/v/$version"
+            echo "CDN: https://cdn.jsdelivr.net/npm/bus-diagram@$version/dist/bus-diagram.js"
+          } >> notes.md
           cp dist/bus-diagram.js dist/bus-diagram.esm.js dist/THIRD_PARTY_NOTICES.txt .
           gh release create "$GITHUB_REF_NAME" \
             bus-diagram.js bus-diagram.esm.js THIRD_PARTY_NOTICES.txt \
-            --title "$GITHUB_REF_NAME" \
-            --notes "See CHANGELOG.md for the changes in this version."
-      - name: Publish to npm
-        if: vars.NPM_PUBLISH == 'true'
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          # Trusted publishing needs npm 11.5.1 or later.
-          npm install -g npm@latest
-          npm publish --provenance --access public
+            --title "BusDiagram $version" --notes-file notes.md --verify-tag
+
+  pages:
+    needs: approval
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

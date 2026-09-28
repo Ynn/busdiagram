@@ -1,5 +1,7 @@
+import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
+import { cdnTag, cdnUrl } from "../site/shared/cdn.js";
 // Reference blocks generated from code and inserted into Markdown pages :
 // {{options}}, {{json:root|line|room|groupAddress|device|object|button|input|channel|equipment}},
 // {{behaviors}}, {{equipment}}, {{dpts}}, {{ports}}, {{examples}}.
@@ -166,8 +168,25 @@ function examplesIndex(root) {
     .join("\n");
 }
 
+// Version of the built library and the integrity hash of dist/bus-diagram.js. The site is
+// published from release tags, so this file is the one published on npm for this version.
+function release(root) {
+  const { version } = JSON.parse(
+    readFileSync(resolve(root, "package.json"), "utf8"),
+  );
+  const bundle = readFileSync(resolve(root, "dist/bus-diagram.js"));
+  const integrity = `sha384-${createHash("sha384").update(bundle).digest("base64")}`;
+  return { version, integrity };
+}
+
 export function expand(body, data, root) {
+  const lib = /\{\{(version|cdn-url|cdn-tag)\}\}/.test(body)
+    ? release(root)
+    : undefined;
   return body
+    .replace(/\{\{version\}\}/g, () => lib.version)
+    .replace(/\{\{cdn-url\}\}/g, () => cdnUrl(lib.version))
+    .replace(/\{\{cdn-tag\}\}/g, () => cdnTag(lib.version, lib.integrity))
     .replace(/\{\{examples\}\}/g, () => examplesIndex(root))
     .replace(/\{\{include:([^}]+)\}\}/g, (_m, spec) =>
       include(root, spec.trim()),
