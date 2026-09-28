@@ -22,7 +22,9 @@ Line and area couplers appear automatically when the installation has several li
 
 ## Filter tables and routing counter
 
-A coupler's filter table lists the group addresses used on both of its sides. It is derived from the associations declared in the scenario, as commissioning software does from a project. A telegram whose destination is in the table crosses the coupler; the others are filtered.
+A coupler's filter table lists the line-crossing group addresses: those associated with objects on both of its sides. It is derived from the associations declared in the scenario, as ETS does from a project: an address linking a device in line 1.1 and a device in line 15.15 enters the tables of 1.1.0, 1.0.0, 15.0.0, and 15.15.0. The same table applies in both directions. A telegram whose destination is in the table crosses the coupler; the others are filtered.
+
+A device that sends or receives an address without an object in the project, such as a visualisation or a tool connected through a bus interface, is not counted: its telegrams on that address are filtered at the first coupler. Since ETS 6.3, filter tables can no longer be edited by hand; the recommended practice is to model the bus interface and assign it the group addresses it uses, or to add a dummy device with those addresses in its line. In a scenario, list the addresses of a USB interface in its `groupAddresses` parameter, and set `"inFilterTables": false` on a supervisor to show one that was not modeled.
 
 Each direction can be set independently in `topology.couplers`: `down` for primary to secondary, `up` for the reverse, each with `"filter"` (default), `"route"`, or `"block"`:
 

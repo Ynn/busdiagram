@@ -29,7 +29,7 @@ Each object has a value, a DPT that determines how to interpret it, one or more 
 | `C` communication | Always enabled in this model. | — |
 | `W` write | A received write updates the value and invokes the behavior. | The telegram remains visible, but the value and behavior do not change. |
 | `T` transmit | The object can send its value. | The value may change locally, but no telegram is sent. |
-| `R` read | The object responds to a read on its sending address. | No response is sent. |
+| `R` read | The object responds to a read on any of its addresses, on its sending address. | No response is sent. |
 | `U` update | A received response updates the object. | Responses are ignored. |
 
 `R` and `U` are optional in JSON; see their defaults in the [USB interface guide](usb-interface.html#r-and-u-flags). The object's **port** (`switch`, `status`, `move`, and so on) gives it a role in its behavior; see the [port reference](../reference/ports.html).
@@ -41,7 +41,7 @@ A group telegram has a source individual address, a destination group address, a
 | Service | Sent by | Processed by |
 | --- | --- | --- |
 | `GroupValueWrite` | A behavior with the T flag, or the USB interface panel. | Associated objects with the W flag. |
-| `GroupValueRead` | The USB interface panel. | Associated objects with the R flag on their sending address. |
+| `GroupValueRead` | The USB interface panel. | Associated objects with the R flag; each responds on its sending address. |
 | `GroupValueResponse` | An object answering a read. | Associated objects with the U flag. |
 
 ## Channel and connected equipment

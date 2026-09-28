@@ -389,9 +389,9 @@
 <tr>
 <td><code>stepPct</code></td>
 <td>number</td>
-<td><code>5</code></td>
+<td><code>0</code></td>
 <td>≥ 0 ; ≤ 100</td>
-<td>Step size for a stop/step command from rest (%); 0 means stop only for a roller shutter without slats.</td>
+<td>Position step for a stop/step command received at rest by a shutter without slats (%). 0 (default): no movement, as in the KNX stop/step function, where the step turns slats; some actuators move a roller shutter by this amount instead.</td>
 </tr>
 <tr>
 <td><code>endSupplementPct</code></td>
@@ -541,8 +541,26 @@
 </tr>
 </thead>
 </table>
-</div><p><em>No parameters.</em></p>
-<h3 id="dimmeractuator-v1"><a class="anchor" href="#dimmeractuator-v1">#</a>dimmerActuator/v1</h3><p>Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback. Output command: <code>dim</code>.</p>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>groupAddresses</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Group addresses assigned to this interface in the project, separated by spaces or commas. Coupler filter tables include them, so telegrams on these addresses cross couplers to and from the interface. Without them, a coupler filters an address that is not used on the interface side.</td>
+</tr>
+</tbody></table>
+</div><h3 id="dimmeractuator-v1"><a class="anchor" href="#dimmeractuator-v1">#</a>dimmerActuator/v1</h3><p>Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback. Output command: <code>dim</code>.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>

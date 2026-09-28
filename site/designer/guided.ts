@@ -1733,9 +1733,9 @@ export class GuidedEditor extends LitElement {
         else this.opened.delete(key);
       }}
     >
-      <summary>${t`Communication objects and flags (advanced)`}</summary>
+      <summary>${t`Communication objects: names and flags`}</summary>
       <p class="g-hint">
-        ${t`W: accepts received writes · T: can send · R: answers reads (sending address) · U: a received response updates it. C (communication) is always active.`}
+        ${t`W: accepts received writes · T: can send · R: answers reads, on its sending address · U: a received response updates it. C (communication) is always active.`}
       </p>
       <table class="g-table">
         <tr>
@@ -1751,10 +1751,13 @@ export class GuidedEditor extends LitElement {
         ${d.objects.map(
           (o) =>
             html`<tr data-obj=${o.id}>
-              <td>
-                ${o.name ?? o.id}<small
-                  >${o.channel ? ` · ${o.channel}` : ""}</small
-                >
+              <td class="g-obj-name">
+                <input
+                  aria-label=${t`Name of object ${o.id}`}
+                  placeholder=${o.id}
+                  .value=${fieldValue(o.name ?? "")}
+                  @change=${(e: Event) => this.run(t`Object name`, (x) => E.setObjectName(x, d.id, o.id, (e.target as HTMLInputElement).value))}
+                />${o.channel ? html`<small>${o.channel}</small>` : nothing}
               </td>
               <td><code>${o.port}</code></td>
               <td><code>${E.gasOf(o).join(", ") || "—"}</code></td>

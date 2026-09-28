@@ -435,8 +435,28 @@ describe("no implicit calibration", () => {
     expect(realPos(sim, "shutterActuator", "s1")).toBe(100);
   });
 
-  it("stop/step from rest moves an estimated five percentage points within bounds", () => {
+  it("stop/step at rest does not move a shutter without slats by default", () => {
     const sim = load("shutter-calibration.json");
+    sim.input("pushButton", "position", "value", 50);
+    sim.advance(20000);
+    const before = outputs(sim, "shutterActuator", "s1").length;
+    sim.input("pushButton", "key1", "short");
+    sim.advance(5000);
+    expect(outputs(sim, "shutterActuator", "s1")).toHaveLength(before);
+    expect(estPos(sim, "shutterActuator", "s1")).toBeCloseTo(50.196, 2);
+  });
+
+  it("with stepPct, stop/step from rest moves by that amount within bounds", () => {
+    const data = raw("shutter-calibration.json") as {
+      devices: {
+        id: string;
+        channels?: { parameters?: Record<string, unknown> }[];
+      }[];
+    };
+    const ch = data.devices.find((d) => d.id === "shutterActuator")!
+      .channels![0]!;
+    ch.parameters = { ...ch.parameters, stepPct: 5 };
+    const sim = createSimulator(data);
     sim.input("pushButton", "key1", "short"); // step up from 0: clamped, no movement
     sim.advance(5000);
     expect(outputs(sim, "shutterActuator", "s1")).toEqual([]);

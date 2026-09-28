@@ -307,6 +307,8 @@ export const frMessages: Record<string, string> = {
   Cooling: "Refroidissement",
   "Send on start": "Émission au démarrage",
   "Start-up send delay": "Délai d'émission au démarrage",
+  "Group addresses assigned to the interface":
+    "Adresses de groupe affectées à l'interface",
   "no timer": "pas de minuterie",
   "Loading KNX scenario…": "Chargement du scénario KNX…",
   "Could not load {0} ({1}).": "Chargement de {0} impossible ({1}).",
@@ -582,6 +584,14 @@ export const frMessages: Record<string, string> = {
   "“TP” or “IP” expected": "« TP » ou « IP » attendu",
   "“{0}” is not a valid individual address (e.g. 1.1.10; area and line 0–15, device 0–255)":
     "« {0} » n'est pas une adresse individuelle valide (ex. 1.1.10 ; zone et ligne 0–15, participant 0–255)",
+  "{0} is reserved for the area (backbone) coupler":
+    "{0} est réservée au coupleur de zone (backbone)",
+  "{0} is not a device address: device number 0 is reserved for couplers":
+    "{0} n'est pas une adresse d'appareil : le numéro 0 est réservé aux coupleurs",
+  "{0} is reserved for the line coupler; a line repeater or segment coupler uses a device number from 1 to 255, for example {1}.64":
+    "{0} est réservée au coupleur de ligne ; un répéteur de ligne ou un coupleur de segment utilise un numéro d'appareil de 1 à 255, par exemple {1}.64",
+  "lines 0.1 to 0.15, connected directly to the backbone, exist in KNX but are not supported by BusDiagram; use an area from 1 to 15":
+    "les lignes 0.1 à 0.15, raccordées directement au backbone, existent en KNX mais ne sont pas prises en charge par BusDiagram ; utilisez une zone de 1 à 15",
   "{0} is reserved for the line coupler":
     "{0} est réservée au coupleur de la ligne",
   "line {0} is not declared in “lines”":
@@ -788,8 +798,8 @@ export const frMessages: Record<string, string> = {
   "U flag off: response ignored, value unchanged":
     "flag U désactivé : réponse ignorée, valeur inchangée",
   "R flag off: no response": "flag R désactivé : pas de réponse",
-  "{0} is not the object's sending address: no response":
-    "{0} n'est pas l'adresse d'émission de l'objet : pas de réponse",
+  "read on {0}: the response is sent on the object's sending address {1}":
+    "lecture sur {0} : la réponse part sur l'adresse d'émission de l'objet, {1}",
   "unknown value: no response": "valeur inconnue : pas de réponse",
   "GroupValueRead, no data": "GroupValueRead, sans donnée",
   "{0}, payload byte 0x{1}": "{0}, octet utile 0x{1}",
@@ -852,17 +862,17 @@ export const frMessages: Record<string, string> = {
   toggle: "inverse",
   Write: "Écrire",
   Read: "Lire",
-  "Write sends a GroupValueWrite; Read sends a GroupValueRead: the object with the R flag whose sending address it is responds.":
-    "Écrire envoie un GroupValueWrite ; Lire envoie un GroupValueRead : l'objet à flag R dont c'est l'adresse d'émission répond.",
+  "Write sends a GroupValueWrite; Read sends a GroupValueRead: each associated object with the R flag responds, on its own sending address.":
+    "Écrire envoie un GroupValueWrite ; Lire envoie un GroupValueRead : chaque objet associé ayant le flag R répond, sur sa propre adresse d'émission.",
   "Response from": "Réponse de",
   "Reading {0}…": "Lecture de {0} en cours…",
-  "No response for {0}: no object has the R flag on this sending address, or a coupler filtered the read.":
-    "Aucune réponse pour {0} : aucun objet n'a le flag R sur cette adresse d'émission, ou un coupleur a filtré la lecture.",
+  "No response for {0}: no associated object has the R flag, or a coupler filtered the read or the response.":
+    "Aucune réponse pour {0} : aucun objet associé n'a le flag R, ou un coupleur a filtré la lecture ou la réponse.",
   read: "lecture",
   response: "réponse",
   Response: "Réponse",
-  "a read carries no value: the object with the R flag whose sending address it is responds":
-    "une lecture ne transporte pas de valeur : l'objet à flag R dont c'est l'adresse d'émission répond",
+  "a read carries no value: each associated object with the R flag responds, on its own sending address":
+    "une lecture ne transporte pas de valeur : chaque objet associé ayant le flag R répond, sur sa propre adresse d'émission",
   broadcast: "broadcast",
   "group {0}": "groupe {0}",
   "DALI: {0} ← {1}": "DALI : {0} ← {1}",

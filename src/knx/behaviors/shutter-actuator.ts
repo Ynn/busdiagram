@@ -58,7 +58,7 @@ function params(ctx: Ctx, ch: string): Params {
     estimatedTravelTimeMs: Number(p.estimatedTravelTimeMs),
     startDelayMs: Number(p.startDelayMs ?? 300),
     statusDelayMs: Number(p.statusDelayMs ?? 300),
-    stepPct: Number(p.stepPct ?? 5),
+    stepPct: Number(p.stepPct ?? 0),
     endSupplementPct: Number(p.endSupplementPct ?? 0),
     invertOutput: p.invertOutput === true,
     slatTravelMs: Math.max(0, Number(p.slatTravelMs ?? 0)),
@@ -383,9 +383,9 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         type: "number",
         minimum: 0,
         maximum: 100,
-        default: 5,
+        default: 0,
         description:
-          "Step size for a stop/step command from rest (%); 0 means stop only for a roller shutter without slats.",
+          "Position step for a stop/step command received at rest by a shutter without slats (%). 0 (default): no movement, as in the KNX stop/step function, where the step turns slats; some actuators move a roller shutter by this amount instead.",
       },
       endSupplementPct: {
         title: "End-of-travel supplement",

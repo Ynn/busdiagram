@@ -290,7 +290,11 @@ describe("presence detector", () => {
 });
 
 describe("USB interface tool: writing and reading through the USB interface", () => {
-  const install = (statusFlags: J = {}, feedbackU?: boolean) =>
+  const install = (
+    statusFlags: J = {},
+    feedbackU?: boolean,
+    interfaceGAs = "1/1/1 1/4/1",
+  ) =>
     createSimulator({
       formatVersion: 2,
       lines: [{ address: "1.1" }, { address: "1.2" }],
@@ -304,6 +308,7 @@ describe("USB interface tool: writing and reading through the USB interface", ()
           address: "1.1.255",
           kind: "interface",
           behavior: "usbInterface/v1",
+          parameters: { groupAddresses: interfaceGAs },
           objects: [],
         },
         {
@@ -353,6 +358,20 @@ describe("USB interface tool: writing and reading through the USB interface", ()
       ],
     });
 
+  it("an address not assigned to the interface is filtered by the line coupler", () => {
+    // 1/1/1 is used only on line 1.2: it is not in the filter table of 1.1.0.
+    const sim = install({}, undefined, "");
+    const tel = sim.groupWrite("usbInterface", "1/1/1", 1)!;
+    sim.advance(5000);
+    expect(sim.channelState("a", "s1").on).toBe(false);
+    expect(tel.plan.couplers.map((c) => c.tag)).toContain("block");
+    expect(
+      sim.network.filterTable(
+        sim.network.topology.couplers.find((c) => c.address === "1.1.0")!,
+      ),
+    ).not.toContain("1/1/1");
+  });
+
   it("write from 1.1.255 across the line coupler", () => {
     const sim = install();
     const tel = sim.groupWrite("usbInterface", "1/1/1", 1)!;
@@ -394,5 +413,54 @@ describe("USB interface tool: writing and reading through the USB interface", ()
       true,
     );
     expect(noU.objectValue("pushButton", "led")).toBe(null);
+  });
+
+  it("a read on a receive-only address is answered on the sending address", () => {
+    // The status object sends on 1/4/1 and also listens to 1/4/9.
+    const sim = createSimulator({
+      formatVersion: 2,
+      lines: [{ address: "1.1" }],
+      devices: [
+        {
+          id: "usbInterface",
+          address: "1.1.255",
+          kind: "interface",
+          behavior: "usbInterface/v1",
+          objects: [],
+        },
+        {
+          id: "a",
+          address: "1.1.1",
+          kind: "switchActuator",
+          behavior: "switchActuator/v1",
+          objects: [
+            {
+              id: "c",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "switch",
+              channel: "s1",
+              flags: { W: true, T: false },
+            },
+            {
+              id: "e",
+              ga: ["1/4/1", "1/4/9"],
+              dpt: "1.001",
+              port: "status",
+              channel: "s1",
+              flags: { W: false, T: true, R: true },
+            },
+          ],
+          channels: [{ id: "s1", equipment: { type: "lamp" } }],
+        },
+      ],
+    });
+    sim.groupWrite("usbInterface", "1/1/1", 1);
+    sim.advance(6000);
+    sim.groupRead("usbInterface", "1/4/9");
+    sim.advance(6000);
+    const resp = sim.history.find((t) => t.service === "GroupValueResponse")!;
+    expect(resp.ga).toBe("1/4/1");
+    expect(resp.value).toBe(1);
   });
 });

@@ -14,7 +14,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 - Identifiers (`id`) use letters, digits, `_`, `.`, and `-`, and are unique within their list.
 - Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free classification used for display (for example `pushButton`, `switchActuator`, `supervisor`); `behavior` must be one of the identifiers listed below.
 - Each object has `id`, `ga`, `port`, and `flags`, usually `dpt` and `name`. `ga` is a string or an array; the first address is the sending address, the others are receive-only; `[]` leaves the object unassociated. `port` must belong to the device behavior, and `dpt` must be accepted by that port.
-- Flags: `W` (a received write updates the object), `T` (the object may transmit), optional `R` (answers reads on its sending address) and `U` (a response updates it). Inputs of an actuator use `W: true, T: false`; commands and status feedback use `W: false, T: true`.
+- Flags: `W` (a received write updates the object), `T` (the object may transmit), optional `R` (answers a read on any of its addresses, on its sending address) and `U` (a response updates it). Inputs of an actuator use `W: true, T: false`; commands and status feedback use `W: false, T: true`.
 - Objects linked to the same group address must have the same payload size (all one-bit, all one-byte, and so on).
 - Buttons (`buttons`) belong to devices whose behavior accepts inputs. An action is `{ "object": "<object id>", "value": <number | "toggle"> }` under `press`, or under `short`, `long`, and `release` for a two-function key. `led` names an object whose value lights the key indicator.
 - Numeric inputs (`inputs`) are `{ "id", "type": "number", "label", "object", "min", "max", "step" }`; the entered value is written to the object and transmitted.
@@ -215,7 +215,7 @@ Channel `parameters`:
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending position feedback (ms).
 - `slatTravelMs` (integer, default 0; ≥ 0): Venetian blind: time configured for the slats to turn from open to closed (ms). A movement first turns the slats; a short press at rest turns them by slatStepPct. 0 for a roller shutter without slats.
 - `slatStepPct` (number, default 20; ≥ 1 ; ≤ 100): Slat angle change for a short press at rest (%).
-- `stepPct` (number, default 5; ≥ 0 ; ≤ 100): Step size for a stop/step command from rest (%); 0 means stop only for a roller shutter without slats.
+- `stepPct` (number, default 0; ≥ 0 ; ≤ 100): Position step for a stop/step command received at rest by a shutter without slats (%). 0 (default): no movement, as in the KNX stop/step function, where the step turns slats; some actuators move a roller shutter by this amount instead.
 - `endSupplementPct` (number, default 0; ≥ 0 ; ≤ 50): Extra travel time toward 0% or 100%, as a percentage of full travel. The motor runs even if the estimate is already at the limit; the end stop recalibrates the estimate (often 5–10% on a real actuator).
 - `invertOutput` (boolean, default false): Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.
 Channel `initialState`:
@@ -259,6 +259,9 @@ Device `parameters`:
 USB interface: writes and reads group addresses from the USB interface panel of the diagram.
 
 No communication objects (`objects: []`).
+
+Device `parameters`:
+- `groupAddresses` (string, default ""): Group addresses assigned to this interface in the project, separated by spaces or commas. Coupler filter tables include them, so telegrams on these addresses cross couplers to and from the interface. Without them, a coupler filters an address that is not used on the interface side.
 
 ### `dimmerActuator/v1`
 

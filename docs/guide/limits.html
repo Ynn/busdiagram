@@ -57,6 +57,7 @@
 <li><strong>TP exchange:</strong> the frame view shows a group data frame. Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model.</li>
 <li><strong>Object flags:</strong> W, T, R, and U are modeled; C is always enabled. Initialization-read behavior is not modeled.</li>
 <li><strong>Internal associations:</strong> a device may deliver its own transmitted telegram to other local objects on the same group address, subject to W. Real product behavior varies.</li>
+<li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
 <li><strong>Couplers:</strong> filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see <a href="couplers.html">couplers and repeaters</a>.</li>
 <li><strong>KNXnet/IP:</strong> the model routes between IP routers with filter tables; it does not model tunneling that bypasses those tables.</li>
 <li><strong>Supervisors:</strong> a supervisor does not automatically read states at startup. It shows values after receiving telegrams or USB interface reads.</li>

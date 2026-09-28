@@ -15,7 +15,7 @@ Each key can define actions for these gestures:
 | Action | When | Typical use |
 | --- | --- | --- |
 | `press` | On activation. | Switch, toggle, or recall a scene. |
-| `short` | Released before the long-press threshold. | Stop or step a shutter. |
+| `short` | Released before the long-press threshold. | Stop a shutter or turn its slats. |
 | `long` | Held past the threshold. | Raise/lower a shutter or start dimming. |
 | `release` | Released after a long press. | Stop dimming. |
 

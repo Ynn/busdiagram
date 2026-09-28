@@ -1074,17 +1074,17 @@ export class Simulation {
     internal: boolean,
   ) {
     if (internal) return;
+    // A read on any associated address is answered on the object's sending address
+    // (its first address), which may differ from the address that was read.
     rt.device.objects
       .filter((o) => o.gas.includes(tel.ga))
       .forEach((o) => {
         const cur = this.objects.get(o.key)!;
         const why = !o.flags.R
           ? this.t`R flag off: no response`
-          : o.gas[0] !== tel.ga
-            ? this.t`${tel.ga} is not the object's sending address: no response`
-            : cur.value === null
-              ? this.t`unknown value: no response`
-              : null;
+          : cur.value === null
+            ? this.t`unknown value: no response`
+            : null;
         reception.objects.push({
           objectId: o.id,
           result: why ? "ignored" : "accepted",
@@ -1099,10 +1099,20 @@ export class Simulation {
           });
           return;
         }
+        const sending = o.gas[0]!;
+        if (sending !== tel.ga)
+          this.log("note", causeId, {
+            deviceId: rt.device.id,
+            objectId: o.id,
+            telegramId: tel.id,
+            ga: tel.ga,
+            message: this
+              .t`read on ${tel.ga}: the response is sent on the object's sending address ${sending}`,
+          });
         this.withCause(causeId, () =>
           this.emit(rt.device, {
             objectId: o.id,
-            ga: tel.ga,
+            ga: sending,
             dpt: o.dpt,
             value: cur.value!,
             service: "GroupValueResponse",

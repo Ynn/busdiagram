@@ -1395,3 +1395,21 @@ test("documentation pins the built version on the CDN with its integrity hash", 
     expect(html).not.toMatch(/\{\{(version|cdn-url|cdn-tag)\}\}/);
   }
 });
+
+test("guided designer renames a communication object", async ({ page }) => {
+  const w = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(url("designer/index.html#template=lighting-control"));
+  await page.click("#tab-guided");
+  await page.locator(".g-item", { hasText: "Push-button" }).first().click();
+  await page.locator("summary", { hasText: "Communication objects" }).click();
+  const name = page.getByRole("textbox", { name: "Name of object key1" });
+  await name.fill("Ceiling light on");
+  await name.press("Tab");
+  const text = () =>
+    page.evaluate(() =>
+      (window as unknown as { designer: { text(): string } }).designer.text(),
+    );
+  await expect.poll(text).toContain('"name": "Ceiling light on"');
+  expect(w.errors).toEqual([]);
+});

@@ -30,9 +30,13 @@ The designer can add this device through its guided device selector.
 | Action | KNX service | Effect |
 | --- | --- | --- |
 | Write | `GroupValueWrite` | Sends the entered value to the selected group address. |
-| Read | `GroupValueRead` | Requests a response from objects whose sending address matches and whose R flag is set. |
+| Read | `GroupValueRead` | Requests a response from the objects associated with the address whose R flag is set; each responds on its own sending address. |
 
 The panel uses the group's declared DPT, or a DPT inferred from associated objects. Its telegrams follow the same couplers and filter tables as device telegrams and appear in the bus monitor.
+
+A USB interface has no communication objects, so its addresses are not in the coupler filter tables unless they are assigned to it, as in ETS for a modeled bus interface. List them in the `groupAddresses` parameter, for example `"parameters": { "groupAddresses": "1/1/1 1/4/1" }`. Without it, a write to an address used only on another line is filtered by the first coupler, and the response to a read cannot come back. See [filter tables](couplers.html#filter-tables-and-routing-counter).
+
+A read request may use any address associated with the object that should answer; the response is always sent on that object's sending address, its first address. If the sending address is not the one that was read, the response can act on other devices; the KNX training documentation therefore recommends reading on the sending address.
 
 ```knx
 scenario: usb-interface
@@ -43,7 +47,7 @@ tabs: json
 
 | Flag | Purpose | Default in this model |
 | --- | --- | --- |
-| `R` read | Answer a read on the object's sending address. | Enabled for typical status objects, such as `status` and `positionStatus`. |
+| `R` read | Answer a read on any associated address; the response uses the object's sending address. | Enabled for typical status objects, such as `status` and `positionStatus`. |
 | `U` update | Apply a received response to the object. | Enabled for display objects. |
 
 ```json

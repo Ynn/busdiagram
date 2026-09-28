@@ -350,3 +350,63 @@ describe("empty identities and fields", () => {
     expect(s.devices[0]!.objects[0]!.name).toBe("l1");
   });
 });
+
+describe("reserved and unsupported addresses", () => {
+  const base = (lines: unknown[], devices: unknown[] = []) => ({
+    formatVersion: 2,
+    lines,
+    devices,
+  });
+
+  it("a line repeater or segment coupler cannot use the line coupler address", () => {
+    const p = problems(
+      base([{ address: "1.1", extension: { address: "1.1.0" } }]),
+    );
+    expect(p).toContainEqual(
+      expect.objectContaining({
+        path: "lines[0].extension.address",
+        code: "address",
+      }),
+    );
+  });
+
+  it("lines 0.1 to 0.15 are reported as unsupported, not as invalid KNX", () => {
+    const p = problems(base([{ address: "0.5" }]));
+    expect(p[0]?.message).toContain("not supported by BusDiagram");
+  });
+
+  it("device number 0 names the coupler it is reserved for", () => {
+    const device = (address: string) => ({
+      id: "d",
+      address,
+      kind: "passive",
+      behavior: "passive/v1",
+      objects: [],
+    });
+    const msg = (address: string) =>
+      problems(
+        base([{ address: "1.1" }, { address: "2.1" }], [device(address)]),
+      ).find((x) => x.path === "devices[0].address")?.message;
+    expect(msg("1.1.0")).toContain("line coupler");
+    expect(msg("1.0.0")).toContain("area (backbone) coupler");
+  });
+
+  it("group addresses assigned to a USB interface are validated", () => {
+    const p = problems(
+      base(
+        [{ address: "1.1" }],
+        [
+          {
+            id: "usb",
+            address: "1.1.255",
+            kind: "interface",
+            behavior: "usbInterface/v1",
+            parameters: { groupAddresses: "1/1/1 0/0/0 1/9/1" },
+            objects: [],
+          },
+        ],
+      ),
+    ).filter((x) => x.path === "devices[0].parameters.groupAddresses");
+    expect(p).toHaveLength(2);
+  });
+});

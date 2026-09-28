@@ -29,7 +29,7 @@ tabs: json
 | Port | DPT | Effect |
 | --- | --- | --- |
 | `move` | 1.008 | 0 raises toward 0%; 1 lowers toward 100%. |
-| `stopStep` | 1.007 | Stops a moving shutter; otherwise makes a small step (`stepPct`). |
+| `stopStep` | 1.007 | Stops a moving shutter. At rest, turns the slats of a venetian blind by one step; has no effect on a roller shutter unless `stepPct` is set. |
 | `positionCommand` | 5.001 | Sets a target position. |
 | `positionStatus` | 5.001 | Sends the estimated position after a stop, with a delay. |
 | `scene` | 17.001 | Recalls a channel position preset. |
@@ -44,7 +44,7 @@ The position convention is **0% open (top), 100% closed (bottom)**. A motor wire
 - A new command replaces a pending start, stop, or status transmission.
 - At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. `endSupplementPct` can add extra travel to reach the physical stop; its default is 0.
 - While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the [weather protection example](../examples/weather-protection.html).
-- For a roller shutter without slat adjustment, use `stepPct: 0`. A stop/step command then stops movement without making a step at rest.
+- A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set `stepPct` (for example 5) on the channel to model them.
 
 ## Venetian blinds and slats
 

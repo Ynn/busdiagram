@@ -13,6 +13,7 @@ BusDiagram is a diagram design tool; its simulation layer exists to illustrate t
 - **TP exchange:** the frame view shows a group data frame. Bus arbitration, priority scheduling, TP acknowledgments (`ACK`, `NACK`, `BUSY`), and automatic retransmissions are outside the model.
 - **Object flags:** W, T, R, and U are modeled; C is always enabled. Initialization-read behavior is not modeled.
 - **Internal associations:** a device may deliver its own transmitted telegram to other local objects on the same group address, subject to W. Real product behavior varies.
+- **Topology:** lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.
 - **Couplers:** filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see [couplers and repeaters](couplers.html).
 - **KNXnet/IP:** the model routes between IP routers with filter tables; it does not model tunneling that bypasses those tables.
 - **Supervisors:** a supervisor does not automatically read states at startup. It shows values after receiving telegrams or USB interface reads.

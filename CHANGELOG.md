@@ -4,6 +4,21 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Changed
+
+These corrections change simulation results for some existing scenarios; they follow the KNX training documentation, ETS behavior, and product manuals.
+
+- Couplers: in filter mode, a group telegram crosses a coupler only when its address is in the coupler's filter table (addresses used on both sides), in both directions. Previously an address used only on the destination side also crossed, so a tool or visualisation outside the filter tables could reach devices behind a coupler.
+- Group reads: an object with the R flag answers a read received on any of its group addresses, and sends the response on its sending address. Previously only a read on the sending address was answered.
+- Shutter actuator: a stop/step command at rest no longer moves a roller shutter without slats by default (`stepPct` now defaults to 0); set `stepPct` to model actuators that do.
+- Validation: a line repeater or segment coupler cannot use the line coupler address (`A.L.0`); lines 0.1 to 0.15 are reported as not supported by BusDiagram rather than invalid; a device address `A.0.0` is reported as reserved for the area (backbone) coupler.
+- Documentation: KNX group addresses and DALI broadcast are no longer confused in the DALI example; filter tables are described as in ETS 6.3 and later, where manual entries are deprecated.
+
+### Added
+
+- Designer: communication objects can be renamed in the device view (section “Communication objects: names and flags”).
+- USB interface: a `groupAddresses` parameter assigns group addresses to the interface, which then enter the coupler filter tables, as ETS does for a modeled bus interface.
+
 ## [0.1.2] - 2026-09-28
 
 ### Added

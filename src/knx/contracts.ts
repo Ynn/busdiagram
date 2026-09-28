@@ -65,7 +65,7 @@ export interface ObjectFlags {
   W: boolean;
   /** May transmit when requested by the behavior. */
   T: boolean;
-  /** Responds to a GroupValueRead received on its broadcast address. */
+  /** Responds to a GroupValueRead received on any of its group addresses, on its sending address. */
   R: boolean;
   /** A GroupValueResponse received updates the object, such as writing. */
   U: boolean;

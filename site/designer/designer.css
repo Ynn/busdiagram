@@ -735,6 +735,18 @@ bd-guided {
 .g-table td small {
   color: var(--mute);
 }
+.g-obj-name input {
+  width: 100%;
+  min-width: 9em;
+  font: inherit;
+  padding: 2px 5px;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: #fff;
+}
+.g-obj-name small {
+  display: block;
+}
 .g-topo {
   display: flex;
   flex-direction: column;

@@ -2150,7 +2150,7 @@ export class BusDiagram extends LitElement {
         ${
           !last
             ? this
-                .tr`Write sends a GroupValueWrite; Read sends a GroupValueRead: the object with the R flag whose sending address it is responds.`
+                .tr`Write sends a GroupValueWrite; Read sends a GroupValueRead: each associated object with the R flag responds, on its own sending address.`
             : answers.length
               ? answers.map(
                   (a) =>
@@ -2163,7 +2163,7 @@ export class BusDiagram extends LitElement {
               : waiting
                 ? this.tr`Reading ${last.ga}…`
                 : this
-                    .tr`No response for ${last.ga}: no object has the R flag on this sending address, or a coupler filtered the read.`
+                    .tr`No response for ${last.ga}: no associated object has the R flag, or a coupler filtered the read or the response.`
         }
       </div>
     </div>`;
@@ -2376,7 +2376,7 @@ export class BusDiagram extends LitElement {
           read
             ? html`<b
                 >—<small
-                  >${this.tr`a read carries no value: the object with the R flag whose sending address it is responds`}</small
+                  >${this.tr`a read carries no value: each associated object with the R flag responds, on its own sending address`}</small
                 ></b
               >`
             : html`<b

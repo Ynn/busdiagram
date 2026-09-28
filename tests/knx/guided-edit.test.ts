@@ -541,3 +541,19 @@ describe("guided designer: simulated clock", () => {
     expect(doc.clock).toBeUndefined();
   });
 });
+
+describe("communication object names", () => {
+  it("renames an object and falls back to its ID when the name is cleared", () => {
+    const doc = v2("lighting-control.json");
+    const dev = doc.devices[0]!;
+    const id = dev.objects[0]!.id;
+    E.setObjectName(doc, dev.id, id, "  Ceiling light  ");
+    expect(dev.objects[0]!.name).toBe("Ceiling light");
+    expect(() => buildScenario(doc)).not.toThrow();
+    E.setObjectName(doc, dev.id, id, "");
+    expect(dev.objects[0]!.name).toBeUndefined();
+    expect(() => E.setObjectName(doc, dev.id, "missing", "x")).toThrow(
+      E.EditRefusal,
+    );
+  });
+});

@@ -1,7 +1,7 @@
 {
   "formatVersion": 2,
   "title": "KNX/DALI gateway: groups, dimming, and faults",
-  "description": "A short press switches the light on or off; a long press dims it using DPT 3.007 until release. The gateway translates each telegram into a DALI command for its two groups: office (ballasts A0–A3) and corridor (A4–A5). Click a luminaire to simulate a ballast fault; the gateway detects it on its next poll and reports it on 1/7/x. Use the USB interface panel to write the broadcast address 1/1/0 or read statuses and faults.",
+  "description": "A short press switches the light on or off; a long press dims it using DPT 3.007 until release. The gateway translates each telegram into a DALI command for its two groups: office (ballasts A0–A3) and corridor (A4–A5). Click a luminaire to simulate a ballast fault; the gateway detects it on its next poll and reports it on 1/7/x. Use the USB interface panel to write group address 1/1/0, which the gateway maps to a DALI broadcast command, or to read statuses and faults.",
   "lines": [
     {
       "address": "1.1",
@@ -11,7 +11,7 @@
   "groupAddresses": [
     {
       "address": "1/1/0",
-      "name": "All lighting (broadcast)",
+      "name": "All lighting (DALI broadcast)",
       "dpt": "1.001"
     },
     {

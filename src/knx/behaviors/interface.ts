@@ -1,12 +1,26 @@
 // usbInterface/v1: data interface (USB or IP) through which a commissioning tool accesses the bus.
-// It has no group object: the tool writes and reads any group address since
-// his individual address (often Z.L.255). His telegrams follow the topology:
-// the couplers filter them like the others.
+// It has no group object: the tool writes and reads any group address from its individual
+// address (often A.L.255). Its telegrams follow the topology: couplers filter them like the
+// others. Group addresses assigned to the interface in the project (parameter groupAddresses)
+// enter the coupler filter tables, as ETS does for a modeled bus interface.
 import type { BehaviorDefinition } from "../contracts";
 
 export const usbInterface: BehaviorDefinition<Record<string, never>> = {
   description:
     "USB interface: writes and reads group addresses from the USB interface panel of the diagram.",
+  parameters: {
+    type: "object",
+    additionalProperties: false,
+    properties: {
+      groupAddresses: {
+        title: "Group addresses assigned to the interface",
+        type: "string",
+        default: "",
+        description:
+          "Group addresses assigned to this interface in the project, separated by spaces or commas. Coupler filter tables include them, so telegrams on these addresses cross couplers to and from the interface. Without them, a coupler filters an address that is not used on the interface side.",
+      },
+    },
+  },
   ports: {},
   createState: () => ({}),
 };

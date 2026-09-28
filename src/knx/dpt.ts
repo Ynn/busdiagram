@@ -337,7 +337,7 @@ export function encode(dpt: string, v: number): number {
       (day << 21) |
       (Math.floor(sec / 3600) << 16) |
       (Math.floor((sec % 3600) / 60) << 8) |
-      sec % 60
+      (sec % 60)
     );
   }
   if (d.codec === "date") {
@@ -345,7 +345,7 @@ export function encode(dpt: string, v: number): number {
     return (
       ((n % 100) << 16) |
       ((Math.floor(n / 100) % 100) << 8) |
-      Math.floor(n / 10000) % 100
+      (Math.floor(n / 10000) % 100)
     );
   }
   if (d.codec === "u16") return Math.round(clamped);
@@ -518,16 +518,7 @@ export function timeText(v: number, t: Translate = en): string {
   const day = Math.floor(v / 86400);
   const sec = v % 86400;
   const hms = `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}:${pad2(sec % 60)}`;
-  const names = [
-    "",
-    t`Mon`,
-    t`Tue`,
-    t`Wed`,
-    t`Thu`,
-    t`Fri`,
-    t`Sat`,
-    t`Sun`,
-  ];
+  const names = ["", t`Mon`, t`Tue`, t`Wed`, t`Thu`, t`Fri`, t`Sat`, t`Sun`];
   return day ? `${names[day]} ${hms}` : hms;
 }
 
@@ -555,7 +546,8 @@ export function shortValue(dpt: string, v: number | null | undefined): string {
     const sec = v % 86400;
     return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}`;
   }
-  if (dpt === "11.001") return `${pad2(v % 100)}/${pad2(Math.floor(v / 100) % 100)}`;
+  if (dpt === "11.001")
+    return `${pad2(v % 100)}/${pad2(Math.floor(v / 100) % 100)}`;
   if (dpt === "14.056") return `${Math.round(v)}W`;
   if (dpt === "13.010")
     return Math.abs(v) >= 10000 ? `${(v / 1000).toFixed(1)}k` : String(v);

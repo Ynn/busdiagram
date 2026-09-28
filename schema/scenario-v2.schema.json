@@ -707,7 +707,7 @@
             },
             "R": {
               "type": "boolean",
-              "description": "Answer GroupValueRead on the object's sending address; enabled by default for status ports."
+              "description": "Answer a GroupValueRead received on any of the object's addresses, on its sending address; enabled by default for status ports."
             },
             "U": {
               "type": "boolean",
@@ -1952,8 +1952,8 @@
                           "type": "number",
                           "minimum": 0,
                           "maximum": 100,
-                          "default": 5,
-                          "description": "Step size for a stop/step command from rest (%); 0 means stop only for a roller shutter without slats."
+                          "default": 0,
+                          "description": "Position step for a stop/step command received at rest by a shutter without slats (%). 0 (default): no movement, as in the KNX stop/step function, where the step turns slats; some actuators move a roller shutter by this amount instead."
                         },
                         "endSupplementPct": {
                           "title": "End-of-travel supplement",
@@ -2233,7 +2233,15 @@
             "properties": {
               "parameters": {
                 "type": "object",
-                "maxProperties": 0
+                "additionalProperties": false,
+                "properties": {
+                  "groupAddresses": {
+                    "title": "Group addresses assigned to the interface",
+                    "type": "string",
+                    "default": "",
+                    "description": "Group addresses assigned to this interface in the project, separated by spaces or commas. Coupler filter tables include them, so telegrams on these addresses cross couplers to and from the interface. Without them, a coupler filters an address that is not used on the interface side."
+                  }
+                }
               },
               "channels": {
                 "items": {

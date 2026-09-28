@@ -308,8 +308,10 @@ export class Network {
           ? this.scenario.devicesById.get(pt.deviceId)
           : undefined;
         // A visualization without a dummy device is not declared in the project: its addresses are absent.
-        if (d?.inFilterTables)
+        if (d?.inFilterTables) {
           d.objects.forEach((o) => o.gas.forEach((g) => set.add(g)));
+          d.tableGAs.forEach((g) => set.add(g));
+        }
       });
       this.topology.couplers.forEach((o) => {
         if (o.id === c.id) return;
@@ -343,10 +345,12 @@ export class Network {
     const mode = this.routing(c, to);
     if (mode === "route") return true;
     if (mode === "block") return false;
-    return this.sideGAs(c, to).has(ga);
+    // The filter table holds the addresses used on both sides (line-crossing addresses);
+    // it applies in both directions.
+    return this.sideGAs(c, "A").has(ga) && this.sideGAs(c, "B").has(ga);
   }
 
-  /** Full schedule of a broadcast; filter decisions are frozen. */
+  /** Full propagation schedule of a group telegram; filter decisions are frozen. */
   plan(sourceDeviceId: string, ga: string, t0Ms: number): TransportPlan {
     const T = TIMING;
     const busMs = t0Ms + T.emitMs;

@@ -12,7 +12,7 @@ A four-key push-button controls two DALI groups. A short press switches a group 
 
 - Hold Key 1 to brighten the office group (ballasts A0–A3). Status telegrams on 1/5/1 report the resulting level.
 - Click a luminaire to simulate a ballast fault. On its next poll, the gateway reports a group fault on 1/7/x and a general fault on 1/7/0.
-- Use the USB interface panel to write the broadcast address 1/1/0 or read status and fault addresses.
+- Use the USB interface panel to write group address 1/1/0 or read status and fault addresses. 1/1/0 is an ordinary KNX group address; the gateway object associated with it sends a broadcast command on the DALI line. The KNX broadcast address is 0/0/0, which is not used for group communication.
 
 ```knx
 scenario: dali-gateway

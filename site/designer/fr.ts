@@ -324,8 +324,6 @@ export const designerFr: Record<string, string> = {
   "More options": "Plus d'options",
   "Delete output {0} and its objects?":
     "Supprimer la sortie {0} et ses objets ?",
-  "Communication objects and flags (advanced)":
-    "Objets de communication et flags (avancé)",
   Addresses: "Adresses",
   "Flag {0}": "Flag {0}",
   "Deleting the object": "Suppression de l'objet",
@@ -438,8 +436,12 @@ export const designerFr: Record<string, string> = {
   "This supervisor is not declared in the project: couplers block the addresses only it uses. Remedies: declare it (dummy device), or set the couplers to “route everything”.":
     "Ce superviseur n'est pas déclaré dans le projet : les coupleurs bloquent les adresses qu'il est seul à utiliser. Remèdes : le déclarer (participant fictif), ou régler les coupleurs sur « tout transférer ».",
   "USB interface": "Interface USB",
-  "W: accepts received writes · T: can send · R: answers reads (sending address) · U: a received response updates it. C (communication) is always active.":
-    "W : accepte les écritures reçues · T : peut émettre · R : répond aux lectures (adresse d'émission) · U : une réponse reçue le met à jour. C (communication) est toujours actif.",
+  "W: accepts received writes · T: can send · R: answers reads, on its sending address · U: a received response updates it. C (communication) is always active.":
+    "W : accepte les écritures reçues · T : peut émettre · R : répond aux lectures, sur son adresse d'émission · U : une réponse reçue le met à jour. C (communication) est toujours actif.",
+  "Communication objects: names and flags":
+    "Objets de communication : noms et flags",
+  "Name of object {0}": "Nom de l'objet {0}",
+  "Object name": "Nom de l'objet",
   "Access to the bus through a USB interface: write and read group addresses from the USB interface panel of the diagram.":
     "Accès au bus par une interface USB : écrire et lire des adresses de groupe depuis le panneau d'interface USB du diagramme.",
   "Dimming (stops on release)": "Variation (arrêt au relâchement)",

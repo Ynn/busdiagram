@@ -423,7 +423,7 @@ W: boolean
  */
 T: boolean
 /**
- * Answer GroupValueRead on the object's sending address; enabled by default for status ports.
+ * Answer a GroupValueRead received on any of the object's addresses, on its sending address; enabled by default for status ports.
  */
 R?: boolean
 /**

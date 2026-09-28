@@ -493,7 +493,7 @@
 <tr>
 <td><code>stopStep</code></td>
 <td>1.007</td>
-<td>Stops a moving shutter; otherwise makes a small step (<code>stepPct</code>).</td>
+<td>Stops a moving shutter. At rest, turns the slats of a venetian blind by one step; has no effect on a roller shutter unless <code>stepPct</code> is set.</td>
 </tr>
 <tr>
 <td><code>positionCommand</code></td>
@@ -527,7 +527,7 @@
 <li>A new command replaces a pending start, stop, or status transmission.</li>
 <li>At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. <code>endSupplementPct</code> can add extra travel to reach the physical stop; its default is 0.</li>
 <li>While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the <a href="../examples/weather-protection.html">weather protection example</a>.</li>
-<li>For a roller shutter without slat adjustment, use <code>stepPct: 0</code>. A stop/step command then stops movement without making a step at rest.</li>
+<li>A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set <code>stepPct</code> (for example 5) on the channel to model them.</li>
 </ul>
 <h2 id="venetian-blinds-and-slats"><a class="anchor" href="#venetian-blinds-and-slats">#</a>Venetian blinds and slats</h2><p>A venetian blind uses the same motor to turn its slats and to move. Set <code>slatTravelMs</code>, the time for the slats to turn from open to closed, on both sides:</p>
 <ul>

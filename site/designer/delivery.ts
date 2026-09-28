@@ -45,9 +45,7 @@ export function deliveryCheck(
       if (m?.token !== token) return;
       if (m.done) return finish();
       const name =
-        m.i !== undefined && m.i >= 0
-          ? sources[m.i]!.name
-          : "bus-diagram.js";
+        m.i !== undefined && m.i >= 0 ? sources[m.i]!.name : "bus-diagram.js";
       if (!problems.some((p) => p.name === name))
         problems.push({ name, error: String(m.error) });
     };

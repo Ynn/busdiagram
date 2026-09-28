@@ -480,7 +480,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               R: {
                 type: "boolean",
                 description:
-                  "Answer GroupValueRead on the object's sending address; enabled by default for status ports.",
+                  "Answer a GroupValueRead received on any of the object's addresses, on its sending address; enabled by default for status ports.",
               },
               U: {
                 type: "boolean",

@@ -1338,6 +1338,20 @@ export function setObjectFlag(
   if (flag === "U" && on === defaultUpdate(o.port)) delete o.flags.U;
 }
 
+/** Rename a communication object; an empty name falls back to its ID. */
+export function setObjectName(
+  doc: Doc,
+  devId: string,
+  objectId: string,
+  name: string,
+) {
+  const o = device(doc, devId).objects.find((x) => x.id === objectId);
+  if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
+  const v = name.trim();
+  if (v) o.name = v;
+  else delete o.name;
+}
+
 /** Effective flag value; R and U have port-specific defaults. */
 export function flagOf(o: Obj, f: "W" | "T" | "R" | "U"): boolean {
   const fl = (o.flags ?? {}) as Partial<Obj["flags"]>;

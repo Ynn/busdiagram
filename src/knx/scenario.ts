@@ -90,6 +90,8 @@ export interface Device extends DeviceInfo {
    * declared without a dummy device: its addresses are excluded from filter tables.
    */
   inFilterTables: boolean;
+  /** Group addresses assigned to the device in the project without an object (bus interface). */
+  tableGAs: string[];
   description: string;
   /** Receiver device: group-address column on the left side of its card. */
   receiver: boolean;
@@ -523,6 +525,12 @@ export function buildScenario(
         "address",
         t`“${address}” is not a valid line address (e.g. 1.1, area and line 0–15)`,
       );
+    if (m[0] === 0 && m[1] !== 0)
+      return err(
+        `${p}.address`,
+        "address",
+        t`lines 0.1 to 0.15, connected directly to the backbone, exist in KNX but are not supported by BusDiagram; use an area from 1 to 15`,
+      );
     if (m[0] === 0 || m[1] === 0)
       return err(
         `${p}.address`,
@@ -550,6 +558,12 @@ export function buildScenario(
             `${p}.extension.address`,
             "address",
             t`extension ${ea} does not belong to line ${address}`,
+          );
+        else if (ia[2] === 0)
+          err(
+            `${p}.extension.address`,
+            "address",
+            t`${ea} is reserved for the line coupler; a line repeater or segment coupler uses a device number from 1 to 255, for example ${address}.64`,
           );
         if (
           e.mode !== undefined &&
@@ -869,11 +883,17 @@ export function buildScenario(
   const devicesById = new Map<string, Device>();
   const usedIA = new Map<string, string>();
   couplerAddr.forEach((what, a) => usedIA.set(a, what));
-  lines.forEach(
-    (l) =>
-      l.extension &&
-      usedIA.set(l.extension.address, `line ${l.address} extension`),
-  );
+  lines.forEach((l, li) => {
+    if (!l.extension) return;
+    const prev = usedIA.get(l.extension.address);
+    if (prev)
+      err(
+        `lines[${li}].extension.address`,
+        "duplicate",
+        t`individual address ${l.extension.address} already used (${prev})`,
+      );
+    else usedIA.set(l.extension.address, `line ${l.address} extension`);
+  });
 
   arr(raw, "devices", "", true).forEach((d, di) => {
     const p = `devices[${di}]`;
@@ -938,7 +958,11 @@ export function buildScenario(
           err(
             `${p}.address`,
             "address",
-            t`${address} is reserved for the line coupler`,
+            ia[1] !== 0
+              ? t`${address} is reserved for the line coupler`
+              : ia[0] !== 0
+                ? t`${address} is reserved for the area (backbone) coupler`
+                : t`${address} is not a device address: device number 0 is reserved for couplers`,
           );
         const l = lines.find((x) => x.address === line);
         if (ia[0] === 0 && ia[1] === 0) {
@@ -1000,6 +1024,29 @@ export function buildScenario(
       problems,
       t,
     );
+    // Addresses assigned to a bus interface: each must be a usable group address.
+    const tableGAs: string[] = [];
+    if (
+      behaviorId === "usbInterface/v1" &&
+      typeof parameters.groupAddresses === "string"
+    )
+      for (const ga of parameters.groupAddresses
+        .split(/[\s,;]+/)
+        .filter(Boolean)) {
+        if (!parseGA(ga))
+          err(
+            `${p}.parameters.groupAddresses`,
+            "address",
+            t`“${ga}” is not a valid 3-level group address (0–31/0–7/0–255)`,
+          );
+        else if (isBroadcastGA(ga))
+          err(
+            `${p}.parameters.groupAddresses`,
+            "address",
+            t`0/0/0 is the broadcast address and cannot be used as a group address`,
+          );
+        else tableGAs.push(ga);
+      }
 
     // Channels
     const channels: Channel[] = [];
@@ -1631,6 +1678,7 @@ export function buildScenario(
       line,
       downstream: d.downstream === true,
       inFilterTables: d.inFilterTables !== false,
+      tableGAs,
       description: str(d, "description", p) ?? "",
       room: roomRef(d, p),
       objects,
