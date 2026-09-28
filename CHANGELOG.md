@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-09-28
+
 ### Changed
 
 - Designer: the code to paste into a page loads the library from jsDelivr at the designer's exact version, with a Subresource Integrity hash, instead of a local `bus-diagram.js` file.
