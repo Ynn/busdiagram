@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-09-28
+
 ### Added
 
 - Documentation: links to the source repository and the list of changes in the header and footer.

@@ -13,7 +13,7 @@ The library is a single JavaScript file and works offline, including from `file:
 Install it with `npm install bus-diagram`, load a fixed version from a CDN, or download `bus-diagram.js` from the documentation site:
 
 ```html
-<script src="https://cdn.jsdelivr.net/npm/bus-diagram@0.1.1/dist/bus-diagram.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bus-diagram@0.1.2/dist/bus-diagram.js"></script>
 
 <bus-diagram toolbar="compact">
   <script type="application/json">
