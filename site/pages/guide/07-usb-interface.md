@@ -52,6 +52,8 @@ tabs: json
 
 A command object's U flag is normally off so a read response does not accidentally act as a new command. You can enable U explicitly to inspect that behavior.
 
+To learn the state of an output, read its **status** address, not its command address. Actuator command objects usually have no R flag, as in product manuals (for example a dimming actuator's switching object is C, W, T, and its switching status object is C, R, T). A read of the command address therefore receives no response from the actuator, and the command object keeps the last command it received even when another command, such as a brightness value, has since changed the output.
+
 ## JavaScript API
 
 ```js

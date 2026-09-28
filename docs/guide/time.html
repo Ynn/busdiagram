@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -86,7 +87,7 @@
 <li><code>speed</code> is the number of clock seconds per simulated second (1 by default, at most 3600). With 60, one clock minute passes every simulated second.</li>
 </ul>
 <p>The clock follows simulated time: it stops while the simulation is paused, and the speed controls apply to it as to everything else. With a clock, simulated time keeps running even when the bus is idle.</p>
-<p>The diagram shows the date and time in a badge at its bottom left. <strong>Set time</strong> opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> does the same.</p>
+<p>The diagram shows the date and time in a bar at the top left of the diagram area, above the drawing. <strong>Set time</strong> opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> does the same.</p>
 <h2 id="step-mode"><a class="anchor" href="#step-mode">#</a>Step mode</h2><p>Step mode stops at explanatory events, including telegram transmission, a coupler&#39;s route/filter decision, an object&#39;s acceptance or rejection due to W, output changes, and timer expiry. Press <strong>Next</strong> to continue to the following event.</p>
 <h2 id="determinism"><a class="anchor" href="#determinism">#</a>Determinism</h2><p>Time advances in whole milliseconds through an event queue. Advancing by 20 seconds in one call or in smaller steps gives the same final state for the same inputs.</p>
 
@@ -97,6 +98,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#observable-timing">Observable timing</a></li><li><a href="#speed-and-pause">Speed and pause</a></li><li><a href="#simulated-clock">Simulated clock</a></li><li><a href="#step-mode">Step mode</a></li><li><a href="#determinism">Determinism</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

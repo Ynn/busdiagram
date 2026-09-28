@@ -435,7 +435,13 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
     type: "object",
     additionalProperties: false,
     properties: {
-      on: { title: "On at start", type: "boolean", default: false },
+      on: {
+        title: "On at start",
+        type: "boolean",
+        default: false,
+        description:
+          "Switching state of the channel when the simulation starts.",
+      },
     },
   },
   ports: {

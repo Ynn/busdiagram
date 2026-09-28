@@ -28,10 +28,11 @@ A behavior may implement these entry points:
 | `onTimer(ctx, key, payload)` | An event scheduled with `ctx.schedule` is due. |
 | `onTick(ctx, dtMs)` | Simulation time advances; called every 20 ms when implemented. |
 | `onRoomChange(ctx, room)` | The device's room temperature or window state changes. |
+| `onClockChange(ctx)` | The [simulated clock](time.html#simulated-clock) is set to another time; reschedule clock-based deadlines. |
 | `channelState(state, channel)` | Channel state is requested by the inspector or `getState()`. |
 | `deviceState(state)` | Device state is requested, such as a thermostat display. |
 
-The context `ctx` exposes `t` for translated messages, `timeMs`, `device`, `state`, `getObject`, `setObject`, `transmit`, `setOutput`, `readEquipment`, `readRoom`, `schedule`, `cancel`, and `note`. `setObject` changes a local value without transmitting. `transmit` checks flag T and the sending address. `note` adds an explanation to the event log.
+The context `ctx` exposes `t` for translated messages, `timeMs`, `device`, `state`, `getObject`, `setObject`, `transmit`, `setOutput`, `getOutput`, `readEquipment`, `readPower`, `readRoom`, `setOutsideTemperature`, `clock`, `schedule`, `cancel`, and `note`. `setObject` changes a local value without transmitting. `transmit` checks flag T and the sending address. `readPower` returns the power drawn by a channel's load, in W, when the load models it. `clock()` returns the simulated clock (`nowMs`, `speed`) or `null` without one; divide a clock delay by `speed` to schedule it in simulation time. `note` adds an explanation to the event log.
 
 Equipment models can define `heatOutput(state, parameters)` to heat or cool a room and `checkParameters(parameters, t)` to validate related parameters. A view can define `interact(state, action, parameters, equipment)` to respond to a user action. Use simulation time and `ctx.schedule` for delayed behavior; browser timers such as `setTimeout` do not follow simulation time.
 

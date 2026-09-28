@@ -6,7 +6,7 @@ order: 8
 
 # Embed in a page
 
-Load `bus-diagram.js` once, then supply a scenario in one of three ways.
+Load the library once, from a copy next to your page or from the CDN (see [installation](installation.html)), then supply a scenario in one of three ways.
 
 ## Inline JSON
 

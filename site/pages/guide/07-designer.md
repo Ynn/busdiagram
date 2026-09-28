@@ -18,7 +18,7 @@ Start with an empty installation, one of the interactive examples, or a template
 
 The guided editor has three levels: installation, device, and group address. Breadcrumbs and the Back button return to the previous view.
 
-The **installation** view contains the title, description, [topology](topology.html), couplers, and group addresses. You can add lines, areas, devices, an IP network, or a supervisor. New devices receive available individual addresses. For each group address, the designer shows its DPT and whether any object transmits or listens on that address.
+The **installation** view contains the title, description, [topology](topology.html), couplers, heated [rooms](hvac.html), the [simulated clock](time.html#simulated-clock), and group addresses. You can add lines, areas, devices, an IP network, or a supervisor. New devices receive available individual addresses. For each group address, the designer shows its DPT and whether any object transmits or listens on that address.
 
 Open a **device** from the list or the diagram to edit its name, line, address, parameters, communication objects, and flags. The available controls follow its behavior: buttons for a push button, outputs for an actuator, and forms for other built-in or extension behaviors. Output settings can be copied to compatible outputs without changing their objects or group addresses. Advanced controls expose scenes and other optional parameters.
 

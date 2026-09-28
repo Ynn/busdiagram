@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -172,18 +173,11 @@
 <td>0 → <code>0x00</code> → 0 ; 255 → <code>0xFF</code> → 255</td>
 </tr>
 <tr>
-<td><code>17.001</code></td>
-<td>Scene number</td>
-<td>1 byte</td>
-<td>0 … 63</td>
-<td>0 → <code>0x00</code> → Scene 1 ; 63 → <code>0x3F</code> → Scene 64</td>
-</tr>
-<tr>
-<td><code>20.102</code></td>
-<td>HVAC mode</td>
-<td>1 byte</td>
-<td>0 … 4</td>
-<td>1 → <code>0x01</code> → Comfort ; 3 → <code>0x03</code> → Economy ; 4 → <code>0x04</code> → Protection</td>
+<td><code>7.600</code></td>
+<td>Colour temperature</td>
+<td>2 bytes</td>
+<td>0 … 65535</td>
+<td>2700 → <code>0x0A8C</code> → 2700 K ; 6500 → <code>0x1964</code> → 6500 K</td>
 </tr>
 <tr>
 <td><code>9.001</code></td>
@@ -204,7 +198,7 @@
 <td>Lux</td>
 <td>2 bytes</td>
 <td>0 … 670433.28</td>
-<td>350 → <code>0x2C46</code> → 350 lx ; 42000 → <code>0x6401</code> → 42,000 lx</td>
+<td>350 → <code>0x2C46</code> → 350 lx ; 42000 → <code>0x6401</code> → 41,984 lx</td>
 </tr>
 <tr>
 <td><code>9.005</code></td>
@@ -218,7 +212,7 @@
 <td>Humidity</td>
 <td>2 bytes</td>
 <td>0 … 670433.28</td>
-<td>45 → <code>0x1465</code> → 45.0 % ; 72.5 → <code>0x1715</code> → 72.5 %</td>
+<td>45 → <code>0x1465</code> → 45.0 % ; 72.5 → <code>0x1715</code> → 72.52 %</td>
 </tr>
 <tr>
 <td><code>9.008</code></td>
@@ -228,42 +222,50 @@
 <td>650 → <code>0x2FEF</code> → 650 ppm ; 1400 → <code>0x3C46</code> → 1,400 ppm</td>
 </tr>
 <tr>
-<td><code>7.600</code></td>
-<td>Colour temperature</td>
-<td>2 bytes</td>
-<td>0 … 65535</td>
-<td>2700 → <code>0x0A8C</code> → 2700 K ; 6500 → <code>0x1964</code> → 6500 K</td>
-</tr>
-<tr>
 <td><code>10.001</code></td>
 <td>Time of day</td>
-<td>24 bits</td>
-<td>0 … 691199</td>
+<td>3 bytes</td>
+<td>0 … 691199 (00:00:00 … Sun 23:59:59)</td>
 <td>114900 → <code>0x273700</code> → Mon 07:55:00 ; 81000 → <code>0x161E00</code> → 22:30:00</td>
 </tr>
 <tr>
 <td><code>11.001</code></td>
 <td>Date</td>
-<td>24 bits</td>
-<td>19900101 … 20891231</td>
+<td>3 bytes</td>
+<td>19900101 … 20891231 (1990-01-01 … 2089-12-31)</td>
 <td>20260928 → <code>0x1C091A</code> → 2026-09-28 ; 19991231 → <code>0x1F0C63</code> → 1999-12-31</td>
 </tr>
 <tr>
 <td><code>13.010</code></td>
 <td>Active energy</td>
-<td>32 bits</td>
+<td>4 bytes</td>
 <td>-2147483648 … 2147483647</td>
-<td>0 → <code>0x00</code> → 0 Wh ; 12500 → <code>0x30D4</code> → 12,500 Wh</td>
+<td>0 → <code>0x00000000</code> → 0 Wh ; 12500 → <code>0x000030D4</code> → 12,500 Wh</td>
 </tr>
 <tr>
 <td><code>14.056</code></td>
 <td>Power</td>
-<td>32 bits</td>
+<td>4 bytes</td>
 <td>-3.4e+38 … 3.4e+38</td>
 <td>60 → <code>0x42700000</code> → 60 W ; 1250.5 → <code>0x449C5000</code> → 1,250.5 W</td>
 </tr>
+<tr>
+<td><code>17.001</code></td>
+<td>Scene number</td>
+<td>1 byte</td>
+<td>0 … 63</td>
+<td>0 → <code>0x00</code> → Scene 1 ; 63 → <code>0x3F</code> → Scene 64</td>
+</tr>
+<tr>
+<td><code>20.102</code></td>
+<td>HVAC mode</td>
+<td>1 byte</td>
+<td>0 … 4</td>
+<td>1 → <code>0x01</code> → Comfort ; 3 → <code>0x03</code> → Economy ; 4 → <code>0x04</code> → Protection</td>
+</tr>
 </tbody></table>
-</div><p>One- and two-bit values occupy the low bits of the APCI byte. One-byte values use an additional payload byte.</p>
+</div><p>Values of 1, 2, or 4 bits occupy the low bits of the APCI byte. Longer values follow it as 1 to 4 additional payload bytes, as shown in the Size column; the frame length grows accordingly.</p>
+<p>In JSON, a time of day (10.001) is a number of seconds counted from 00:00 on the day given by the week day: 0 means no day, 86400 × n + seconds means day n (1 = Monday, 7 = Sunday). A date (11.001) is written as the number <code>YYYYMMDD</code>.</p>
 
 <nav class="pager">
 <a href="../reference/ports.html">← Ports</a>
@@ -272,6 +274,6 @@
 </main>
 
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

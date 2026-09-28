@@ -4,6 +4,17 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Documentation: links to the source repository and the list of changes in the header and footer.
+
+### Changed
+
+- Documentation: complete review against the code. The DPT reference is sorted by number and shows the size and bytes of 3- and 4-byte values correctly, with the decoded value a receiver displays; the guide covers every optional root field, the clock and room assignment of temperature sensors, the clock hooks available to extensions, and the current HVAC limits.
+- Documentation: command and status objects explained against product manuals (dimming example, R and U flags), and the two ways of driving a push-button indicator from the actual state of the load.
+- Behaviors: every parameter and initial state has a description in the reference and the designer.
+- Documentation: the home page shows how to load the library from the CDN, pinned to the documented version, as well as from a local copy.
+
 ## [0.1.1] - 2026-09-28
 
 ### Changed

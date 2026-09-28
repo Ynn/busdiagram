@@ -37,7 +37,7 @@ A scenario can declare a simulated wall clock. Clock masters, time switches, and
 
 The clock follows simulated time: it stops while the simulation is paused, and the speed controls apply to it as to everything else. With a clock, simulated time keeps running even when the bus is idle.
 
-The diagram shows the date and time in a badge at its bottom left. **Set time** opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, `diagram.setClock("2026-10-01T06:59:30")` does the same.
+The diagram shows the date and time in a bar at the top left of the diagram area, above the drawing. **Set time** opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, `diagram.setClock("2026-10-01T06:59:30")` does the same.
 
 ## Step mode
 

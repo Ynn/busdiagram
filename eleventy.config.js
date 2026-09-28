@@ -32,6 +32,11 @@ const pkg = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 
 export default function (eleventyConfig) {
   eleventyConfig.addGlobalData("version", pkg.version);
+  // Web address of the source repository, from package.json.
+  eleventyConfig.addGlobalData(
+    "repository",
+    pkg.repository.url.replace(/^git\+/, "").replace(/\.git$/, ""),
+  );
   eleventyConfig.addFilter("sectionPages", sectionPages);
   // Relative link to a page; directory URLs get index.html so that file:// works.
   eleventyConfig.addFilter("stripLeadingSlash", (url) =>

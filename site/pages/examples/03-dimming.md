@@ -16,6 +16,8 @@ A two-key push-button controls one dimmable lamp through three group addresses, 
 
 The actuator reports its switching state on 1/4/1 and its level on 1/5/1 after each transition. The push-button receives the level status and shows it on its object.
 
+The three command objects are independent inputs. A level of 100 % on 1/3/1 switches the lamp on and sets the switching status 1/4/1 to 1, but the switching command object on 1/1/1 keeps its last received value, 0. Dimming actuator manuals describe the same separation: the switching object receives commands (flags C, W, T), and the switching status object reports "on" whenever the brightness is not zero (flags C, R, T). The state of the lamp is therefore read or monitored on 1/4/1; the command object has no R flag, so a read of 1/1/1 receives no response from the actuator. See [R and U flags](../guide/usb-interface.html#r-and-u-flags).
+
 ```knx
 scenario: dimming
 ```

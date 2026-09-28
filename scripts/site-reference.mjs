@@ -251,7 +251,7 @@ ${optionalTables([
         `| DPT | Name | Size | Range | Examples: value → encoded bytes → display |\n| --- | --- | --- | --- | --- |\n${data.dpts
           .map(
             (d) =>
-              `| ${code(d.id)} | ${d.name} | ${d.bits === 16 ? "2 bytes" : d.bits === 8 ? "1 byte" : `${d.bits} bit${d.bits > 1 ? "s" : ""}`} | ${d.range} | ${d.samples
+              `| ${code(d.id)} | ${d.name} | ${d.bits >= 8 ? `${d.bits / 8} byte${d.bits > 8 ? "s" : ""}` : `${d.bits} bit${d.bits > 1 ? "s" : ""}`} | ${d.range} | ${d.samples
                 .map(
                   (s) =>
                     `${s.value} → ${code(
@@ -259,7 +259,7 @@ ${optionalTables([
                         s.raw
                           .toString(16)
                           .toUpperCase()
-                          .padStart(d.bits === 16 ? 4 : 2, "0"),
+                          .padStart(Math.max(2, d.bits / 4), "0"),
                     )} → ${s.text}`,
                 )
                 .join(" ; ")} |`,

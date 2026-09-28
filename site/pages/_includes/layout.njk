@@ -23,6 +23,7 @@
     <a href="{{ base }}designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="{{ repository }}">GitHub</a>
   <a class="dl" href="{{ base }}assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout{% if not section %} wide{% endif %}">
@@ -42,6 +43,6 @@
 </main>
 {% if headings and headings.length > 2 %}<aside class="toc"><h4>On this page</h4><ul>{% for heading in headings %}{% if heading.depth == 2 %}<li><a href="#{{ heading.id }}">{{ heading.text }}</a></li>{% endif %}{% endfor %}</ul></aside>{% endif %}
 </div>
-<footer class="site">BusDiagram {{ version }} · offline documentation · <a href="{{ base }}designer/index.html">Designer</a> · <a href="{{ base }}THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram {{ version }} · offline documentation · <a href="{{ base }}designer/index.html">Designer</a> · <a href="{{ repository }}">Source code (GitHub)</a> · <a href="{{ repository }}/blob/main/CHANGELOG.md">Changes</a> · <a href="{{ base }}THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

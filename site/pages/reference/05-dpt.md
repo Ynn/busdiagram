@@ -9,4 +9,6 @@ A telegram does **not** transmit its DPT. Each receiving object interprets the p
 
 {{dpts}}
 
-One- and two-bit values occupy the low bits of the APCI byte. One-byte values use an additional payload byte.
+Values of 1, 2, or 4 bits occupy the low bits of the APCI byte. Longer values follow it as 1 to 4 additional payload bytes, as shown in the Size column; the frame length grows accordingly.
+
+In JSON, a time of day (10.001) is a number of seconds counted from 00:00 on the day given by the week day: 0 means no day, 86400 × n + seconds means day n (1 = Monday, 7 = Sunday). A date (11.001) is written as the number `YYYYMMDD`.

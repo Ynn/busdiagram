@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -43,7 +44,7 @@
 </aside>
 <main>
 <p class="crumb">Examples</p>
-<h1 id="time-schedule"><a class="anchor" href="#time-schedule">#</a>Time schedule</h1><p>The scenario declares a <a href="../guide/time.html#simulated-clock">simulated clock</a> that starts on Monday at 21:57 and runs 60 times faster than simulated time. Its date and time appear in the badge at the bottom left of the diagram.</p>
+<h1 id="time-schedule"><a class="anchor" href="#time-schedule">#</a>Time schedule</h1><p>The scenario declares a <a href="../guide/time.html#simulated-clock">simulated clock</a> that starts on Monday at 21:57 and runs 60 times faster than simulated time. Its date and time appear in a bar at the top left of the diagram area.</p>
 <ul>
 <li><strong>Clock master:</strong> sends the time of day (DPT 10.001 on 6/0/1) and the date (DPT 11.001 on 6/0/2) every clock minute. The time display receives both.</li>
 <li><strong>Weekly time switch:</strong> its program switches the corridor light on at 07:00 and off at 22:00 on weekdays, and at 08:30 and 23:00 at weekends. Watch the corridor light go off at 22:00.</li>
@@ -430,6 +431,6 @@
 </main>
 
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

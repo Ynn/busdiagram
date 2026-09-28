@@ -384,6 +384,8 @@ const thermostatParams: ParamSchema = {
       minimum: 0,
       maximum: 30,
       default: 5,
+      description:
+        "Lowest base setpoint accepted (°C); lower received or entered values are raised to it.",
     },
     maxSetpointC: {
       title: "Maximum setpoint",
@@ -392,6 +394,8 @@ const thermostatParams: ParamSchema = {
       minimum: 10,
       maximum: 50,
       default: 35,
+      description:
+        "Highest base setpoint accepted (°C); higher received or entered values are lowered to it.",
     },
     hysteresisK: {
       title: "Hysteresis",
@@ -436,6 +440,8 @@ const thermostatParams: ParamSchema = {
       type: "integer",
       minimum: 100,
       default: 1000,
+      description:
+        "Interval at which the controller recalculates its control value from the measured temperature.",
     },
     valueSendDeltaPct: {
       title: "Send on change",
@@ -483,6 +489,8 @@ const thermostatParams: ParamSchema = {
       type: "integer",
       minimum: 0,
       default: 0,
+      description:
+        "Also send the measured temperature at this interval, even without change; 0 disables cyclic sending.",
     },
   },
 };
@@ -1010,6 +1018,8 @@ export const windowContact: BehaviorDefinition<null> = {
         type: "integer",
         minimum: 0,
         default: 1000,
+        description:
+          "Delay after the simulation starts before the contact state is sent.",
       },
     },
   },

@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -365,7 +366,13 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><p><code>led</code> links a button indicator to an object value. A numeric input can send a setpoint:</p>
+</figure><p><code>led</code> links a button indicator to an object value: the indicator is lit while that value is not zero. Product manuals describe two ways of making the indicator show the actual state of the load, and both can be modeled:</p>
+<ul>
+<li><strong>One object that also listens to the status.</strong> The key&#39;s switching object sends on the command address and has the actuator&#39;s status address as an additional, receive-only address, with its W flag set. The indicator and the toggle then follow the load. In JSON: <code>&quot;ga&quot;: [&quot;1/1/1&quot;, &quot;1/4/1&quot;]</code> and <code>&quot;led&quot;</code> pointing to that object, as Key 3 of the <a href="../examples/status-feedback.html">status feedback example</a>.</li>
+<li><strong>A separate status object.</strong> The key sends on an object without the W flag, and a second object (for example a <code>display</code> port with W and U) receives the status; <code>&quot;led&quot;</code> points to that second object.</li>
+</ul>
+<p>A <code>&quot;toggle&quot;</code> value inverts the object that sends. With a separate status object, the model toggles from the last value sent, not from the status received; use the first form when the toggle must follow the load.</p>
+<p>A numeric input can send a setpoint:</p>
 <pre class="code"><code><span class="k">"inputs"</span>: [{ <span class="k">"id"</span>: <span class="s">"position"</span>, <span class="k">"type"</span>: <span class="s">"number"</span>, <span class="k">"label"</span>: <span class="s">"Setpoint (%)"</span>, <span class="k">"object"</span>: <span class="s">"target"</span>, <span class="k">"min"</span>: <span class="n">0</span>, <span class="k">"max"</span>: <span class="n">100</span>, <span class="k">"step"</span>: <span class="n">1</span> }]</code></pre><p>Keyboard controls: Tab focuses a key; Enter or Space activates a short press, and Shift+Enter activates a long press.</p>
 <h2 id="switching-actuator-switchactuator-v1"><a class="anchor" href="#switching-actuator-switchactuator-v1">#</a>Switching actuator: <code>switchActuator/v1</code></h2><p>An actuator has one channel per output. Its object ports include <code>switch</code> (command), <code>status</code> (feedback), <code>scene</code>, and <code>forced</code>.</p>
 <ul>
@@ -803,6 +810,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#push-button-pushbutton-v1">Push-button: pushButton/v1</a></li><li><a href="#switching-actuator-switchactuator-v1">Switching actuator: switchActuator/v1</a></li><li><a href="#presence-detector-presencedetector-v1">Presence detector: presenceDetector/v1</a></li><li><a href="#weather-station-weatherstation-v1">Weather station: weatherStation/v1</a></li><li><a href="#air-quality-sensor-airqualitysensor-v1">Air quality sensor: airQualitySensor/v1</a></li><li><a href="#logic-module-logicgate-v1">Logic module: logicGate/v1</a></li><li><a href="#clock-master-clockmaster-v1">Clock master: clockMaster/v1</a></li><li><a href="#weekly-time-switch-timeswitch-v1">Weekly time switch: timeSwitch/v1</a></li><li><a href="#display-and-supervisor-display-v1">Display and supervisor: display/v1</a></li><li><a href="#usb-interface-usbinterface-v1">USB interface: usbInterface/v1</a></li><li><a href="#passive-device-passive-v1">Passive device: passive/v1</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

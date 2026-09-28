@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -158,6 +159,10 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>The device&#39;s room temperature or window state changes.</td>
 </tr>
 <tr>
+<td><code>onClockChange(ctx)</code></td>
+<td>The <a href="time.html#simulated-clock">simulated clock</a> is set to another time; reschedule clock-based deadlines.</td>
+</tr>
+<tr>
 <td><code>channelState(state, channel)</code></td>
 <td>Channel state is requested by the inspector or <code>getState()</code>.</td>
 </tr>
@@ -166,7 +171,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Device state is requested, such as a thermostat display.</td>
 </tr>
 </tbody></table>
-</div><p>The context <code>ctx</code> exposes <code>t</code> for translated messages, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>readEquipment</code>, <code>readRoom</code>, <code>schedule</code>, <code>cancel</code>, and <code>note</code>. <code>setObject</code> changes a local value without transmitting. <code>transmit</code> checks flag T and the sending address. <code>note</code> adds an explanation to the event log.</p>
+</div><p>The context <code>ctx</code> exposes <code>t</code> for translated messages, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>getOutput</code>, <code>readEquipment</code>, <code>readPower</code>, <code>readRoom</code>, <code>setOutsideTemperature</code>, <code>clock</code>, <code>schedule</code>, <code>cancel</code>, and <code>note</code>. <code>setObject</code> changes a local value without transmitting. <code>transmit</code> checks flag T and the sending address. <code>readPower</code> returns the power drawn by a channel&#39;s load, in W, when the load models it. <code>clock()</code> returns the simulated clock (<code>nowMs</code>, <code>speed</code>) or <code>null</code> without one; divide a clock delay by <code>speed</code> to schedule it in simulation time. <code>note</code> adds an explanation to the event log.</p>
 <p>Equipment models can define <code>heatOutput(state, parameters)</code> to heat or cool a room and <code>checkParameters(parameters, t)</code> to validate related parameters. A view can define <code>interact(state, action, parameters, equipment)</code> to respond to a user action. Use simulation time and <code>ctx.schedule</code> for delayed behavior; browser timers such as <code>setTimeout</code> do not follow simulation time.</p>
 <p>An exception in a behavior pauses only that diagram and reports an <code>extension-error</code>. An exception in a view replaces that view with an error frame and reports <code>view-error</code> in <code>getState()</code>.</p>
 <h3 id="definition-checks"><a class="anchor" href="#definition-checks">#</a>Definition checks</h3><p><code>registerBehavior</code> validates ports, supported DPTs, output types, and parameter defaults. Parameter schemas use a flat subset of JSON Schema: scalar <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>string</code>, and <code>null</code> properties, with bounds, <code>enum</code>, <code>enumTitles</code>, <code>default</code>, and <code>description</code>. Nested objects and arrays are unsupported. A registered definition is copied and frozen.</p>
@@ -227,6 +232,6 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

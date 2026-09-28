@@ -35,7 +35,7 @@ parameters?: {
  */
 medium?: ("TP" | "IP")
 /**
- * Assigned room ID; thermostats and window contacts observe that room.
+ * Assigned room ID; thermostats, window contacts, and temperature sensors observe that room.
  */
 room?: string
 /**

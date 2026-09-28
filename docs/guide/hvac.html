@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -53,7 +54,7 @@
 <h2 id="rooms-and-thermal-model"><a class="anchor" href="#rooms-and-thermal-model">#</a>Rooms and thermal model</h2><p>Each entry in <code>rooms</code> stores a room&#39;s temperature, outside temperature, and thermal time constant. Temperature moves toward the outside temperature while heating or cooling equipment adds or removes heat. A radiator&#39;s <code>powerK</code> is not a power in watts: it is the temperature difference, in K, that the radiator alone could maintain above the outside temperature with its valve fully open. An open window multiplies the heat loss by eight. The default <code>timeConstantMs</code> is 300 seconds in the accelerated model.</p>
 <pre class="code"><code><span class="k">"rooms"</span>: [
   { <span class="k">"id"</span>: <span class="s">"living"</span>, <span class="k">"name"</span>: <span class="s">"Living room"</span>, <span class="k">"temperatureC"</span>: <span class="n">18</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span> }
-]</code></pre><p>Assign a thermostat or window contact to a room with <code>&quot;room&quot;: &quot;living&quot;</code>. A radiator channel uses <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. The <strong>Rooms</strong> panel shows temperature, setpoints, valve positions, and window state. <code>roomAction(roomId, &quot;window&quot; | &quot;outside&quot;, value)</code> offers the same controls from JavaScript. An outdoor temperature entered on a <a href="devices.html#weather-station-weatherstation-v1">weather station</a> also becomes the outside temperature of every room, unless its <code>setsRoomOutdoorTemperature</code> parameter is <code>false</code>.</p>
+]</code></pre><p>Assign a thermostat, window contact, or temperature sensor to a room with <code>&quot;room&quot;: &quot;living&quot;</code>. A radiator channel uses <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. The <strong>Rooms</strong> panel shows temperature, setpoints, valve positions, and window state. <code>roomAction(roomId, &quot;window&quot; | &quot;outside&quot;, value)</code> offers the same controls from JavaScript. An outdoor temperature entered on a <a href="devices.html#weather-station-weatherstation-v1">weather station</a> also becomes the outside temperature of every room, unless its <code>setsRoomOutdoorTemperature</code> parameter is <code>false</code>.</p>
 <p>The physical window and the bus are distinct. Opening the window in the <strong>Rooms</strong> panel changes the heat loss and makes the window contact send a telegram. A telegram written directly to a thermostat window object, for example from the USB interface panel, changes the thermostat mode but does not open the physical window; this can represent a contact fault.</p>
 <h2 id="relevant-dpts"><a class="anchor" href="#relevant-dpts">#</a>Relevant DPTs</h2><div class="table"><table>
 <thead>
@@ -683,7 +684,7 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, time schedules, heat production (boiler, heat pump, water circuit, summer or winter changeover), fan coils, ventilation, humidity, or BACnet. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, heat production (boiler, heat pump, water circuit, summer or winter changeover), fan coils, or BACnet. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
 
 <nav class="pager">
 <a href="../guide/dali.html">← Dimming and DALI</a>
@@ -692,6 +693,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#rooms-and-thermal-model">Rooms and thermal model</a></li><li><a href="#relevant-dpts">Relevant DPTs</a></li><li><a href="#room-thermostat">Room thermostat</a></li><li><a href="#heating-actuator-and-valve">Heating actuator and valve</a></li><li><a href="#sensors">Sensors</a></li><li><a href="#example">Example</a></li><li><a href="#model-limits">Model limits</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

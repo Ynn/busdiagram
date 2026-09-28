@@ -113,6 +113,17 @@ header nav a.cur {
   color: var(--mute);
   margin-left: 6px;
 }
+.repo {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.repo:hover {
+  background: #f1efe8;
+}
 .dl {
   font-weight: 600;
   font-size: 14px;

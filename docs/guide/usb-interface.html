@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -176,6 +177,7 @@
 </tr>
 </tbody></table>
 </div><pre class="code"><code><span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span>, <span class="k">"R"</span>: <span class="kw">true</span> }</code></pre><p>A command object&#39;s U flag is normally off so a read response does not accidentally act as a new command. You can enable U explicitly to inspect that behavior.</p>
+<p>To learn the state of an output, read its <strong>status</strong> address, not its command address. Actuator command objects usually have no R flag, as in product manuals (for example a dimming actuator&#39;s switching object is C, W, T, and its switching status object is C, R, T). A read of the command address therefore receives no response from the actuator, and the command object keeps the last command it received even when another command, such as a brightness value, has since changed the output.</p>
 <h2 id="javascript-api"><a class="anchor" href="#javascript-api">#</a>JavaScript API</h2><pre class="code"><code><span class="kw">const</span> diagram = document.querySelector(<span class="s">"bus-diagram"</span>);
 diagram.groupWrite(<span class="s">"1/1/1"</span>, <span class="n">1</span>);
 diagram.groupRead(<span class="s">"1/4/1"</span>);</code></pre><p>The DOM-free API also exposes <code>groupWrite(interfaceId, groupAddress, value)</code> and <code>groupRead(interfaceId, groupAddress)</code> through <code>createSimulator</code>. Invalid values are rejected before transmission. For example, <code>NaN</code>, infinity, out-of-range values, or a fraction for an integer DPT cause <code>groupWrite</code> to throw <code>RangeError</code>. Accepted values are sent in their encoded DPT form; 30% in DPT 5.001 is represented as about 30.196% after encoding to a byte.</p>
@@ -187,6 +189,6 @@ diagram.groupRead(<span class="s">"1/4/1"</span>);</code></pre><p>The DOM-free A
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#add-a-usb-interface">Add a USB interface</a></li><li><a href="#read-and-write">Read and write</a></li><li><a href="#r-and-u-flags">R and U flags</a></li><li><a href="#javascript-api">JavaScript API</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

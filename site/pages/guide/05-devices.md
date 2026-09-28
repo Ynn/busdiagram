@@ -25,7 +25,14 @@ The default long-press threshold is 0.5 s; set `"parameters": { "longPressMs": 8
 scenario: status-feedback
 ```
 
-`led` links a button indicator to an object value. A numeric input can send a setpoint:
+`led` links a button indicator to an object value: the indicator is lit while that value is not zero. Product manuals describe two ways of making the indicator show the actual state of the load, and both can be modeled:
+
+- **One object that also listens to the status.** The key's switching object sends on the command address and has the actuator's status address as an additional, receive-only address, with its W flag set. The indicator and the toggle then follow the load. In JSON: `"ga": ["1/1/1", "1/4/1"]` and `"led"` pointing to that object, as Key 3 of the [status feedback example](../examples/status-feedback.html).
+- **A separate status object.** The key sends on an object without the W flag, and a second object (for example a `display` port with W and U) receives the status; `"led"` points to that second object.
+
+A `"toggle"` value inverts the object that sends. With a separate status object, the model toggles from the last value sent, not from the status received; use the first form when the toggle must follow the load.
+
+A numeric input can send a setpoint:
 
 ```json
 "inputs": [{ "id": "position", "type": "number", "label": "Setpoint (%)", "object": "target", "min": 0, "max": 100, "step": 1 }]

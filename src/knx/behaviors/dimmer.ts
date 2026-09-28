@@ -367,6 +367,7 @@ const channelInitialState: ParamSchema = {
       minimum: 0,
       maximum: 100,
       default: 0,
+      description: "Level of the output when the simulation starts; 0 is off.",
     },
     colourTemperatureK: {
       title: "Initial colour temperature",

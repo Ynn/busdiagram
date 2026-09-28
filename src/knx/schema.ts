@@ -732,7 +732,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
             type: "string",
             pattern: ID_ATOM,
             description:
-              "Assigned room ID; thermostats and window contacts observe that room.",
+              "Assigned room ID; thermostats, window contacts, and temperature sensors observe that room.",
           },
           inFilterTables: {
             type: "boolean",

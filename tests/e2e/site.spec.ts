@@ -1384,7 +1384,11 @@ test("prompt generator builds a request, checks an answer, and prepares a correc
 });
 
 test("documentation pins the built version on the CDN with its integrity hash", () => {
-  for (const page of ["guide/installation.html", "guide/versions.html"]) {
+  for (const page of [
+    "index.html",
+    "guide/installation.html",
+    "guide/versions.html",
+  ]) {
     const html = readFileSync(join(DOCS, page), "utf8");
     expect(html).toContain(CDN_URL);
     expect(html).toContain(INTEGRITY);

@@ -112,6 +112,7 @@ export function llmReference(data, examples) {
     "- Channels (`channels`) are actuator outputs: `{ id, label, parameters?, initialState?, equipment? }`. `equipment` connects a load such as a lamp or a shutter. Objects of an output port name their `channel`.",
     '- Topology beyond one line: `topology.mainLines`, `topology.backbone`, `topology.ip` (`"areaCouplers"` or `"lineCouplers"`), and `topology.couplers` for per-coupler `"filter"`, `"route"`, or `"block"` settings. Devices with `"medium": "IP"` connect to the IP network.',
     '- Simulated clock: `"clock": { "start": "2026-09-28T21:57:00", "speed": 60 }` at the root enables `clockMaster/v1`, `timeSwitch/v1`, and time windows of `logicGate/v1`; `speed` is clock seconds per simulated second.',
+    '- Heated rooms: `"rooms": [{ "id": "living", "name": "Living room", "temperatureC": 19, "outsideTemperatureC": 5 }]` at the root (optional `windowOpen`, `timeConstantMs`). A `roomThermostat/v1`, `windowContact/v1`, or `temperatureSensor/v1` device sets `"room": "living"`; a radiator load uses `"equipment": { "type": "radiator", "room": "living" }`.',
     '- Line extension: `lines[].extension = { "address": "A.L.64", "mode": "repeater" }` (or `"segmentCoupler"`) adds a second segment connected to the main segment, one per line; devices on that segment set `"downstream": true`.',
     "- Use only behaviors, ports, DPTs, parameters, and equipment types from this file. When the description needs a device that is not listed, use `passive/v1` and state the limitation in `description`.",
     "",

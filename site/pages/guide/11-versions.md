@@ -10,8 +10,8 @@ BusDiagram follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html). A
 
 ## Find the version
 
-- In a page: `BusDiagram.version`, for example `"0.1.0"`.
-- In a file: the first line of `bus-diagram.js` and `bus-diagram.esm.js` is a banner such as `/*! BusDiagram v0.1.0 | AGPL-3.0-only … */`. Standalone pages exported by the designer embed the library with this banner.
+- In a page: `BusDiagram.version`, for example `"{{version}}"`.
+- In a file: the first line of `bus-diagram.js` and `bus-diagram.esm.js` is a banner such as `/*! BusDiagram v{{version}} | AGPL-3.0-only … */`. Standalone pages exported by the designer embed the library with this banner.
 - In the documentation: the footer of every page shows the version it describes. The published documentation, designer, and player always correspond to the latest released version.
 
 ## What the version covers

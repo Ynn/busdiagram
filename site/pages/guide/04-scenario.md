@@ -19,7 +19,7 @@ A scenario is a JSON document using format version 2. The [JSON reference](../re
 }
 ```
 
-Only `formatVersion`, `lines`, and `devices` are required. Optional fields include `description`, `topology`, `rooms`, and `groupAddresses`. For editor completion, point `$schema` to `schema/scenario-v2.schema.json` in a local checkout.
+Only `formatVersion`, `lines`, and `devices` are required. The optional fields are `title` and `description` (shown above the diagram), `groupAddresses` (names and DPTs for the monitor), `topology` (IP routing and coupler settings), `rooms` (heated rooms), `clock` (simulated date and time, see [time](time.html#simulated-clock)), and `options` (initial simulation speed and filter table display). For editor completion, set `$schema` to the published schema, `https://ynn.github.io/busdiagram/schema/scenario-v2.schema.json`, or to `schema/scenario-v2.schema.json` in a local copy.
 
 ## Topology
 
@@ -43,7 +43,7 @@ Couplers derive their filter tables from group associations: an address crosses 
 
 ## Rooms
 
-`rooms` describes heated rooms, including initial and outside temperatures and window state. Assign a thermostat or window contact with its `room` field; assign a radiator through `"equipment": { "type": "radiator", "room": "living" }`. See [heating](hvac.html).
+`rooms` describes heated rooms, including initial and outside temperatures and window state. Assign a thermostat, window contact, or temperature sensor with its `room` field; assign a radiator through `"equipment": { "type": "radiator", "room": "living" }`. See [heating](hvac.html).
 
 ## Device order and propagation
 

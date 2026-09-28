@@ -23,6 +23,7 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
   <a class="dl" href="../assets/bus-diagram.js" download>Download</a>
 </header>
 <div class="layout">
@@ -57,7 +58,7 @@
   <span class="k">"groupAddresses"</span>: [],
   <span class="k">"devices"</span>: [],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
-}</code></pre><p>Only <code>formatVersion</code>, <code>lines</code>, and <code>devices</code> are required. Optional fields include <code>description</code>, <code>topology</code>, <code>rooms</code>, and <code>groupAddresses</code>. For editor completion, point <code>$schema</code> to <code>schema/scenario-v2.schema.json</code> in a local checkout.</p>
+}</code></pre><p>Only <code>formatVersion</code>, <code>lines</code>, and <code>devices</code> are required. The optional fields are <code>title</code> and <code>description</code> (shown above the diagram), <code>groupAddresses</code> (names and DPTs for the monitor), <code>topology</code> (IP routing and coupler settings), <code>rooms</code> (heated rooms), <code>clock</code> (simulated date and time, see <a href="time.html#simulated-clock">time</a>), and <code>options</code> (initial simulation speed and filter table display). For editor completion, set <code>$schema</code> to the published schema, <code>https://ynn.github.io/busdiagram/schema/scenario-v2.schema.json</code>, or to <code>schema/scenario-v2.schema.json</code> in a local copy.</p>
 <h2 id="topology"><a class="anchor" href="#topology">#</a>Topology</h2><p>The diagram layout is derived from the addresses; you do not need to enter drawing coordinates.</p>
 <div class="table"><table>
 <thead>
@@ -383,7 +384,7 @@
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
 </figure><p>Couplers derive their filter tables from group associations: an address crosses a coupler when needed on the other side. The routing counter starts at 6 and decreases as the telegram passes each coupler.</p>
-<h2 id="rooms"><a class="anchor" href="#rooms">#</a>Rooms</h2><p><code>rooms</code> describes heated rooms, including initial and outside temperatures and window state. Assign a thermostat or window contact with its <code>room</code> field; assign a radiator through <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. See <a href="hvac.html">heating</a>.</p>
+<h2 id="rooms"><a class="anchor" href="#rooms">#</a>Rooms</h2><p><code>rooms</code> describes heated rooms, including initial and outside temperatures and window state. Assign a thermostat, window contact, or temperature sensor with its <code>room</code> field; assign a radiator through <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. See <a href="hvac.html">heating</a>.</p>
 <h2 id="device-order-and-propagation"><a class="anchor" href="#device-order-and-propagation">#</a>Device order and propagation</h2><p>The order of devices in <code>devices</code> follows their order on the cable. It affects propagation time: adjacent devices are 250 ms apart in the simulation. See <a href="time.html">time and pacing</a>.</p>
 <h2 id="ids-and-references"><a class="anchor" href="#ids-and-references">#</a>IDs and references</h2><p>Each device has a unique <code>id</code>. Each object, button, input, and channel has an <code>id</code> unique within its device. Buttons and inputs refer to objects by ID; objects refer to channels through <code>channel</code>. An unknown reference produces a <a href="errors.html">validation error</a> with its JSON path.</p>
 <h2 id="group-addresses"><a class="anchor" href="#group-addresses">#</a>Group addresses</h2><p>Group addresses use three levels: main group 0–31, middle group 0–7, and subgroup 0–255. <code>0/0/0</code> is the broadcast destination and is refused, as it is in commissioning software.</p>
@@ -397,6 +398,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#topology">Topology</a></li><li><a href="#rooms">Rooms</a></li><li><a href="#device-order-and-propagation">Device order and propagation</a></li><li><a href="#ids-and-references">IDs and references</a></li><li><a href="#group-addresses">Group addresses</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.1.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>
 </html>

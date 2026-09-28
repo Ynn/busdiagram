@@ -101,6 +101,8 @@ export const clockMaster: BehaviorDefinition<ClockState> = {
         type: "integer",
         minimum: 0,
         default: 1000,
+        description:
+          "Delay after the simulation starts before time and date are sent.",
       },
     },
   },

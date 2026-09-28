@@ -3,7 +3,7 @@
 #              run every check and build the package and the documentation site once.
 # 2. npm:      stage that build on npm (trusted publishing, no token). Staged publishing
 #              keeps the version private until a maintainer approves it with 2FA, on
-#              npmjs.com (package page, Staged Packages tab) or with `npm stage approve`.
+#              npmjs.com (account menu, Staged Packages) or with `npm stage approve`.
 # 3. approval: wait until the version is public on npm, then check that the published
 #              file is identical to the build, since the site refers to it by integrity hash.
 # 4. github:   create the GitHub release with the distributed files and the CHANGELOG notes.
@@ -98,7 +98,7 @@ jobs:
           {
             echo "### bus-diagram@$version is waiting for approval"
             echo
-            echo "Approve it on https://www.npmjs.com/package/bus-diagram (Staged Packages tab)"
+            echo "Approve it on https://www.npmjs.com (account menu, Staged Packages)"
             echo "or with \`npm stage list bus-diagram\` then \`npm stage approve <stage-id>\`."
           } >> "$GITHUB_STEP_SUMMARY"
 

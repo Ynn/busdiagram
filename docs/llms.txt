@@ -21,6 +21,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 - Channels (`channels`) are actuator outputs: `{ id, label, parameters?, initialState?, equipment? }`. `equipment` connects a load such as a lamp or a shutter. Objects of an output port name their `channel`.
 - Topology beyond one line: `topology.mainLines`, `topology.backbone`, `topology.ip` (`"areaCouplers"` or `"lineCouplers"`), and `topology.couplers` for per-coupler `"filter"`, `"route"`, or `"block"` settings. Devices with `"medium": "IP"` connect to the IP network.
 - Simulated clock: `"clock": { "start": "2026-09-28T21:57:00", "speed": 60 }` at the root enables `clockMaster/v1`, `timeSwitch/v1`, and time windows of `logicGate/v1`; `speed` is clock seconds per simulated second.
+- Heated rooms: `"rooms": [{ "id": "living", "name": "Living room", "temperatureC": 19, "outsideTemperatureC": 5 }]` at the root (optional `windowOpen`, `timeConstantMs`). A `roomThermostat/v1`, `windowContact/v1`, or `temperatureSensor/v1` device sets `"room": "living"`; a radiator load uses `"equipment": { "type": "radiator", "room": "living" }`.
 - Line extension: `lines[].extension = { "address": "A.L.64", "mode": "repeater" }` (or `"segmentCoupler"`) adds a second segment connected to the main segment, one per line; devices on that segment set `"downstream": true`.
 - Use only behaviors, ports, DPTs, parameters, and equipment types from this file. When the description needs a device that is not listed, use `passive/v1` and state the limitation in `description`.
 
@@ -189,7 +190,7 @@ Channel `parameters`:
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms).
 - `afterForcing` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (Start), "off" (Stop), "toggle" (Toggle)): State after a priority override ends: follow the latest command received during the override, restore the previous state, keep the forced state, switch on, switch off, or invert the forced state.
 Channel `initialState`:
-- `on` (boolean, default false)
+- `on` (boolean, default false): Switching state of the channel when the simulation starts.
 
 ### `shutterActuator/v1`
 
@@ -218,8 +219,8 @@ Channel `parameters`:
 - `endSupplementPct` (number, default 0; ≥ 0 ; ≤ 50): Extra travel time toward 0% or 100%, as a percentage of full travel. The motor runs even if the estimate is already at the limit; the end stop recalibrates the estimate (often 5–10% on a real actuator).
 - `invertOutput` (boolean, default false): Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.
 Channel `initialState`:
-- `estimatedPositionPct` (number, default 0; ≥ 0 ; ≤ 100)
-- `estimatedSlatPct` (number, default 0; ≥ 0 ; ≤ 100)
+- `estimatedPositionPct` (number, default 0; ≥ 0 ; ≤ 100): Position the actuator assumes at start (0 = fully open, 100 = fully closed); the connected shutter starts at its own position.
+- `estimatedSlatPct` (number, default 0; ≥ 0 ; ≤ 100): Slat angle the actuator assumes at start (venetian blinds).
 
 ### `display/v1`
 
@@ -290,7 +291,7 @@ Channel `parameters`:
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
 Channel `initialState`:
-- `levelPct` (number, default 0; ≥ 0 ; ≤ 100)
+- `levelPct` (number, default 0; ≥ 0 ; ≤ 100): Level of the output when the simulation starts; 0 is off.
 - `colourTemperatureK` (integer, default 4000; ≥ 1000 ; ≤ 10000): Colour temperature (K) at start, for a channel with a colourTemperature object.
 
 ### `daliGateway/v1`
@@ -328,7 +329,7 @@ Channel `parameters`:
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
 Channel `initialState`:
-- `levelPct` (number, default 0; ≥ 0 ; ≤ 100)
+- `levelPct` (number, default 0; ≥ 0 ; ≤ 100): Level of the output when the simulation starts; 0 is off.
 - `colourTemperatureK` (integer, default 4000; ≥ 1000 ; ≤ 10000): Colour temperature (K) at start, for a channel with a colourTemperature object.
 
 ### `roomThermostat/v1`
@@ -363,18 +364,18 @@ Device `parameters`:
 - `frostProtectionC` (number, default 7; ≥ 3 ; ≤ 15): Heating setpoint in protection mode (°C).
 - `heatProtectionC` (number, default 35; ≥ 25 ; ≤ 45): Cooling setpoint in protection mode (°C).
 - `deadZoneK` (number, default 3; ≥ 0 ; ≤ 10): Difference between heating and cooling comfort setpoints (K), for example 21 °C and 24 °C.
-- `minSetpointC` (number, default 5; ≥ 0 ; ≤ 30)
-- `maxSetpointC` (number, default 35; ≥ 10 ; ≤ 50)
+- `minSetpointC` (number, default 5; ≥ 0 ; ≤ 30): Lowest base setpoint accepted (°C); lower received or entered values are raised to it.
+- `maxSetpointC` (number, default 35; ≥ 10 ; ≤ 50): Highest base setpoint accepted (°C); higher received or entered values are lowered to it.
 - `hysteresisK` (number, default 0.5; ≥ 0.1 ; ≤ 5): Two-point control switches on again when temperature differs from the setpoint by this amount (K).
 - `proportionalBandK` (number, default 2; ≥ 0.5 ; ≤ 10): Temperature difference (K) that produces 100% output from the proportional term.
 - `integralTimeMs` (integer, default 120000; ≥ 0): PI integral time: a constant error doubles the proportional response after this duration (0 selects P control). Real installations use 60–240 minutes; the default follows compressed simulated room time.
 - `pwmCycleMs` (integer, default 20000; ≥ 1000): PWM cycle period for a 1-bit control object (real installations typically use 10–20 minutes).
-- `controlPeriodMs` (integer, default 1000; ≥ 100)
+- `controlPeriodMs` (integer, default 1000; ≥ 100): Interval at which the controller recalculates its control value from the measured temperature.
 - `valueSendDeltaPct` (number, default 5; ≥ 1 ; ≤ 50): Send the control value when it changes by at least this many percentage points.
 - `externalTempTimeoutMs` (integer, default 0; ≥ 0): If no externalTemp value arrives within this time, control uses the internal sensor again until a new value arrives (0 disables monitoring).
 - `valueCyclicMs` (integer, default 0; ≥ 0): Periodically resend the control value (0 disables it); needed when the actuator monitors incoming values.
 - `temperatureSendDeltaK` (number, default 0.2; ≥ 0.1 ; ≤ 5): Send measured temperature when it changes by at least this amount (K).
-- `temperatureCyclicMs` (integer, default 0; ≥ 0)
+- `temperatureCyclicMs` (integer, default 0; ≥ 0): Also send the measured temperature at this interval, even without change; 0 disables cyclic sending.
 
 ### `heatingActuator/v1`
 
@@ -407,7 +408,7 @@ Device `parameters`:
 - `contactType` (string, default "normallyOpen"; "normallyOpen" (Normally open), "normallyClosed" (Normally closed)): Physical contact: a normally open contact is closed while the window is closed; a normally closed contact is open while the window is closed.
 - `invert` (boolean, default false): Interpret the electrical input for a normally closed contact. The transmitted value always follows the DPT (1.019: 1 = open; 1.009: 1 = closed).
 - `sendOnStart` (boolean, default true): Send contact state when the simulation starts, as after bus power returns, so a thermostat can detect an already open window.
-- `startDelayMs` (integer, default 1000; ≥ 0)
+- `startDelayMs` (integer, default 1000; ≥ 0): Delay after the simulation starts before the contact state is sent.
 
 ### `temperatureSensor/v1`
 
@@ -501,7 +502,7 @@ Clock master: sends the time of day (10.001) and the date (11.001) of the simula
 Device `parameters`:
 - `sendPeriodMin` (integer, default 1; ≥ 0 ; ≤ 1440): Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set.
 - `sendOnStart` (boolean, default true): Send time and date shortly after the simulation starts.
-- `startDelayMs` (integer, default 1000; ≥ 0)
+- `startDelayMs` (integer, default 1000; ≥ 0): Delay after the simulation starts before time and date are sent.
 
 ### `timeSwitch/v1`
 
@@ -610,19 +611,19 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 | `3.007` | Relative dimming | 4 | 0 … 15 |
 | `5.001` | Percentage | 8 | 0 … 100 |
 | `5.010` | Counter | 8 | 0 … 255 |
-| `17.001` | Scene number | 8 | 0 … 63 |
-| `20.102` | HVAC mode | 8 | 0 … 4 |
+| `7.600` | Colour temperature | 16 | 0 … 65535 |
 | `9.001` | Temperature | 16 | -273 … 670433.28 |
 | `9.002` | Temperature difference | 16 | -671088.64 … 670433.28 |
 | `9.004` | Lux | 16 | 0 … 670433.28 |
 | `9.005` | Wind speed | 16 | 0 … 670433.28 |
 | `9.007` | Humidity | 16 | 0 … 670433.28 |
 | `9.008` | Air quality | 16 | 0 … 670433.28 |
-| `7.600` | Colour temperature | 16 | 0 … 65535 |
-| `10.001` | Time of day | 24 | 0 … 691199 |
-| `11.001` | Date | 24 | 19900101 … 20891231 |
+| `10.001` | Time of day | 24 | 0 … 691199 (00:00:00 … Sun 23:59:59) |
+| `11.001` | Date | 24 | 19900101 … 20891231 (1990-01-01 … 2089-12-31) |
 | `13.010` | Active energy | 32 | -2147483648 … 2147483647 |
 | `14.056` | Power | 32 | -3.4e+38 … 3.4e+38 |
+| `17.001` | Scene number | 8 | 0 … 63 |
+| `20.102` | HVAC mode | 8 | 0 … 4 |
 
 ## Complete examples
 

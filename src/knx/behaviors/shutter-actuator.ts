@@ -419,6 +419,8 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         minimum: 0,
         maximum: 100,
         default: 0,
+        description:
+          "Position the actuator assumes at start (0 = fully open, 100 = fully closed); the connected shutter starts at its own position.",
       },
       estimatedSlatPct: {
         title: "Estimated slat angle at start",
@@ -427,6 +429,8 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         minimum: 0,
         maximum: 100,
         default: 0,
+        description:
+          "Slat angle the actuator assumes at start (venetian blinds).",
       },
     },
   },

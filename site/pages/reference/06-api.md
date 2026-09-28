@@ -11,6 +11,7 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
 
 | Function | Purpose |
 | --- | --- |
+| `version` | Version of the library, for example `"{{version}}"`; see [versions](../guide/versions.html). |
 | `create(target, scenario?, options?)` | Create or reuse a `<bus-diagram>` at a selector or element; return the component. |
 | `registerBehavior(id, definition)` | Register an extension behavior; duplicate IDs are rejected. |
 | `registerEquipment(id, definition)` | Register an equipment model. |
