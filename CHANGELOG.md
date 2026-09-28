@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-09-28
+
 ### Changed
 
 These corrections change simulation results for some existing scenarios; they follow the KNX training documentation, ETS behavior, and product manuals.
