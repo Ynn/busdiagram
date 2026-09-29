@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-29
+
 ### Added
 
 - DPT 5.004 (percentage 0–255 %), 9.024 (power in kW), 9.028 (wind speed in km/h), and 13.013 (active energy in kWh).
