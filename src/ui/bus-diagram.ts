@@ -1173,8 +1173,13 @@ export class BusDiagram extends LitElement {
         >${sv}</span
       >`;
       const others = o.gas.slice(1);
+      // Room for the value box beside the address, in proportion to its text.
+      const room = wide
+        ? `padding-${d.receiver ? "left" : "right"}:${Math.max(30, sv.length * 6 + 10)}px`
+        : "";
       const ga = html`<div
         class="cell ga ${fresh ? "hi" : ""} ${wide ? (d.receiver ? "pl" : "pr") : ""}"
+        style=${room}
         title=${o.gas.map((x) => `${x} ${gaName(this.model!, x)}`).join("\n")}
       >
         <span>${o.gas[0] ?? "—"}</span

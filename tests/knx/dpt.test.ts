@@ -9,6 +9,7 @@ import {
   encodeFloat16,
   formatValue,
   shortValue,
+  SUPPORTED_DPTS,
 } from "../../src/knx/dpt";
 import { buildFrame, hex } from "../../src/knx/format";
 import { load } from "./helpers";
@@ -152,5 +153,33 @@ describe("DPTs shown but not simulated", () => {
     expect(decode("12.001", 0x1234)).toBe(0x1234);
     expect(formatValue("12.001", 0x1234)).toBe("0x00001234");
     expect(() => encode("12.001", 1)).toThrow();
+  });
+});
+
+describe("units in short values", () => {
+  it("every DPT with a unit shows it in its short value, as in its full display", () => {
+    const unitOf = (text: string) => /[^\d\s.,+\-–]+$/.exec(text)?.[0] ?? "";
+    for (const id of SUPPORTED_DPTS) {
+      const info = dptInfo(id)!;
+      if (info.bits < 8 || info.codec === "time" || info.codec === "date")
+        continue;
+      const sample = Math.min(info.max, Math.max(info.min, 42));
+      const full = formatValue(id, sample);
+      // Only numeric values carry a unit (not scenes or HVAC modes).
+      if (!/^[+-]?\d/.test(full)) continue;
+      const unit = unitOf(full);
+      if (!unit) continue;
+      expect(shortValue(id, sample), id).toContain(unit.replace(/\s/g, ""));
+    }
+  });
+
+  it("scales large energy and power values", () => {
+    expect(shortValue("13.010", 950)).toBe("950Wh");
+    expect(shortValue("13.010", 12500)).toBe("12.5kWh");
+    expect(shortValue("14.056", 2500)).toBe("2500W");
+    expect(shortValue("14.056", 12500)).toBe("12.5kW");
+    expect(shortValue("13.013", 4210)).toBe("4210kWh");
+    expect(shortValue("9.004", 42000)).toBe("42klx");
+    expect(shortValue("9.001", 21)).toBe("21.0°C");
   });
 });

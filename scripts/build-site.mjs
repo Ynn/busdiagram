@@ -113,10 +113,22 @@ await iife(
   "designer.js",
   "BusDiagramDesigner",
 );
-await cp(
-  resolve(root, "site/designer/index.html"),
-  resolve(out, "designer/index.html"),
+// Scripts and style sheets are referenced with the version (?v=X.Y.Z): browsers keep
+// files for a while, and a page of a new release must not run with an older script.
+const { version } = JSON.parse(
+  await readFile(resolve(root, "package.json"), "utf8"),
 );
+const versioned = (html) =>
+  html.replace(
+    /((?:src|href)=")((?!https?:|#)[^"?]+\.(?:js|css))"/g,
+    `$1$2?v=${version}"`,
+  );
+const copyVersioned = async (from, to) =>
+  writeFile(
+    resolve(out, to),
+    versioned(await readFile(resolve(root, from), "utf8")),
+  );
+await copyVersioned("site/designer/index.html", "designer/index.html");
 await cp(
   resolve(root, "site/designer/designer.css"),
   resolve(out, "designer/designer.css"),
@@ -129,7 +141,7 @@ await iife(
   "BusDiagramPlayer",
   external,
 );
-await cp(resolve(root, "site/player/player.html"), resolve(out, "player.html"));
+await copyVersioned("site/player/player.html", "player.html");
 
 await cp(resolve(root, "site/docs.css"), resolve(out, "assets/docs.css"));
 await cp(resolve(root, "site/docs.js"), resolve(out, "assets/docs.js"));

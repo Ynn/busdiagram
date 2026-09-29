@@ -686,30 +686,69 @@ export function dimStepPct(v: number): number {
   return code ? 100 / 2 ** (code - 1) : 0;
 }
 
-/** Short value displayed in the orange box of an object and on the tablet. */
+/** Number with at most `digits` decimals, without trailing zeros. */
+const trim = (v: number, digits: number) => String(Number(v.toFixed(digits)));
+
+/**
+ * Compact quantity with its unit: one decimal below 100 after scaling, none above,
+ * and a k or M prefix from 10,000 so that the text stays short.
+ */
+function compact(v: number, unit: string, prefixed = true): string {
+  const a = Math.abs(v);
+  if (prefixed && a >= 1e7) return `${trim(v / 1e6, 1)}M${unit}`;
+  if (prefixed && a >= 1e4) return `${trim(v / 1e3, 1)}k${unit}`;
+  return `${trim(v, a < 100 ? 1 : 0)}${unit}`;
+}
+
+/**
+ * Short value displayed in the orange box of an object and in the monitor: the same
+ * units as the full display, in a compact form.
+ */
 export function shortValue(dpt: string, v: number | null | undefined): string {
   if (v === null || v === undefined) return "–";
   if (!BY_ID.has(dpt)) return rawText(dpt, v);
-  if (dpt === "5.001" || dpt === "5.004") return `${Math.round(v)}%`;
-  if (dpt === "3.007") return v & 7 ? (v & 8 ? "▲" : "▼") : "■";
-  if (dpt === "9.001" || dpt === "9.002" || dpt === "9.005" || dpt === "9.028")
-    return v.toFixed(1);
-  if (dpt === "9.024") return `${v.toFixed(2)}kW`;
-  if (dpt === "9.004" || dpt === "9.008" || dpt === "7.600")
-    return String(Math.round(v));
-  if (dpt === "9.007") return `${v.toFixed(0)}%`;
-  if (dpt === "10.001") {
-    const sec = v % 86400;
-    return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}`;
+  switch (dpt) {
+    case "5.001":
+    case "5.004":
+    case "9.007":
+      return `${Math.round(v)}%`;
+    case "3.007":
+      return v & 7 ? (v & 8 ? "▲" : "▼") : "■";
+    case "9.001":
+      return `${v.toFixed(1)}°C`;
+    case "9.002":
+      return `${v > 0 ? "+" : ""}${v.toFixed(1)}K`;
+    case "9.004":
+      return v >= 1000
+        ? `${trim(v / 1000, v < 10000 ? 1 : 0)}klx`
+        : `${Math.round(v)}lx`;
+    case "9.005":
+      return `${v.toFixed(1)}m/s`;
+    case "9.028":
+      return `${Math.round(v)}km/h`;
+    case "9.008":
+      return `${Math.round(v)}ppm`;
+    case "7.600":
+      return `${Math.round(v)}K`;
+    case "9.024":
+      return `${trim(v, 2)}kW`;
+    case "14.056":
+      return compact(v, "W");
+    case "13.010":
+      return compact(v, "Wh");
+    case "13.013":
+      return v >= 1e4 ? `${trim(v / 1000, 1)}MWh` : `${v}kWh`;
+    case "10.001": {
+      const sec = v % 86400;
+      return `${pad2(Math.floor(sec / 3600))}:${pad2(Math.floor((sec % 3600) / 60))}`;
+    }
+    case "11.001":
+      return `${pad2(v % 100)}/${pad2(Math.floor(v / 100) % 100)}`;
+    case "20.102":
+      return ["A", "C", "S", "E", "P"][v] ?? String(v);
+    default:
+      return String(Math.round(v * 1000) / 1000);
   }
-  if (dpt === "11.001")
-    return `${pad2(v % 100)}/${pad2(Math.floor(v / 100) % 100)}`;
-  if (dpt === "14.056") return `${Math.round(v)}W`;
-  if (dpt === "13.010")
-    return Math.abs(v) >= 10000 ? `${(v / 1000).toFixed(1)}k` : String(v);
-  if (dpt === "13.013") return `${v}kWh`;
-  if (dpt === "20.102") return ["A", "C", "S", "E", "P"][v] ?? String(v);
-  return String(Math.round(v * 1000) / 1000);
 }
 
 /** Detailed value for the inspector (codec precision). */

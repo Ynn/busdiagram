@@ -28,7 +28,7 @@ tabs: none
 
 1. Load the library once, preferably in `<head>`. Either:
    - from the jsDelivr CDN, with nothing to download: use the tag of the example below, which pins version {{version}} (see [versions](guide/versions.html)). The page then needs a network connection;
-   - or from a copy next to your page, which also works offline and from disk: download [bus-diagram.js](assets/bus-diagram.js) and use `<script src="bus-diagram.js"></script>`.
+   - or from a copy next to your page, which also works offline and from disk: download [bus-diagram.js](assets/bus-diagram.js?v={{version}}) and use `<script src="bus-diagram.js"></script>`.
 2. Put the installation JSON inside a `<bus-diagram>` element. The [designer](designer/index.html) can generate the JSON for you.
 
 ```html

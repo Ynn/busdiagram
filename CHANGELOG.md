@@ -4,6 +4,14 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Changed
+
+- Diagram: the value boxes of objects and telegrams show the unit of every physical quantity (°C, K, lx, m/s, km/h, %, ppm, W, kW, Wh, kWh), as the monitor and the inspector do, with k and M prefixes for large values.
+
+### Fixed
+
+- Documentation site: scripts and style sheets are referenced with the version (`?v=X.Y.Z`), so that after a release a browser does not run a new page with a cached older library, which reported fields of the new version as unknown.
+
 ## [0.3.0] - 2026-09-29
 
 ### Added

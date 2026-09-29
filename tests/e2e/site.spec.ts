@@ -66,7 +66,9 @@ test("documentation has valid internal links and anchors", () => {
     for (const m of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
       const link = m[1]!;
       if (/^(https?:|mailto:|data:|javascript:)/.test(link)) continue;
-      const [file, anchor] = link.split("#");
+      // A query string (?v=version) only defeats browser caches: check the file itself.
+      const [withQuery, anchor] = link.split("#");
+      const file = withQuery!.split("?")[0];
       const target = file
         ? resolve(dirname(join(DOCS, p)), file)
         : join(DOCS, p);
