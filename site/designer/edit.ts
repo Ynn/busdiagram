@@ -342,6 +342,29 @@ export function setLineExtension(
   l.extension = { address, mode };
 }
 
+/**
+ * Power supply of a line (or of its downstream segment): rated current in mA,
+ * 0 for a supply whose current is not given, or null to remove it.
+ */
+export function setLinePowerSupply(
+  doc: Doc,
+  line: string,
+  currentMa: number | null,
+  downstream = false,
+) {
+  const l = doc.lines.find((x) => String(x.address) === line);
+  if (!l) throw new EditRefusal(t`line ${line} not found`);
+  const target = (downstream ? l.extension : l) as J | undefined;
+  if (!target) throw new EditRefusal(t`line ${line} has no extension`);
+  if (currentMa === null) delete target.powerSupply;
+  else {
+    const psu: J = { ...(target.powerSupply as J) };
+    if (currentMa > 0) psu.currentMa = currentMa;
+    else delete psu.currentMa;
+    target.powerSupply = psu;
+  }
+}
+
 export function setLineExtensionAddress(
   doc: Doc,
   line: string,

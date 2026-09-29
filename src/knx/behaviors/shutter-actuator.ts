@@ -41,7 +41,10 @@ const EPS = 1e-6;
 const clamp = (v: number) => Math.min(100, Math.max(0, v));
 
 interface Params {
+  /** Configured travel time downwards (closing), and upwards when not set separately. */
   estimatedTravelTimeMs: number;
+  /** Configured travel time upwards (opening). */
+  estimatedTravelTimeUpMs: number;
   startDelayMs: number;
   statusDelayMs: number;
   stepPct: number;
@@ -56,6 +59,9 @@ function params(ctx: Ctx, ch: string): Params {
   const p = ctx.device.channels.find((c) => c.id === ch)?.parameters ?? {};
   return {
     estimatedTravelTimeMs: Number(p.estimatedTravelTimeMs),
+    estimatedTravelTimeUpMs: Number(
+      p.estimatedTravelTimeUpMs ?? p.estimatedTravelTimeMs,
+    ),
     startDelayMs: Number(p.startDelayMs ?? 300),
     statusDelayMs: Number(p.statusDelayMs ?? 300),
     stepPct: Number(p.stepPct ?? 0),
@@ -65,6 +71,12 @@ function params(ctx: Ctx, ch: string): Params {
     slatStepPct: Number(p.slatStepPct ?? 20),
   };
 }
+
+/** Configured travel time for a direction. */
+const travelFor = (
+  p: Pick<Params, "estimatedTravelTimeMs" | "estimatedTravelTimeUpMs">,
+  direction: "up" | "down" | null,
+) => (direction === "up" ? p.estimatedTravelTimeUpMs : p.estimatedTravelTimeMs);
 
 /** Estimation projected at the moment `timeMs`, without changing the state. */
 export function projectEstimate(
@@ -133,7 +145,7 @@ function haltMotion(ctx: Ctx, ch: string): boolean {
   st.estimatedPositionPct = projectEstimate(
     st,
     ctx.timeMs,
-    params(ctx, ch).estimatedTravelTimeMs,
+    travelFor(params(ctx, ch), st.direction),
   );
   st.estimatedSlatPct = projectSlat(
     st,
@@ -246,10 +258,11 @@ function start(ctx: Ctx, ch: string) {
     return;
   }
   const toEnd = target === 0 || target === 100;
+  const down = target > st.estimatedPositionPct || (target === 100 && toEnd);
+  const travel = travelFor(p, down ? "down" : "up");
   const durationMs = Math.round(
-    (Math.abs(target - st.estimatedPositionPct) / 100) *
-      p.estimatedTravelTimeMs +
-      (toEnd ? (p.endSupplementPct / 100) * p.estimatedTravelTimeMs : 0),
+    (Math.abs(target - st.estimatedPositionPct) / 100) * travel +
+      (toEnd ? (p.endSupplementPct / 100) * travel : 0),
   );
   if (durationMs <= 0) {
     st.phase = "idle";
@@ -258,10 +271,7 @@ function start(ctx: Ctx, ch: string) {
     return;
   }
   st.phase = "moving";
-  st.direction =
-    target > st.estimatedPositionPct || (target === 100 && toEnd)
-      ? "down"
-      : "up";
+  st.direction = down ? "down" : "up";
   // A venetian blind first turns its slats to closed (down) or open (up).
   st.slatPhaseMs =
     p.slatTravelMs > 0
@@ -285,7 +295,7 @@ function finish(ctx: Ctx, ch: string) {
   // Stopping at the calculated deadline, even if the actual component did not reach the target.
   const target =
     st.targetPct ??
-    projectEstimate(st, ctx.timeMs, params(ctx, ch).estimatedTravelTimeMs);
+    projectEstimate(st, ctx.timeMs, travelFor(params(ctx, ch), st.direction));
   st.estimatedSlatPct =
     st.targetSlatPct ??
     projectSlat(st, ctx.timeMs, params(ctx, ch).slatTravelMs);
@@ -337,7 +347,17 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         unit: "ms",
         type: "integer",
         exclusiveMinimum: 0,
-        description: "Travel time configured in the actuator (ms).",
+        description:
+          "Travel time configured in the actuator (ms): downwards, and upwards unless estimatedTravelTimeUpMs is set.",
+      },
+      estimatedTravelTimeUpMs: {
+        title: "Configured travel time up",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        exclusiveMinimum: 0,
+        description:
+          "Upward travel time configured in the actuator (ms), when it differs from the downward time; many actuators take separate times because a shutter rises more slowly than it falls.",
       },
       startDelayMs: {
         title: "Start delay",
@@ -577,7 +597,14 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
     const st = state.channels[ch];
     if (!st) return {};
     const cp = device.channels.find((c) => c.id === ch)?.parameters;
-    const travel = Number(cp?.estimatedTravelTimeMs);
+    const down = Number(cp?.estimatedTravelTimeMs);
+    const travel = travelFor(
+      {
+        estimatedTravelTimeMs: down,
+        estimatedTravelTimeUpMs: Number(cp?.estimatedTravelTimeUpMs ?? down),
+      },
+      st.direction,
+    );
     return {
       estimatedPositionPct: projectEstimate(st, timeMs, travel),
       estimatedSlatPct: projectSlat(

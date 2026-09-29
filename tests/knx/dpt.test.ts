@@ -3,6 +3,7 @@ import {
   canonical,
   checkValue,
   decode,
+  dptBits,
   dptInfo,
   encode,
   encodeFloat16,
@@ -115,4 +116,41 @@ it("temperature frame: 2 bytes of data, length 3", () => {
   const f = buildFrame("1.1.1", "3/4/1", 21, "9.001");
   expect(f[3]!.bytes[0]! & 0x0f).toBe(3);
   expect(f[4]!.bytes).toEqual([0x00, 0x80, 0x0c, 0x1a]);
+});
+
+describe("DPT 5.004, 9.024, 9.028, 13.013", () => {
+  it("5.004 is 1 % per step up to 255 %, as in the specification examples", () => {
+    expect(encode("5.004", 50)).toBe(0x32);
+    expect(encode("5.004", 100)).toBe(0x64);
+    expect(encode("5.004", 255)).toBe(0xff);
+    expect(decode("5.004", 0xff)).toBe(255);
+    expect(checkValue("5.004", 12.5)).not.toBeNull();
+  });
+
+  it("9.024 and 9.028 use the KNX 2-byte float in kW and km/h", () => {
+    expect(decode("9.024", encode("9.024", 3.5))).toBeCloseTo(3.5, 2);
+    expect(decode("9.024", encode("9.024", -2))).toBeCloseTo(-2, 2);
+    expect(decode("9.028", encode("9.028", 51.1))).toBeCloseTo(51.1, 1);
+    expect(encode("9.028", 3.5)).toBe(encode("9.005", 3.5));
+    expect(formatValue("9.028", 36)).toBe("36.0 km/h");
+    expect(formatValue("9.024", 3.5)).toBe("3.5 kW");
+  });
+
+  it("13.013 is a signed 32-bit count of kWh", () => {
+    expect(encode("13.013", -1)).toBe(0xffffffff);
+    expect(decode("13.013", 0xffffffff)).toBe(-1);
+    expect(decode("13.013", encode("13.013", 4210))).toBe(4210);
+    expect(formatValue("13.013", 4210)).toBe("4,210 kWh");
+  });
+});
+
+describe("DPTs shown but not simulated", () => {
+  it("take their size from the standard format and show raw bytes", () => {
+    expect(dptBits("229.001")).toBe(48);
+    expect(dptBits("12.001")).toBe(32);
+    expect(dptBits("232.600")).toBe(24);
+    expect(decode("12.001", 0x1234)).toBe(0x1234);
+    expect(formatValue("12.001", 0x1234)).toBe("0x00001234");
+    expect(() => encode("12.001", 1)).toThrow();
+  });
 });

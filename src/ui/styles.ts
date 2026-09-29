@@ -369,6 +369,12 @@ export const styles = css`
     background: #3a3f4b;
     border-color: #1f2229;
   }
+  .cell.ia .sys {
+    margin-left: 8px;
+    font-size: 12px;
+    letter-spacing: 0;
+    color: #7a5a14;
+  }
   .card.sup .cell.ia,
   .card.sup .cell.name {
     background: #1f2229;
@@ -672,6 +678,13 @@ export const styles = css`
     font-weight: 600;
     color: ${unsafeCSS(C.bus)};
     white-space: nowrap;
+  }
+  .seglabel .psu {
+    margin-left: 8px;
+    padding: 0 5px;
+    border: 1.5px solid currentColor;
+    border-radius: 4px;
+    font-size: 11px;
   }
   .zone {
     position: absolute;

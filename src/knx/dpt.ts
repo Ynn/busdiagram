@@ -70,6 +70,15 @@ const TABLE: DptInfo[] = [
     max: 100,
     integer: false,
   },
+  // Unsigned percentage, 1 % per step: 0–255 %.
+  {
+    id: "5.004",
+    name: "Percentage (0–255)",
+    bits: 8,
+    min: 0,
+    max: 255,
+    integer: true,
+  },
   { id: "5.010", name: "Counter", bits: 8, min: 0, max: 255, integer: true },
   {
     id: "17.001",
@@ -137,6 +146,23 @@ const TABLE: DptInfo[] = [
     max: 670433.28,
     integer: false,
   },
+  // Electrical power in kW (2-byte float); 14.056 carries W.
+  {
+    id: "9.024",
+    name: "Power (kW)",
+    bits: 16,
+    min: -671088.64,
+    max: 670433.28,
+    integer: false,
+  },
+  {
+    id: "9.028",
+    name: "Wind speed (km/h)",
+    bits: 16,
+    min: 0,
+    max: 670433.28,
+    integer: false,
+  },
   // Unsigned 16-bit colour temperature in kelvin.
   {
     id: "7.600",
@@ -177,6 +203,16 @@ const TABLE: DptInfo[] = [
     max: 2147483647,
     integer: true,
   },
+  // Signed 32-bit active energy in kWh.
+  {
+    id: "13.013",
+    name: "Active energy (kWh)",
+    bits: 32,
+    codec: "v32",
+    min: -2147483648,
+    max: 2147483647,
+    integer: true,
+  },
   // IEEE 754 single-precision power in W.
   {
     id: "14.056",
@@ -210,6 +246,102 @@ export function dptInfo(dpt: string): DptInfo | undefined {
 export function isSupportedDpt(dpt: string): boolean {
   return BY_ID.has(dpt);
 }
+
+// Size in bits of each main DPT number, from the formats of KNX 03_07_02 (fields rounded
+// up to whole bytes above 6 bits). Used for data types that a diagram shows without
+// simulating them: the size is enough to check group address consistency.
+const MAIN_BITS: Record<number, number> = {
+  1: 1,
+  2: 2,
+  3: 4,
+  4: 8,
+  5: 8,
+  6: 8,
+  7: 16,
+  8: 16,
+  9: 16,
+  10: 24,
+  11: 24,
+  12: 32,
+  13: 32,
+  14: 32,
+  15: 32,
+  16: 112,
+  17: 8,
+  18: 8,
+  19: 64,
+  20: 8,
+  21: 8,
+  22: 16,
+  23: 2,
+  27: 32,
+  29: 64,
+  31: 3,
+  200: 16,
+  201: 16,
+  202: 16,
+  203: 24,
+  204: 16,
+  205: 24,
+  206: 24,
+  207: 16,
+  209: 24,
+  210: 32,
+  211: 16,
+  212: 48,
+  213: 64,
+  214: 32,
+  215: 40,
+  216: 40,
+  217: 16,
+  218: 40,
+  219: 48,
+  220: 32,
+  221: 48,
+  222: 48,
+  223: 24,
+  224: 48,
+  225: 24,
+  229: 48,
+  231: 32,
+  232: 24,
+  234: 16,
+  235: 48,
+  236: 8,
+  237: 16,
+  238: 8,
+  239: 16,
+  240: 24,
+  241: 32,
+  242: 48,
+  243: 64,
+  244: 16,
+  248: 40,
+  251: 48,
+  255: 64,
+};
+
+const mainOf = (dpt: string) => {
+  const m = /^(\d{1,3})\.(\d{3})$/.exec(dpt);
+  return m ? Number(m[1]) : null;
+};
+
+/**
+ * A DPT that a passive or display object may use without simulation: a standard
+ * main number whose size is known. Its values are shown as raw bytes.
+ */
+export function isRepresentableDpt(dpt: string): boolean {
+  const main = mainOf(dpt);
+  return BY_ID.has(dpt) || (main !== null && MAIN_BITS[main] !== undefined);
+}
+
+/** Raw value of a DPT that is not simulated, in hexadecimal. */
+const rawText = (dpt: string, v: number) =>
+  "0x" +
+  (v >>> 0)
+    .toString(16)
+    .toUpperCase()
+    .padStart(Math.max(2, Math.ceil(dptBits(dpt) / 4)), "0");
 
 /** Localized DPT name. The table stores English source names; the French catalog translates them. */
 export function dptTitle(dpt: string, t: Translate = en): string {
@@ -258,6 +390,14 @@ export function dptTitle(dpt: string, t: Translate = en): string {
       return t`Humidity`;
     case "9.008":
       return t`Air quality`;
+    case "9.024":
+      return t`Power (kW)`;
+    case "9.028":
+      return t`Wind speed (km/h)`;
+    case "13.013":
+      return t`Active energy (kWh)`;
+    case "5.004":
+      return t`Percentage (0–255)`;
     case "7.600":
       return t`Colour temperature`;
     case "10.001":
@@ -286,8 +426,11 @@ export function dptName(dpt: string, t: Translate = en): string {
   return d ? `${d.id} ${dptTitle(dpt, t)}` : dpt;
 }
 
-export function dptBits(dpt: string): 1 | 2 | 4 | 8 | 16 | 24 | 32 {
-  return BY_ID.get(dpt)?.bits ?? (dpt.startsWith("1.") ? 1 : 8);
+export function dptBits(dpt: string): number {
+  const known = BY_ID.get(dpt)?.bits;
+  if (known) return known;
+  const main = mainOf(dpt);
+  return (main !== null && MAIN_BITS[main]) || (dpt.startsWith("1.") ? 1 : 8);
 }
 
 /** Range error for an application value, or null if it can be encoded. */
@@ -358,6 +501,8 @@ export function encode(dpt: string, v: number): number {
 /** Transported byte (or bit) → canonical application value. */
 export function decode(dpt: string, raw: number): number {
   const d = BY_ID.get(dpt);
+  // Not simulated: the value is kept as received and shown in hexadecimal.
+  if (!d && isRepresentableDpt(dpt)) return raw >>> 0;
   if (!d) throw new Error(`DPT ${dpt} is not supported`);
   if (d.bits === 1) return raw & 1;
   if (d.bits === 2) return raw & 3;
@@ -435,6 +580,7 @@ export function formatValue(
   t: Translate = en,
 ): string {
   if (v === null || v === undefined) return "—";
+  if (!BY_ID.has(dpt)) return rawText(dpt, v);
   switch (dpt) {
     case "1.001":
       return v ? t`On` : t`Off`;
@@ -494,6 +640,14 @@ export function formatValue(
       return dateText(v);
     case "13.010":
       return `${new Intl.NumberFormat(t.lang ?? "en").format(v)} Wh`;
+    case "13.013":
+      return `${new Intl.NumberFormat(t.lang ?? "en").format(v)} kWh`;
+    case "9.024":
+      return `${new Intl.NumberFormat(t.lang ?? "en", { maximumFractionDigits: 2 }).format(v)} kW`;
+    case "9.028":
+      return `${fmt1(v, t)} km/h`;
+    case "5.004":
+      return `${Math.round(v)} %`;
     case "14.056":
       return `${new Intl.NumberFormat(t.lang ?? "en", { maximumFractionDigits: 1 }).format(v)} W`;
     case "5.001":
@@ -535,10 +689,12 @@ export function dimStepPct(v: number): number {
 /** Short value displayed in the orange box of an object and on the tablet. */
 export function shortValue(dpt: string, v: number | null | undefined): string {
   if (v === null || v === undefined) return "–";
-  if (dpt === "5.001") return `${Math.round(v)}%`;
+  if (!BY_ID.has(dpt)) return rawText(dpt, v);
+  if (dpt === "5.001" || dpt === "5.004") return `${Math.round(v)}%`;
   if (dpt === "3.007") return v & 7 ? (v & 8 ? "▲" : "▼") : "■";
-  if (dpt === "9.001" || dpt === "9.002" || dpt === "9.005")
+  if (dpt === "9.001" || dpt === "9.002" || dpt === "9.005" || dpt === "9.028")
     return v.toFixed(1);
+  if (dpt === "9.024") return `${v.toFixed(2)}kW`;
   if (dpt === "9.004" || dpt === "9.008" || dpt === "7.600")
     return String(Math.round(v));
   if (dpt === "9.007") return `${v.toFixed(0)}%`;
@@ -551,6 +707,7 @@ export function shortValue(dpt: string, v: number | null | undefined): string {
   if (dpt === "14.056") return `${Math.round(v)}W`;
   if (dpt === "13.010")
     return Math.abs(v) >= 10000 ? `${(v / 1000).toFixed(1)}k` : String(v);
+  if (dpt === "13.013") return `${v}kWh`;
   if (dpt === "20.102") return ["A", "C", "S", "E", "P"][v] ?? String(v);
   return String(Math.round(v * 1000) / 1000);
 }
@@ -562,6 +719,7 @@ export function preciseValue(
   t: Translate = en,
 ): string {
   if (v === null || v === undefined) return t`unknown`;
+  if (!BY_ID.has(dpt)) return t`${rawText(dpt, v)} (DPT not simulated)`;
   if (dpt.startsWith("9.")) return formatValue(dpt, v, t);
   if (dpt === "20.102") return `${v} · ${hvacModeName(v, t)}`;
   if (dpt === "5.001")

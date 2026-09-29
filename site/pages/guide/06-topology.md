@@ -24,6 +24,19 @@ Declare lines in `lines` using area and line numbers 1–15. A main line appears
 
 Devices may then connect to a main line (`1.0.5`) or the backbone (`0.0.3`). Give areas names with `"areas": [{ "address": 1, "name": "Building A" }]`.
 
+## Power supplies
+
+Each twisted-pair line, and each segment behind a line repeater or segment coupler, needs its own KNX power supply with a choke. `powerSupply` shows it on the diagram, next to the line name:
+
+```json
+"lines": [
+  { "address": "1.1", "powerSupply": { "name": "PSU 1.1", "currentMa": 640 },
+    "extension": { "address": "1.1.64", "powerSupply": { "currentMa": 320 } } }
+]
+```
+
+`currentMa` is the rated current (common values are 160, 320, 640, and 1280 mA); both fields are optional. The supply has no individual address. BusDiagram does not compute the bus load: the consumption of each device is not modeled. The designer sets the supply of each line in its **Topology** section.
+
 ## KNXnet/IP routers
 
 A KNXnet/IP router replaces a coupler and uses its individual address:

@@ -95,6 +95,8 @@ export const passive: BehaviorDefinition<Record<string, never>> = {
 
 interface PresenceState {
   active: boolean;
+  /** Last brightness entered (lx), or null before any entry. */
+  lux: number | null;
 }
 
 /**
@@ -134,20 +136,47 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
         description:
           "Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off.",
       },
+      brightnessThresholdLux: {
+        title: "Switch-on brightness threshold",
+        expert: true,
+        type: "number",
+        minimum: 0,
+        default: 0,
+        description:
+          "A detection switches on only while the entered brightness is below this value (lx); an active presence is still extended. 0 disables the threshold.",
+      },
     },
   },
   ports: {
     input: {
-      dpts: ["1.001"],
+      dpts: ["1.001", "1.018"],
       channel: "none",
       title: "Presence",
       direction: "out",
       description: "output object: 1 on detection, 0 when the timer expires",
     },
+    brightness: {
+      dpts: ["9.004"],
+      channel: "none",
+      title: "Brightness",
+      direction: "out",
+      description:
+        "measured brightness (lx), entered by the reader and sent; there is no light model",
+    },
   },
   acceptsInputs: true,
-  createState: () => ({ active: false }),
+  createState: () => ({ active: false, lux: null }),
   onInput(ctx, input) {
+    if (input.gesture === "value") {
+      // Measured brightness, entered on a numeric input.
+      const inp = ctx.device.inputs.find((x) => x.id === input.inputId);
+      if (!inp || input.value === undefined) return;
+      const o = ctx.device.objects.find((x) => x.id === inp.object);
+      if (o?.port === "brightness") ctx.state.lux = input.value;
+      ctx.setObject(inp.object, input.value);
+      ctx.transmit(inp.object);
+      return;
+    }
     const b = ctx.device.buttons.find((x) => x.id === input.inputId);
     const action = b?.press ?? b?.short ?? b?.long;
     if (!action) return;
@@ -160,6 +189,14 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
       }
       ctx.schedule("off", hold, action.object);
       ctx.note(ctx.t`Detection: hold time restarted, no new telegram`);
+      return;
+    }
+    const threshold = Number(p.brightnessThresholdLux ?? 0);
+    const lux = ctx.state.lux;
+    if (threshold > 0 && lux !== null && lux >= threshold) {
+      ctx.note(
+        ctx.t`Detection: ${lux} lx is not below the threshold of ${threshold} lx, no switch-on`,
+      );
       return;
     }
     ctx.schedule("off", hold, action.object);

@@ -1,5 +1,6 @@
 // switchActuator/v1: multichannel on/off actuator, timer, scenes, status feedback,
 // priority override (DPT 2.001).
+import { toObjectUnit } from "../units";
 import type {
   BehaviorContext,
   BehaviorDefinition,
@@ -203,7 +204,8 @@ function sendPort(ctx: Ctx, port: string, ch: string | null, value: number) {
       (o) => o.port === port && (ch === null ? !o.channel : o.channel === ch),
     )
     .forEach((o) => {
-      ctx.setObject(o.id, value);
+      // Power is computed in W and energy in Wh; kW and kWh objects get converted values.
+      ctx.setObject(o.id, toObjectUnit(o.dpt, value));
       ctx.transmit(o.id);
     });
 }
@@ -470,26 +472,28 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       direction: "in",
     },
     power: {
-      dpts: ["14.056"],
+      dpts: ["14.056", "9.024"],
       channel: "required",
       title: "Power",
       direction: "out",
-      description: "electrical power (W) drawn by the load of the channel",
+      description:
+        "electrical power drawn by the load of the channel: W with 14.056, kW with 9.024",
     },
     energy: {
-      dpts: ["13.010"],
+      dpts: ["13.010", "13.013"],
       channel: "required",
       title: "Energy",
       direction: "out",
       description:
-        "active energy (Wh) counted for the channel, sent cyclically",
+        "active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013",
     },
     totalPower: {
-      dpts: ["14.056"],
+      dpts: ["14.056", "9.024"],
       channel: "none",
       title: "Total power",
       direction: "out",
-      description: "sum of the power of all channels (W)",
+      description:
+        "sum of the power of all channels: W with 14.056, kW with 9.024",
     },
     powerLimit: {
       dpts: ["1.005", "1.001"],

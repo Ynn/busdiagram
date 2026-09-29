@@ -91,7 +91,7 @@
 <td>Recall a channel brightness preset.</td>
 </tr>
 </tbody></table>
-</div><p>Channel parameters include <code>onLevel</code> (<code>&quot;fixed&quot;</code> or <code>&quot;last&quot;</code>), <code>onLevelPct</code>, <code>dimTimeMs</code>, <code>switchFadeMs</code>, <code>valueFadeMs</code>, <code>minLevelPct</code>, <code>maxLevelPct</code>, <code>dimSwitchesOn</code>, and <code>dimSwitchesOff</code>. See the <a href="../reference/behaviors.html">behavior reference</a>.</p>
+</div><p>Channel parameters include <code>onLevel</code> (<code>&quot;fixed&quot;</code> or <code>&quot;last&quot;</code>), <code>onLevelPct</code>, <code>dimTimeMs</code>, <code>switchFadeMs</code>, <code>valueFadeMs</code>, <code>minLevelPct</code>, <code>maxLevelPct</code>, <code>dimSwitchesOn</code>, and <code>dimSwitchesOff</code> for relative dimming, and <code>valueSwitchesOn</code> and <code>valueSwitchesOff</code> for brightness values. With <code>valueSwitchesOn: false</code>, a value received while the channel is off is ignored; with <code>valueSwitchesOff: false</code>, a value of 0 dims to the minimum level instead of switching off. Both options exist in dimming actuator manuals; by default both are allowed. See the <a href="../reference/behaviors.html">behavior reference</a>.</p>
 <pre class="code"><code>{
   <span class="k">"id"</span>: <span class="s">"dimmer"</span>,
   <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,

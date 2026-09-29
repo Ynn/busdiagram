@@ -544,3 +544,36 @@ describe("observable state", () => {
     expect(sim.journal).toHaveLength(n);
   });
 });
+
+describe("shutter with separate up and down travel times", () => {
+  it("estimates and moves with the time of each direction", () => {
+    const data = raw("shutter-calibrated.json") as {
+      devices: {
+        id: string;
+        channels?: {
+          parameters: Record<string, unknown>;
+          equipment: { parameters: Record<string, unknown> };
+        }[];
+      }[];
+    };
+    const ch = data.devices.find((d) => d.id === "shutterActuator")!
+      .channels![0]!;
+    ch.parameters.estimatedTravelTimeUpMs = 45000;
+    ch.equipment.parameters.actualTravelTimeUpMs = 45000;
+    const sim = createSimulator(data);
+    sim.input("pushButton", "position", "value", 100);
+    sim.advance(40000);
+    expect(realPos(sim, "shutterActuator", "s1")).toBe(100);
+    sim.input("pushButton", "position", "value", 0);
+    // 30 s after the start the blind is only two thirds of the way up.
+    sim.advance(2000 + 30000);
+    expect(realPos(sim, "shutterActuator", "s1")).toBeGreaterThan(25);
+    expect(estPos(sim, "shutterActuator", "s1")).toBeCloseTo(
+      realPos(sim, "shutterActuator", "s1"),
+      0,
+    );
+    sim.advance(20000);
+    expect(realPos(sim, "shutterActuator", "s1")).toBe(0);
+    expect(estPos(sim, "shutterActuator", "s1")).toBe(0);
+  });
+});

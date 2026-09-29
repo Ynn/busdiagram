@@ -209,3 +209,34 @@ describe("normally closed relay", () => {
     expect(sim.equipmentState("switchActuator", "s2")!.on).toBe(true);
   });
 });
+
+describe("different kinds of data on one group address", () => {
+  it("a scene number and a brightness value on one address are reported", () => {
+    // Real commissioning error: a panel sends scene numbers on the address of a
+    // dimming actuator's brightness object.
+    const doc = raw("dimming.json") as Doc;
+    const scene = dev(doc, "pushButton").objects.find(
+      (o: Doc) => o.id === "level",
+    );
+    scene.dpt = "17.001";
+    scene.port = "input";
+    doc.groupAddresses = (doc.groupAddresses ?? []).filter(
+      (g: Doc) => g.address !== "1/3/1",
+    );
+    doc.devices[0].inputs = [];
+    const sim = createSimulator(doc);
+    expect(codes(sim)).toContain("config-datatype");
+  });
+
+  it("a declared DPT that differs from the objects is reported", () => {
+    const doc = raw("dimming.json") as Doc;
+    doc.groupAddresses.find((g: Doc) => g.address === "1/3/1").dpt = "5.004";
+    expect(codes(createSimulator(doc))).toContain("config-datatype");
+  });
+
+  it("one-bit DPTs sharing an address are not reported", () => {
+    expect(codes(createSimulator(raw("shutter-control.json")))).not.toContain(
+      "config-datatype",
+    );
+  });
+});

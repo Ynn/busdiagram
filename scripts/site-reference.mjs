@@ -17,6 +17,7 @@ const DEFS = {
   input: ["Numeric or digital input", "numeric-or-digital-input"],
   channel: ["Channel", "channel"],
   equipment: ["Equipment", "equipment"],
+  powerSupply: ["Power supply", "power-supply"],
 };
 
 const cell = (s) =>

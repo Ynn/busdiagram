@@ -57,6 +57,7 @@
 <li><strong>TP exchange:</strong> the frame view shows a group data frame. Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model.</li>
 <li><strong>Object flags:</strong> W, T, R, and U are modeled; C is always enabled. Initialization-read behavior is not modeled.</li>
 <li><strong>Internal associations:</strong> a device may deliver its own transmitted telegram to other local objects on the same group address, subject to W. Real product behavior varies.</li>
+<li><strong>Power supplies:</strong> drawn on lines and segments that declare one; main lines and the backbone are not given one, and the bus load (consumption against rated current) is not computed.</li>
 <li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
 <li><strong>Couplers:</strong> filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see <a href="couplers.html">couplers and repeaters</a>.</li>
 <li><strong>KNXnet/IP:</strong> the model routes between IP routers with filter tables; it does not model tunneling that bypasses those tables.</li>
@@ -65,7 +66,8 @@
 <li><strong>Clock:</strong> the simulated clock has no time zone and no summer time change; DPT 19.001 (date and time with quality flags) is not supported. The clock in the timers example is a push-button that simulates scheduled times; see the <a href="../examples/time-schedule.html">time schedule example</a> for a clock master and a time switch.</li>
 <li><strong>Relay feedback:</strong> it reports the controlled relay state, not a measured mains voltage.</li>
 <li><strong>Scenes:</strong> scene recall (DPT 17.001) is modeled; scene storage (DPT 18.001) is not.</li>
-<li><strong>DPTs:</strong> only the <a href="../reference/dpt.html">listed data types</a> are accepted.</li>
+<li><strong>DPTs:</strong> only the <a href="../reference/dpt.html">listed data types</a> are simulated; passive and display devices can show other standard DPTs as raw bytes.</li>
+<li><strong>Other systems:</strong> a gateway models only its KNX side; Modbus, BACnet, and M-Bus are not simulated.</li>
 <li><strong>USB interface panel:</strong> group reads and writes are modeled, without programming or downloads.</li>
 <li><strong>DALI:</strong> group and broadcast control are modeled, without DALI commissioning, color control, or emergency lighting. See <a href="dali.html#model-limits">DALI</a>.</li>
 <li><strong>Configuration warnings:</strong> parameters that compensate a property of the load (valve type, motor wiring, contact type) are compared with that property; a mismatch is simulated and shown as a warning. See the <a href="../reference/errors.html#configuration-warnings">warning codes</a>.</li>
@@ -73,6 +75,7 @@
 <li><strong>Metering:</strong> power comes from the rated power of each load, without measurement tolerance or power factor; energy is counted with a time scale (<code>energyTimeScale</code>).</li>
 <li><strong>Air quality:</strong> measurements are entered by the reader; there is no air or ventilation model.</li>
 <li><strong>Venetian blinds:</strong> slats turn before each movement; slat angle restoration after a movement and slat limit positions are not modeled.</li>
+<li><strong>Presence detector:</strong> brightness is entered by the reader; there is no light model and no constant light regulation.</li>
 <li><strong>Weather station:</strong> measurements are entered by the reader; there is no weather model. Only wind and brightness thresholds are provided.</li>
 <li><strong>Logic module:</strong> one-bit AND, OR, XOR, and NOT with an enable object and an optional daily time window; no delay blocks or numeric comparisons.</li>
 <li><strong>Outside scope:</strong> BACnet, KNX Secure, and connection to a real bus.</li>

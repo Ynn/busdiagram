@@ -15,6 +15,10 @@ This reference is generated from the authoring schema at `schema/scenario-v2.sch
 
 {{json:line}}
 
+## Power supply
+
+{{json:powerSupply}}
+
 ## Room
 
 {{json:room}}

@@ -1,0 +1,386 @@
+{
+  "formatVersion": 2,
+  "title": "Heat pump and hot water behind a gateway",
+  "description": "The heat pump and the hot-water tank are controlled by their own system, linked to KNX by a Modbus gateway. Enter the tank, flow, and return temperatures on the gateway: they are sent on KNX and shown on the display. The keys select the heating mode and request a hot-water boost; the gateway forwards these commands to Modbus, which is not simulated. The energy meter measures the heat pump in kW and kWh and the water heater in W and Wh; enter a measured power to change it.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Plant room",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "3/1/0",
+      "name": "Hot-water tank temperature",
+      "dpt": "9.001"
+    },
+    {
+      "address": "3/1/1",
+      "name": "Heating flow temperature",
+      "dpt": "9.001"
+    },
+    {
+      "address": "3/1/2",
+      "name": "Heating return temperature",
+      "dpt": "9.001"
+    },
+    {
+      "address": "3/2/0",
+      "name": "Heating mode",
+      "dpt": "20.102"
+    },
+    {
+      "address": "3/2/1",
+      "name": "Hot-water boost",
+      "dpt": "1.001"
+    },
+    {
+      "address": "9/0/1",
+      "name": "Heat pump power",
+      "dpt": "9.024"
+    },
+    {
+      "address": "9/1/1",
+      "name": "Heat pump energy",
+      "dpt": "13.013"
+    },
+    {
+      "address": "9/0/2",
+      "name": "Water heater power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "9/1/2",
+      "name": "Water heater energy",
+      "dpt": "13.010"
+    }
+  ],
+  "devices": [
+    {
+      "id": "keys",
+      "name": "Plant room keys",
+      "address": "1.1.1",
+      "kind": "pushButton",
+      "behavior": "pushButton/v1",
+      "objects": [
+        {
+          "id": "mode",
+          "name": "Heating mode",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "boost",
+          "name": "Hot-water boost",
+          "ga": "3/2/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "comfort",
+          "label": "Comfort",
+          "press": {
+            "object": "mode",
+            "value": 1
+          }
+        },
+        {
+          "id": "economy",
+          "label": "Economy",
+          "press": {
+            "object": "mode",
+            "value": 3
+          }
+        },
+        {
+          "id": "boostKey",
+          "label": "Hot-water boost",
+          "press": {
+            "object": "boost",
+            "value": "toggle"
+          },
+          "led": "boost"
+        }
+      ]
+    },
+    {
+      "id": "gateway",
+      "name": "Heat pump gateway",
+      "address": "1.1.10",
+      "kind": "gateway",
+      "behavior": "systemGateway/v1",
+      "objects": [
+        {
+          "id": "tank",
+          "name": "Tank temperature",
+          "ga": "3/1/0",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "flow",
+          "name": "Flow temperature",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "return",
+          "name": "Return temperature",
+          "ga": "3/1/2",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "mode",
+          "name": "Heating mode",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "command",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "boost",
+          "name": "Hot-water boost",
+          "ga": "3/2/1",
+          "dpt": "1.001",
+          "port": "command",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "tank",
+          "type": "number",
+          "label": "Tank (°C)",
+          "object": "tank",
+          "min": 10,
+          "max": 80,
+          "step": 1
+        },
+        {
+          "id": "flow",
+          "type": "number",
+          "label": "Flow (°C)",
+          "object": "flow",
+          "min": 20,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "return",
+          "type": "number",
+          "label": "Return (°C)",
+          "object": "return",
+          "min": 15,
+          "max": 50,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "meter",
+      "name": "Energy meter",
+      "address": "1.1.11",
+      "kind": "energyMeter",
+      "behavior": "energyMeter/v1",
+      "objects": [
+        {
+          "id": "hpPower",
+          "name": "Heat pump power",
+          "ga": "9/0/1",
+          "dpt": "9.024",
+          "port": "power",
+          "channel": "hp",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "hpEnergy",
+          "name": "Heat pump energy",
+          "ga": "9/1/1",
+          "dpt": "13.013",
+          "port": "energy",
+          "channel": "hp",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "whPower",
+          "name": "Water heater power",
+          "ga": "9/0/2",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "wh",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "whEnergy",
+          "name": "Water heater energy",
+          "ga": "9/1/2",
+          "dpt": "13.010",
+          "port": "energy",
+          "channel": "wh",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "hp",
+          "type": "number",
+          "label": "Heat pump (kW)",
+          "object": "hpPower",
+          "min": 0,
+          "max": 6,
+          "step": 0.1
+        },
+        {
+          "id": "wh",
+          "type": "number",
+          "label": "Water heater (W)",
+          "object": "whPower",
+          "min": 0,
+          "max": 3000,
+          "step": 100
+        }
+      ],
+      "channels": [
+        {
+          "id": "hp",
+          "label": "Heat pump",
+          "initialState": {
+            "powerW": 1800,
+            "energyWh": 4210000
+          },
+          "equipment": null
+        },
+        {
+          "id": "wh",
+          "label": "Water heater",
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Plant room display",
+      "address": "1.1.20",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "tank",
+          "name": "Hot-water tank",
+          "ga": "3/1/0",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "flow",
+          "name": "Flow",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "return",
+          "name": "Return",
+          "ga": "3/1/2",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "hpPower",
+          "name": "Heat pump",
+          "ga": "9/0/1",
+          "dpt": "9.024",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "hpEnergy",
+          "name": "Heat pump energy",
+          "ga": "9/1/1",
+          "dpt": "13.013",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "whPower",
+          "name": "Water heater",
+          "ga": "9/0/2",
+          "dpt": "14.056",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

@@ -157,6 +157,21 @@ function switchCh(ctx: Ctx, ch: string, on: boolean) {
 
 function setValue(ctx: Ctx, ch: string, v: number, fadeMs?: number) {
   const p = params(ctx, ch);
+  const off = levelAt(ctx.state.channels[ch]!, ctx.timeMs) <= 0;
+  // Switching by a brightness value can be forbidden separately for on and off.
+  if (off && v > 0 && p.valueSwitchesOn === false) {
+    ctx.note(
+      ctx.t`${ch}: off, a brightness value does not switch on (parameter)`,
+    );
+    return;
+  }
+  if (!off && v <= 0 && p.valueSwitchesOff === false) {
+    const min = num(p.minLevelPct, 1);
+    ctx.note(
+      ctx.t`${ch}: a value of 0 does not switch off (parameter): minimum level ${min} %`,
+    );
+    v = min;
+  }
   const lvl = v <= 0 ? 0 : clamp(v, 0, num(p.maxLevelPct, 100));
   dali(ctx, ch, ctx.t`DAPC ${daliArcLevel(lvl)} (${Math.round(lvl)} %)`);
   go(ctx, ch, lvl, fadeMs ?? num(p.valueFadeMs, 0));
@@ -322,6 +337,22 @@ const channelParameters: ParamSchema = {
       default: false,
       description:
         "A decrease command may dim to off; otherwise it stops at the minimum level.",
+    },
+    valueSwitchesOn: {
+      title: "Switch on by brightness value",
+      expert: true,
+      type: "boolean",
+      default: true,
+      description:
+        "A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.",
+    },
+    valueSwitchesOff: {
+      title: "Switch off by brightness value",
+      expert: true,
+      type: "boolean",
+      default: true,
+      description:
+        "A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.",
     },
     statusDelayMs: {
       title: "Status feedback delay",

@@ -4,6 +4,24 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- DPT 5.004 (percentage 0–255 %), 9.024 (power in kW), 9.028 (wind speed in km/h), and 13.013 (active energy in kWh).
+- Ports that accept several units of one quantity, converted by the behavior: relative humidity in 9.007 or 5.001; wind speed in 9.005 or 9.028 (thresholds stay in m/s); actuator power in 14.056 or 9.024 and energy in 13.010 or 13.013.
+- Dimming actuator: `valueSwitchesOn` and `valueSwitchesOff` allow or forbid switching on and off by a brightness value, as in product manuals (both allowed by default).
+- Shutters: separate upward travel times, `estimatedTravelTimeUpMs` on the actuator channel and `actualTravelTimeUpMs` on the shutter.
+- Configuration warning `config-datatype`: a group address links DPTs of the same size but different meaning, such as a scene number and a percentage.
+- Line power supplies: `lines[].powerSupply` and `extension.powerSupply` show a supply and its rated current on the diagram; the designer sets them per line.
+- `systemGateway/v1`: gateway to another building system (Modbus, BACnet, M-Bus); only its KNX side is modeled.
+- `energyMeter/v1`: independent energy meter for circuits it does not switch, with power and integrated energy per circuit.
+- Presence detector: `brightness` output (DPT 9.004) entered by the reader, optional switch-on threshold `brightnessThresholdLux`, and presence in DPT 1.018.
+- Passive and display devices can show standard DPTs that are not simulated (for example 12.001, 229.001, 235.001) as raw bytes, with their size checked.
+- Example “Heat pump behind a gateway”; designer templates for the energy meter and the gateway.
+
+### Changed
+
+- Numeric inputs may target any object that the device sends, not only its `input` objects.
+
 ## [0.2.0] - 2026-09-28
 
 ### Changed

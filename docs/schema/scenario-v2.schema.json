@@ -199,131 +199,156 @@
   },
   "$defs": {
     "dpt": {
-      "description": "Supported datapoint type.",
-      "oneOf": [
+      "description": "Datapoint type: a simulated DPT, or another standard DPT that passive and display devices show without simulating it.",
+      "anyOf": [
         {
-          "const": "1.001",
-          "description": "Switch"
+          "oneOf": [
+            {
+              "const": "1.001",
+              "description": "Switch"
+            },
+            {
+              "const": "1.002",
+              "description": "Boolean"
+            },
+            {
+              "const": "1.003",
+              "description": "Enable"
+            },
+            {
+              "const": "1.005",
+              "description": "Alarm"
+            },
+            {
+              "const": "1.007",
+              "description": "Step"
+            },
+            {
+              "const": "1.008",
+              "description": "Up/Down"
+            },
+            {
+              "const": "1.009",
+              "description": "Open/Closed"
+            },
+            {
+              "const": "1.010",
+              "description": "Start/Stop"
+            },
+            {
+              "const": "1.011",
+              "description": "State"
+            },
+            {
+              "const": "1.012",
+              "description": "Invert"
+            },
+            {
+              "const": "1.017",
+              "description": "Trigger"
+            },
+            {
+              "const": "1.018",
+              "description": "Occupation"
+            },
+            {
+              "const": "1.019",
+              "description": "Window/Door"
+            },
+            {
+              "const": "1.100",
+              "description": "Heating/Cooling"
+            },
+            {
+              "const": "2.001",
+              "description": "Priority control"
+            },
+            {
+              "const": "3.007",
+              "description": "Relative dimming"
+            },
+            {
+              "const": "5.001",
+              "description": "Percentage"
+            },
+            {
+              "const": "5.004",
+              "description": "Percentage (0–255)"
+            },
+            {
+              "const": "5.010",
+              "description": "Counter"
+            },
+            {
+              "const": "17.001",
+              "description": "Scene number"
+            },
+            {
+              "const": "20.102",
+              "description": "HVAC mode"
+            },
+            {
+              "const": "9.001",
+              "description": "Temperature"
+            },
+            {
+              "const": "9.002",
+              "description": "Temperature difference"
+            },
+            {
+              "const": "9.004",
+              "description": "Lux"
+            },
+            {
+              "const": "9.005",
+              "description": "Wind speed"
+            },
+            {
+              "const": "9.007",
+              "description": "Humidity"
+            },
+            {
+              "const": "9.008",
+              "description": "Air quality"
+            },
+            {
+              "const": "9.024",
+              "description": "Power (kW)"
+            },
+            {
+              "const": "9.028",
+              "description": "Wind speed (km/h)"
+            },
+            {
+              "const": "7.600",
+              "description": "Colour temperature"
+            },
+            {
+              "const": "10.001",
+              "description": "Time of day"
+            },
+            {
+              "const": "11.001",
+              "description": "Date"
+            },
+            {
+              "const": "13.010",
+              "description": "Active energy"
+            },
+            {
+              "const": "13.013",
+              "description": "Active energy (kWh)"
+            },
+            {
+              "const": "14.056",
+              "description": "Power"
+            }
+          ]
         },
         {
-          "const": "1.002",
-          "description": "Boolean"
-        },
-        {
-          "const": "1.003",
-          "description": "Enable"
-        },
-        {
-          "const": "1.005",
-          "description": "Alarm"
-        },
-        {
-          "const": "1.007",
-          "description": "Step"
-        },
-        {
-          "const": "1.008",
-          "description": "Up/Down"
-        },
-        {
-          "const": "1.009",
-          "description": "Open/Closed"
-        },
-        {
-          "const": "1.010",
-          "description": "Start/Stop"
-        },
-        {
-          "const": "1.011",
-          "description": "State"
-        },
-        {
-          "const": "1.012",
-          "description": "Invert"
-        },
-        {
-          "const": "1.017",
-          "description": "Trigger"
-        },
-        {
-          "const": "1.018",
-          "description": "Occupation"
-        },
-        {
-          "const": "1.019",
-          "description": "Window/Door"
-        },
-        {
-          "const": "1.100",
-          "description": "Heating/Cooling"
-        },
-        {
-          "const": "2.001",
-          "description": "Priority control"
-        },
-        {
-          "const": "3.007",
-          "description": "Relative dimming"
-        },
-        {
-          "const": "5.001",
-          "description": "Percentage"
-        },
-        {
-          "const": "5.010",
-          "description": "Counter"
-        },
-        {
-          "const": "17.001",
-          "description": "Scene number"
-        },
-        {
-          "const": "20.102",
-          "description": "HVAC mode"
-        },
-        {
-          "const": "9.001",
-          "description": "Temperature"
-        },
-        {
-          "const": "9.002",
-          "description": "Temperature difference"
-        },
-        {
-          "const": "9.004",
-          "description": "Lux"
-        },
-        {
-          "const": "9.005",
-          "description": "Wind speed"
-        },
-        {
-          "const": "9.007",
-          "description": "Humidity"
-        },
-        {
-          "const": "9.008",
-          "description": "Air quality"
-        },
-        {
-          "const": "7.600",
-          "description": "Colour temperature"
-        },
-        {
-          "const": "10.001",
-          "description": "Time of day"
-        },
-        {
-          "const": "11.001",
-          "description": "Date"
-        },
-        {
-          "const": "13.010",
-          "description": "Active energy"
-        },
-        {
-          "const": "14.056",
-          "description": "Power"
+          "type": "string",
+          "pattern": "^\\d{1,3}\\.\\d{3}$",
+          "description": "DPT shown but not simulated (passive/v1 and display/v1 objects only): its value stays unknown or raw."
         }
       ]
     },
@@ -367,8 +392,32 @@
             "switchable": {
               "type": "boolean",
               "description": "Show a repeater/segment-coupler selector in the toolbar."
+            },
+            "powerSupply": {
+              "$ref": "#/$defs/powerSupply",
+              "description": "Power supply of the downstream segment; each segment needs its own."
             }
           }
+        },
+        "powerSupply": {
+          "$ref": "#/$defs/powerSupply",
+          "description": "Bus power supply of the line, shown on the diagram."
+        }
+      }
+    },
+    "powerSupply": {
+      "type": "object",
+      "description": "KNX power supply with choke. Shown on the diagram; the bus load is not computed.",
+      "additionalProperties": false,
+      "properties": {
+        "name": {
+          "type": "string",
+          "description": "Name, such as a product reference."
+        },
+        "currentMa": {
+          "type": "number",
+          "exclusiveMinimum": 0,
+          "description": "Rated current in mA, such as 160, 320, 640, or 1280."
         }
       }
     },
@@ -607,6 +656,10 @@
               "description": "windAlarm"
             },
             {
+              "const": "brightness",
+              "description": "brightness"
+            },
+            {
               "const": "colourTemperature",
               "description": "colourTemperature"
             },
@@ -633,10 +686,6 @@
             {
               "const": "wind",
               "description": "wind"
-            },
-            {
-              "const": "brightness",
-              "description": "brightness"
             },
             {
               "const": "outdoorTemp",
@@ -673,6 +722,10 @@
             {
               "const": "output",
               "description": "output"
+            },
+            {
+              "const": "command",
+              "description": "command"
             }
           ],
           "description": "Object role in the device's behavior."
@@ -1122,7 +1175,15 @@
                     "unit": "ms",
                     "type": "integer",
                     "exclusiveMinimum": 0,
-                    "description": "Actual time for one complete travel (ms)."
+                    "description": "Actual time for one complete travel (ms): downwards, and upwards unless actualTravelTimeUpMs is set."
+                  },
+                  "actualTravelTimeUpMs": {
+                    "title": "Actual travel time up",
+                    "unit": "ms",
+                    "expert": true,
+                    "type": "integer",
+                    "exclusiveMinimum": 0,
+                    "description": "Actual time for one complete upward travel (ms), when it differs from the downward time."
                   },
                   "slatTravelMs": {
                     "title": "Actual slat rotation time",
@@ -1527,7 +1588,9 @@
                 "weatherStation/v1",
                 "airQualitySensor/v1",
                 "clockMaster/v1",
-                "timeSwitch/v1"
+                "timeSwitch/v1",
+                "systemGateway/v1",
+                "energyMeter/v1"
               ]
             },
             {
@@ -1853,15 +1916,15 @@
                         },
                         {
                           "const": "power",
-                          "description": "electrical power (W) drawn by the load of the channel"
+                          "description": "electrical power drawn by the load of the channel: W with 14.056, kW with 9.024"
                         },
                         {
                           "const": "energy",
-                          "description": "active energy (Wh) counted for the channel, sent cyclically"
+                          "description": "active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013"
                         },
                         {
                           "const": "totalPower",
-                          "description": "sum of the power of all channels (W)"
+                          "description": "sum of the power of all channels: W with 14.056, kW with 9.024"
                         },
                         {
                           "const": "powerLimit",
@@ -1907,7 +1970,15 @@
                           "unit": "ms",
                           "type": "integer",
                           "exclusiveMinimum": 0,
-                          "description": "Travel time configured in the actuator (ms)."
+                          "description": "Travel time configured in the actuator (ms): downwards, and upwards unless estimatedTravelTimeUpMs is set."
+                        },
+                        "estimatedTravelTimeUpMs": {
+                          "title": "Configured travel time up",
+                          "unit": "ms",
+                          "expert": true,
+                          "type": "integer",
+                          "exclusiveMinimum": 0,
+                          "description": "Upward travel time configured in the actuator (ms), when it differs from the downward time; many actuators take separate times because a shutter rises more slowly than it falls."
                         },
                         "startDelayMs": {
                           "title": "Start delay",
@@ -2184,6 +2255,14 @@
                     "type": "boolean",
                     "default": true,
                     "description": "Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off."
+                  },
+                  "brightnessThresholdLux": {
+                    "title": "Switch-on brightness threshold",
+                    "expert": true,
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 0,
+                    "description": "A detection switches on only while the entered brightness is below this value (lx); an active presence is still extended. 0 disables the threshold."
                   }
                 }
               },
@@ -2209,6 +2288,10 @@
                         {
                           "const": "input",
                           "description": "output object: 1 on detection, 0 when the timer expires"
+                        },
+                        {
+                          "const": "brightness",
+                          "description": "measured brightness (lx), entered by the reader and sent; there is no light model"
                         }
                       ]
                     }
@@ -2365,6 +2448,20 @@
                           "type": "boolean",
                           "default": false,
                           "description": "A decrease command may dim to off; otherwise it stops at the minimum level."
+                        },
+                        "valueSwitchesOn": {
+                          "title": "Switch on by brightness value",
+                          "expert": true,
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off."
+                        },
+                        "valueSwitchesOff": {
+                          "title": "Switch off by brightness value",
+                          "expert": true,
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level."
                         },
                         "statusDelayMs": {
                           "title": "Status feedback delay",
@@ -2579,6 +2676,20 @@
                           "type": "boolean",
                           "default": false,
                           "description": "A decrease command may dim to off; otherwise it stops at the minimum level."
+                        },
+                        "valueSwitchesOn": {
+                          "title": "Switch on by brightness value",
+                          "expert": true,
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off."
+                        },
+                        "valueSwitchesOff": {
+                          "title": "Switch off by brightness value",
+                          "expert": true,
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level."
                         },
                         "statusDelayMs": {
                           "title": "Status feedback delay",
@@ -3374,7 +3485,7 @@
                       "oneOf": [
                         {
                           "const": "wind",
-                          "description": "measured wind speed (m/s), sent when entered"
+                          "description": "measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)"
                         },
                         {
                           "const": "brightness",
@@ -3562,7 +3673,7 @@
                         },
                         {
                           "const": "humidity",
-                          "description": "measured relative humidity (%), sent when entered"
+                          "description": "measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001"
                         },
                         {
                           "const": "co2",
@@ -3718,6 +3829,166 @@
                         {
                           "const": "output",
                           "description": "object that receives the programmed values"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "behavior": {
+                "const": "systemGateway/v1"
+              }
+            },
+            "required": [
+              "behavior"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "system": {
+                    "title": "Other system",
+                    "type": "string",
+                    "default": "Modbus",
+                    "description": "Name of the system on the other side of the gateway, shown on the device card and in the event log, such as Modbus, BACnet, or M-Bus."
+                  }
+                }
+              },
+              "channels": {
+                "items": {
+                  "properties": {
+                    "parameters": {
+                      "type": "object",
+                      "maxProperties": 0
+                    },
+                    "initialState": {
+                      "type": "object",
+                      "maxProperties": 0
+                    }
+                  }
+                }
+              },
+              "objects": {
+                "items": {
+                  "properties": {
+                    "port": {
+                      "oneOf": [
+                        {
+                          "const": "value",
+                          "description": "value read in the other system (temperature, state, meter…), sent on KNX when entered"
+                        },
+                        {
+                          "const": "command",
+                          "description": "value received from KNX and forwarded to the other system (mode, setpoint, boost…)"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "behavior": {
+                "const": "energyMeter/v1"
+              }
+            },
+            "required": [
+              "behavior"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "meterIntervalMs": {
+                    "title": "Metering send interval",
+                    "unit": "ms",
+                    "expert": true,
+                    "type": "integer",
+                    "minimum": 1000,
+                    "default": 5000,
+                    "description": "Cyclic sending of power and energy values (ms)."
+                  },
+                  "powerSendDeltaW": {
+                    "title": "Power send threshold",
+                    "expert": true,
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 10,
+                    "description": "Send a power value when it changes by at least this many watts."
+                  },
+                  "energyTimeScale": {
+                    "title": "Energy time scale",
+                    "expert": true,
+                    "type": "number",
+                    "exclusiveMinimum": 0,
+                    "default": 60,
+                    "description": "Energy counting speed: 60 counts one simulated second as one minute, so that the counter moves visibly; 1 counts real time."
+                  }
+                }
+              },
+              "channels": {
+                "items": {
+                  "properties": {
+                    "parameters": {
+                      "type": "object",
+                      "maxProperties": 0
+                    },
+                    "initialState": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "powerW": {
+                          "title": "Measured power at start",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 1000000,
+                          "default": 0,
+                          "description": "Power (W) drawn by the circuit when the simulation starts; a numeric input on the power object changes it."
+                        },
+                        "energyWh": {
+                          "title": "Meter index at start",
+                          "type": "number",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Energy (Wh) already counted when the simulation starts."
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "objects": {
+                "items": {
+                  "properties": {
+                    "port": {
+                      "oneOf": [
+                        {
+                          "const": "power",
+                          "description": "power measured on the circuit: W with 14.056, kW with 9.024; a numeric input on this object enters the measured power"
+                        },
+                        {
+                          "const": "energy",
+                          "description": "energy counted on the circuit, sent cyclically: Wh with 13.010, kWh with 13.013"
+                        },
+                        {
+                          "const": "totalPower",
+                          "description": "sum of the measured circuits: W with 14.056, kW with 9.024"
                         }
                       ]
                     }

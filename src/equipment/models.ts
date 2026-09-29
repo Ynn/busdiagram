@@ -112,7 +112,17 @@ export const shutter: EquipmentDefinition<ShutterEquipmentState> = {
         unit: "ms",
         type: "integer",
         exclusiveMinimum: 0,
-        description: "Actual time for one complete travel (ms).",
+        description:
+          "Actual time for one complete travel (ms): downwards, and upwards unless actualTravelTimeUpMs is set.",
+      },
+      actualTravelTimeUpMs: {
+        title: "Actual travel time up",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        exclusiveMinimum: 0,
+        description:
+          "Actual time for one complete upward travel (ms), when it differs from the downward time.",
       },
       slatTravelMs: {
         title: "Actual slat rotation time",
@@ -184,7 +194,11 @@ export const shutter: EquipmentDefinition<ShutterEquipmentState> = {
   },
   advance(s, dtMs, p) {
     if (!s.moving || dtMs <= 0) return s;
-    const travel = Number(p.actualTravelTimeMs);
+    const travel = Number(
+      s.drive === "up"
+        ? (p.actualTravelTimeUpMs ?? p.actualTravelTimeMs)
+        : p.actualTravelTimeMs,
+    );
     const sign = s.drive === "down" ? 1 : -1;
     const slats = slatTime(p);
     let rest = dtMs;

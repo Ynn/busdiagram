@@ -350,11 +350,22 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
     },
     $defs: {
       dpt: {
-        description: "Supported datapoint type.",
-        oneOf: SUPPORTED_DPTS.map((id) => ({
-          const: id,
-          description: dptInfo(id)!.name,
-        })),
+        description:
+          "Datapoint type: a simulated DPT, or another standard DPT that passive and display devices show without simulating it.",
+        anyOf: [
+          {
+            oneOf: SUPPORTED_DPTS.map((id) => ({
+              const: id,
+              description: dptInfo(id)!.name,
+            })),
+          },
+          {
+            type: "string",
+            pattern: "^\\d{1,3}\\.\\d{3}$",
+            description:
+              "DPT shown but not simulated (passive/v1 and display/v1 objects only): its value stays unknown or raw.",
+          },
+        ],
       },
       line: {
         type: "object",
@@ -394,7 +405,30 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
                 description:
                   "Show a repeater/segment-coupler selector in the toolbar.",
               },
+              powerSupply: {
+                $ref: "#/$defs/powerSupply",
+                description:
+                  "Power supply of the downstream segment; each segment needs its own.",
+              },
             },
+          },
+          powerSupply: {
+            $ref: "#/$defs/powerSupply",
+            description: "Bus power supply of the line, shown on the diagram.",
+          },
+        },
+      },
+      powerSupply: {
+        type: "object",
+        description:
+          "KNX power supply with choke. Shown on the diagram; the bus load is not computed.",
+        additionalProperties: false,
+        properties: {
+          name: text("Name, such as a product reference."),
+          currentMa: {
+            type: "number",
+            exclusiveMinimum: 0,
+            description: "Rated current in mA, such as 160, 320, 640, or 1280.",
           },
         },
       },

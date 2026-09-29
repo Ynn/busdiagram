@@ -410,3 +410,70 @@ describe("reserved and unsupported addresses", () => {
     expect(p).toHaveLength(2);
   });
 });
+
+describe("line power supply", () => {
+  const lines = (powerSupply: unknown) => ({
+    formatVersion: 2,
+    lines: [{ address: "1.1", powerSupply }],
+    devices: [],
+  });
+
+  it("is kept with its current and exported unchanged", () => {
+    const s = buildScenario(lines({ name: "PSU", currentMa: 640 }));
+    expect(s.lines[0]!.powerSupply).toEqual({ name: "PSU", currentMa: 640 });
+  });
+
+  it("rejects a current that is not positive and unknown fields", () => {
+    expect(paths(lines({ currentMa: 0 }))).toContain(
+      "lines[0].powerSupply.currentMa [range]",
+    );
+    expect(paths(lines({ amps: 1 }))).toContain(
+      "lines[0].powerSupply.amps [unknown-field]",
+    );
+  });
+});
+
+describe("DPTs shown but not simulated", () => {
+  const scenario = (behavior: string, dpt: string, extra: object = {}) => ({
+    formatVersion: 2,
+    lines: [{ address: "1.1" }],
+    groupAddresses: [{ address: "9/4/0", dpt: "235.001" }],
+    devices: [
+      {
+        id: "panel",
+        address: "1.1.1",
+        kind: "display",
+        behavior,
+        objects: [
+          {
+            id: "o",
+            ga: "9/4/0",
+            dpt,
+            port: "display",
+            flags: { W: true, T: false },
+            ...extra,
+          },
+        ],
+      },
+    ],
+  });
+
+  it("are accepted on a passive or display device, with an unknown value", () => {
+    for (const b of ["passive/v1", "display/v1"]) {
+      const s = buildScenario(scenario(b, "235.001"));
+      expect(s.devices[0]!.objects[0]!.initial).toBeNull();
+    }
+  });
+
+  it("are refused elsewhere, with a value, or when the main number is unknown", () => {
+    expect(paths(scenario("pushButton/v1", "235.001"))).toContain(
+      "devices[0].objects[0].dpt [dpt]",
+    );
+    expect(paths(scenario("passive/v1", "235.001", { value: 3 }))).toContain(
+      "devices[0].objects[0].value [range]",
+    );
+    expect(paths(scenario("passive/v1", "999.001"))).toContain(
+      "devices[0].objects[0].dpt [dpt]",
+    );
+  });
+});

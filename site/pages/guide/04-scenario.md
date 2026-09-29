@@ -59,4 +59,4 @@ Group addresses use three levels: main group 0–31, middle group 0–7, and sub
 
 An object can listen on multiple addresses: `"ga": ["1/1/1", "1/4/1"]`. The first is its sending address; the rest are receive-only. `"ga": []` leaves an object unassociated and is allowed unless a control needs it to transmit.
 
-Objects associated with the same group address must have compatible payload sizes. For example, a one-byte DPT 5.001 object cannot share an address with a one-bit DPT 1.001 object.
+Objects associated with the same group address must have compatible payload sizes. For example, a one-byte DPT 5.001 object cannot share an address with a one-bit DPT 1.001 object. Objects of the same size but different meaning, such as a scene number (17.001) and a percentage (5.001), are accepted but reported by a [configuration warning](../reference/errors.html#configuration-warnings): the bytes pass unchanged, and each receiver reads them with its own DPT.

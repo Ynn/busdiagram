@@ -523,11 +523,18 @@
 </tbody></table>
 </div><p>The position convention is <strong>0% open (top), 100% closed (bottom)</strong>. A motor wired in reverse is described on the shutter with <code>&quot;wiringReversed&quot;: true</code> in its equipment parameters; the actuator&#39;s <code>invertOutput</code> compensates it without changing the DPT direction convention. When the two disagree, the shutter moves opposite to the commands and a configuration warning is shown above the diagram.</p>
 <h2 id="actuator-rules"><a class="anchor" href="#actuator-rules">#</a>Actuator rules</h2><ul>
-<li><code>startDelayMs</code> (300 ms by default) separates a start or reversal from the previous motor command, preventing simultaneous power in both directions.</li>
-<li>A new command replaces a pending start, stop, or status transmission.</li>
-<li>At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. <code>endSupplementPct</code> can add extra travel to reach the physical stop; its default is 0.</li>
-<li>While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the <a href="../examples/weather-protection.html">weather protection example</a>.</li>
-<li>A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set <code>stepPct</code> (for example 5) on the channel to model them.</li>
+<li><p>A shutter usually rises more slowly than it falls. <code>estimatedTravelTimeUpMs</code> on the actuator channel and <code>actualTravelTimeUpMs</code> on the shutter set the upward times; without them, the upward time equals the downward time.</p>
+</li>
+<li><p><code>startDelayMs</code> (300 ms by default) separates a start or reversal from the previous motor command, preventing simultaneous power in both directions.</p>
+</li>
+<li><p>A new command replaces a pending start, stop, or status transmission.</p>
+</li>
+<li><p>At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. <code>endSupplementPct</code> can add extra travel to reach the physical stop; its default is 0.</p>
+</li>
+<li><p>While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the <a href="../examples/weather-protection.html">weather protection example</a>.</p>
+</li>
+<li><p>A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set <code>stepPct</code> (for example 5) on the channel to model them.</p>
+</li>
 </ul>
 <h2 id="venetian-blinds-and-slats"><a class="anchor" href="#venetian-blinds-and-slats">#</a>Venetian blinds and slats</h2><p>A venetian blind uses the same motor to turn its slats and to move. Set <code>slatTravelMs</code>, the time for the slats to turn from open to closed, on both sides:</p>
 <ul>

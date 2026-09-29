@@ -116,21 +116,21 @@
 </tr>
 <tr>
 <td><code>power</code></td>
-<td>14.056</td>
+<td>14.056, 9.024</td>
 <td>required</td>
-<td>electrical power (W) drawn by the load of the channel</td>
+<td>electrical power drawn by the load of the channel: W with 14.056, kW with 9.024</td>
 </tr>
 <tr>
 <td><code>energy</code></td>
-<td>13.010</td>
+<td>13.010, 13.013</td>
 <td>required</td>
-<td>active energy (Wh) counted for the channel, sent cyclically</td>
+<td>active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013</td>
 </tr>
 <tr>
 <td><code>totalPower</code></td>
-<td>14.056</td>
+<td>14.056, 9.024</td>
 <td>none</td>
-<td>sum of the power of all channels (W)</td>
+<td>sum of the power of all channels: W with 14.056, kW with 9.024</td>
 </tr>
 <tr>
 <td><code>powerLimit</code></td>
@@ -356,7 +356,14 @@
 <td>integer</td>
 <td></td>
 <td>&gt; 0</td>
-<td>Travel time configured in the actuator (ms).</td>
+<td>Travel time configured in the actuator (ms): downwards, and upwards unless estimatedTravelTimeUpMs is set.</td>
+</tr>
+<tr>
+<td><code>estimatedTravelTimeUpMs</code></td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Upward travel time configured in the actuator (ms), when it differs from the downward time; many actuators take separate times because a shutter rises more slowly than it falls.</td>
 </tr>
 <tr>
 <td><code>startDelayMs</code></td>
@@ -491,9 +498,15 @@
 </thead>
 <tbody><tr>
 <td><code>input</code></td>
-<td>1.001</td>
+<td>1.001, 1.018</td>
 <td>none</td>
 <td>output object: 1 on detection, 0 when the timer expires</td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>9.004</td>
+<td>none</td>
+<td>measured brightness (lx), entered by the reader and sent; there is no light model</td>
 </tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
@@ -527,6 +540,13 @@
 <td><code>true</code></td>
 <td></td>
 <td>Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off.</td>
+</tr>
+<tr>
+<td><code>brightnessThresholdLux</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>A detection switches on only while the entered brightness is below this value (lx); an active presence is still extended. 0 disables the threshold.</td>
 </tr>
 </tbody></table>
 </div><h3 id="usbinterface-v1"><a class="anchor" href="#usbinterface-v1">#</a>usbInterface/v1</h3><p>USB interface: writes and reads group addresses from the USB interface panel of the diagram.</p>
@@ -693,6 +713,20 @@
 <td><code>false</code></td>
 <td></td>
 <td>A decrease command may dim to off; otherwise it stops at the minimum level.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.</td>
 </tr>
 <tr>
 <td><code>statusDelayMs</code></td>
@@ -906,6 +940,20 @@
 <td><code>false</code></td>
 <td></td>
 <td>A decrease command may dim to off; otherwise it stops at the minimum level.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.</td>
 </tr>
 <tr>
 <td><code>statusDelayMs</code></td>
@@ -1469,9 +1517,9 @@
 </thead>
 <tbody><tr>
 <td><code>wind</code></td>
-<td>9.005</td>
+<td>9.005, 9.028</td>
 <td>none</td>
-<td>measured wind speed (m/s), sent when entered</td>
+<td>measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)</td>
 </tr>
 <tr>
 <td><code>brightness</code></td>
@@ -1564,9 +1612,9 @@
 </tr>
 <tr>
 <td><code>humidity</code></td>
-<td>9.007</td>
+<td>9.007, 5.001</td>
 <td>none</td>
-<td>measured relative humidity (%), sent when entered</td>
+<td>measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001</td>
 </tr>
 <tr>
 <td><code>co2</code></td>
@@ -1797,6 +1845,138 @@
 <td>At start, and after the clock is set, send the value of the most recent switching point.</td>
 </tr>
 </tbody></table>
+</div><h3 id="systemgateway-v1"><a class="anchor" href="#systemgateway-v1">#</a>systemGateway/v1</h3><p>Gateway to another building system (Modbus, BACnet…): values from that system are entered and sent on KNX; KNX commands are received and forwarded to it, without simulating the other protocol. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>value</code></td>
+<td>any</td>
+<td>none</td>
+<td>value read in the other system (temperature, state, meter…), sent on KNX when entered</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>any</td>
+<td>none</td>
+<td>value received from KNX and forwarded to the other system (mode, setpoint, boost…)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>system</code></td>
+<td>string</td>
+<td><code>&quot;Modbus&quot;</code></td>
+<td></td>
+<td>Name of the system on the other side of the gateway, shown on the device card and in the event log, such as Modbus, BACnet, or M-Bus.</td>
+</tr>
+</tbody></table>
+</div><h3 id="energymeter-v1"><a class="anchor" href="#energymeter-v1">#</a>energyMeter/v1</h3><p>Energy meter: measures several circuits that other devices switch or that are always supplied; sends their power and integrated energy. Uses buttons and inputs.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>power</code></td>
+<td>14.056, 9.024</td>
+<td>required</td>
+<td>power measured on the circuit: W with 14.056, kW with 9.024; a numeric input on this object enters the measured power</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>13.010, 13.013</td>
+<td>required</td>
+<td>energy counted on the circuit, sent cyclically: Wh with 13.010, kWh with 13.013</td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>14.056, 9.024</td>
+<td>none</td>
+<td>sum of the measured circuits: W with 14.056, kW with 9.024</td>
+</tr>
+</tbody></table>
+</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>meterIntervalMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>≥ 1000</td>
+<td>Cyclic sending of power and energy values (ms).</td>
+</tr>
+<tr>
+<td><code>powerSendDeltaW</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Send a power value when it changes by at least this many watts.</td>
+</tr>
+<tr>
+<td><code>energyTimeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>&gt; 0</td>
+<td>Energy counting speed: 60 counts one simulated second as one minute, so that the counter moves visibly; 1 counts real time.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 1000000</td>
+<td>Power (W) drawn by the circuit when the simulation starts; a numeric input on the power object changes it.</td>
+</tr>
+<tr>
+<td><code>energyWh</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Energy (Wh) already counted when the simulation starts.</td>
+</tr>
+</tbody></table>
 </div><h2 id="equipment"><a class="anchor" href="#equipment">#</a>Equipment</h2><h3 id="lamp"><a class="anchor" href="#lamp">#</a>lamp</h3><p>Lamp: lit while the relay output is closed. Accepted commands: <code>switch</code>.</p>
 <p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
 <div class="table"><table>
@@ -1853,7 +2033,14 @@
 <td>integer</td>
 <td></td>
 <td>&gt; 0</td>
-<td>Actual time for one complete travel (ms).</td>
+<td>Actual time for one complete travel (ms): downwards, and upwards unless actualTravelTimeUpMs is set.</td>
+</tr>
+<tr>
+<td><code>actualTravelTimeUpMs</code></td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Actual time for one complete upward travel (ms), when it differs from the downward time.</td>
 </tr>
 <tr>
 <td><code>slatTravelMs</code></td>

@@ -17,7 +17,14 @@ import type {
   ObjectFlags,
   ObjectInfo,
 } from "./contracts";
-import { checkValue, dptBits, dptInfo, isSupportedDpt, canonical } from "./dpt";
+import {
+  checkValue,
+  dptBits,
+  dptInfo,
+  isRepresentableDpt,
+  isSupportedDpt,
+  canonical,
+} from "./dpt";
 import type { Problem } from "./params";
 import { validateParams } from "./params";
 import type { Translate } from "../i18n";
@@ -101,15 +108,24 @@ export interface Device extends DeviceInfo {
   channels: Channel[];
 }
 
+/** Bus power supply of a segment (with its choke), shown on the diagram. */
+export interface PowerSupply {
+  name: string;
+  /** Rated current in mA, or null when not given. */
+  currentMa: number | null;
+}
+
 export interface Line {
   address: string;
   area: number;
   line: number;
   name: string;
+  powerSupply: PowerSupply | null;
   extension: {
     address: string;
     mode: "repeater" | "segmentCoupler";
     switchable: boolean;
+    powerSupply: PowerSupply | null;
   } | null;
 }
 
@@ -291,8 +307,11 @@ const TOPOLOGY_KEYS = ["backbone", "mainLines", "ip", "areas", "couplers"];
 const AREA_KEYS = ["address", "name"];
 const COUPLER_KEYS = ["address", "name", "down", "up"];
 const ROUTING: GroupRouting[] = ["filter", "route", "block"];
-const LINE_KEYS = ["address", "name", "extension"];
-const EXT_KEYS = ["address", "mode", "switchable"];
+const LINE_KEYS = ["address", "name", "extension", "powerSupply"];
+/** Behaviors whose objects may use a DPT that is shown but not simulated. */
+const REPRESENTING = new Set(["passive/v1", "display/v1"]);
+const EXT_KEYS = ["address", "mode", "switchable", "powerSupply"];
+const PSU_KEYS = ["name", "currentMa"];
 const GA_KEYS = ["address", "name", "dpt"];
 const DEVICE_V2 = [
   "id",
@@ -539,6 +558,23 @@ export function buildScenario(
       );
     if (lines.some((x) => x.address === address))
       return err(p, "duplicate", t`duplicate line ${address}`);
+    // Power supply of a segment: an optional name and rated current.
+    const psu = (v: unknown, at: string): PowerSupply | null => {
+      if (v === undefined) return null;
+      if (!isRecord(v)) {
+        err(at, "type", t`object expected`);
+        return null;
+      }
+      unknownKeys(v, PSU_KEYS, at);
+      const c = v.currentMa;
+      if (c !== undefined && (typeof c !== "number" || !(c > 0)))
+        err(`${at}.currentMa`, "range", t`strictly positive number expected`);
+      return {
+        name: str(v, "name", at) ?? "",
+        currentMa: typeof c === "number" && c > 0 ? c : null,
+      };
+    };
+    const powerSupply = psu(l.powerSupply, `${p}.powerSupply`);
     let extension: Line["extension"] = null;
     if (l.extension !== undefined) {
       const e = l.extension;
@@ -581,6 +617,7 @@ export function buildScenario(
           address: ea,
           mode: e.mode === "segmentCoupler" ? "segmentCoupler" : "repeater",
           switchable: e.switchable === true,
+          powerSupply: psu(e.powerSupply, `${p}.extension.powerSupply`),
         };
       }
     }
@@ -589,6 +626,7 @@ export function buildScenario(
       area: m[0],
       line: m[1],
       name: str(l, "name", p) ?? "",
+      powerSupply,
       extension,
     });
   });
@@ -869,7 +907,8 @@ export function buildScenario(
     if (v2 && g.dpt === "")
       err(`${p}.dpt`, "dpt", t`empty DPT (remove the field or write a DPT)`);
     const dpt = str(g, "dpt", p) ?? "";
-    if (dpt && !isSupportedDpt(dpt))
+    // A declared DPT may be one that is shown but not simulated (known size).
+    if (dpt && !isRepresentableDpt(dpt))
       err(`${p}.dpt`, "dpt", t`DPT “${dpt}” not supported`);
     groupAddresses.set(address, {
       address,
@@ -1372,9 +1411,27 @@ export function buildScenario(
           "required",
           t`DPT required (on the object or on its first group address)`,
         );
-      else if (!isSupportedDpt(dpt))
-        err(`${op}.dpt`, "dpt", t`DPT “${dpt}” not supported`);
-      else if (portDef && portDef.dpts !== "any" && !portDef.dpts.includes(dpt))
+      else if (!isSupportedDpt(dpt)) {
+        // A passive or display device may show a data type without simulating it.
+        if (!isRepresentableDpt(dpt))
+          err(`${op}.dpt`, "dpt", t`DPT “${dpt}” not supported`);
+        else if (!REPRESENTING.has(behaviorId))
+          err(
+            `${op}.dpt`,
+            "dpt",
+            t`DPT ${dpt} is not simulated: only objects of a passive or display device (passive/v1, display/v1) may use it`,
+          );
+        else if (o.value !== undefined && o.value !== null)
+          err(
+            `${op}.value`,
+            "range",
+            t`DPT ${dpt} is not simulated: its value stays unknown until a telegram is received`,
+          );
+      } else if (
+        portDef &&
+        portDef.dpts !== "any" &&
+        !portDef.dpts.includes(dpt)
+      )
         err(
           `${op}.dpt`,
           "dpt",
@@ -1560,8 +1617,13 @@ export function buildScenario(
       if (n.type !== "number") err(`${np}.type`, "enum", t`“number” expected`);
       const o = findObj(`${np}.object`, n.object);
       if (o) {
-        // A push button writes its input objects; a thermostat writes its setpoint.
-        if (o.port !== "input" && (!behavior || behavior.ports.input))
+        // A push button writes its input objects; a thermostat writes its setpoint; a
+        // device may also take an entered value for another object it sends (brightness).
+        if (
+          o.port !== "input" &&
+          (!behavior || behavior.ports.input) &&
+          behavior?.ports[o.port]?.direction !== "out"
+        )
           err(
             `${np}.object`,
             "port",
@@ -1757,7 +1819,7 @@ export function buildScenario(
 
 /** Default initial value; a measure (DPT 9.xxx) remains unknown until its first value. */
 export const defaultInitial = (port: string, dpt: string) =>
-  port === "display" || dpt.startsWith("9.") ? null : 0;
+  port === "display" || dpt.startsWith("9.") || !isSupportedDpt(dpt) ? null : 0;
 
 /** Flag R by default: Status objects respond to readings (manufacturing settings). */
 export const defaultRead = (port: string) =>

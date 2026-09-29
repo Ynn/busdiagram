@@ -40,6 +40,8 @@ The position convention is **0% open (top), 100% closed (bottom)**. A motor wire
 
 ## Actuator rules
 
+- A shutter usually rises more slowly than it falls. `estimatedTravelTimeUpMs` on the actuator channel and `actualTravelTimeUpMs` on the shutter set the upward times; without them, the upward time equals the downward time.
+
 - `startDelayMs` (300 ms by default) separates a start or reversal from the previous motor command, preventing simultaneous power in both directions.
 - A new command replaces a pending start, stop, or status transmission.
 - At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. `endSupplementPct` can add extra travel to reach the physical stop; its default is 0.

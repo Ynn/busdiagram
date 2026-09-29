@@ -45,7 +45,7 @@ Keyboard controls: Tab focuses a key; Enter or Space activates a short press, an
 An actuator has one channel per output. Its object ports include `switch` (command), `status` (feedback), `scene`, and `forced`.
 
 - **Status feedback:** when the switching state changes, the `status` object takes its value and transmits it after `statusDelayMs` (300 ms by default).
-- **Metering and load shedding:** `power` (DPT 14.056, W) and `energy` (DPT 13.010, Wh) objects on a channel report the power drawn by its load and the energy counted; `totalPower` and `powerLimit` objects without a channel report the total and a power limit alarm (`powerLimitW`). Loads declare their rated power with `powerW` (lamps, dimmable lamps, fans, and `appliance` loads). A channel with `"loadShedding": true` is switched off while the limit is exceeded and switched on again after `sheddingTimeMs` if its command still requests it. Energy is counted `energyTimeScale` times faster than real time (60 by default). See the [energy metering example](../examples/energy-metering.html).
+- **Metering and load shedding:** `power` (DPT 14.056 in W, or 9.024 in kW) and `energy` (DPT 13.010 in Wh, or 13.013 in kWh) objects on a channel report the power drawn by its load and the energy counted; `totalPower` and `powerLimit` objects without a channel report the total and a power limit alarm (`powerLimitW`). Loads declare their rated power with `powerW` (lamps, dimmable lamps, fans, and `appliance` loads). A channel with `"loadShedding": true` is switched off while the limit is exceeded and switched on again after `sheddingTimeMs` if its command still requests it. Energy is counted `energyTimeScale` times faster than real time (60 by default). See the [energy metering example](../examples/energy-metering.html).
 - **Relay operating mode:** `"parameters": { "relayMode": "normallyClosed" }` on a channel inverts the contact: the load is powered while the switching state is 0, for example for a light that must stay on unless a command switches it off. The switching state, status feedback, timer, scenes, and priority override keep their usual meaning; only the contact is inverted. The diagram marks such an output with an inversion circle and the label **NC** on the load wire.
 - **Staircase timer:** `"parameters": { "timerMs": 10000 }` on a channel. A write of 1 closes the relay and starts a delay. `timerRetrigger` selects `"restart"` (default), `"none"`, or `"add"` (each new 1 adds a period, up to five). With `timerOffAllowed: false`, a write of 0 cannot cancel the timer. `timerWarningMs` briefly opens the output before expiry as a warning.
 - **Scenes:** `"scenes": { "1": 1, "2": 0 }` on a channel defines its states. A `scene` object without a channel applies to all channels.
@@ -58,13 +58,21 @@ attrs: monitor="false"
 
 A six-output actuator remains one KNX device. Declare six channels, using `"equipment": null` for unused outputs.
 
+## Energy meter: `energyMeter/v1`
+
+An independent energy meter measures circuits that it does not switch: the supply of a heat pump or a water heater, a group of sockets, or a circuit switched by another actuator. Each channel is a measured circuit, with a `power` object (DPT 14.056 in W, or 9.024 in kW) and an `energy` object (DPT 13.010 in Wh, or 13.013 in kWh); a `totalPower` object without a channel sends the sum.
+
+The measured power of a circuit is given at start by `initialState.powerW` and changed by a numeric input on its `power` object, entered in the unit of that object. `initialState.energyWh` sets the meter index. Energy is integrated with the same time scale as actuator metering (`energyTimeScale`, 60 by default); power is sent when it changes by `powerSendDeltaW`, and energy every `meterIntervalMs`. The meter does not add the power of the circuits it measures to that of actuators: a sub-meter and the actuator that switches the same load report the same power. See the [heat pump example](../examples/boiler-room.html).
+
 ## Presence detector: `presenceDetector/v1`
 
-A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, use `pushButton/v1` as in the [timer example](../examples/timers.html). Ambient light level is not modeled.
+A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, use `pushButton/v1` as in the [timer example](../examples/timers.html). The presence object may use DPT 1.001 or 1.018 (occupancy).
+
+A `brightness` object (DPT 9.004) sends the brightness measured by the detector, entered by the reader on a numeric input. With `brightnessThresholdLux`, a detection switches on only while that brightness is below the threshold; a presence already active is still extended. There is no light model: the brightness does not depend on the lamps or on daylight, and constant light regulation is not modeled.
 
 ## Weather station: `weatherStation/v1`
 
-A weather station sends outdoor measurements entered in its numeric `inputs`: wind speed on a `wind` object (DPT 9.005, m/s), brightness on `brightness` (DPT 9.004, lux), and temperature on `outdoorTemp` (DPT 9.001). Two one-bit outputs follow thresholds with hysteresis:
+A weather station sends outdoor measurements entered in its numeric `inputs`: wind speed on a `wind` object (DPT 9.005 in m/s, or 9.028 in km/h; thresholds stay in m/s), brightness on `brightness` (DPT 9.004, lux), and temperature on `outdoorTemp` (DPT 9.001). Two one-bit outputs follow thresholds with hysteresis:
 
 | Output port | Set when | Reset when | Parameters |
 | --- | --- | --- | --- |
@@ -75,7 +83,7 @@ An output is transmitted only when its state changes. Link `windAlarm` to the `w
 
 ## Air quality sensor: `airQualitySensor/v1`
 
-An air quality sensor sends temperature (`temperature`, DPT 9.001), relative humidity (`humidity`, DPT 9.007), and CO₂ concentration (`co2`, DPT 9.008) entered in its numeric `inputs`. It sets `co2Alarm` and `humidityAlarm` at their thresholds, with hysteresis, and its step controller sends a `ventilation` control value (DPT 5.001):
+An air quality sensor sends temperature (`temperature`, DPT 9.001), relative humidity (`humidity`, DPT 9.007, or 5.001 in one byte as many sensors do), and CO₂ concentration (`co2`, DPT 9.008) entered in its numeric `inputs`. It sets `co2Alarm` and `humidityAlarm` at their thresholds, with hysteresis, and its step controller sends a `ventilation` control value (DPT 5.001):
 
 | Parameter | Default | Meaning |
 | --- | --- | --- |
@@ -120,3 +128,15 @@ This virtual device connects the [USB interface panel](usb-interface.html) to a 
 ## Passive device: `passive/v1`
 
 A passive device stores communication-object values without additional behavior. Use it to represent a KNX device whose internal logic is outside the simulation.
+
+A passive or display device may also use a standard DPT that BusDiagram does not simulate, such as 12.001 (counter), 229.001 (metering value), or 235.001 (tariff), to draw a real installation faithfully. Its size comes from the KNX format of the main number, so group address consistency is still checked. Its value stays unknown until a telegram is received and is then shown as raw bytes. Such objects cannot be written from the USB interface panel.
+
+## Gateway to another system: `systemGateway/v1`
+
+Heat pumps, hot-water tanks, boilers, and floor heating are often controlled by their own system (Modbus, BACnet, M-Bus) and linked to KNX by a gateway. A `systemGateway/v1` device represents that boundary; only its KNX side is modeled.
+
+- `value` objects carry values read in the other system, such as a tank temperature. Enter them with numeric `inputs`, as on a push-button; they are sent on KNX.
+- `command` objects receive KNX commands for the other system, such as an operating mode or a hot-water boost. The event log shows that they are forwarded; the other system's reaction is not simulated.
+- The `system` parameter names the other system (`"Modbus"` by default); the device card shows it next to the address.
+
+See the [boiler room example](../examples/boiler-room.html).

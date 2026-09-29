@@ -2,6 +2,7 @@
 // property of its load must agree with that property. A mismatch is a valid scenario
 // (it can illustrate a commissioning error) and is reported as a non-blocking warning.
 import type { Translate } from "../i18n";
+import { dptTitle } from "./dpt";
 import type { Scenario } from "./scenario";
 
 export interface ConfigWarning {
@@ -70,7 +71,28 @@ export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
         list.push({ deviceId: d.id, dpt: o.dpt });
         byGa.set(ga, list);
       }
+  // The declared DPT of a group address counts as well: it documents the intended data.
+  for (const g of s.groupAddresses.values())
+    if (g.dpt && byGa.has(g.address))
+      byGa.get(g.address)!.push({
+        deviceId: byGa.get(g.address)![0]!.deviceId,
+        dpt: g.dpt,
+      });
   byGa.forEach((list, ga) => {
+    // Same size, different kind of data (scene number and percentage, % and 0–255 %, Wh
+    // and kWh): the bytes pass unchanged and each receiver reads them with its own DPT.
+    // One-bit DPTs are left out: sharing 1.001 and 1.008 on one address is common practice.
+    const kinds = [...new Set(list.map((x) => x.dpt))].filter(
+      (d) => !d.startsWith("1."),
+    );
+    if (kinds.length > 1) {
+      const [a, b] = kinds as [string, string];
+      out.push({
+        code: "config-datatype",
+        deviceId: list.find((x) => x.dpt === a)!.deviceId,
+        message: t`${ga} links DPT ${a} (${dptTitle(a, t)}) and DPT ${b} (${dptTitle(b, t)}): the same bytes mean different values; each receiver interprets them with its own DPT.`,
+      });
+    }
     for (const [a, b] of opposite) {
       const first = list.find((x) => x.dpt === a);
       if (first && list.some((x) => x.dpt === b))

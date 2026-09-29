@@ -87,6 +87,10 @@ export const frMessages: Record<string, string> = {
     "{0} : {1} K limité à {2} K par la plage de la voie",
   State: "État",
   Humidity: "Humidité",
+  "Power (kW)": "Puissance (kW)",
+  "Wind speed (km/h)": "Vitesse du vent (km/h)",
+  "Active energy (kWh)": "Énergie active (kWh)",
+  "Percentage (0–255)": "Pourcentage (0–255)",
   "Air quality": "Qualité de l'air",
   "Colour temperature": "Température de couleur",
   "Active energy": "Énergie active",
@@ -306,6 +310,38 @@ export const frMessages: Record<string, string> = {
   Heating: "Chauffage",
   Cooling: "Refroidissement",
   "Send on start": "Émission au démarrage",
+  "Switch on by brightness value": "Allumage par valeur de luminosité",
+  "Switch off by brightness value": "Extinction par valeur de luminosité",
+  "{0}: off, a brightness value does not switch on (parameter)":
+    "{0} : éteint, une valeur de luminosité n'allume pas (paramètre)",
+  "{0}: a value of 0 does not switch off (parameter): minimum level {1} %":
+    "{0} : une valeur 0 n'éteint pas (paramètre) : niveau minimum {1} %",
+  "Configured travel time up": "Durée de montée configurée",
+  "Actual travel time up": "Durée de montée réelle",
+  "{0} links DPT {1} ({2}) and DPT {3} ({4}): the same bytes mean different values; each receiver interprets them with its own DPT.":
+    "{0} relie le DPT {1} ({2}) et le DPT {3} ({4}) : les mêmes octets désignent des valeurs différentes ; chaque récepteur les interprète avec son propre DPT.",
+  "PSU {0} mA": "Alim. {0} mA",
+  PSU: "Alim.",
+  "Bus power supply with choke": "Alimentation de bus avec self",
+  "Other system": "Autre système",
+  "Value from the other system": "Valeur de l'autre système",
+  "Command to the other system": "Commande vers l'autre système",
+  "{0} → {1}: {2} (forwarded, not simulated)":
+    "{0} → {1} : {2} (transmis, non simulé)",
+  "Gateway to another building system (Modbus, BACnet…): values from that system are entered and sent on KNX; KNX commands are received and forwarded to it, without simulating the other protocol.":
+    "Passerelle vers un autre système du bâtiment (Modbus, BACnet…) : les valeurs de ce système sont saisies et envoyées sur KNX ; les commandes KNX sont reçues et lui sont transmises, sans simuler l'autre protocole.",
+  "{0} (DPT not simulated)": "{0} (DPT non simulé)",
+  "DPT {0} is not simulated: only objects of a passive or display device (passive/v1, display/v1) may use it":
+    "le DPT {0} n'est pas simulé : seuls les objets d'un appareil passif ou d'affichage (passive/v1, display/v1) peuvent l'utiliser",
+  "DPT {0} is not simulated: its value stays unknown until a telegram is received":
+    "le DPT {0} n'est pas simulé : sa valeur reste inconnue jusqu'à la réception d'un télégramme",
+  "Energy meter: measures several circuits that other devices switch or that are always supplied; sends their power and integrated energy.":
+    "Compteur d'énergie : mesure plusieurs circuits commutés par d'autres appareils ou alimentés en permanence ; envoie leur puissance et l'énergie intégrée.",
+  "Measured power at start": "Puissance mesurée au démarrage",
+  "Meter index at start": "Index du compteur au démarrage",
+  "Switch-on brightness threshold": "Seuil de luminosité d'enclenchement",
+  "Detection: {0} lx is not below the threshold of {1} lx, no switch-on":
+    "Détection : {0} lx n'est pas sous le seuil de {1} lx, pas d'enclenchement",
   "Start-up send delay": "Délai d'émission au démarrage",
   "Group addresses assigned to the interface":
     "Adresses de groupe affectées à l'interface",

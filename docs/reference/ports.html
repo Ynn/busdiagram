@@ -102,7 +102,7 @@
 <tr>
 <td><code>value</code></td>
 <td>Brightness value in percent (5.001); zero switches off.</td>
-<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code></td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>systemGateway/v1</code></td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
@@ -222,17 +222,17 @@
 <tr>
 <td><code>power</code></td>
 <td>power</td>
-<td><code>switchActuator/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
 </tr>
 <tr>
 <td><code>energy</code></td>
 <td>energy</td>
-<td><code>switchActuator/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
 </tr>
 <tr>
 <td><code>totalPower</code></td>
 <td>totalPower</td>
-<td><code>switchActuator/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
 </tr>
 <tr>
 <td><code>powerLimit</code></td>
@@ -253,6 +253,11 @@
 <td><code>windAlarm</code></td>
 <td>windAlarm</td>
 <td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>brightness</td>
+<td><code>presenceDetector/v1</code>, <code>weatherStation/v1</code></td>
 </tr>
 <tr>
 <td><code>colourTemperature</code></td>
@@ -287,11 +292,6 @@
 <tr>
 <td><code>wind</code></td>
 <td>wind</td>
-<td><code>weatherStation/v1</code></td>
-</tr>
-<tr>
-<td><code>brightness</code></td>
-<td>brightness</td>
 <td><code>weatherStation/v1</code></td>
 </tr>
 <tr>
@@ -338,6 +338,11 @@
 <td><code>output</code></td>
 <td>output</td>
 <td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>command</td>
+<td><code>systemGateway/v1</code></td>
 </tr>
 </tbody></table>
 </div>

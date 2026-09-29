@@ -255,11 +255,12 @@ export const airQualitySensor: BehaviorDefinition<AirState> = {
       description: "measured temperature (°C), sent when entered",
     },
     humidity: {
-      dpts: ["9.007"],
+      dpts: ["9.007", "5.001"],
       channel: "none",
       title: "Relative humidity",
       direction: "out",
-      description: "measured relative humidity (%), sent when entered",
+      description:
+        "measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001",
     },
     co2: {
       dpts: ["9.008"],

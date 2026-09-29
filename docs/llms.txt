@@ -168,9 +168,9 @@ Drives channel outputs with `switch` commands; connect a compatible equipment ty
 | `status` | 1.001 | required | out |  |
 | `scene` | 17.001 | optional | in |  |
 | `forced` | 2.001 | required | in |  |
-| `power` | 14.056 | required | out | electrical power (W) drawn by the load of the channel |
-| `energy` | 13.010 | required | out | active energy (Wh) counted for the channel, sent cyclically |
-| `totalPower` | 14.056 | none | out | sum of the power of all channels (W) |
+| `power` | 14.056, 9.024 | required | out | electrical power drawn by the load of the channel: W with 14.056, kW with 9.024 |
+| `energy` | 13.010, 13.013 | required | out | active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013 |
+| `totalPower` | 14.056, 9.024 | none | out | sum of the power of all channels: W with 14.056, kW with 9.024 |
 | `powerLimit` | 1.005, 1.001 | none | out | 1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding) |
 
 Device `parameters`:
@@ -210,7 +210,8 @@ Drives channel outputs with `motor` commands; connect a compatible equipment typ
 | `windAlarm` | 1.005, 1.001 | optional | in | 1 raises the shutter and locks it against other commands; 0 releases it in place |
 
 Channel `parameters`:
-- `estimatedTravelTimeMs` (integer, required; > 0): Travel time configured in the actuator (ms).
+- `estimatedTravelTimeMs` (integer, required; > 0): Travel time configured in the actuator (ms): downwards, and upwards unless estimatedTravelTimeUpMs is set.
+- `estimatedTravelTimeUpMs` (integer; > 0): Upward travel time configured in the actuator (ms), when it differs from the downward time; many actuators take separate times because a shutter rises more slowly than it falls.
 - `startDelayMs` (integer, default 300; ≥ 0): Delay before starting or reversing motion (ms).
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending position feedback (ms).
 - `slatTravelMs` (integer, default 0; ≥ 0): Venetian blind: time configured for the slats to turn from open to closed (ms). A movement first turns the slats; a short press at rest turns them by slatStepPct. 0 for a roller shutter without slats.
@@ -247,12 +248,14 @@ Accepts `buttons` and numeric `inputs`.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `input` | 1.001 | none | out | output object: 1 on detection, 0 when the timer expires |
+| `input` | 1.001, 1.018 | none | out | output object: 1 on detection, 0 when the timer expires |
+| `brightness` | 9.004 | none | out | measured brightness (lx), entered by the reader and sent; there is no light model |
 
 Device `parameters`:
 - `holdMs` (integer, default 10000; > 0): Time with no detected presence before sending 0 (ms); restarted on each detection.
 - `retrigger` (boolean, default true): Each activation restarts the timer; otherwise it runs from the first activation.
 - `sendOnEnd` (boolean, default true): Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off.
+- `brightnessThresholdLux` (number, default 0; ≥ 0): A detection switches on only while the entered brightness is below this value (lx); an active presence is still extended. 0 disables the threshold.
 
 ### `usbInterface/v1`
 
@@ -290,6 +293,8 @@ Channel `parameters`:
 - `maxLevelPct` (number, default 100; ≥ 50 ; ≤ 100): Upper limit for relative dimming and received values.
 - `dimSwitchesOn` (boolean, default true): An increase command turns on a channel that is off.
 - `dimSwitchesOff` (boolean, default false): A decrease command may dim to off; otherwise it stops at the minimum level.
+- `valueSwitchesOn` (boolean, default true): A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.
+- `valueSwitchesOff` (boolean, default true): A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms), after a transition completes.
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
@@ -328,6 +333,8 @@ Channel `parameters`:
 - `maxLevelPct` (number, default 100; ≥ 50 ; ≤ 100): Upper limit for relative dimming and received values.
 - `dimSwitchesOn` (boolean, default true): An increase command turns on a channel that is off.
 - `dimSwitchesOff` (boolean, default false): A decrease command may dim to off; otherwise it stops at the minimum level.
+- `valueSwitchesOn` (boolean, default true): A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.
+- `valueSwitchesOff` (boolean, default true): A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms), after a transition completes.
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
@@ -450,7 +457,7 @@ Accepts `buttons` and numeric `inputs`.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `wind` | 9.005 | none | out | measured wind speed (m/s), sent when entered |
+| `wind` | 9.005, 9.028 | none | out | measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s) |
 | `brightness` | 9.004 | none | out | measured brightness (lux), sent when entered |
 | `outdoorTemp` | 9.001 | none | out | measured outdoor temperature (°C), sent when entered |
 | `windAlarm` | 1.005, 1.001 | none | out | 1 when the wind threshold is reached, 0 after hysteresis |
@@ -472,7 +479,7 @@ Accepts `buttons` and numeric `inputs`.
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
 | `temperature` | 9.001 | none | out | measured temperature (°C), sent when entered |
-| `humidity` | 9.007 | none | out | measured relative humidity (%), sent when entered |
+| `humidity` | 9.007, 5.001 | none | out | measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001 |
 | `co2` | 9.008 | none | out | measured CO₂ concentration (ppm), sent when entered |
 | `co2Alarm` | 1.005, 1.001 | none | out | 1 when the CO₂ alarm threshold is reached, 0 after hysteresis |
 | `humidityAlarm` | 1.005, 1.001 | none | out | 1 when the humidity alarm threshold is reached, 0 after hysteresis |
@@ -519,6 +526,40 @@ Device `parameters`:
 - `program` (string, default ""): Switching points separated by semicolons: days, time, and value, for example “Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0”. Days: Mon … Sun, ranges (Mon-Fri), lists (Sat,Sun), or Daily.
 - `sendOnStart` (boolean, default true): At start, and after the clock is set, send the value of the most recent switching point.
 
+### `systemGateway/v1`
+
+Gateway to another building system (Modbus, BACnet…): values from that system are entered and sent on KNX; KNX commands are received and forwarded to it, without simulating the other protocol.
+
+Accepts `buttons` and numeric `inputs`.
+
+| Port | DPTs | Channel | Direction | Description |
+| --- | --- | --- | --- | --- |
+| `value` | any | none | out | value read in the other system (temperature, state, meter…), sent on KNX when entered |
+| `command` | any | none | in | value received from KNX and forwarded to the other system (mode, setpoint, boost…) |
+
+Device `parameters`:
+- `system` (string, default "Modbus"): Name of the system on the other side of the gateway, shown on the device card and in the event log, such as Modbus, BACnet, or M-Bus.
+
+### `energyMeter/v1`
+
+Energy meter: measures several circuits that other devices switch or that are always supplied; sends their power and integrated energy.
+
+Accepts `buttons` and numeric `inputs`.
+
+| Port | DPTs | Channel | Direction | Description |
+| --- | --- | --- | --- | --- |
+| `power` | 14.056, 9.024 | required | out | power measured on the circuit: W with 14.056, kW with 9.024; a numeric input on this object enters the measured power |
+| `energy` | 13.010, 13.013 | required | out | energy counted on the circuit, sent cyclically: Wh with 13.010, kWh with 13.013 |
+| `totalPower` | 14.056, 9.024 | none | out | sum of the measured circuits: W with 14.056, kW with 9.024 |
+
+Device `parameters`:
+- `meterIntervalMs` (integer, default 5000; ≥ 1000): Cyclic sending of power and energy values (ms).
+- `powerSendDeltaW` (number, default 10; ≥ 0): Send a power value when it changes by at least this many watts.
+- `energyTimeScale` (number, default 60; > 0): Energy counting speed: 60 counts one simulated second as one minute, so that the counter moves visibly; 1 counts real time.
+Channel `initialState`:
+- `powerW` (number, default 0; ≥ 0 ; ≤ 1000000): Power (W) drawn by the circuit when the simulation starts; a numeric input on the power object changes it.
+- `energyWh` (number, default 0; ≥ 0): Energy (Wh) already counted when the simulation starts.
+
 ## Equipment types
 
 ### `lamp`
@@ -535,7 +576,8 @@ Lamp: lit while the relay output is closed. Accepts `switch` commands.
 Roller shutter: receives up/down/stop commands and moves through its actual travel, limited to 0–100%. Accepts `motor` commands.
 
 `parameters`:
-- `actualTravelTimeMs` (integer, required; > 0): Actual time for one complete travel (ms).
+- `actualTravelTimeMs` (integer, required; > 0): Actual time for one complete travel (ms): downwards, and upwards unless actualTravelTimeUpMs is set.
+- `actualTravelTimeUpMs` (integer; > 0): Actual time for one complete upward travel (ms), when it differs from the downward time.
 - `slatTravelMs` (integer, default 0; ≥ 0): Venetian blind: time for the slats to turn from open to closed (ms). The motor first turns the slats, then moves the blind. 0 describes a roller shutter without slats.
 - `wiringReversed` (boolean, default false): Physical wiring with the up and down wires swapped: the motor turns opposite to the command. The actuator's “Inverted wiring” parameter compensates it.
 `initialState`:
@@ -613,6 +655,7 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 | `2.001` | Priority control | 2 | 0 … 3 |
 | `3.007` | Relative dimming | 4 | 0 … 15 |
 | `5.001` | Percentage | 8 | 0 … 100 |
+| `5.004` | Percentage (0–255) | 8 | 0 … 255 |
 | `5.010` | Counter | 8 | 0 … 255 |
 | `7.600` | Colour temperature | 16 | 0 … 65535 |
 | `9.001` | Temperature | 16 | -273 … 670433.28 |
@@ -621,9 +664,12 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 | `9.005` | Wind speed | 16 | 0 … 670433.28 |
 | `9.007` | Humidity | 16 | 0 … 670433.28 |
 | `9.008` | Air quality | 16 | 0 … 670433.28 |
+| `9.024` | Power (kW) | 16 | -671088.64 … 670433.28 |
+| `9.028` | Wind speed (km/h) | 16 | 0 … 670433.28 |
 | `10.001` | Time of day | 24 | 0 … 691199 (00:00:00 … Sun 23:59:59) |
 | `11.001` | Date | 24 | 19900101 … 20891231 (1990-01-01 … 2089-12-31) |
 | `13.010` | Active energy | 32 | -2147483648 … 2147483647 |
+| `13.013` | Active energy (kWh) | 32 | -2147483648 … 2147483647 |
 | `14.056` | Power | 32 | -3.4e+38 … 3.4e+38 |
 | `17.001` | Scene number | 8 | 0 … 63 |
 | `20.102` | HVAC mode | 8 | 0 … 4 |
@@ -631,6 +677,7 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 ## Complete examples
 
 - `scenarios/air-quality.json`: Air quality: CO₂ and humidity control
+- `scenarios/boiler-room.json`: Heat pump and hot water behind a gateway
 - `scenarios/dali-gateway.json`: KNX/DALI gateway: groups, dimming, and faults
 - `scenarios/dimming.json`: Dimming actuator: switching, relative, and absolute dimming
 - `scenarios/energy-metering.json`: Energy metering and load shedding

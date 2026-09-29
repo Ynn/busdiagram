@@ -166,6 +166,13 @@
 <td>0 → <code>0x00</code> → 0 % ; 50 → <code>0x80</code> → 50 % ; 100 → <code>0xFF</code> → 100 %</td>
 </tr>
 <tr>
+<td><code>5.004</code></td>
+<td>Percentage (0–255)</td>
+<td>1 byte</td>
+<td>0 … 255</td>
+<td>0 → <code>0x00</code> → 0 % ; 100 → <code>0x64</code> → 100 % ; 255 → <code>0xFF</code> → 255 %</td>
+</tr>
+<tr>
 <td><code>5.010</code></td>
 <td>Counter</td>
 <td>1 byte</td>
@@ -222,6 +229,20 @@
 <td>650 → <code>0x2FEF</code> → 650 ppm ; 1400 → <code>0x3C46</code> → 1,400 ppm</td>
 </tr>
 <tr>
+<td><code>9.024</code></td>
+<td>Power (kW)</td>
+<td>2 bytes</td>
+<td>-671088.64 … 670433.28</td>
+<td>0.06 → <code>0x0006</code> → 0.06 kW ; 3.5 → <code>0x015E</code> → 3.5 kW</td>
+</tr>
+<tr>
+<td><code>9.028</code></td>
+<td>Wind speed (km/h)</td>
+<td>2 bytes</td>
+<td>0 … 670433.28</td>
+<td>12.6 → <code>0x04EC</code> → 12.6 km/h ; 51.1 → <code>0x14FE</code> → 51.12 km/h</td>
+</tr>
+<tr>
 <td><code>10.001</code></td>
 <td>Time of day</td>
 <td>3 bytes</td>
@@ -241,6 +262,13 @@
 <td>4 bytes</td>
 <td>-2147483648 … 2147483647</td>
 <td>0 → <code>0x00000000</code> → 0 Wh ; 12500 → <code>0x000030D4</code> → 12,500 Wh</td>
+</tr>
+<tr>
+<td><code>13.013</code></td>
+<td>Active energy (kWh)</td>
+<td>4 bytes</td>
+<td>-2147483648 … 2147483647</td>
+<td>0 → <code>0x00000000</code> → 0 kWh ; 4210 → <code>0x00001072</code> → 4,210 kWh</td>
 </tr>
 <tr>
 <td><code>14.056</code></td>
@@ -265,6 +293,7 @@
 </tr>
 </tbody></table>
 </div><p>Values of 1, 2, or 4 bits occupy the low bits of the APCI byte. Longer values follow it as 1 to 4 additional payload bytes, as shown in the Size column; the frame length grows accordingly.</p>
+<p>Other standard DPTs can be used on the objects of passive and display devices, which show them without simulating them: see <a href="../guide/devices.html#passive-device-passive-v1">passive devices</a>.</p>
 <p>In JSON, a time of day (10.001) is a number of seconds counted from 00:00 on the day given by the week day: 0 means no day, 86400 × n + seconds means day n (1 = Monday, 7 = Sunday). A date (11.001) is written as the number <code>YYYYMMDD</code>.</p>
 
 <nav class="pager">

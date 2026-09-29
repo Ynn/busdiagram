@@ -349,3 +349,150 @@ describe("simulated clock and time devices", () => {
     expect(() => createSimulator(doc)).toThrow(/local date and time/);
   });
 });
+
+describe("ports that accept several units of one quantity", () => {
+  type Scenario = {
+    groupAddresses?: { address: string; dpt?: string }[];
+    devices: { objects: { ga: string | string[]; dpt?: string }[] }[];
+  };
+  // Change the DPT of a group address and of every object associated with it.
+  const retype = (data: Scenario, ga: string, dpt: string) => {
+    for (const g of data.groupAddresses ?? [])
+      if (g.address === ga) g.dpt = dpt;
+    for (const d of data.devices)
+      for (const o of d.objects) if ([o.ga].flat().includes(ga)) o.dpt = dpt;
+    return data;
+  };
+
+  it("wind in km/h (9.028) is compared with thresholds in m/s", () => {
+    const data = retype(
+      raw("weather-protection.json") as Scenario,
+      "2/6/4",
+      "9.028",
+    );
+    const sim = createSimulator(data);
+    sim.input("weatherStation", "wind", "value", 32); // 8.9 m/s: below 10 m/s
+    sim.advance(settle);
+    expect(obj(sim, "weatherStation", "windAlarm")).not.toBe(1);
+    sim.input("weatherStation", "wind", "value", 40); // 11.1 m/s
+    sim.advance(settle);
+    expect(obj(sim, "weatherStation", "windAlarm")).toBe(1);
+  });
+
+  it("power in kW (9.024) and energy in kWh (13.013) are converted from W and Wh", () => {
+    const data = raw("energy-metering.json") as Scenario;
+    retype(data, "5/2/1", "9.024");
+    retype(data, "5/4/0", "9.024");
+    retype(data, "5/3/1", "13.013");
+    const sim = createSimulator(data);
+    sim.input("pushButton", "key1", "press");
+    sim.advance(settle);
+    expect(obj(sim, "energyActuator", "p1")).toBeCloseTo(2.5, 2);
+    expect(obj(sim, "energyDisplay", "total")).toBeCloseTo(2.5, 2);
+    sim.advance(60000);
+    const kwh = Number(obj(sim, "energyActuator", "e1"));
+    expect(kwh).toBeGreaterThanOrEqual(2);
+    expect(kwh).toBeLessThanOrEqual(3);
+    expect(Number.isInteger(kwh)).toBe(true);
+  });
+
+  it("relative humidity can be sent as one byte (5.001)", () => {
+    const data = retype(raw("air-quality.json") as Scenario, "4/1/2", "5.001");
+    const sim = createSimulator(data);
+    sim.input("airSensor", "hum", "value", 75);
+    sim.advance(settle);
+    const tel = sim.history.find((t) => t.ga === "4/1/2")!;
+    expect(tel.dpt).toBe("5.001");
+    expect(tel.raw).toBe(encode("5.001", 75));
+    expect(obj(sim, "airSensor", "humAlarm")).toBe(1);
+  });
+});
+
+describe("dimming actuator: switching by brightness value", () => {
+  type Scenario = {
+    devices: {
+      id: string;
+      channels?: { parameters?: Record<string, unknown> }[];
+    }[];
+  };
+  const dimming = (parameters: Record<string, unknown>) => {
+    const data = raw("dimming.json") as Scenario;
+    const ch = data.devices.find((d) => d.id === "dimmerActuator")!
+      .channels![0]!;
+    ch.parameters = { ...ch.parameters, ...parameters };
+    return createSimulator(data);
+  };
+  const level = (sim: ReturnType<typeof createSimulator>) =>
+    Number(sim.channelState("dimmerActuator", "d1").levelPct);
+
+  it("by default a value switches on and 0 switches off", () => {
+    const sim = dimming({});
+    sim.input("pushButton", "level", "value", 60);
+    sim.advance(settle);
+    expect(level(sim)).toBeCloseTo(60.4, 0);
+    sim.input("pushButton", "level", "value", 0);
+    sim.advance(settle);
+    expect(level(sim)).toBe(0);
+  });
+
+  it("valueSwitchesOn: false ignores a value while the channel is off", () => {
+    const sim = dimming({ valueSwitchesOn: false });
+    sim.input("pushButton", "level", "value", 60);
+    sim.advance(settle);
+    expect(level(sim)).toBe(0);
+    sim.input("pushButton", "key1", "short"); // switch on
+    sim.advance(settle);
+    sim.input("pushButton", "level", "value", 60);
+    sim.advance(settle);
+    expect(level(sim)).toBeCloseTo(60.4, 0);
+  });
+
+  it("valueSwitchesOff: false dims to the minimum level instead of switching off", () => {
+    const sim = dimming({ valueSwitchesOff: false, minLevelPct: 20 });
+    sim.input("pushButton", "level", "value", 60);
+    sim.advance(settle);
+    sim.input("pushButton", "level", "value", 0);
+    sim.advance(settle);
+    expect(level(sim)).toBe(20);
+  });
+});
+
+describe("energyMeter/v1", () => {
+  it("shows its initial index, then integrates the measured power", () => {
+    const sim = load("boiler-room.json");
+    expect(obj(sim, "meter", "hpPower")).toBeCloseTo(1.8, 2);
+    expect(obj(sim, "meter", "hpEnergy")).toBe(4210);
+    // 1800 W for 60 s counted 60 times faster: 1800 W × 1 h = 1800 Wh.
+    sim.advance(60000);
+    const wh = Number(sim.channelState("meter", "hp").energyWh);
+    expect(wh - 4210000).toBeCloseTo(1800, -1);
+  });
+
+  it("takes an entered power in the unit of its object", () => {
+    const sim = load("boiler-room.json");
+    sim.input("meter", "hp", "value", 3.5); // kW
+    sim.input("meter", "wh", "value", 2000); // W
+    sim.advance(settle);
+    expect(sim.channelState("meter", "hp").powerW).toBe(3500);
+    expect(sim.channelState("meter", "wh").powerW).toBe(2000);
+    expect(obj(sim, "display", "hpPower")).toBeCloseTo(3.5, 1);
+    expect(obj(sim, "display", "whPower")).toBe(2000);
+  });
+});
+
+describe("systemGateway/v1", () => {
+  it("sends entered values on KNX and reports forwarded commands", () => {
+    const sim = load("boiler-room.json");
+    sim.input("gateway", "tank", "value", 55);
+    sim.input("keys", "economy", "press");
+    sim.advance(settle);
+    expect(obj(sim, "display", "tank")).toBe(55);
+    expect(obj(sim, "gateway", "mode")).toBe(3);
+    expect(
+      sim.journal.some(
+        (e) => e.kind === "note" && /→ Modbus: Economy/.test(e.message ?? ""),
+      ),
+    ).toBe(true);
+    expect(sim.deviceState("gateway").system).toBe("Modbus");
+  });
+});

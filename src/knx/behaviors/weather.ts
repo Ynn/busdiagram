@@ -2,6 +2,7 @@
 // temperature) and one-bit threshold outputs with hysteresis, such as a wind alarm
 // for shutters or a sun protection request.
 import type { BehaviorContext, BehaviorDefinition } from "../contracts";
+import { fromObjectUnit } from "../units";
 
 interface WeatherState {
   /** Current state of each threshold output, by port. */
@@ -35,8 +36,10 @@ function evaluate(ctx: BehaviorContext<WeatherState>) {
     const src = ctx.device.objects.find((o) => o.port === th.source);
     const out = ctx.device.objects.find((o) => o.port === th.out);
     if (!src || !out) continue;
-    const value = ctx.getObject(src.id);
-    if (value === null) continue;
+    const raw = ctx.getObject(src.id);
+    if (raw === null) continue;
+    // Thresholds are in m/s; a wind object in km/h (9.028) is converted.
+    const value = fromObjectUnit(src.dpt, raw);
     const limit = num(p[th.on], th.defaults[0]);
     const hyst = num(p[th.hyst], th.defaults[1]);
     const before = ctx.state.alarms[th.out] ?? 0;
@@ -110,11 +113,12 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
   },
   ports: {
     wind: {
-      dpts: ["9.005"],
+      dpts: ["9.005", "9.028"],
       channel: "none",
       title: "Wind speed",
       direction: "out",
-      description: "measured wind speed (m/s), sent when entered",
+      description:
+        "measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)",
     },
     brightness: {
       dpts: ["9.004"],

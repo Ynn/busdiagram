@@ -832,9 +832,46 @@ export class GuidedEditor extends LitElement {
   }
 
   /** Line repeater or segment coupler attached to the main segment of the line. */
+  /** Power supply selector of a line or of its downstream segment. */
+  private psuSelect(
+    label: string,
+    psu: { currentMa?: number } | undefined,
+    line: string,
+    downstream: boolean,
+  ) {
+    const currents = [160, 320, 640, 1280];
+    const cur = psu ? String(psu.currentMa ?? "") : "none";
+    return this.select(
+      label,
+      [
+        ["none", t`not shown`],
+        ["", t`shown, current not given`],
+        ...currents.map((c) => [String(c), `${c} mA`] as [string, string]),
+      ],
+      cur,
+      (v) =>
+        this.run(label, (d) =>
+          E.setLinePowerSupply(
+            d,
+            line,
+            v === "none" ? null : v ? Number(v) : 0,
+            downstream,
+          ),
+        ),
+    );
+  }
+
   private lineExtension(l: Doc["lines"][number], line: string) {
-    const ext = l.extension as { address?: string; mode?: string } | undefined;
+    const ext = l.extension as
+      | {
+          address?: string;
+          mode?: string;
+          powerSupply?: { currentMa?: number };
+        }
+      | undefined;
+    const lp = (l as { powerSupply?: { currentMa?: number } }).powerSupply;
     return html`<div class="g-row g-ext">
+      ${this.psuSelect(t`Power supply`, lp, line, false)}
       ${this.select(
         t`Line extension`,
         [
@@ -862,6 +899,7 @@ export class GuidedEditor extends LitElement {
             )
           : nothing
       }
+      ${ext ? this.psuSelect(t`Power supply of the segment`, ext.powerSupply, line, true) : nothing}
       <p class="g-hint">
         ${
           ext

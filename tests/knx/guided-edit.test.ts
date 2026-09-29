@@ -557,3 +557,24 @@ describe("communication object names", () => {
     );
   });
 });
+
+describe("line power supply in the designer", () => {
+  it("sets, clears the current of, and removes the supply of a line and of its segment", () => {
+    const doc = v2("full-topology.json");
+    E.setLinePowerSupply(doc, "1.1", 320);
+    expect(doc.lines[0]!.powerSupply).toEqual({ currentMa: 320 });
+    E.setLinePowerSupply(doc, "1.1", 0);
+    expect(doc.lines[0]!.powerSupply).toEqual({});
+    E.setLinePowerSupply(doc, "1.1", null);
+    expect(doc.lines[0]!.powerSupply).toBeUndefined();
+    E.setLinePowerSupply(doc, "2.1", 160, true);
+    const l21 = doc.lines.find((l) => String(l.address) === "2.1")!;
+    expect((l21.extension as { powerSupply?: unknown }).powerSupply).toEqual({
+      currentMa: 160,
+    });
+    expect(() => E.setLinePowerSupply(doc, "1.1", 160, true)).toThrow(
+      E.EditRefusal,
+    );
+    valid(doc);
+  });
+});

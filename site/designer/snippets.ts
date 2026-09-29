@@ -593,6 +593,150 @@ const temperatureSensor: Snippet = {
   },
 };
 
+/** Independent energy meter: one measured circuit with power, energy, and an input. */
+const energyMeter: Snippet = {
+  id: "energyMeter",
+  get label() {
+    return t`Energy meter`;
+  },
+  get hint() {
+    return t`Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010) on new addresses; the measured power is entered on the device.`;
+  },
+  apply(input, ctx = {}) {
+    const doc = ensureBase(input);
+    const gp = freeGa(doc, 9, 0);
+    const withPower = {
+      ...doc,
+      groupAddresses: [
+        ...doc.groupAddresses!,
+        { address: gp, name: t`Power`, dpt: "14.056" },
+      ],
+    };
+    const ge = freeGa(withPower, 9, 1);
+    return {
+      ...withPower,
+      groupAddresses: [
+        ...withPower.groupAddresses,
+        { address: ge, name: t`Energy`, dpt: "13.010" },
+      ],
+      devices: [
+        ...doc.devices!,
+        {
+          id: freeId(doc, "energyMeter"),
+          name: t`Energy meter`,
+          address: freeAddress(doc, ctx.line),
+          kind: "energyMeter",
+          behavior: "energyMeter/v1",
+          objects: [
+            {
+              id: "p1",
+              name: t`Power`,
+              ga: gp,
+              dpt: "14.056",
+              port: "power",
+              channel: "c1",
+              flags: flags(false, true),
+            },
+            {
+              id: "e1",
+              name: t`Energy`,
+              ga: ge,
+              dpt: "13.010",
+              port: "energy",
+              channel: "c1",
+              flags: flags(false, true),
+            },
+          ],
+          inputs: [
+            {
+              id: "p1",
+              type: "number",
+              label: t`Power (W)`,
+              object: "p1",
+              min: 0,
+              max: 10000,
+              step: 100,
+            },
+          ],
+          channels: [
+            { id: "c1", label: t`Circuit 1`, initialState: { powerW: 1000 } },
+          ],
+        },
+      ],
+    };
+  },
+};
+
+/** Gateway to another building system: one value from it, one command to it. */
+const systemGateway: Snippet = {
+  id: "systemGateway",
+  get label() {
+    return t`Gateway to another system`;
+  },
+  get hint() {
+    return t`Boundary with Modbus, BACnet, or M-Bus: a value from the other system (9.001) is entered and sent on KNX; a command (1.001) is received and forwarded. The other system is not simulated.`;
+  },
+  apply(input, ctx = {}) {
+    const doc = ensureBase(input);
+    const gv = freeGa(doc, 3, 1);
+    const withValue = {
+      ...doc,
+      groupAddresses: [
+        ...doc.groupAddresses!,
+        { address: gv, name: t`Value from the other system`, dpt: "9.001" },
+      ],
+    };
+    const gc = freeGa(withValue, 3, 2);
+    return {
+      ...withValue,
+      groupAddresses: [
+        ...withValue.groupAddresses,
+        { address: gc, name: t`Command to the other system`, dpt: "1.001" },
+      ],
+      devices: [
+        ...doc.devices!,
+        {
+          id: freeId(doc, "gateway"),
+          name: t`Gateway to another system`,
+          address: freeAddress(doc, ctx.line),
+          kind: "gateway",
+          behavior: "systemGateway/v1",
+          parameters: { system: "Modbus" },
+          objects: [
+            {
+              id: "v1",
+              name: t`Value from the other system`,
+              ga: gv,
+              dpt: "9.001",
+              port: "value",
+              flags: flags(false, true),
+            },
+            {
+              id: "c1",
+              name: t`Command to the other system`,
+              ga: gc,
+              dpt: "1.001",
+              port: "command",
+              flags: flags(true, false),
+            },
+          ],
+          inputs: [
+            {
+              id: "v1",
+              type: "number",
+              label: t`Value`,
+              object: "v1",
+              min: 0,
+              max: 100,
+              step: 1,
+            },
+          ],
+        },
+      ],
+    };
+  },
+};
+
 /** Weather station: wind and brightness measurements with threshold outputs. */
 const weatherStation: Snippet = {
   id: "weatherStation",
@@ -968,6 +1112,8 @@ export const SNIPPETS: Snippet[] = [
   temperatureSensor,
   weatherStation,
   airQualitySensor,
+  energyMeter,
+  systemGateway,
   logicModule,
   clockMaster,
   timeSwitchSnippet,

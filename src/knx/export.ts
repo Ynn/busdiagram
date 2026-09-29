@@ -3,7 +3,7 @@
 import type { JsonObject, ParamSchema } from "./contracts";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
-import type { Scenario } from "./scenario";
+import type { PowerSupply, Scenario } from "./scenario";
 import {
   defaultIcon,
   defaultInitial,
@@ -57,6 +57,14 @@ function topologyV2(s: Scenario) {
   return Object.keys(out).length ? out : undefined;
 }
 
+const psuV2 = (p: PowerSupply | null) =>
+  p
+    ? compact({
+        name: p.name || undefined,
+        currentMa: p.currentMa ?? undefined,
+      })
+    : undefined;
+
 export function toV2(
   s: Scenario,
   registry: Registry = captureRegistry(),
@@ -69,11 +77,13 @@ export function toV2(
       compact({
         address: l.address,
         name: l.name || undefined,
+        powerSupply: psuV2(l.powerSupply),
         extension: l.extension
           ? compact({
               address: l.extension.address,
               mode: l.extension.mode,
               switchable: l.extension.switchable || undefined,
+              powerSupply: psuV2(l.extension.powerSupply),
             })
           : undefined,
       }),

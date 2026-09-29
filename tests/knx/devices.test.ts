@@ -253,12 +253,30 @@ describe("presence detector", () => {
               port: "input",
               flags: { W: false, T: true },
             },
+            {
+              id: "lux",
+              ga: "1/5/9",
+              dpt: "9.004",
+              port: "brightness",
+              flags: { W: false, T: true },
+            },
           ],
           buttons: [
             {
               id: "motion",
               icon: "presence",
               press: { object: "p", value: 1 },
+            },
+          ],
+          inputs: [
+            {
+              id: "lux",
+              type: "number",
+              label: "Brightness (lx)",
+              object: "lux",
+              min: 0,
+              max: 2000,
+              step: 50,
             },
           ],
         },
@@ -275,6 +293,26 @@ describe("presence detector", () => {
     sim.press("pir", "motion", "press");
     sim.advance(1000);
     expect(sim.history.map((t) => t.value)).toEqual([1, 1]);
+  });
+
+  it("sends the entered brightness and switches on only below its threshold", () => {
+    const sim = pir({ brightnessThresholdLux: 500 });
+    sim.input("pir", "lux", "value", 800);
+    sim.press("pir", "motion", "press");
+    sim.advance(3000);
+    const sent = () =>
+      sim.history.filter((t) => t.ga === "1/1/9").map((t) => t.value);
+    expect(sim.history.find((t) => t.ga === "1/5/9")?.value).toBe(800);
+    expect(sent()).toEqual([]);
+    sim.input("pir", "lux", "value", 300);
+    sim.press("pir", "motion", "press");
+    sim.advance(3000);
+    expect(sent()).toEqual([1]);
+    // Once active, a detection extends the presence even when it is bright.
+    sim.input("pir", "lux", "value", 900);
+    sim.press("pir", "motion", "press");
+    sim.advance(8000);
+    expect(sent()).toEqual([1]);
   });
 
   it("send 1 on first detection, nothing on repeated detection, then 0 after the restarted delay", () => {

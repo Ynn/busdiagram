@@ -147,6 +147,35 @@
 <td></td>
 <td>Line extension: repeater or segment coupler to a downstream segment.</td>
 </tr>
+<tr>
+<td><code>powerSupply</code></td>
+<td><a href="#power-supply">Power supply</a></td>
+<td></td>
+<td>Bus power supply of the line, shown on the diagram.</td>
+</tr>
+</tbody></table>
+</div><h2 id="power-supply"><a class="anchor" href="#power-supply">#</a>Power supply</h2><p>KNX power supply with choke. Shown on the diagram; the bus load is not computed.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Required</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td>string</td>
+<td></td>
+<td>Name, such as a product reference.</td>
+</tr>
+<tr>
+<td><code>currentMa</code></td>
+<td>number</td>
+<td></td>
+<td>Rated current in mA, such as 160, 320, 640, or 1280.</td>
+</tr>
 </tbody></table>
 </div><h2 id="room"><a class="anchor" href="#room">#</a>Room</h2><p>Room thermal model: heat loss toward outside temperature plus equipment output; an open window increases loss.</p>
 <div class="table"><table>
@@ -261,7 +290,7 @@
 </tr>
 <tr>
 <td><code>behavior</code></td>
-<td><code>&quot;pushButton/v1&quot;</code>, <code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code> or string (validated format)</td>
+<td><code>&quot;pushButton/v1&quot;</code>, <code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code> or string (validated format)</td>
 <td>yes</td>
 <td>Versioned ID of the device&#39;s registered behavior.</td>
 </tr>
@@ -593,7 +622,7 @@
 <a href="../reference/behaviors.html">Behaviors and equipment →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#root">Root</a></li><li><a href="#line">Line</a></li><li><a href="#room">Room</a></li><li><a href="#group-address">Group address</a></li><li><a href="#device">Device</a></li><li><a href="#communication-object">Communication object</a></li><li><a href="#button">Button</a></li><li><a href="#numeric-or-digital-input">Numeric or digital input</a></li><li><a href="#channel">Channel</a></li><li><a href="#equipment">Equipment</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#root">Root</a></li><li><a href="#line">Line</a></li><li><a href="#power-supply">Power supply</a></li><li><a href="#room">Room</a></li><li><a href="#group-address">Group address</a></li><li><a href="#device">Device</a></li><li><a href="#communication-object">Communication object</a></li><li><a href="#button">Button</a></li><li><a href="#numeric-or-digital-input">Numeric or digital input</a></li><li><a href="#channel">Channel</a></li><li><a href="#equipment">Equipment</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.2.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
 </body>

@@ -24,6 +24,18 @@ export const designerFr: Record<string, string> = {
   "line {0} has no extension": "la ligne {0} n'a pas d'extension",
   "“{0}” is not an individual address of line {1}":
     "« {0} » n'est pas une adresse individuelle de la ligne {1}",
+  "Power supply": "Alimentation",
+  "Power supply of the segment": "Alimentation du segment",
+  "not shown": "non représentée",
+  "shown, current not given": "représentée, courant non précisé",
+  "Energy meter": "Compteur d'énergie",
+  "Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010) on new addresses; the measured power is entered on the device.":
+    "Mesure un circuit qu'il ne commute pas (pompe à chaleur, chauffe-eau, prises) : puissance (14.056) et énergie (13.010) sur de nouvelles adresses ; la puissance mesurée se saisit sur l'appareil.",
+  "Power (W)": "Puissance (W)",
+  "Circuit 1": "Circuit 1",
+  "Gateway to another system": "Passerelle vers un autre système",
+  "Boundary with Modbus, BACnet, or M-Bus: a value from the other system (9.001) is entered and sent on KNX; a command (1.001) is received and forwarded. The other system is not simulated.":
+    "Frontière avec Modbus, BACnet ou M-Bus : une valeur de l'autre système (9.001) est saisie et envoyée sur KNX ; une commande (1.001) est reçue et transmise. L'autre système n'est pas simulé.",
   "Line extension": "Extension de ligne",
   "Line repeater": "Répéteur de ligne",
   "Extension address": "Adresse de l'extension",

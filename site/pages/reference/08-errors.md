@@ -52,4 +52,5 @@ These warnings do not stop the simulation. They are shown above the diagram, and
 | `config-valve` | The heating actuator output (`valveType`) and the connected radiator valve (`normallyOpen`) disagree; the valve opens when no heat is requested. |
 | `config-wiring` | The shutter actuator output inversion (`invertOutput`) and the motor wiring of the shutter (`wiringReversed`) disagree; the shutter moves opposite to the commands. |
 | `config-contact` | The window contact type (`contactType`) and the input inversion (`invert`) disagree; open and closed are reported the wrong way round. |
+| `config-datatype` | A group address links DPTs of the same size but different meaning, such as a scene number (17.001) and a percentage (5.001), or 5.001 and 5.004. One-bit DPTs are not compared. |
 | `config-polarity` | A group address links DPT 1.009 (1 = closed) and DPT 1.019 (1 = open), whose values have opposite meanings. |

@@ -23,7 +23,7 @@ kind: string
 /**
  * Versioned ID of the device's registered behavior.
  */
-behavior: (("pushButton/v1" | "switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1") | string)
+behavior: (("pushButton/v1" | "switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1" | "systemGateway/v1" | "energyMeter/v1") | string)
 /**
  * Device parameters defined by its behavior.
  */
@@ -330,7 +330,35 @@ mode?: ("repeater" | "segmentCoupler")
  * Show a repeater/segment-coupler selector in the toolbar.
  */
 switchable?: boolean
+powerSupply?: PowerSupply
 }
+powerSupply?: PowerSupply1
+}
+/**
+ * Power supply of the downstream segment; each segment needs its own.
+ */
+export interface PowerSupply {
+/**
+ * Name, such as a product reference.
+ */
+name?: string
+/**
+ * Rated current in mA, such as 160, 320, 640, or 1280.
+ */
+currentMa?: number
+}
+/**
+ * Bus power supply of the line, shown on the diagram.
+ */
+export interface PowerSupply1 {
+/**
+ * Name, such as a product reference.
+ */
+name?: string
+/**
+ * Rated current in mA, such as 160, 320, 640, or 1280.
+ */
+currentMa?: number
 }
 /**
  * Room thermal model: heat loss toward outside temperature plus equipment output; an open window increases loss.
@@ -376,7 +404,7 @@ name?: string
 /**
  * DPT inherited by objects that do not declare their own.
  */
-dpt?: ("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.010" | "17.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "7.600" | "10.001" | "11.001" | "13.010" | "14.056")
+dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
 }
 /**
  * Communication object of a device.
@@ -397,11 +425,11 @@ ga: (string | string[])
 /**
  * Object DPT; defaults to the DPT of its first declared group address.
  */
-dpt?: ("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.010" | "17.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "7.600" | "10.001" | "11.001" | "13.010" | "14.056")
+dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
 /**
  * Object role in the device's behavior.
  */
-port: ("input" | "display" | "switch" | "status" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "scene" | "forced" | "dim" | "value" | "valueStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "power" | "energy" | "totalPower" | "powerLimit" | "slatCommand" | "slatStatus" | "windAlarm" | "colourTemperature" | "colourTemperatureStatus" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "brightness" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output")
+port: ("input" | "display" | "switch" | "status" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "scene" | "forced" | "dim" | "value" | "valueStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "power" | "energy" | "totalPower" | "powerLimit" | "slatCommand" | "slatStatus" | "windAlarm" | "brightness" | "colourTemperature" | "colourTemperatureStatus" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "command")
 /**
  * Channel ID within the device; required by actuator ports.
  */

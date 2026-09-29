@@ -554,22 +554,37 @@
   "description": "Two areas are connected by an IP network. KNXnet/IP routers 1.0.0 and 2.0.0 act as area couplers. The installation has four lines, a line extension, and a supervisor on the IP network. Compare the route of a local command with that of a status telegram.",
   "lines": [
     {
-      "address": "1.1"
+      "address": "1.1",
+      "powerSupply": {
+        "currentMa": 640
+      }
     },
     {
-      "address": "1.2"
+      "address": "1.2",
+      "powerSupply": {
+        "currentMa": 640
+      }
     },
     {
       "address": "2.1",
       "extension": {
         "address": "2.1.64",
         "mode": "repeater",
-        "switchable": true
+        "switchable": true,
+        "powerSupply": {
+          "currentMa": 320
+        }
+      },
+      "powerSupply": {
+        "currentMa": 640
       }
     },
     {
       "address": "2.2",
-      "name": "no device"
+      "name": "no device",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "topology": {

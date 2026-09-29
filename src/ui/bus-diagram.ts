@@ -785,7 +785,8 @@ export class BusDiagram extends LitElement {
               style="width:${g.W}px;height:${g.H}px;transform:scale(${scale})"
             >
               ${g.zones.map((z) => html`<div class="zone" style="left:${z.x}px;top:${z.y}px;width:${z.w}px;height:${z.h}px"><span>${z.label}</span></div>`)}
-              ${this.renderWires(s, g, sim, anims)} ${this.renderSegLabels(g)}
+              ${this.renderWires(s, g, sim, anims)}
+              ${this.renderSegLabels(g, s)}
               ${s.devices.map((d) => this.renderDevice(d, g.devices.get(d.id)!, sim))}
               ${g.couplers.map((c) => this.renderCoupler(c, sim, live, t))}
               ${this.renderTags(g, live, t)}
@@ -1118,7 +1119,25 @@ export class BusDiagram extends LitElement {
     return html`<svg width=${g.W} height=${g.H}>${parts}</svg>`;
   }
 
-  private renderSegLabels(g: Geometry) {
+  /** Power supply of a line segment (L1.1) or of its downstream segment (L1.1b). */
+  private segPsu(s: Scenario, segId: string) {
+    const m = /^L(\d+\.\d+)(b?)$/.exec(segId);
+    const l = m ? s.lines.find((x) => x.address === m[1]) : undefined;
+    const psu = m?.[2] ? l?.extension?.powerSupply : l?.powerSupply;
+    if (!psu) return nothing;
+    const text = psu.currentMa
+      ? this.tr`PSU ${psu.currentMa} mA`
+      : this.tr`PSU`;
+    return html`<span
+      class="psu"
+      title=${[this.tr`Bus power supply with choke`, psu.name]
+        .filter(Boolean)
+        .join(" · ")}
+      >${text}</span
+    >`;
+  }
+
+  private renderSegLabels(g: Geometry, s: Scenario) {
     return [...g.segs.values()].map((sg) => {
       const [x, y] = sg.labelAt;
       const color = sg.kind === "ip" ? `color:${C.ip};` : "";
@@ -1133,7 +1152,7 @@ export class BusDiagram extends LitElement {
         class="seglabel"
         style="left:${x}px;top:${y}px;${color}${sg.kind === "ip" ? "transform:translateX(-100%)" : ""}"
       >
-        ${sg.label}
+        ${sg.label}${this.segPsu(s, sg.id)}
       </div>`;
     });
   }
@@ -1193,7 +1212,15 @@ export class BusDiagram extends LitElement {
           );
         }}
       >
-        <div class="cell ia">${d.address || "KNXnet/IP"}</div>
+        <div class="cell ia">
+          ${d.address || "KNXnet/IP"}${
+            d.behavior === "systemGateway/v1"
+              ? html`<small class="sys"
+                  >⇄ ${String(sim.deviceState(d.id).system ?? "")}</small
+                >`
+              : nothing
+          }
+        </div>
         <div class="cell name" title=${d.name}>${d.name}</div>
         ${cells}
       </div>
@@ -1769,14 +1796,25 @@ export class BusDiagram extends LitElement {
               this.tr`End stop`,
               eq.limit === "top" ? this.tr`top` : this.tr`bottom`,
             ]);
+          // Down and up times, shown separately only when they differ.
+          const times = (down: unknown, up: unknown) =>
+            up === undefined || Number(up) === Number(down)
+              ? `${Number(down) / 1000} s`
+              : `${Number(down) / 1000} s ↓ · ${Number(up) / 1000} s ↑`;
           rows.push([
             this.tr`Configured travel time`,
-            `${Number(c.parameters.estimatedTravelTimeMs) / 1000} s`,
+            times(
+              c.parameters.estimatedTravelTimeMs,
+              c.parameters.estimatedTravelTimeUpMs,
+            ),
           ]);
           if (c.equipmentConfig)
             rows.push([
               this.tr`Actual travel time`,
-              `${Number(c.equipmentConfig.parameters.actualTravelTimeMs) / 1000} s`,
+              times(
+                c.equipmentConfig.parameters.actualTravelTimeMs,
+                c.equipmentConfig.parameters.actualTravelTimeUpMs,
+              ),
             ]);
         } else {
           rows.push([
