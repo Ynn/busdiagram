@@ -6,7 +6,14 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Added
 
-- Designer: the guided editor follows the working logic of ETS:
+- Diagram: a countdown on the load of an output shows a running staircase timer or a switch-on or switch-off delay: a clock, the state that will be reached (I or O), and the time left; the inspector shows the delay too.
+- Push-button interface `buttonInterface/v1`: each channel is a contact input with a function (switching on edges or on short and long presses, one-key or two-key dimming, one-key or two-key blind, value, scene recall and storing); the device measures short and long presses itself. Lock, bus voltage recovery reaction, cyclic sending, and LED per input. In the designer catalog, with pages per input; see the example “Push-button interface”.
+- Bus voltage failure and recovery: a click on the power supply of a line or segment cuts or restores its bus voltage (`setBusVoltage()` in the API, `unpoweredSegments` in `getState()`). Devices run their failure and recovery behavior, then neither receive nor send; couplers do not forward telegrams to the segment. Behaviors can define `onBusFailure` and `onBusRecovery`.
+- Switch actuator: lock object (`lockStart`, `afterLock`; forcing keeps priority), switch-on and switch-off delays (`onDelayMs`, `offDelayMs`), logic link (`logic` object, AND or OR), behavior on bus voltage failure and recovery (`busFailure`, `busRecovery`). See the example “Bus voltage failure”.
+- DPT 18.001 (scene control): the switch, dimming, DALI and shutter actuators store their current state as a scene when they receive the learn bit (`sceneLearning`).
+- Shutter actuator: the motors stop when the bus voltage fails.
+- Behavior definitions: `contactInputs` and `contactKey` for contact inputs, port direction `"both"`.
+- Designer: the guided editor follows the working logic taught in KNX courses:
   - two stacked panels, each showing the Topology, the Group addresses, the Catalog, or the Installation, with a tree on the left and a list with tabs at its bottom;
   - Topology tree of areas, lines, and devices, which open to show their group objects; a device has Group objects and Parameters tabs, a group object has Associations and Properties tabs;
   - Group addresses tree of main groups, middle groups, and addresses, with names for the groups (new optional root field `groupRanges`) and commands to add them;
@@ -14,7 +21,6 @@ All notable changes to BusDiagram are documented in this file. The format follow
   - drag and drop of a group address onto a group object or of a group object onto an address (or onto a middle group, which creates an address); the whole list of a panel that shows an address, an object, a middle group, or a line accepts the drop; the first address is the sending one, changed with Set as sending; objects of different data sizes cannot be linked;
   - the flags of the objects linked to a group address can be changed in its Associations tab;
   - drag and drop of a device onto another line to move it;
-  - device parameters as in ETS: a list of pages (General, each key or output, shared objects) on the left and the parameters of the selected page on the right, one per row;
   - a group object can be activated without group address from its key or output page, then linked by drag and drop;
   - context menus (right-click, context-menu key, or Shift+F10) on every tree node and list row, with the same commands for an element wherever it appears;
   - renaming in place by double-click, F2, or Rename in the context menu;
@@ -24,11 +30,35 @@ All notable changes to BusDiagram are documented in this file. The format follow
   - resizable trees, lists, and panels, alternating row colors, and a visible hover row;
   - a resizable separator between the editor and the preview, and a button to hide the preview.
 
+- Scenario format: `channels[].equipment` can be a list of loads wired in parallel on the output; each receives its commands, and a metering actuator measures the sum of their powers. A load can have a `name`, shown in the diagram. A shutter output drives one motor. `ChannelInfo.loads` lists the types of the loads; `equipmentState` and `equipmentAction` take the index of a load.
+- Behaviors: `parameterLayout` declares the pages of parameters shown by the designer (pages of the device, pages repeated for each channel, with parameters, initial states, boxes that enable group objects, headings, notes, and conditional items); `registerBehavior` checks it. The switch, shutter, dimming, DALI, and heating actuators and the room thermostat declare pages by function.
+- Designer: device parameters organized as the parameter dialogs of KNX products: Configuration page with the number of outputs or keys, a group per output with the pages of its behavior and its Connected loads, “Enable group object” boxes, and no group address on parameter pages (addresses are linked in the Group objects tab); context menus on outputs, keys, and loads.
+- Designer: tables sortable by a click on a header and resizable by dragging its edge or with the arrow keys; a Channel column in the Group objects table.
+- Designer: an Inputs in the diagram page sets the values that the reader types in the diagram (measurements, powers, values of a gateway), which could only be written in JSON before.
+- Configuration warning `config-segment-size`: more than 64 devices on one TP1 segment.
+- Designer: devices whose functions belong to channels without loads (the circuits of an energy meter) have a Configuration page and a group of pages per channel.
+- Designer: one catalog entry per type (Push-button, Switch actuator); their number of keys or outputs is set on the Configuration page, and new devices are named without a count.
 - Designer: an About box with the version, the license, the address of the source code, and a notice of independence from KNX Association; the documentation footer and the README carry the same notice.
 
 ### Changed
 
+- Switch actuator: the `lock` and `logic` ports join each output's block of group objects, so the object numbers of the following outputs move by two. The end-of-forcing choices read On and Off.
+- Group reads: a device sends a single response, from its first object that has the R flag and a known value, as the KNX Application Layer specifies; previously each such object of the device answered.
+
+- Room thermostat: presence no longer ends a building protection mode selected by `hvacMode` (absence, holidays); it still extends comfort from the standby and economy modes.
+- Behaviors: `ctx.readEquipment(channel, index)` reads any load of a channel; `readPower` returns the sum of its loads.
+- Builds that are not made from a release tag carry a development identifier (`0.3.1+dev.<commit>`) in their banner, in the asset URLs of the site, in standalone pages, and in the About box, with the address of their actual source code, instead of the identifier and tag of the last release.
+
 - `bus-diagram.js` and `bus-diagram.esm.js` start with the license notices of the third-party components they include and the address of the source code of their version, so that every copy (CDN, download from the designer, standalone page) carries them. A standalone page exported by the designer also names its version, license, and source.
+
+### Fixed
+
+- Designer: a parameter set back to its default value by typing it or choosing it is stored as absent, so that the ↺ button disappears as after a click on it.
+- Diagram: the timer of an output was given as a note under the load name, cut off for lack of room.
+- KNX/DALI gateway: the faults of every DALI load of a group are reported, not only those of the first one.
+- Shutter actuator: the slat status objects hold the initial slat angle from the start, as the position status objects do.
+- Designer: changing a radiator into another load no longer keeps its heated room, which then could not be deleted.
+- Designer: parameter pages of an extension cannot collide with the pages added by the designer, and a malformed display condition is refused when the behavior is registered instead of breaking the page.
 
 ## [0.3.1] - 2026-09-29
 
@@ -64,18 +94,18 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Changed
 
-These corrections change simulation results for some existing scenarios; they follow the KNX training documentation, ETS behavior, and product manuals.
+These corrections change simulation results for some existing scenarios; they follow the KNX training documentation and product manuals.
 
 - Couplers: in filter mode, a group telegram crosses a coupler only when its address is in the coupler's filter table (addresses used on both sides), in both directions. Previously an address used only on the destination side also crossed, so a tool or visualisation outside the filter tables could reach devices behind a coupler.
 - Group reads: an object with the R flag answers a read received on any of its group addresses, and sends the response on its sending address. Previously only a read on the sending address was answered.
 - Shutter actuator: a stop/step command at rest no longer moves a roller shutter without slats by default (`stepPct` now defaults to 0); set `stepPct` to model actuators that do.
 - Validation: a line repeater or segment coupler cannot use the line coupler address (`A.L.0`); lines 0.1 to 0.15 are reported as not supported by BusDiagram rather than invalid; a device address `A.0.0` is reported as reserved for the area (backbone) coupler.
-- Documentation: KNX group addresses and DALI broadcast are no longer confused in the DALI example; filter tables are described as in ETS 6.3 and later, where manual entries are deprecated.
+- Documentation: KNX group addresses and DALI broadcast are no longer confused in the DALI example; filter tables are described as in current commissioning software, where manual entries are deprecated.
 
 ### Added
 
 - Designer: communication objects can be renamed in the device view (section “Communication objects: names and flags”).
-- USB interface: a `groupAddresses` parameter assigns group addresses to the interface, which then enter the coupler filter tables, as ETS does for a modeled bus interface.
+- USB interface: a `groupAddresses` parameter assigns group addresses to the interface, which then enter the coupler filter tables, as for a bus interface modeled in a project.
 
 ## [0.1.2] - 2026-09-28
 

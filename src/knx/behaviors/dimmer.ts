@@ -3,6 +3,7 @@
 // absolute value (5.001), scenes (17.001), and status feedback (1.001 and 5.001).
 // The gateway adds broadcast commands and fault reporting (1.005), and records
 // emitted DALI commands (DAPC, RECALL MAX/OFF, UP/DOWN, GO TO SCENE) in the event log.
+import { daliLayout, dimmerLayout } from "./layouts";
 import type {
   BehaviorContext,
   BehaviorDefinition,
@@ -24,6 +25,8 @@ interface DimChannelState {
   failures: number;
   /** Colour temperature (K) of a tunable white channel; null otherwise. */
   kelvin: number | null;
+  /** Scenes stored by a scene control telegram (DPT 18.001): scene → level %. */
+  learned: Record<string, number>;
 }
 
 export interface DimmerState {
@@ -208,10 +211,36 @@ function dim(ctx: Ctx, ch: string, raw: number) {
   go(ctx, ch, target, (Math.abs(target - now) / 100) * dimTime);
 }
 
-function scene(ctx: Ctx, channels: string[], raw: number) {
+/**
+ * Scene telegram: recall the preset of each channel, or, with the learn bit of a scene
+ * control telegram (DPT 18.001), store the current level as the scene.
+ */
+function scene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
   const n = (raw & 0x3f) + 1;
+  if (dpt === "18.001" && raw & 0x80) {
+    channels.forEach((ch) => {
+      const st = ctx.state.channels[ch];
+      if (!st) return;
+      if (params(ctx, ch).sceneLearning === false) {
+        ctx.note(ctx.t`${ch}: scene storing disabled, scene ${n} unchanged`);
+        return;
+      }
+      if (isGateway(ctx) && n > 16) {
+        ctx.note(
+          ctx.t`${ch}: DALI scenes go from 1 to 16, scene ${n} not stored`,
+        );
+        return;
+      }
+      const level = Math.round(levelAt(st, ctx.timeMs));
+      st.learned[String(n)] = level;
+      ctx.note(ctx.t`${ch}: scene ${n} stored (${level} %)`);
+    });
+    return;
+  }
   channels.forEach((ch) => {
-    const preset = ctx.device.channels.find((c) => c.id === ch)?.scenes.get(n);
+    const preset =
+      ctx.state.channels[ch]?.learned[String(n)] ??
+      ctx.device.channels.find((c) => c.id === ch)?.scenes.get(n);
     if (preset === undefined) {
       ctx.note(ctx.t`${ch}: no preset for scene ${n}, command ignored`);
       return;
@@ -227,8 +256,12 @@ function poll(ctx: Ctx, publishChanges: boolean) {
   ctx.device.channels.forEach((c) => {
     const st = ctx.state.channels[c.id];
     if (!st) return;
-    const eq = ctx.readEquipment(c.id);
-    const failures = typeof eq?.failed === "number" ? eq.failed : 0;
+    // Every DALI load of the group counts (several loads can share an output).
+    let failures = 0;
+    c.loads.forEach((_, i) => {
+      const eq = ctx.readEquipment(c.id, i);
+      if (typeof eq?.failed === "number") failures += eq.failed;
+    });
     total += failures;
     if (failures !== st.failures) {
       st.failures = failures;
@@ -292,6 +325,13 @@ const channelParameters: ParamSchema = {
       default: 0,
       description:
         "Transition time when switching on or off (0 means immediate).",
+    },
+    sceneLearning: {
+      title: "Scene storing",
+      type: "boolean",
+      default: true,
+      description:
+        "A scene control telegram with the learn bit (DPT 18.001) stores the current level as the scene; it replaces the configured preset until the simulation restarts.",
     },
     valueFadeMs: {
       title: "Fade on value",
@@ -452,10 +492,12 @@ function base(
         direction: "out",
       },
       scene: {
-        dpts: ["17.001"],
+        dpts: ["17.001", "18.001"],
         channel: "optional",
         title: "Scene",
         direction: "in",
+        description:
+          "scene number (17.001), or scene control (18.001) whose learn bit stores the current level",
       },
       ...extraPorts,
     },
@@ -479,6 +521,7 @@ function base(
           )
             ? num(c.initialState.colourTemperatureK, 4000)
             : null,
+          learned: {},
         };
       });
       return { channels };
@@ -522,7 +565,7 @@ function base(
         return;
       }
       if (o.port === "scene")
-        return scene(ctx, o.channel ? [o.channel] : all, e.newValue);
+        return scene(ctx, o.channel ? [o.channel] : all, e.newValue, o.dpt);
       if (!o.channel) return;
       if (o.port === "switch") switchCh(ctx, o.channel, e.newValue !== 0);
       else if (o.port === "dim") dim(ctx, o.channel, e.newValue);
@@ -556,33 +599,39 @@ function base(
             fadeMs: st.fadeMs,
             failures: st.failures,
             colourTemperatureK: st.kelvin,
+            learnedScenes: { ...st.learned },
           }
         : {};
     },
   };
 }
 
-export const dimmerActuator = base(
-  "Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback.",
-  {
-    colourTemperature: {
-      dpts: ["7.600"],
-      channel: "required",
-      title: "Colour temperature",
-      direction: "in",
-      description: "colour temperature setpoint (K) of a tunable white channel",
+export const dimmerActuator: BehaviorDefinition<DimmerState> = {
+  parameterLayout: dimmerLayout,
+  ...base(
+    "Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback.",
+    {
+      colourTemperature: {
+        dpts: ["7.600"],
+        channel: "required",
+        title: "Colour temperature",
+        direction: "in",
+        description:
+          "colour temperature setpoint (K) of a tunable white channel",
+      },
+      colourTemperatureStatus: {
+        dpts: ["7.600"],
+        channel: "required",
+        title: "Colour temperature status",
+        direction: "out",
+        description: "applied colour temperature (K)",
+      },
     },
-    colourTemperatureStatus: {
-      dpts: ["7.600"],
-      channel: "required",
-      title: "Colour temperature status",
-      direction: "out",
-      description: "applied colour temperature (K)",
-    },
-  },
-);
+  ),
+};
 
 export const daliGateway: BehaviorDefinition<DimmerState> = {
+  parameterLayout: daliLayout,
   ...base(
     "KNX/DALI gateway: each channel is a DALI group of ballasts; broadcast, scenes and fault reporting.",
     {

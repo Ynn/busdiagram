@@ -152,7 +152,8 @@ function pushButton(keys: number): Snippet {
           ...doc.devices!,
           {
             id,
-            name: t`${keys}-key push button`,
+            // The number of keys is a setting (Configuration page), not part of the name.
+            name: t`Push-button`,
             address: freeAddress(doc, ctx.line),
             kind: "pushButton",
             behavior: "pushButton/v1",
@@ -177,6 +178,64 @@ function pushButton(keys: number): Snippet {
   };
 }
 
+/**
+ * Push-button interface: four contact inputs, each switching a new group address by
+ * toggling; the function of each input is set on its pages.
+ */
+const buttonInterface: Snippet = {
+  id: "buttonInterface4",
+  get label() {
+    return t`Push-button interface`;
+  },
+  get hint() {
+    return t`Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction. The device measures short and long presses.`;
+  },
+  apply(input, ctx = {}) {
+    const doc = ensureBase(input);
+    const taken: string[] = [];
+    const gas = Array.from({ length: 4 }, () => {
+      const g = freeGa(doc, 1, 1, taken);
+      taken.push(g);
+      return g;
+    });
+    return {
+      ...doc,
+      groupAddresses: [
+        ...doc.groupAddresses!,
+        ...gas.map((g, i) => ({
+          address: g,
+          name: t`Lighting input ${i + 1}`,
+          dpt: "1.001",
+        })),
+      ],
+      devices: [
+        ...doc.devices!,
+        {
+          id: freeId(doc, "buttonInterface"),
+          name: t`Push-button interface`,
+          address: freeAddress(doc, ctx.line),
+          kind: "buttonInterface",
+          behavior: "buttonInterface/v1",
+          channels: gas.map((_, i) => ({
+            id: `in${i + 1}`,
+            label: t`Input ${i + 1}`,
+            parameters: { function: "switch" },
+          })),
+          objects: gas.map((g, i) => ({
+            id: `sw${i + 1}`,
+            name: t`Switching ${i + 1}`,
+            ga: g,
+            dpt: "1.001",
+            port: "switch",
+            channel: `in${i + 1}`,
+            flags: flags(true, true),
+          })),
+        },
+      ],
+    };
+  },
+};
+
 function switchActuator(outputs: number): Snippet {
   return {
     id: `switchActuator${outputs}`,
@@ -195,13 +254,14 @@ function switchActuator(outputs: number): Snippet {
           ...doc.devices!,
           {
             id,
-            name: t`${outputs}-output switch actuator`,
+            // The number of outputs is a setting (Configuration page), not part of the name.
+            name: t`Switch actuator`,
             address: freeAddress(doc, ctx.line),
             kind: "switchActuator",
             behavior: "switchActuator/v1",
             objects: Array.from({ length: outputs }, (_, i) => ({
               id: `c${i + 1}`,
-              name: t`Channel ${i + 1}`,
+              name: t`Command L${i + 1}`,
               ga: [],
               dpt: "1.001",
               port: "switch",
@@ -1101,6 +1161,7 @@ const logicModule: Snippet = {
 export const SNIPPETS: Snippet[] = [
   pushButton(2),
   pushButton(4),
+  buttonInterface,
   dimPushButton,
   switchActuator(4),
   switchActuator(6),

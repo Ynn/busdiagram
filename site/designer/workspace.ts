@@ -1,7 +1,7 @@
-// Guided workspace organized like the ETS panels, so that students keep their bearings:
+// Guided workspace organized in panels as in commissioning software, so that students keep their bearings:
 // two stacked panels, each with a content (Topology, Group addresses, Catalog,
 // Installation), a tree on the left, and a list on the right with tabs at its bottom.
-// Programming gestures follow ETS: a catalog entry is dropped onto a line; a group address
+// Programming gestures follow the usual commissioning workflow: a catalog entry is dropped onto a line; a group address
 // is dropped onto a group object, or a group object onto a group address; the first
 // address of an object is its sending address. Every gesture calls the same edit
 // operation as the equivalent button, with the same checks and one undo step.
@@ -17,6 +17,9 @@ import { catalogGroups } from "./ws-catalog";
 import { gaTarget, lineTarget, objTarget, startGa, startObj } from "./ws-dnd";
 import { menuFor, menuView, openMenu } from "./ws-menu";
 import { renamable } from "./ws-rename";
+import { dataTable } from "./ws-table";
+import type { Column } from "./ws-table";
+import { tt } from "./params";
 import {
   addressTree,
   catalogTree,
@@ -121,91 +124,158 @@ function listTarget(host: Host, doc: Doc, p: Panel) {
   return null;
 }
 
-const flagBoxes = (host: Host, d: Dev, o: Dev["objects"][number]) =>
-  (["W", "T", "R", "U"] as const).map(
-    (f) =>
-      html`<td class="w-flag">
-        <input
-          type="checkbox"
-          aria-label=${`${o.name ?? o.id} ${f}`}
-          .checked=${live(E.flagOf(o, f))}
-          @change=${(e: Event) =>
-            host.run(t`Flag ${f}`, (x) =>
-              E.setObjectFlag(
-                x,
-                d.id,
-                o.id,
-                f,
-                (e.target as HTMLInputElement).checked,
-              ),
-            )}
-        />
-      </td>`,
-  );
+/** One flag of an object, as a check box (W, T, R, U); C is always active. */
+const flagCell = (
+  host: Host,
+  d: Dev,
+  o: Dev["objects"][number],
+  f: "W" | "T" | "R" | "U",
+) =>
+  html`<td class="w-flag">
+    <input
+      type="checkbox"
+      aria-label=${`${o.name ?? o.id} ${f}`}
+      .checked=${live(E.flagOf(o, f))}
+      @change=${(e: Event) =>
+        host.run(t`Flag ${f}`, (x) =>
+          E.setObjectFlag(
+            x,
+            d.id,
+            o.id,
+            f,
+            (e.target as HTMLInputElement).checked,
+          ),
+        )}
+    />
+  </td>`;
 
-/** Group objects of a device (or of one channel), as the Group Objects tab of ETS. */
-function objectTable(host: Host, p: Panel, d: Dev) {
-  const objects = E.objectsInOrder(d);
-  return html`<table class="w-table">
-      <thead>
-        <tr>
-          <th>${t`Number`}</th>
-          <th>${t`Name`}</th>
-          <th>${t`Object function`}</th>
-          <th>${t`Group addresses`}</th>
-          <th>${t`Length`}</th>
-          <th>${t`DPT`}</th>
-          <th title=${t`Communication (always active)`}>C</th>
-          <th title=${t`Write`}>W</th>
-          <th title=${t`Transmit`}>T</th>
-          <th title=${t`Read`}>R</th>
-          <th title=${t`Update`}>U</th>
-        </tr>
-      </thead>
-      <tbody>
-        ${objects.map((o) => {
-          const drop = gaTarget(host, d, o);
-          const gas = E.gasOf(o);
-          return html`<tr
-            draggable="true"
-            data-obj=${o.id}
-            @contextmenu=${rowMenu(host, p, `obj:${d.id}/${o.id}`)}
-            title=${t`Drag onto a group address to link it`}
-            @dragstart=${(e: DragEvent) => startObj(e, d, o)}
-            @dragover=${drop.over}
-            @dragleave=${drop.leave}
-            @drop=${drop.drop}
-            @dblclick=${() => reveal(host, `obj:${d.id}/${o.id}`)}
-          >
-            <td>${objNumber(d, o.id)}</td>
-            ${nameCell(host, p, `obj:${d.id}/${o.id}`, o.name ?? o.id)}
-            <td>${[o.port, o.channel].filter(Boolean).join(" · ")}</td>
-            <td class="w-gas">
-              ${gas.map(
-                (ga, i) =>
-                  html`<span class="w-chip ${i === 0 ? "send" : ""}"
-                    >${ga}${i === 0 ? html`<small title=${t`Sending address`}>S</small>` : nothing}</span
-                  >`,
-              )}
-            </td>
-            <td>${sizeText(o.dpt)}</td>
-            <td>
-              <code title=${o.dpt ? dptName(o.dpt, t) : ""}
-                >${o.dpt ?? ""}</code
-              >
-            </td>
-            <td class="w-flag">
-              <input type="checkbox" checked disabled aria-label="C" />
-            </td>
-            ${flagBoxes(host, d, o)}
-          </tr>`;
-        })}
-      </tbody>
-    </table>
-    ${objects.length ? nothing : html`<p class="w-empty">${t`No group object.`}</p>`}`;
+/** Columns of the five flags; W, T, R, and U can be changed. */
+function flagColumns<R>(
+  host: Host,
+  of: (r: R) => [Dev, Dev["objects"][number]],
+): Column<R>[] {
+  const titles = {
+    W: t`Write`,
+    T: t`Transmit`,
+    R: t`Read`,
+    U: t`Update`,
+  };
+  return [
+    {
+      id: "C",
+      label: "C",
+      title: t`Communication (always active)`,
+      td: () =>
+        html`<td class="w-flag">
+          <input type="checkbox" checked disabled aria-label="C" />
+        </td>`,
+    },
+    ...(["W", "T", "R", "U"] as const).map((f): Column<R> => ({
+      id: f,
+      label: f,
+      title: titles[f],
+      sort: (r) => (E.flagOf(of(r)[1], f) ? 0 : 1),
+      td: (r) => flagCell(host, ...of(r), f),
+    })),
+  ];
 }
 
-/** Group addresses of one group object, as the Associations tab of ETS. */
+/** Output (channel) or key of an object, as its channel in the object table. */
+function channelOf(d: Dev, o: Dev["objects"][number]) {
+  const c = o.channel ? d.channels?.find((x) => x.id === o.channel) : undefined;
+  if (c) return c.label ?? c.id;
+  const b = d.buttons?.find((x) =>
+    [x.press, x.short, x.long].some((a) => a?.object === o.id),
+  );
+  return b ? (b.label ?? b.id) : "";
+}
+
+/** Group objects of a device, as a Group objects tab. */
+function objectTable(host: Host, p: Panel, d: Dev) {
+  const objects = E.objectsInOrder(d);
+  const ports = host.registry.behaviors.get(d.behavior)?.ports ?? {};
+  const fn = (o: Dev["objects"][number]) => tt(ports[o.port]?.title) || o.port;
+  type O = Dev["objects"][number];
+  return html`${dataTable<O>(
+    host,
+    "objects",
+    [
+      {
+        id: "number",
+        label: t`Number`,
+        sort: (o) => objNumber(d, o.id),
+        cell: (o) => objNumber(d, o.id),
+      },
+      {
+        id: "name",
+        label: t`Name`,
+        sort: (o) => o.name ?? o.id,
+        td: (o) => nameCell(host, p, `obj:${d.id}/${o.id}`, o.name ?? o.id),
+      },
+      {
+        id: "channel",
+        label: t`Channel`,
+        sort: (o) => channelOf(d, o),
+        cell: (o) => channelOf(d, o),
+      },
+      {
+        id: "function",
+        label: t`Object function`,
+        sort: fn,
+        cell: fn,
+      },
+      {
+        id: "gas",
+        label: t`Group addresses`,
+        sort: (o) => E.gasOf(o)[0] ?? "~",
+        className: "w-gas",
+        cell: (o) =>
+          html`${E.gasOf(o).map(
+            (ga, i) =>
+              html`<span class="w-chip ${i === 0 ? "send" : ""}"
+                >${ga}${i === 0 ? html`<small title=${t`Sending address`}>S</small>` : nothing}</span
+              >`,
+          )}`,
+      },
+      {
+        id: "length",
+        label: t`Length`,
+        sort: (o) => (o.dpt ? dptBits(o.dpt) : 0),
+        cell: (o) => sizeText(o.dpt),
+      },
+      {
+        id: "dpt",
+        label: t`DPT`,
+        sort: (o) => o.dpt ?? "",
+        cell: (o) =>
+          html`<code title=${o.dpt ? dptName(o.dpt, t) : ""}
+            >${o.dpt ?? ""}</code
+          >`,
+      },
+      ...flagColumns<O>(host, (o) => [d, o]),
+    ],
+    objects,
+    (o, cells) => {
+      const drop = gaTarget(host, d, o);
+      return html`<tr
+        draggable="true"
+        data-obj=${o.id}
+        @contextmenu=${rowMenu(host, p, `obj:${d.id}/${o.id}`)}
+        title=${t`Drag onto a group address to link it`}
+        @dragstart=${(e: DragEvent) => startObj(e, d, o)}
+        @dragover=${drop.over}
+        @dragleave=${drop.leave}
+        @drop=${drop.drop}
+        @dblclick=${() => reveal(host, `obj:${d.id}/${o.id}`)}
+      >
+        ${cells}
+      </tr>`;
+    },
+  )}
+  ${objects.length ? nothing : html`<p class="w-empty">${t`No group object.`}</p>`}`;
+}
+
+/** Group addresses of one group object, as an Associations tab. */
 function objectAssociations(
   host: Host,
   doc: Doc,
@@ -224,55 +294,74 @@ function objectAssociations(
   });
   const ref = [{ dev: d.id, obj: o.id }];
   return html`<div>
-    <table class="w-table">
-      <thead>
-        <tr>
-          <th>${t`Group address`}</th>
-          <th>${t`Name`}</th>
-          <th>${t`DPT`}</th>
-          <th>${t`Sending`}</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${gas.map((ga, i) => {
-          const g = doc.groupAddresses.find((x) => x.address === ga);
-          const dpt = E.gaDpt(doc, ga);
-          return html`<tr
-            draggable="true"
-            @dragstart=${(e: DragEvent) => startGa(host, e, ga)}
-            @dblclick=${() => reveal(host, `ga:${ga}`)}
-            @contextmenu=${rowMenu(host, p, `ga:${ga}`)}
-          >
-            <td><code>${ga}</code></td>
-            ${nameCell(host, p, `ga:${ga}`, g?.name ?? "")}
-            <td>${dpt ?? ""}</td>
-            <td>
-              ${
-                i === 0
-                  ? html`<b title=${t`Sending address`}>S</b>`
-                  : html`<button
-                      class="w-small"
-                      @click=${() => host.run(t`Sending address`, (x) => E.setSendingGa(x, d.id, o.id, ga))}
-                    >
-                      ${t`Set as sending`}
-                    </button>`
-              }
-            </td>
-            <td>
-              <button
-                class="w-small"
-                title=${t`Remove ${ga} from this object`}
-                aria-label=${t`Remove ${ga} from this object`}
-                @click=${() => host.run(t`Remove an address`, (x) => E.setGaMembers(x, ga, [], ref))}
-              >
-                ${t`Delete`}
-              </button>
-            </td>
-          </tr>`;
-        })}
-      </tbody>
-    </table>
+    ${dataTable<string>(
+      host,
+      "object-associations",
+      [
+        {
+          id: "address",
+          label: t`Group address`,
+          sort: (ga) => ga,
+          cell: (ga) => html`<code>${ga}</code>`,
+        },
+        {
+          id: "name",
+          label: t`Name`,
+          sort: (ga) =>
+            doc.groupAddresses.find((x) => x.address === ga)?.name ?? "",
+          td: (ga) =>
+            nameCell(
+              host,
+              p,
+              `ga:${ga}`,
+              doc.groupAddresses.find((x) => x.address === ga)?.name ?? "",
+            ),
+        },
+        {
+          id: "dpt",
+          label: t`DPT`,
+          sort: (ga) => E.gaDpt(doc, ga) ?? "",
+          cell: (ga) => E.gaDpt(doc, ga) ?? "",
+        },
+        {
+          id: "sending",
+          label: t`Sending`,
+          sort: (ga) => gas.indexOf(ga),
+          cell: (ga) =>
+            gas[0] === ga
+              ? html`<b title=${t`Sending address`}>S</b>`
+              : html`<button
+                  class="w-small"
+                  @click=${() => host.run(t`Sending address`, (x) => E.setSendingGa(x, d.id, o.id, ga))}
+                >
+                  ${t`Set as sending`}
+                </button>`,
+        },
+        {
+          id: "actions",
+          label: "",
+          cell: (ga) =>
+            html`<button
+              class="w-small"
+              title=${t`Remove ${ga} from this object`}
+              aria-label=${t`Remove ${ga} from this object`}
+              @click=${() => host.run(t`Remove an address`, (x) => E.setGaMembers(x, ga, [], ref))}
+            >
+              ${t`Delete`}
+            </button>`,
+        },
+      ],
+      gas,
+      (ga, cells) =>
+        html`<tr
+          draggable="true"
+          @dragstart=${(e: DragEvent) => startGa(host, e, ga)}
+          @dblclick=${() => reveal(host, `ga:${ga}`)}
+          @contextmenu=${rowMenu(host, p, `ga:${ga}`)}
+        >
+          ${cells}
+        </tr>`,
+    )}
     ${gas.length ? nothing : html`<p class="w-empty">${t`No group address: drop one here from the Group addresses panel.`}</p>`}
     <div class="w-bar">
       <select
@@ -293,7 +382,7 @@ function objectAssociations(
   </div>`;
 }
 
-/** Properties of a group object: name, flags, DPT (Properties sidebar of ETS). */
+/** Properties of a group object: name, flags, DPT (properties sidebar). */
 function objectProperties(host: Host, d: Dev, o: Dev["objects"][number]) {
   return html`<div class="w-props">
     <label class="g-field"
@@ -329,7 +418,7 @@ function objectProperties(host: Host, d: Dev, o: Dev["objects"][number]) {
         <td class="w-flag">
           <input type="checkbox" checked disabled aria-label="C" />
         </td>
-        ${flagBoxes(host, d, o)}
+        ${(["W", "T", "R", "U"] as const).map((f) => flagCell(host, d, o, f))}
       </tr>
     </table>
     <p class="g-hint">
@@ -338,66 +427,89 @@ function objectProperties(host: Host, d: Dev, o: Dev["objects"][number]) {
   </div>`;
 }
 
-/** Objects linked to a group address, as the Associations tab of the ETS Group Addresses panel. */
+/** Objects linked to a group address, as the Associations tab of the group addresses panel. */
 function addressAssociations(host: Host, doc: Doc, p: Panel, g: E.Ga) {
   const all = E.gaMemberCandidates(doc, g.address);
   const members = all.filter((c) => c.member);
   const candidates = all.filter((c) => !c.member && c.compatible);
+  type M = (typeof members)[number];
+  const dev = (c: M) => devOf(doc, c.dev)!;
+  const obj = (c: M) => dev(c).objects.find((x) => x.id === c.obj)!;
   return html`<div>
-    <table class="w-table">
-      <thead>
-        <tr>
-          <th>${t`Object`}</th>
-          <th>${t`Device`}</th>
-          <th>${t`Sending`}</th>
-          <th>${t`DPT`}</th>
-          <th title=${t`Communication (always active)`}>C</th>
-          <th title=${t`Write`}>W</th>
-          <th title=${t`Transmit`}>T</th>
-          <th title=${t`Read`}>R</th>
-          <th title=${t`Update`}>U</th>
-          <th></th>
-        </tr>
-      </thead>
-      <tbody>
-        ${members.map((c) => {
-          const d = devOf(doc, c.dev)!;
-          const o = d.objects.find((x) => x.id === c.obj)!;
-          const key = `obj:${c.dev}/${c.obj}`;
-          return html`<tr
-            draggable="true"
-            @dragstart=${(e: DragEvent) => startObj(e, d, o)}
-            @dblclick=${() => reveal(host, key)}
-            @contextmenu=${rowMenu(host, p, key)}
-          >
-            ${nameCell(host, p, key, objLabel(d, o))}
-            <td><code>${d.address ?? "IP"}</code> ${d.name ?? d.id}</td>
-            <td>${c.sending === g.address ? html`<b>S</b>` : ""}</td>
-            <td>${c.dpt}</td>
-            <td class="w-flag">
-              <input type="checkbox" checked disabled aria-label="C" />
-            </td>
-            ${flagBoxes(host, d, o)}
-            <td>
-              <button
-                class="w-small"
-                @click=${() =>
-                  host.run(t`Remove an address`, (x) =>
-                    E.setGaMembers(
-                      x,
-                      g.address,
-                      [],
-                      [{ dev: c.dev, obj: c.obj }],
-                    ),
-                  )}
-              >
-                ${t`Delete`}
-              </button>
-            </td>
-          </tr>`;
-        })}
-      </tbody>
-    </table>
+    ${dataTable<M>(
+      host,
+      "address-associations",
+      [
+        {
+          id: "object",
+          label: t`Object`,
+          sort: (c) => objLabel(dev(c), obj(c)),
+          td: (c) =>
+            nameCell(
+              host,
+              p,
+              `obj:${c.dev}/${c.obj}`,
+              objLabel(dev(c), obj(c)),
+            ),
+        },
+        {
+          id: "channel",
+          label: t`Channel`,
+          sort: (c) => channelOf(dev(c), obj(c)),
+          cell: (c) => channelOf(dev(c), obj(c)),
+        },
+        {
+          id: "device",
+          label: t`Device`,
+          sort: (c) => dev(c).address ?? "IP",
+          cell: (c) =>
+            html`<code>${dev(c).address ?? "IP"}</code>
+              ${dev(c).name ?? dev(c).id}`,
+        },
+        {
+          id: "sending",
+          label: t`Sending`,
+          sort: (c) => (c.sending === g.address ? 0 : 1),
+          cell: (c) => (c.sending === g.address ? html`<b>S</b>` : ""),
+        },
+        {
+          id: "dpt",
+          label: t`DPT`,
+          sort: (c) => c.dpt,
+          cell: (c) => c.dpt,
+        },
+        ...flagColumns<M>(host, (c) => [dev(c), obj(c)]),
+        {
+          id: "actions",
+          label: "",
+          cell: (c) =>
+            html`<button
+              class="w-small"
+              @click=${() =>
+                host.run(t`Remove an address`, (x) =>
+                  E.setGaMembers(
+                    x,
+                    g.address,
+                    [],
+                    [{ dev: c.dev, obj: c.obj }],
+                  ),
+                )}
+            >
+              ${t`Delete`}
+            </button>`,
+        },
+      ],
+      members,
+      (c, cells) =>
+        html`<tr
+          draggable="true"
+          @dragstart=${(e: DragEvent) => startObj(e, dev(c), obj(c))}
+          @dblclick=${() => reveal(host, `obj:${c.dev}/${c.obj}`)}
+          @contextmenu=${rowMenu(host, p, `obj:${c.dev}/${c.obj}`)}
+        >
+          ${cells}
+        </tr>`,
+    )}
     ${members.length ? nothing : html`<p class="w-empty">${t`No linked object: drop a group object here.`}</p>`}
     <div class="w-bar">
       <select
@@ -473,34 +585,44 @@ function topologyList(host: Host, doc: Doc, p: Panel): TemplateResult {
     return html`<div class="w-content">
         ${l && !seg ? host.lineSettings(doc, l) : nothing}
         <div>
-          <table class="w-table">
-            <thead>
-              <tr>
-                <th>${t`Address`}</th>
-                <th>${t`Name`}</th>
-                <th>${t`Application`}</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${devs.map(
-                (d) =>
-                  html`<tr
-                    draggable="true"
-                    title=${t`Drag onto another line to move it`}
-                    @dragstart=${(e: DragEvent) => {
-                      e.dataTransfer?.setData("application/x-bd-move", d.id);
-                      if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
-                    }}
-                    @dblclick=${() => select(host, p, `dev:${d.id}`)}
-                    @contextmenu=${rowMenu(host, p, `dev:${d.id}`)}
-                  >
-                    <td><code>${d.address ?? "IP"}</code></td>
-                    ${nameCell(host, p, `dev:${d.id}`, d.name ?? d.id)}
-                    <td>${host.typeLabel(d)}</td>
-                  </tr>`,
-              )}
-            </tbody>
-          </table>
+          ${dataTable<Dev>(
+            host,
+            "line-devices",
+            [
+              {
+                id: "address",
+                label: t`Address`,
+                sort: (d) => Number(d.address?.split(".")[2] ?? 0),
+                cell: (d) => html`<code>${d.address ?? "IP"}</code>`,
+              },
+              {
+                id: "name",
+                label: t`Name`,
+                sort: (d) => d.name ?? d.id,
+                td: (d) => nameCell(host, p, `dev:${d.id}`, d.name ?? d.id),
+              },
+              {
+                id: "application",
+                label: t`Application`,
+                sort: (d) => host.typeLabel(d),
+                cell: (d) => host.typeLabel(d),
+              },
+            ],
+            devs,
+            (d, cells) =>
+              html`<tr
+                draggable="true"
+                title=${t`Drag onto another line to move it`}
+                @dragstart=${(e: DragEvent) => {
+                  e.dataTransfer?.setData("application/x-bd-move", d.id);
+                  if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+                }}
+                @dblclick=${() => select(host, p, `dev:${d.id}`)}
+                @contextmenu=${rowMenu(host, p, `dev:${d.id}`)}
+              >
+                ${cells}
+              </tr>`,
+          )}
           ${devs.length ? nothing : html`<p class="w-empty">${t`No device on this line: drop one from the Catalog panel.`}</p>`}
         </div>
       </div>
@@ -535,37 +657,54 @@ function topologyList(host: Host, doc: Doc, p: Panel): TemplateResult {
             + ${t`Add line`}
           </button>
         </div>
-        <table class="w-table">
-          <thead>
-            <tr>
-              <th>${t`Line`}</th>
-              <th>${t`Name`}</th>
-              <th>${t`Devices`}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${lines.map(
-              (l) =>
-                html`<tr
-                  @dblclick=${() => select(host, p, `line:${l.address}`)}
-                  @contextmenu=${rowMenu(host, p, `line:${l.address}`)}
+        ${dataTable<Doc["lines"][number]>(
+          host,
+          "area-lines",
+          [
+            {
+              id: "line",
+              label: t`Line`,
+              sort: (l) => Number(String(l.address).split(".")[1]),
+              cell: (l) =>
+                html`<button
+                  class="w-link"
+                  @click=${() => select(host, p, `line:${l.address}`)}
                 >
-                  <td>
-                    <button
-                      class="w-link"
-                      @click=${() => select(host, p, `line:${l.address}`)}
-                    >
-                      ${l.address}
-                    </button>
-                  </td>
-                  ${nameCell(host, p, `line:${l.address}`, typeof l.name === "string" ? l.name : "")}
-                  <td>
-                    ${doc.devices.filter((d) => E.lineOf(d) === String(l.address)).length}
-                  </td>
-                </tr>`,
-            )}
-          </tbody>
-        </table>
+                  ${l.address}
+                </button>`,
+            },
+            {
+              id: "name",
+              label: t`Name`,
+              sort: (l) => (typeof l.name === "string" ? l.name : ""),
+              td: (l) =>
+                nameCell(
+                  host,
+                  p,
+                  `line:${l.address}`,
+                  typeof l.name === "string" ? l.name : "",
+                ),
+            },
+            {
+              id: "devices",
+              label: t`Devices`,
+              sort: (l) =>
+                doc.devices.filter((d) => E.lineOf(d) === String(l.address))
+                  .length,
+              cell: (l) =>
+                doc.devices.filter((d) => E.lineOf(d) === String(l.address))
+                  .length,
+            },
+          ],
+          lines,
+          (l, cells) =>
+            html`<tr
+              @dblclick=${() => select(host, p, `line:${l.address}`)}
+              @contextmenu=${rowMenu(host, p, `line:${l.address}`)}
+            >
+              ${cells}
+            </tr>`,
+        )}
       </div>
       ${tabs(host, p, "area", [["lines", t`Lines`]])}`;
   }
@@ -575,6 +714,9 @@ function topologyList(host: Host, doc: Doc, p: Panel): TemplateResult {
 
 function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
   const sel = p.sel ?? "gar";
+  /** Number of addresses under a prefix ("1/" or "1/2/"). */
+  const count = (prefix: string) =>
+    doc.groupAddresses.filter((g) => g.address.startsWith(prefix)).length;
   const [kind, rest] = [sel.split(":")[0]!, sel.slice(sel.indexOf(":") + 1)];
   const nameField = (address: string, label: string) =>
     html`<label class="g-field"
@@ -610,6 +752,8 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
     const gas = doc.groupAddresses
       .filter((g) => g.address.startsWith(`${rest}/`))
       .sort((a, b) => parts(a.address)[2]! - parts(b.address)[2]!);
+    const links = (g: E.Ga) =>
+      E.gaMemberCandidates(doc, g.address).filter((c) => c.member).length;
     return html`<div class="w-content">
         <div class="w-bar">
           ${nameField(rest, t`Name of middle group ${rest}`)}
@@ -628,46 +772,58 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
             + ${t`Add group address`}
           </button>
         </div>
-        <table class="w-table">
-          <thead>
-            <tr>
-              <th>${t`Address`}</th>
-              <th>${t`Name`}</th>
-              <th>${t`DPT`}</th>
-              <th>${t`Links`}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${gas.map((g) => {
-              const drop = objTarget(host, g.address);
-              const n = E.gaMemberCandidates(doc, g.address).filter(
-                (c) => c.member,
-              ).length;
-              return html`<tr
-                draggable="true"
-                title=${t`Drag onto a group object to link it`}
-                @dragstart=${(e: DragEvent) => startGa(host, e, g.address)}
-                @dragover=${drop.over}
-                @dragleave=${drop.leave}
-                @drop=${drop.drop}
-                @dblclick=${() => select(host, p, `ga:${g.address}`)}
-                @contextmenu=${rowMenu(host, p, `ga:${g.address}`)}
-              >
-                <td>
-                  <button
-                    class="w-link"
-                    @click=${() => select(host, p, `ga:${g.address}`)}
-                  >
-                    ${g.address}
-                  </button>
-                </td>
-                ${nameCell(host, p, `ga:${g.address}`, g.name ?? "")}
-                <td>${E.gaDpt(doc, g.address) ?? ""}</td>
-                <td>${n}</td>
-              </tr>`;
-            })}
-          </tbody>
-        </table>
+        ${dataTable<E.Ga>(
+          host,
+          "middle-addresses",
+          [
+            {
+              id: "address",
+              label: t`Address`,
+              sort: (g) => parts(g.address)[2]!,
+              cell: (g) =>
+                html`<button
+                  class="w-link"
+                  @click=${() => select(host, p, `ga:${g.address}`)}
+                >
+                  ${g.address}
+                </button>`,
+            },
+            {
+              id: "name",
+              label: t`Name`,
+              sort: (g) => g.name ?? "",
+              td: (g) => nameCell(host, p, `ga:${g.address}`, g.name ?? ""),
+            },
+            {
+              id: "dpt",
+              label: t`DPT`,
+              sort: (g) => E.gaDpt(doc, g.address) ?? "",
+              cell: (g) => E.gaDpt(doc, g.address) ?? "",
+            },
+            {
+              id: "links",
+              label: t`Links`,
+              sort: (g) => links(g),
+              cell: (g) => links(g),
+            },
+          ],
+          gas,
+          (g, cells) => {
+            const drop = objTarget(host, g.address);
+            return html`<tr
+              draggable="true"
+              title=${t`Drag onto a group object to link it`}
+              @dragstart=${(e: DragEvent) => startGa(host, e, g.address)}
+              @dragover=${drop.over}
+              @dragleave=${drop.leave}
+              @drop=${drop.drop}
+              @dblclick=${() => select(host, p, `ga:${g.address}`)}
+              @contextmenu=${rowMenu(host, p, `ga:${g.address}`)}
+            >
+              ${cells}
+            </tr>`;
+          },
+        )}
         ${gas.length ? nothing : html`<p class="w-empty">${t`No group address in this middle group.`}</p>`}
       </div>
       ${tabs(host, p, "mid", [["addresses", t`Group addresses`]])}`;
@@ -693,39 +849,44 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
             + ${t`Add middle group`}
           </button>
         </div>
-        <table class="w-table">
-          <thead>
-            <tr>
-              <th>${t`Middle group`}</th>
-              <th>${t`Name`}</th>
-              <th>${t`Addresses`}</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${middles
-              .filter((x) => parts(x)[0] === m)
-              .map(
-                (mid) =>
-                  html`<tr
-                    @dblclick=${() => select(host, p, `mid:${mid}`)}
-                    @contextmenu=${rowMenu(host, p, `mid:${mid}`)}
-                  >
-                    <td>
-                      <button
-                        class="w-link"
-                        @click=${() => select(host, p, `mid:${mid}`)}
-                      >
-                        ${mid}
-                      </button>
-                    </td>
-                    ${nameCell(host, p, `mid:${mid}`, rangeName(doc, mid))}
-                    <td>
-                      ${doc.groupAddresses.filter((g) => g.address.startsWith(`${mid}/`)).length}
-                    </td>
-                  </tr>`,
-              )}
-          </tbody>
-        </table>
+        ${dataTable<string>(
+          host,
+          "main-middles",
+          [
+            {
+              id: "middle",
+              label: t`Middle group`,
+              sort: (mid) => parts(mid)[1]!,
+              cell: (mid) =>
+                html`<button
+                  class="w-link"
+                  @click=${() => select(host, p, `mid:${mid}`)}
+                >
+                  ${mid}
+                </button>`,
+            },
+            {
+              id: "name",
+              label: t`Name`,
+              sort: (mid) => rangeName(doc, mid),
+              td: (mid) => nameCell(host, p, `mid:${mid}`, rangeName(doc, mid)),
+            },
+            {
+              id: "addresses",
+              label: t`Addresses`,
+              sort: (mid) => count(`${mid}/`),
+              cell: (mid) => count(`${mid}/`),
+            },
+          ],
+          middles.filter((x) => parts(x)[0] === m),
+          (mid, cells) =>
+            html`<tr
+              @dblclick=${() => select(host, p, `mid:${mid}`)}
+              @contextmenu=${rowMenu(host, p, `mid:${mid}`)}
+            >
+              ${cells}
+            </tr>`,
+        )}
       </div>
       ${tabs(host, p, "main", [["middle", t`Middle groups`]])}`;
   }
@@ -747,37 +908,45 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
           + ${t`Add main group`}
         </button>
       </div>
-      <table class="w-table">
-        <thead>
-          <tr>
-            <th>${t`Main group`}</th>
-            <th>${t`Name`}</th>
-            <th>${t`Addresses`}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${mains.map(
-            (m) =>
-              html`<tr
-                @dblclick=${() => select(host, p, `main:${m}`)}
-                @contextmenu=${rowMenu(host, p, `main:${m}`)}
+      ${dataTable<number>(
+        host,
+        "main-groups",
+        [
+          {
+            id: "main",
+            label: t`Main group`,
+            sort: (m) => m,
+            cell: (m) =>
+              html`<button
+                class="w-link"
+                @click=${() => select(host, p, `main:${m}`)}
               >
-                <td>
-                  <button
-                    class="w-link"
-                    @click=${() => select(host, p, `main:${m}`)}
-                  >
-                    ${m}
-                  </button>
-                </td>
-                ${nameCell(host, p, `main:${m}`, rangeName(doc, String(m)))}
-                <td>
-                  ${doc.groupAddresses.filter((g) => parts(g.address)[0] === m).length}
-                </td>
-              </tr>`,
-          )}
-        </tbody>
-      </table>
+                ${m}
+              </button>`,
+          },
+          {
+            id: "name",
+            label: t`Name`,
+            sort: (m) => rangeName(doc, String(m)),
+            td: (m) =>
+              nameCell(host, p, `main:${m}`, rangeName(doc, String(m))),
+          },
+          {
+            id: "addresses",
+            label: t`Addresses`,
+            sort: (m) => count(`${m}/`),
+            cell: (m) => count(`${m}/`),
+          },
+        ],
+        mains,
+        (m, cells) =>
+          html`<tr
+            @dblclick=${() => select(host, p, `main:${m}`)}
+            @contextmenu=${rowMenu(host, p, `main:${m}`)}
+          >
+            ${cells}
+          </tr>`,
+      )}
     </div>
     ${tabs(host, p, "gar", [["main", t`Main groups`]])}`;
 }
@@ -799,41 +968,55 @@ function catalogList(host: Host, doc: Doc, p: Panel): TemplateResult {
   };
   const current = shown.find((e) => e.value === ws.catalogSel);
   return html`<div class="w-content">
-      <table class="w-table">
-        <thead>
-          <tr>
-            <th>${t`Name`}</th>
-            <th>${t`Application`}</th>
-            <th>${t`Group objects`}</th>
-            <th>${t`Channels`}</th>
-          </tr>
-        </thead>
-        <tbody>
-          ${shown.map(
-            (e) =>
-              html`<tr
-                class=${e.value === ws.catalogSel ? "sel" : ""}
-                draggable="true"
-                title=${e.hint}
-                @dragstart=${(ev: DragEvent) => {
-                  ev.dataTransfer?.setData("application/x-bd-device", e.value);
-                  if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
-                }}
-                @click=${() => {
-                  ws.catalogSel = e.value;
-                  host.requestUpdate();
-                }}
-                @dblclick=${() => add(e.value)}
-                @contextmenu=${rowMenu(host, p, `entry:${e.value}`)}
-              >
-                <td>${e.label}</td>
-                <td><code>${e.behavior}</code></td>
-                <td>${e.objects.length || ""}</td>
-                <td>${e.channels || ""}</td>
-              </tr>`,
-          )}
-        </tbody>
-      </table>
+      ${dataTable<(typeof shown)[number]>(
+        host,
+        "catalog",
+        [
+          {
+            id: "name",
+            label: t`Name`,
+            sort: (e) => e.label,
+            cell: (e) => e.label,
+          },
+          {
+            id: "application",
+            label: t`Application`,
+            sort: (e) => e.behavior,
+            cell: (e) => html`<code>${e.behavior}</code>`,
+          },
+          {
+            id: "objects",
+            label: t`Group objects`,
+            sort: (e) => e.objects.length,
+            cell: (e) => e.objects.length || "",
+          },
+          {
+            id: "channels",
+            label: t`Channels`,
+            sort: (e) => e.channels,
+            cell: (e) => e.channels || "",
+          },
+        ],
+        shown,
+        (e, cells) =>
+          html`<tr
+            class=${e.value === ws.catalogSel ? "sel" : ""}
+            draggable="true"
+            title=${e.hint}
+            @dragstart=${(ev: DragEvent) => {
+              ev.dataTransfer?.setData("application/x-bd-device", e.value);
+              if (ev.dataTransfer) ev.dataTransfer.effectAllowed = "copy";
+            }}
+            @click=${() => {
+              ws.catalogSel = e.value;
+              host.requestUpdate();
+            }}
+            @dblclick=${() => add(e.value)}
+            @contextmenu=${rowMenu(host, p, `entry:${e.value}`)}
+          >
+            ${cells}
+          </tr>`,
+      )}
       ${
         current
           ? html`<div class="w-detail">

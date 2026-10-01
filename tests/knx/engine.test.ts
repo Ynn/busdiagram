@@ -102,6 +102,14 @@ describe("compatibility of the six unchanged v1 scenarios", () => {
       loadShedding: false,
       relayMode: "normallyOpen",
       statusDelayMs: 300,
+      onDelayMs: 0,
+      offDelayMs: 0,
+      lockStart: "unchanged",
+      afterLock: "lastCommand",
+      logicOperation: "and",
+      sceneLearning: true,
+      busFailure: "unchanged",
+      busRecovery: "previous",
       afterForcing: "lastCommand",
     });
     expect(switchActuator.channels[1]!.parameters.timerMs).toBeNull();
@@ -112,7 +120,7 @@ describe("compatibility of the six unchanged v1 scenarios", () => {
       10000,
     );
     expect(
-      shutterActuator.channels[0]!.equipmentConfig?.parameters
+      shutterActuator.channels[0]!.equipmentConfigs[0]?.parameters
         .actualTravelTimeMs,
     ).toBe(10000);
     expect(shutterActuator.objects.map((o) => o.port)).toEqual([
@@ -340,5 +348,63 @@ describe("step by step", () => {
     expect(kinds[0]).toMatch(/^object-write-accepted:c1\+output-changed:c1/);
     expect(kinds[1]).toBe("timer-fired:c1+telegram-emitted:c1");
     expect(kinds[2]).toBe("coupler-decision:LC1.1");
+  });
+});
+
+describe("group reads (KNX Application Layer)", () => {
+  it("a device sends one response, from its first object with R, on its sending address", async () => {
+    const { createSimulator } = await import("../../src/core");
+    const sim = createSimulator({
+      formatVersion: 2,
+      title: "Read",
+      lines: [{ address: "1.1" }],
+      groupAddresses: [
+        { address: "1/1/1", name: "Status", dpt: "1.001" },
+        { address: "1/1/2", name: "Other", dpt: "1.001" },
+      ],
+      devices: [
+        {
+          id: "p",
+          address: "1.1.1",
+          kind: "generic",
+          behavior: "passive/v1",
+          objects: [
+            {
+              id: "a",
+              ga: ["1/1/2", "1/1/1"],
+              dpt: "1.001",
+              port: "display",
+              value: 1,
+              flags: { R: true, W: true, T: false },
+            },
+            {
+              id: "b",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "display",
+              value: 0,
+              flags: { R: true, W: true, T: false },
+            },
+          ],
+        },
+        {
+          id: "usb",
+          address: "1.1.2",
+          kind: "generic",
+          behavior: "usbInterface/v1",
+          objects: [],
+        },
+      ],
+    });
+    const responses: { ga: string; value: unknown }[] = [];
+    sim.onTelegram(
+      (t) =>
+        t.service === "GroupValueResponse" &&
+        responses.push({ ga: t.ga, value: t.value }),
+    );
+    sim.groupRead("usb", "1/1/1");
+    sim.advance(5000);
+    // "a" comes first in the table: it answers on its sending address 1/1/2; "b" stays silent.
+    expect(responses).toEqual([{ ga: "1/1/2", value: 1 }]);
   });
 });

@@ -81,6 +81,16 @@ diagram.setClock("2026-10-01T06:59:30");
 new Date(diagram.getState().clock.nowMs).toISOString(); // clock time, read as UTC fields
 ```
 
+## Cut the bus voltage
+
+`setBusVoltage` cuts or restores the bus voltage of a line segment, as a click on its power supply does; see [bus voltage failure](devices.html#bus-voltage-failure-and-recovery):
+
+```js
+diagram.setBusVoltage("L1.2", false);
+diagram.getState().unpoweredSegments; // ["L1.2"]
+diagram.setBusVoltage("L1.2", true);
+```
+
 ## Use the engine without a page
 
-`createSimulator(json)` from `src/core.ts` creates a DOM-free simulation for tests or tools. It exposes `input()`, `groupWrite()`, `groupRead()`, `advance()`, `getState()`, and `subscribe()`.
+`createSimulator(json)` from `src/core.ts` creates a DOM-free simulation for tests or tools. It exposes `input()`, `groupWrite()`, `groupRead()`, `setBusVoltage()`, `advance()`, `getState()`, and `subscribe()`. For a contact input of a push-button interface, `input(deviceId, channelId, "down")` presses the key and `"up"` releases it.

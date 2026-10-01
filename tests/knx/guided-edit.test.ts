@@ -239,7 +239,7 @@ describe("guided designer: rooms and heating", () => {
     expect(
       s.devices
         .find((d) => d.kind === "heatingActuator")!
-        .channels.map((c) => c.equipmentConfig?.room),
+        .channels.map((c) => c.equipmentConfigs[0]?.room),
     ).toEqual(["room1", "room1"]);
   });
 
@@ -611,5 +611,56 @@ describe("group names in the designer", () => {
     E.setGroupRangeName(doc, "1", "");
     expect(doc.groupRanges).toBeUndefined();
     valid(doc);
+  });
+});
+
+describe("guided designer: values entered in the diagram", () => {
+  it("an input is added, changed, and removed; it needs a group address", () => {
+    const doc = v2("boiler-room.json");
+    const meter = doc.devices.find((d) => d.behavior === "energyMeter/v1")!;
+    const energy = meter.objects.find((o) => o.port === "energy")!;
+    expect(E.inputOf(meter, energy.id)).toBeUndefined();
+    E.setInput(doc, meter.id, energy.id, {
+      label: "Index",
+      min: 0,
+      max: 100000,
+    });
+    const added = E.inputOf(meter, energy.id)!;
+    expect(added).toMatchObject({
+      type: "number",
+      label: "Index",
+      max: 100000,
+    });
+    valid(doc);
+    E.setInput(doc, meter.id, energy.id, { ...added, max: 50000, step: 10 });
+    expect(E.inputOf(meter, energy.id)).toMatchObject({ max: 50000, step: 10 });
+    E.setInput(doc, meter.id, energy.id, null);
+    expect(E.inputOf(meter, energy.id)).toBeUndefined();
+    valid(doc);
+    // Without a group address, an entered value could not be sent.
+    const free = { ...energy, id: "free", ga: [] };
+    meter.objects.push(free);
+    expect(() => E.setInput(doc, meter.id, "free", {})).toThrow(E.EditRefusal);
+  });
+
+  it("deleting an object deletes its input", () => {
+    const doc = v2("boiler-room.json");
+    const meter = doc.devices.find((d) => d.behavior === "energyMeter/v1")!;
+    const input = meter.inputs![0]!;
+    E.removeObject(doc, meter.id, input.object);
+    expect(meter.inputs?.some((n) => n.object === input.object)).toBeFalsy();
+    valid(doc);
+  });
+
+  it("an energy meter has channels in the designer, without connected loads", async () => {
+    const { hasChannels, layoutOf } =
+      await import("../../site/designer/params");
+    const { captureRegistry } = await import("../../src/knx/registry");
+    const def = captureRegistry().behaviors.get("energyMeter/v1")!;
+    expect(hasChannels(def)).toBe(true);
+    const ports = layoutOf(def).channel.flatMap((p) =>
+      p.items.flatMap((i) => ("groupObject" in i ? [i.groupObject] : [])),
+    );
+    expect(ports).toEqual(expect.arrayContaining(["power", "energy"]));
   });
 });

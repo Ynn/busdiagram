@@ -6,3 +6,5 @@ src/knx/scenario-v2.generated.ts
 schema/scenario-v2.schema.json
 examples/extensions/*.js
 demo/
+# Pages of the documentation keep compact Markdown tables (no column padding).
+site/pages/**/*.md

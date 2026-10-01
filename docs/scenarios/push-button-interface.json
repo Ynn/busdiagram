@@ -1,0 +1,373 @@
+{
+  "formatVersion": 2,
+  "title": "Push-button interface: one-key dimming and blind, scene storing",
+  "description": "Each input of the interface is wired to a conventional push-button and has one function. The interface measures short and long presses itself: hold a key and release it. Input 2 dims on one key (short press toggles, long press dims brighter or darker in turn, release stops); input 3 moves the blind on one key (long press moves, the direction alternates, short press stops); input 4 recalls scene 1 with a short press and stores it with a long press (DPT 18.001), so each actuator keeps its current state as the new scene.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 320
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1 switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "L2 switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/2/2",
+      "name": "L2 relative dimming",
+      "dpt": "3.007"
+    },
+    {
+      "address": "1/3/1",
+      "name": "Blind up/down",
+      "dpt": "1.008"
+    },
+    {
+      "address": "1/3/2",
+      "name": "Blind stop/step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 switch status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/2",
+      "name": "L2 switch status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/5/1",
+      "name": "Scene control",
+      "dpt": "18.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Input 1 switching",
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "sw2",
+          "name": "Input 2 switching",
+          "ga": [
+            "1/1/2",
+            "1/4/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "dim2",
+          "name": "Input 2 dimming",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "in2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "mv3",
+          "name": "Input 3 up/down",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in3",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "st3",
+          "name": "Input 3 stop/step",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sc4",
+          "name": "Input 4 scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "value",
+          "channel": "in4",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1 · Light",
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Input 2 · Dimming",
+          "parameters": {
+            "function": "dim"
+          },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Input 3 · Blind",
+          "parameters": {
+            "function": "blind"
+          },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Input 4 · Scene",
+          "parameters": {
+            "function": "scene",
+            "sceneStore": true
+          },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st",
+          "name": "Status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          },
+          "scenes": {
+            "1": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "dimmerActuator",
+      "name": "Dimming actuator",
+      "address": "1.1.3",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Switch",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "dim",
+          "name": "Relative dimming",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st",
+          "name": "Status",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "d1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "d1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "d1",
+          "label": "L2",
+          "parameters": {
+            "dimTimeMs": 4000
+          },
+          "equipment": {
+            "type": "dimmableLamp"
+          },
+          "scenes": {
+            "1": 60
+          }
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.4",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "mv",
+          "name": "Up/down",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st",
+          "name": "Stop/step",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Blind",
+          "parameters": {
+            "estimatedTravelTimeMs": 20000
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 20000
+            }
+          },
+          "scenes": {
+            "1": 0
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

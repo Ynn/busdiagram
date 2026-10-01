@@ -27,6 +27,60 @@ export interface ParamProperty {
   default?: unknown;
 }
 
+/**
+ * Organization of the parameters of a behavior in the designer, as pages: pages of the
+ * whole device, then pages repeated for each channel. Every parameter that no page
+ * places is still shown, on an automatic page. Texts are written in English and
+ * translated like parameter titles.
+ */
+export interface ParameterLayout {
+  /** Pages of the device, after its General page (name, line, address). */
+  readonly device?: readonly ParameterPage[];
+  /** Pages repeated for each channel, grouped under it (an output, a group). */
+  readonly channel?: readonly ParameterPage[];
+}
+
+export interface ParameterPage {
+  readonly id: string;
+  readonly title: string;
+  readonly items: readonly ParameterItem[];
+}
+
+/**
+ * Content of a page, one item per row: a parameter (of the device on a device page, of
+ * the channel on a channel page), an initial state of the channel, the box that enables
+ * the group object of a port, a heading, a note, the scenes of a channel, or items shown
+ * only under a condition on a parameter.
+ */
+export type ParameterItem =
+  | { readonly parameter: string }
+  | { readonly initialState: string }
+  | { readonly groupObject: string }
+  | { readonly heading: string }
+  | { readonly note: string }
+  | { readonly scenes: true }
+  | {
+      readonly when: ParameterCondition;
+      readonly items: readonly ParameterItem[];
+    };
+
+/**
+ * Condition of a `when` item: on the current value of a parameter (its default value
+ * when absent), or on a group object being enabled.
+ */
+export type ParameterCondition =
+  | {
+      readonly parameter: string;
+      /** Shown when the value is one of these. */
+      readonly is?: readonly JsonValue[];
+      /** Shown when the value is none of these. */
+      readonly not?: readonly JsonValue[];
+    }
+  | {
+      /** Shown when the group object of this port is enabled. */
+      readonly groupObject: string;
+    };
+
 export interface ParamSchema {
   type: "object";
   description?: string;
@@ -96,6 +150,13 @@ export interface ButtonInfo {
   /** Release after a long press (for example, to stop dimming). */
   readonly release: ButtonActionInfo | null;
   readonly led: string | null;
+  /** The LED is lit while the object `led` is 0 (and off while it is 1). */
+  readonly ledInverted?: boolean;
+  /**
+   * Contact input of a device with `contactInputs`: the key reports when it is pressed
+   * and released (gestures "down" and "up"); the device measures the press itself.
+   */
+  readonly contact?: boolean;
 }
 
 export interface NumberInputInfo {
@@ -115,8 +176,10 @@ export interface ChannelInfo {
   readonly initialState: Readonly<JsonObject>;
   /** Stage presets: stage number 1–64 → value (0/1, percentage...). */
   readonly scenes: ReadonlyMap<number, number>;
-  /** Type of equipment connected, or null if the output is free. */
+  /** Type of the first load connected, or null if the output is free. */
   readonly equipment: string | null;
+  /** Types of all the loads connected, in order; they receive the same commands. */
+  readonly loads: readonly string[];
 }
 
 /** Exhibit: Physical dimensions that a sensor can measure (read only). */
@@ -144,7 +207,13 @@ export interface DeviceInfo {
   readonly channels: readonly ChannelInfo[];
 }
 
-export type Gesture = "press" | "short" | "long" | "release" | "value";
+/**
+ * Gesture on a key or an input: the actions of a configured key (press, short, long,
+ * release), an entered value, or the edges of a contact input (down when it is pressed,
+ * up when it is released).
+ */
+export type Gesture =
+  "press" | "short" | "long" | "release" | "value" | "down" | "up";
 
 export interface InputEvent {
   /** ID of a device key or digital input. */
@@ -182,8 +251,9 @@ export interface BehaviorContext<S = unknown> {
    * State of the load connected to the channel, as an actuator can read it
    * (for example, a DALI ballast). Read only; null when no equipment is connected.
    */
-  readEquipment(channelId: string): Readonly<JsonObject> | null;
-  /** Electrical power (W) drawn by the load of the channel; null if the load does not model it. */
+  /** State of a load of a channel: the first one, or the one at `index` (see `ChannelInfo.loads`). */
+  readEquipment(channelId: string, index?: number): Readonly<JsonObject> | null;
+  /** Electrical power (W) drawn through the channel: the sum of its loads; null if none models it. */
   readPower(channelId: string): number | null;
   /** Device room (`device.room`), where its sensors take measurements; null if unassigned. */
   readRoom(): RoomInfo | null;
@@ -218,10 +288,11 @@ export interface BehaviorPort {
   /** Short label for forms (such as "Status feedback"). */
   title?: string;
   /**
-   * "in": the object receives (W true, T false); "out": the object emits (W false, T true).
+   * "in": the object receives (W true, T false); "out": the object emits (W false, T true);
+   * "both": it emits and listens to the state, as a push-button that toggles (W and T true).
    * Provides form defaults; flags remain editable.
    */
-  direction?: "in" | "out";
+  direction?: "in" | "out" | "both";
   description?: string;
 }
 
@@ -233,12 +304,28 @@ export interface BehaviorDefinition<S = unknown> {
   channelParameters?: ParamSchema;
   /** Initial application status of each channel (`channels[].initialState`). */
   channelInitialState?: ParamSchema;
+  /** Pages of parameters in the designer; derived from the schemas when absent. */
+  parameterLayout?: ParameterLayout;
   /** Ports of accepted objects, with their DPTs. */
   ports: Record<string, BehaviorPort>;
   /** Type of output control emitted by this behavior ("switch", "motor"). */
   output?: OutputCommand["type"];
   /** Does this behavior use local keys or inputs? */
   acceptsInputs?: boolean;
+  /**
+   * Each channel is a contact input (a key on the diagram): the device receives the
+   * edges "down" and "up" and measures short and long presses itself, in simulated time.
+   */
+  contactInputs?: boolean;
+  /**
+   * Key of a contact input channel on the diagram: its icon (a key icon name), the object
+   * that its LED shows, and whether the LED is lit for 0. Without it, the key has the
+   * toggle icon and the LED shows the channel's `led` object.
+   */
+  contactKey?(
+    channel: ChannelInfo,
+    objects: readonly ObjectInfo[],
+  ): { icon?: string; led?: string | null; ledInverted?: boolean };
   createState(device: DeviceInfo): S;
   onInit?(ctx: BehaviorContext<S>): void;
   onInput?(ctx: BehaviorContext<S>, input: InputEvent): void;
@@ -250,6 +337,14 @@ export interface BehaviorDefinition<S = unknown> {
    */
   onRoomChange?(ctx: BehaviorContext<S>, room: RoomInfo): void;
   onTimer?(ctx: BehaviorContext<S>, key: string, payload: JsonValue): void;
+  /**
+   * The bus voltage of the device's segment fails. The device can still set its outputs
+   * (a relay switched by stored energy); then it stops: its timers are cancelled, and it
+   * neither receives nor sends until the voltage returns.
+   */
+  onBusFailure?(ctx: BehaviorContext<S>): void;
+  /** The bus voltage returns after a failure; the device starts again with its state. */
+  onBusRecovery?(ctx: BehaviorContext<S>): void;
   /** The simulated clock was set to another time (setClock); reschedule clock-based deadlines. */
   onClockChange?(ctx: BehaviorContext<S>): void;
   /** Device application state for display, excluding channel state (setpoint, mode, etc.). */
@@ -389,5 +484,7 @@ export interface SimSnapshot {
   equipment: Record<string, EquipmentSnapshot>;
   rooms: Record<string, RoomSnapshot>;
   telegramsInFlight: number;
+  /** Segments whose bus voltage is cut (`L1.1`, `L1.1b`…). */
+  unpoweredSegments: string[];
   diagnostics: Diagnostic[];
 }

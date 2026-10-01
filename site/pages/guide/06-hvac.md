@@ -40,7 +40,7 @@ A DPT 9.001 value uses two payload bytes after the APCI. Until an object receive
 
 `roomThermostat/v1` measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.
 
-The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; otherwise presence requests comfort; otherwise the `hvacMode` preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to `comfortC: 21`. Standby and economy lower it through `standbyShiftK` and `economyShiftK`; frost protection defaults to `frostProtectionC: 7`. Cooling uses `deadZoneK` between heating and cooling setpoints and a high-temperature protection setpoint.
+The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by `hvacMode` (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the `hvacMode` preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to `comfortC: 21`. Standby and economy lower it through `standbyShiftK` and `economyShiftK`; frost protection defaults to `frostProtectionC: 7`. Cooling uses `deadZoneK` between heating and cooling setpoints and a high-temperature protection setpoint.
 
 For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTimeMs`. It sends a DPT 5.001 value on `heatingValue` or `coolingValue` when the change reaches `valueSendDeltaPct`; a one-bit `heatingSwitch` or `coolingSwitch` output uses PWM over `pwmCycleMs`. For **two-point control**, `controlType: "twoPoint"` switches a one-bit output at the setpoint and restarts below the `hysteresisK` threshold.
 
@@ -52,7 +52,7 @@ For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTi
 | `setpointShift` | 9.002 | Receive | Setpoint offset. |
 | `setpointStatus` | 9.001 | Send | Current setpoint. |
 | `hvacMode` / `hvacModeStatus` | 20.102 | Receive / send | Requested and current mode. |
-| `presence` | 1.018 or 1.001 | Receive | Presence requests comfort. |
+| `presence` | 1.018 or 1.001 | Receive | Presence requests comfort, except during building protection. |
 | `window` | 1.019, 1.001, or 1.009 | Receive | Open window requests protection; with 1.009, 0 means open. |
 | `heatCool` / `heatCoolStatus` | 1.100 | Receive / send | Heating or cooling selection. |
 | `heatingValue` / `coolingValue` | 5.001 | Send | Continuous control value. |

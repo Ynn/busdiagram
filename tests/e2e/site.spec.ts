@@ -106,7 +106,7 @@ test("documentation has valid internal links and anchors", () => {
       if (!html.includes(`id="${id}"`))
         broken.push(`search → ${entry.u}#${id}`);
   }
-  expect(search).toHaveLength(64);
+  expect(search).toHaveLength(66);
   expect(broken).toEqual([]);
 });
 
@@ -173,6 +173,31 @@ test("JavaScript examples cover create, event log, and programmatic control", as
   await page.click("#c-state");
   await expect(page.locator("#ctrl-out")).toContainText("t = 1500 ms");
   await expect(page.locator("#ctrl-out")).toContainText("L1: on");
+  expect(w.errors).toEqual([]);
+});
+
+test("contact keys report press and release; a power supply cuts its line", async ({
+  page,
+}) => {
+  const w = watch(page);
+  await page.goto(url("examples/push-button-interface.html"));
+  const d = page.locator("bus-diagram").first();
+  // Input 2 dims on one key: held past the long-press time, then released.
+  const key = d.locator("button.key", { hasText: "Input 2" });
+  await key.dispatchEvent("pointerdown", { pointerId: 1, button: 0 });
+  await page.waitForTimeout(1200);
+  await key.dispatchEvent("pointerup", { pointerId: 1, button: 0 });
+  const values = d.locator(".mon tbody tr");
+  await expect(values.first()).toContainText("1/2/2", { timeout: 5000 });
+  await expect(values.nth(1)).toContainText("1/2/2");
+
+  await page.goto(url("examples/bus-voltage.html"));
+  const d2 = page.locator("bus-diagram").first();
+  await d2.locator("button.psu", { hasText: "640" }).click({ force: true });
+  await expect(d2.locator("button.psu.off")).toHaveCount(1);
+  await expect(d2.locator(".card.unpowered")).toHaveCount(1);
+  await d2.locator("button.psu.off").click({ force: true });
+  await expect(d2.locator(".card.unpowered")).toHaveCount(0);
   expect(w.errors).toEqual([]);
 });
 
@@ -276,6 +301,8 @@ test.describe("designer", () => {
     await expect(items).toHaveText([
       "energy",
       "forced",
+      "lock",
+      "logic",
       "power",
       "powerLimit",
       "scene",
@@ -355,7 +382,7 @@ test.describe("guided designer", () => {
       (window as unknown as { designer: { text(): string } }).designer.text(),
     );
 
-  // ETS-like workspace: panel 0 shows the topology, panel 1 the group addresses.
+  // Workspace: panel 0 shows the topology, panel 1 the group addresses.
   const topoPanel = (page: Page) =>
     page.locator("bd-guided .w-panel[data-content=topology]");
   const gaPanel = (page: Page) =>
@@ -405,26 +432,32 @@ test.describe("guided designer", () => {
       label: "4-key push button",
     });
     // The new device is selected in the topology; the overview adds the next one.
-    await expect(selectedNode(page)).toContainText("4-key push button");
+    // The type names the device; its number of keys is a setting.
+    await expect(selectedNode(page)).toContainText("Push-button");
     await toTopology(page);
     await page.selectOption("select.g-add >> nth=0", {
       label: "6-output switch actuator",
     });
-    await expect(selectedNode(page)).toContainText("6-output switch actuator");
+    await expect(selectedNode(page)).toContainText("Switch actuator");
     await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
 
     // Each output is a page of the parameter menu; all six listen to the Key 1 address.
-    const outputs = topoPanel(page).locator(".w-pitem", { hasText: /^\s*Output / });
+    const outputs = topoPanel(page).locator(".w-pitem", {
+      hasText: /^\s*Output /,
+    });
     await expect(outputs).toHaveCount(6);
-    await expect(outputs.first()).toHaveAttribute("title", /Lamp · no address/);
-    for (let i = 0; i < 6; i++) {
-      await outputs.nth(i).click();
-      await topoPanel(page)
-        .locator(".w-ppage .g-port", { hasText: "Command" })
-        .locator("select.g-plus")
-        .selectOption("1/1/1");
-      await expect(outputs.nth(i)).toHaveAttribute("title", /Command 1\/1\/1/);
-    }
+    // The page tree names the loads of an output; addresses only appear on group objects.
+    await expect(outputs.first()).toHaveAttribute("title", "Lamp");
+    // the parameters show the objects; links are made from the group address.
+    const actuator = JSON.parse(await designerText(page)).devices[1] as {
+      id: string;
+      objects: { id: string }[];
+    };
+    await openGa(page, "1/1/1", "Associations");
+    for (const o of actuator.objects)
+      await gaPanel(page)
+        .locator(".w-link-with")
+        .selectOption(`${actuator.id}/${o.id}`);
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     const doc = JSON.parse(await designerText(page)) as {
       devices: { objects: { ga: string | string[] }[] }[];
@@ -761,6 +794,10 @@ test.describe("guided designer", () => {
     await draft.getByRole("button", { name: "Add device" }).click();
     await expect(page.locator(".g-draft")).toHaveCount(0);
     await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
+    // Settings of an extension without declared pages: one page of parameters.
+    await topoPanel(page)
+      .locator(".w-pitem", { hasText: /^\s*Parameters\s*$/ })
+      .click();
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     // empty nullable field written null; display remains empty, not default 5.
     const opt = page
@@ -958,6 +995,10 @@ test.describe("guided designer", () => {
     await draft.getByRole("button", { name: "Add device" }).click();
     await expect(page.locator(".g-draft")).toHaveCount(0);
     await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
+    // Settings of an extension without declared pages: one page of parameters.
+    await topoPanel(page)
+      .locator(".w-pitem", { hasText: /^\s*Parameters\s*$/ })
+      .click();
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     // Nullable boolean offers three choices; null is written explicitly.
     const flag = page
@@ -1061,12 +1102,16 @@ test.describe("guided designer", () => {
     // copy the L1 timer to L2 and L3 without changing addresses.
     await openDevice(page, "Six-output switching actuator");
     await topoPanel(page).locator(".w-pitem", { hasText: "L1" }).click();
+    await topoPanel(page).locator(".w-pitem.sub", { hasText: "Timer" }).click();
     const timer = guided
       .locator("label.g-field", { hasText: "Timer" })
       .first()
       .locator("input");
     await timer.fill("15");
     await timer.press("Tab");
+    await topoPanel(page)
+      .locator(".w-pitem.sub", { hasText: "Function" })
+      .click();
     await guided.getByRole("button", { name: "Copy settings to…" }).click();
     const panel = guided.locator(".g-copy");
     await panel.getByLabel("L2").check();
@@ -1418,7 +1463,7 @@ test("guided designer renames a communication object", async ({ page }) => {
   await page.goto(url("designer/index.html#template=lighting-control"));
   await page.click("#tab-guided");
   await page.locator(".g-item", { hasText: "Push-button" }).first().click();
-  // As in ETS: double-click the name, type, and confirm with Enter.
+  // Double-click the name, type, and confirm with Enter.
   const guided = page.locator("bd-guided");
   await guided.getByRole("tab", { name: "Group objects" }).first().click();
   await guided.locator("tr[data-obj=key1] .w-name").dblclick();
@@ -1430,6 +1475,35 @@ test("guided designer renames a communication object", async ({ page }) => {
       (window as unknown as { designer: { text(): string } }).designer.text(),
     );
   await expect.poll(text).toContain('"name": "Ceiling light on"');
+  expect(w.errors).toEqual([]);
+});
+
+test("typing a parameter's default value removes its reset button", async ({
+  page,
+}) => {
+  const w = watch(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await page.goto(url("designer/index.html#template=lighting-control"));
+  await page.click("#tab-guided");
+  await page
+    .locator(".g-item", { hasText: "Four-output switching actuator" })
+    .first()
+    .click();
+  const guided = page.locator("bd-guided");
+  await guided.getByRole("tab", { name: "Parameters" }).first().click();
+  const group = guided.locator('.w-pgroup[data-page="ch:s1"]');
+  if ((await group.locator(".w-ptog").getAttribute("aria-expanded")) !== "true")
+    await group.locator(".w-ptog").click();
+  await guided.locator('[data-page="ch:s1:delays"]').first().click();
+  const field = guided.locator(".g-field", { hasText: "Switch-on delay" });
+  const input = field.locator("input");
+  await input.fill("2");
+  await input.press("Enter");
+  await expect(field.locator(".g-reset")).toHaveCount(1);
+  // Typing the default value (0) again: stored as absent, no reset button.
+  await input.fill("0");
+  await input.press("Enter");
+  await expect(field.locator(".g-reset")).toHaveCount(0);
   expect(w.errors).toEqual([]);
 });
 
@@ -1451,7 +1525,7 @@ async function drag(page: Page, source: Locator, target: Locator) {
   await page.mouse.up();
 }
 
-test.describe("designer workspace as in ETS", () => {
+test.describe("designer workspace", () => {
   const json = (page: Page) =>
     page.evaluate(() =>
       JSON.parse(
@@ -1616,9 +1690,12 @@ test.describe("designer workspace as in ETS", () => {
     await top(page).getByRole("tab", { name: "Parameters" }).click();
     await top(page).locator(".w-pitem", { hasText: "L2" }).click();
     await expect(top(page).locator(".w-ppage h3")).toContainText("Output L2");
+    await top(page).locator(".w-pitem.sub", { hasText: "Forcing" }).click();
 
     // Activating the forcing object creates it without address; it is then dragged onto a middle group.
-    await top(page).getByRole("checkbox", { name: "Forcing: active" }).check();
+    await top(page)
+      .getByRole("checkbox", { name: "Enable group object “Forcing”" })
+      .check();
     await expand(top(page), "dev:switchActuator");
     const forced = top(page).locator(
       ".w-node[data-key^='obj:switchActuator/f']",
@@ -1647,6 +1724,138 @@ test.describe("designer workspace as in ETS", () => {
       .getByRole("menuitem", { name: "Remove the line extension" })
       .click();
     await expect(node(top(page), "seg:1.1/1")).toHaveCount(0);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("several loads on one output; context menus of the parameter pages", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+    await node(top(page), "dev:switchActuator").click();
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    const loadsOf = async (ch: string) => {
+      const d = (await json(page)).devices.find(
+        (x: { id: string }) => x.id === "switchActuator",
+      );
+      const e = d.channels.find((c: { id: string }) => c.id === ch)?.equipment;
+      return e == null ? [] : [e].flat().map((l: { type: string }) => l.type);
+    };
+
+    // Output L1 › Connected loads: two more loads, wired in parallel.
+    await top(page)
+      .locator(".w-pgroup .w-pitem", { hasText: "Output L1" })
+      .click();
+    await top(page)
+      .locator(".w-pitem.sub", { hasText: "Connected loads" })
+      .click();
+    const add = top(page).getByRole("combobox", {
+      name: "Connect a load to L1",
+    });
+    await add.selectOption({ label: "Lamp" });
+    await add.selectOption({ label: "Appliance" });
+    await expect
+      .poll(() => loadsOf("s1"))
+      .toEqual(["lamp", "lamp", "appliance"]);
+    await expect(page.locator("#preview")).toContainText("L1 · 3");
+
+    // Context menu of a load: move it, then disconnect it.
+    await top(page)
+      .locator(".w-load[data-load='2'] legend")
+      .click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Move up" }).click();
+    await expect
+      .poll(() => loadsOf("s1"))
+      .toEqual(["lamp", "appliance", "lamp"]);
+    await top(page)
+      .locator(".w-load[data-load='1'] legend")
+      .click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Disconnect" }).click();
+    await expect.poll(() => loadsOf("s1")).toEqual(["lamp", "lamp"]);
+
+    // Context menu of an output in the page tree: delete it.
+    await top(page)
+      .locator(".w-pgroup .w-pitem", { hasText: "Output L4" })
+      .click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Delete output" }).click();
+    await expect
+      .poll(async () =>
+        (await json(page)).devices
+          .find((x: { id: string }) => x.id === "switchActuator")
+          .channels.map((c: { label: string }) => c.label),
+      )
+      .toEqual(["L1", "L2", "L3"]);
+    await expect(page.locator("#status")).toHaveText(/Valid scenario/);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("sortable and resizable tables; number of outputs; no address on parameter pages", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+    await node(top(page), "dev:switchActuator").click();
+    await top(page).getByRole("tab", { name: "Group objects" }).click();
+    const table = top(page).locator("table[data-table=objects]");
+    const firstCells = (col: number) =>
+      table.locator(`tbody tr td:nth-child(${col})`).allTextContents();
+
+    // The Channel column gives the output of each object.
+    await expect(table.locator("thead")).toContainText("Channel");
+    expect((await firstCells(3)).map((x) => x.trim())).toContain("L2");
+    // Sort by name, descending on a second click.
+    await table.locator("th .w-sort", { hasText: "Name" }).click();
+    const asc = (await firstCells(2)).map((x) => x.trim());
+    expect(asc).toEqual([...asc].sort((a, b) => a.localeCompare(b)));
+    await table.locator("th .w-sort", { hasText: "Name" }).click();
+    expect((await firstCells(2)).map((x) => x.trim())).toEqual(
+      [...asc].reverse(),
+    );
+    // Widen the Name column by dragging the edge of its header.
+    const th = table.locator("th", { hasText: "Name" });
+    const before = (await th.boundingBox())!.width;
+    const grip = (await th.locator(".w-colgrip").boundingBox())!;
+    await page.mouse.move(grip.x + 3, grip.y + 5);
+    await page.mouse.down();
+    await page.mouse.move(grip.x + 83, grip.y + 5, { steps: 5 });
+    await page.mouse.up();
+    expect((await th.boundingBox())!.width).toBeGreaterThan(before + 60);
+    // The same with the keyboard: arrows widen the column, Home returns to automatic widths.
+    const typeTh = table.locator("th", { hasText: "DPT" });
+    const dptWidth = (await typeTh.boundingBox())!.width;
+    await typeTh.locator(".w-colgrip").focus();
+    await page.keyboard.press("Shift+ArrowRight");
+    expect((await typeTh.boundingBox())!.width).toBeGreaterThan(dptWidth + 30);
+    await page.keyboard.press("Home");
+    await expect(table).not.toHaveClass(/fixed/);
+
+    // Parameters: no group address on any page; the number of outputs is a setting.
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    for (const item of await top(page).locator(".w-pmenu .w-pitem").all()) {
+      await item.click();
+      await expect(top(page).locator(".w-ppage")).not.toContainText(
+        /\d+\/\d+\/\d+/,
+      );
+    }
+    await top(page).locator(".w-pitem", { hasText: "Configuration" }).click();
+    const count = top(page).getByRole("spinbutton", {
+      name: "Number of outputs",
+    });
+    await count.fill("6");
+    await count.press("Tab");
+    await expect
+      .poll(
+        async () =>
+          (await json(page)).devices.find(
+            (x: { id: string }) => x.id === "switchActuator",
+          ).channels.length,
+      )
+      .toBe(6);
+    await expect(top(page).locator(".w-pgroup")).toHaveCount(6);
     expect(w.errors).toEqual([]);
   });
 

@@ -1,5 +1,7 @@
-// switchActuator/v1: multichannel on/off actuator, timer, scenes, status feedback,
-// priority override (DPT 2.001).
+// switchActuator/v1: multichannel on/off actuator, timer, delays, scenes with storing,
+// status feedback, priority override (DPT 2.001), lock, logic link, and behavior on bus
+// voltage failure and recovery.
+import { switchLayout } from "./layouts";
 import { toObjectUnit } from "../units";
 import type {
   BehaviorContext,
@@ -27,6 +29,20 @@ interface SwitchChannelState {
   beforeForcing: boolean | null;
   /** Switched off by load shedding (power limit); commands are stored meanwhile. */
   shed: boolean;
+  /** Locked by the lock object; commands are stored meanwhile. */
+  locked: boolean;
+  /** Condition of the relay when the lock began. */
+  beforeLock: boolean | null;
+  /** Value of the logic object, or null until it receives one. */
+  logic: number | null;
+  /** Command waiting for its switch-on or switch-off delay, or null. */
+  delayed: boolean | null;
+  /** End of that delay, or null. */
+  delayAtMs: number | null;
+  /** Scenes stored by a scene control telegram (DPT 18.001): scene → 0 or 1. */
+  learned: Record<string, number>;
+  /** Condition of the relay when the bus voltage failed. */
+  beforeFailure: boolean | null;
 }
 
 interface MeterChannel {
@@ -88,7 +104,19 @@ function setRelay(ctx: Ctx, ch: string, on: boolean) {
 const channelParams = (ctx: Ctx, ch: string) =>
   ctx.device.channels.find((c) => c.id === ch)?.parameters ?? {};
 
-/** Apply the requested state, unless the output is forced (the command remains stored). */
+/** State requested by the commands, combined with the logic object when it has a value. */
+function target(ctx: Ctx, ch: string) {
+  const st = ctx.state.channels[ch]!;
+  if (st.logic === null) return st.commanded;
+  return channelParams(ctx, ch).logicOperation === "or"
+    ? st.commanded || st.logic === 1
+    : st.commanded && st.logic === 1;
+}
+
+/**
+ * Apply the requested state, unless the output is forced, locked, or shed (the command
+ * remains stored). Priority: forcing, then lock, then load shedding.
+ */
 function follow(ctx: Ctx, ch: string) {
   const st = ctx.state.channels[ch]!;
   if (st.forced) {
@@ -99,11 +127,85 @@ function follow(ctx: Ctx, ch: string) {
     );
     return;
   }
+  if (st.locked) {
+    ctx.note(ctx.t`${ch}: output locked, command stored without effect`);
+    return;
+  }
   if (st.shed) {
     ctx.note(ctx.t`${ch}: output shed, command stored without effect`);
     return;
   }
-  setRelay(ctx, ch, st.commanded);
+  setRelay(ctx, ch, target(ctx, ch));
+}
+
+/** State after a forcing or a lock ends (afterForcing, afterLock). */
+function resume(
+  ctx: Ctx,
+  ch: string,
+  after: AfterForcing,
+  before: boolean | null,
+) {
+  const st = ctx.state.channels[ch]!;
+  if (after === "previous") st.commanded = before ?? st.commanded;
+  else if (after === "unchanged") st.commanded = st.on;
+  else if (after === "on" || after === "off") st.commanded = after === "on";
+  else if (after === "toggle") st.commanded = !st.on;
+  follow(ctx, ch);
+}
+
+/** Relay state imposed by the lock (lockStart), or null to keep the current one. */
+function lockState(ctx: Ctx, ch: string): boolean | null {
+  const a = channelParams(ctx, ch).lockStart;
+  return a === "on" || a === "off" ? a === "on" : null;
+}
+
+function lock(ctx: Ctx, ch: string, locked: boolean) {
+  const st = ctx.state.channels[ch];
+  if (!st || st.locked === locked) return;
+  st.locked = locked;
+  if (locked) {
+    st.beforeLock = st.on;
+    ctx.note(ctx.t`${ch}: output locked`);
+    const imposed = lockState(ctx, ch);
+    // A forcing in progress keeps priority; the lock applies when it ends.
+    if (!st.forced && imposed !== null) setRelay(ctx, ch, imposed);
+    return;
+  }
+  ctx.note(ctx.t`${ch}: output unlocked`);
+  const before = st.beforeLock;
+  st.beforeLock = null;
+  if (!st.forced)
+    resume(
+      ctx,
+      ch,
+      (channelParams(ctx, ch).afterLock ?? "lastCommand") as AfterForcing,
+      before,
+    );
+}
+
+/** Command of the switching object, after its switch-on or switch-off delay. */
+function requestSwitch(ctx: Ctx, ch: string, on: boolean) {
+  const st = ctx.state.channels[ch];
+  if (!st) return;
+  const p = channelParams(ctx, ch);
+  const delay = numParam(on ? p.onDelayMs : p.offDelayMs, 0);
+  if (delay > 0) {
+    // The same command during its delay does not restart it; the other one replaces it.
+    if (st.delayed === on) return;
+    st.delayed = on;
+    st.delayAtMs = ctx.timeMs + delay;
+    ctx.schedule(`${ch}:delay`, delay, on ? 1 : 0);
+    ctx.note(
+      on
+        ? ctx.t`${ch}: switch-on delay of ${delay / 1000} s`
+        : ctx.t`${ch}: switch-off delay of ${delay / 1000} s`,
+    );
+    return;
+  }
+  ctx.cancel(`${ch}:delay`);
+  st.delayed = null;
+  st.delayAtMs = null;
+  commandSwitch(ctx, ch, on);
 }
 
 /** Command received (switch object or stage preset). */
@@ -164,22 +266,49 @@ function force(ctx: Ctx, ch: string, raw: number) {
     return;
   }
   if (st.forced === null) return;
-  const after = channelParams(ctx, ch).afterForcing as AfterForcing;
+  const after = (channelParams(ctx, ch).afterForcing ??
+    "lastCommand") as AfterForcing;
   st.forced = null;
-  if (after === "previous") st.commanded = st.beforeForcing ?? st.commanded;
-  else if (after === "unchanged") st.commanded = st.on;
-  else if (after === "on" || after === "off") st.commanded = after === "on";
-  else if (after === "toggle") st.commanded = !st.on;
+  const before = st.beforeForcing;
   st.beforeForcing = null;
-  setRelay(ctx, ch, st.commanded);
+  if (st.locked) {
+    // The lock is still active: the output takes the state it imposes.
+    const imposed = lockState(ctx, ch);
+    if (imposed !== null) setRelay(ctx, ch, imposed);
+    return;
+  }
+  resume(ctx, ch, after, before);
 }
 
-function applyScene(ctx: Ctx, channels: string[], raw: number) {
+/**
+ * Scene telegram: recall the preset of each channel, or, with the learn bit of a scene
+ * control telegram (DPT 18.001), store the current state of each channel as the scene.
+ */
+function applyScene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
   const scene = (raw & 0x3f) + 1;
+  if (dpt === "18.001" && raw & 0x80) {
+    channels.forEach((ch) => {
+      const st = ctx.state.channels[ch];
+      if (!st) return;
+      if (channelParams(ctx, ch).sceneLearning === false) {
+        ctx.note(
+          ctx.t`${ch}: scene storing disabled, scene ${scene} unchanged`,
+        );
+        return;
+      }
+      st.learned[String(scene)] = st.on ? 1 : 0;
+      ctx.note(
+        st.on
+          ? ctx.t`${ch}: scene ${scene} stored (on)`
+          : ctx.t`${ch}: scene ${scene} stored (off)`,
+      );
+    });
+    return;
+  }
   channels.forEach((ch) => {
-    const preset = ctx.device.channels
-      .find((c) => c.id === ch)
-      ?.scenes.get(scene);
+    const preset =
+      ctx.state.channels[ch]?.learned[String(scene)] ??
+      ctx.device.channels.find((c) => c.id === ch)?.scenes.get(scene);
     if (preset === undefined) {
       ctx.note(ctx.t`${ch}: no preset for scene ${scene}, command ignored`);
       return;
@@ -273,7 +402,7 @@ function shed(ctx: Ctx) {
     const st = ctx.state.channels[c.id];
     if (!st || c.parameters.loadShedding !== true || st.shed || !st.on)
       continue;
-    if (st.forced) continue;
+    if (st.forced || st.locked) continue;
     st.shed = true;
     ctx.note(ctx.t`${c.id}: switched off by load shedding`);
     setRelay(ctx, c.id, false);
@@ -285,6 +414,7 @@ function shed(ctx: Ctx) {
 }
 
 export const switchActuator: BehaviorDefinition<SwitchState> = {
+  parameterLayout: switchLayout,
   description:
     "Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering.",
   parameters: {
@@ -414,6 +544,86 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         default: 300,
         description: "Delay before sending status feedback (ms).",
       },
+      onDelayMs: {
+        title: "Switch-on delay",
+        unit: "ms",
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "Delay between a 1 on the switching object and switching on (0: at once). A 0 received meanwhile cancels it; scenes, forcing, and the lock act at once.",
+      },
+      offDelayMs: {
+        title: "Switch-off delay",
+        unit: "ms",
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "Delay between a 0 on the switching object and switching off (0: at once). A 1 received meanwhile cancels it.",
+      },
+      lockStart: {
+        title: "When locked",
+        type: "string",
+        enum: ["unchanged", "on", "off"],
+        enumTitles: ["Unchanged", "On", "Off"],
+        default: "unchanged",
+        description:
+          "State of the output when the lock object receives 1; while locked, commands are stored without effect. Forcing has priority over the lock.",
+      },
+      afterLock: {
+        title: "End of lock",
+        type: "string",
+        enum: ["lastCommand", "previous", "unchanged", "on", "off", "toggle"],
+        enumTitles: [
+          "Last command",
+          "Previous state",
+          "Unchanged",
+          "On",
+          "Off",
+          "Toggle",
+        ],
+        default: "lastCommand",
+        description:
+          "State when the lock object receives 0: follow the latest command received while locked, restore the state before the lock, keep the current state, switch on, switch off, or invert.",
+      },
+      logicOperation: {
+        title: "Logic operation",
+        type: "string",
+        enum: ["and", "or"],
+        enumTitles: [
+          "AND: on when the command and the logic object are 1",
+          "OR: on when the command or the logic object is 1",
+        ],
+        default: "and",
+        description:
+          "Combination of the switching command with the logic object (for example an enable from a presence detector). Until the logic object receives a value, the command acts alone.",
+      },
+      sceneLearning: {
+        title: "Scene storing",
+        type: "boolean",
+        default: true,
+        description:
+          "A scene control telegram with the learn bit (DPT 18.001) stores the current state of the output as the scene; it replaces the configured preset until the simulation restarts.",
+      },
+      busFailure: {
+        title: "On bus voltage failure",
+        type: "string",
+        enum: ["unchanged", "off", "on"],
+        enumTitles: ["Unchanged", "Off", "On"],
+        default: "unchanged",
+        description:
+          "State of the output when the bus voltage fails; the relay is then left as it is until the voltage returns.",
+      },
+      busRecovery: {
+        title: "On bus voltage recovery",
+        type: "string",
+        enum: ["previous", "off", "on"],
+        enumTitles: ["State before the failure", "Off", "On"],
+        default: "previous",
+        description:
+          "State of the output when the bus voltage returns; the status feedback is then sent.",
+      },
       afterForcing: {
         title: "End of forcing",
         expert: true,
@@ -423,8 +633,8 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
           "Last command",
           "Previous state",
           "Unchanged",
-          "Start",
-          "Stop",
+          "On",
+          "Off",
           "Toggle",
         ],
         default: "lastCommand",
@@ -460,16 +670,34 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       direction: "out",
     },
     scene: {
-      dpts: ["17.001"],
+      dpts: ["17.001", "18.001"],
       channel: "optional",
       title: "Scene",
       direction: "in",
+      description:
+        "scene number (17.001), or scene control (18.001) whose learn bit stores the current state",
     },
     forced: {
       dpts: ["2.001"],
       channel: "required",
       title: "Forcing",
       direction: "in",
+    },
+    lock: {
+      dpts: ["1.001"],
+      channel: "required",
+      title: "Lock",
+      direction: "in",
+      description:
+        "1 locks the output in the state set by lockStart, 0 unlocks it (afterLock)",
+    },
+    logic: {
+      dpts: ["1.001"],
+      channel: "required",
+      title: "Logic link",
+      direction: "in",
+      description:
+        "combined with the switching command by logicOperation (AND or OR)",
     },
     power: {
       dpts: ["14.056", "9.024"],
@@ -516,6 +744,13 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         forced: null,
         beforeForcing: null,
         shed: false,
+        locked: false,
+        beforeLock: null,
+        logic: null,
+        delayed: null,
+        delayAtMs: null,
+        learned: {},
+        beforeFailure: null,
       };
     });
     return {
@@ -541,14 +776,22 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
     if (!o) return;
     if (o.port === "switch" && o.channel)
-      commandSwitch(ctx, o.channel, e.newValue !== 0);
+      requestSwitch(ctx, o.channel, e.newValue !== 0);
     else if (o.port === "forced" && o.channel)
       force(ctx, o.channel, e.newValue);
-    else if (o.port === "scene")
+    else if (o.port === "lock" && o.channel)
+      lock(ctx, o.channel, e.newValue === 1);
+    else if (o.port === "logic" && o.channel) {
+      const st = ctx.state.channels[o.channel];
+      if (!st) return;
+      st.logic = e.newValue ? 1 : 0;
+      follow(ctx, o.channel);
+    } else if (o.port === "scene")
       applyScene(
         ctx,
         o.channel ? [o.channel] : channelsFor(ctx.device),
         e.newValue,
+        o.dpt,
       );
   },
   onTimer(ctx, key) {
@@ -574,6 +817,15 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       follow(ctx, ch);
       return;
     }
+    if (what === "delay") {
+      const st = ctx.state.channels[ch];
+      if (!st || st.delayed === null) return;
+      const on = st.delayed;
+      st.delayed = null;
+      st.delayAtMs = null;
+      commandSwitch(ctx, ch, on);
+      return;
+    }
     if (what === "off") {
       const st = ctx.state.channels[ch];
       if (!st) return;
@@ -594,6 +846,37 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       statusObjects(ctx, ch).forEach((o) => ctx.transmit(o.id));
     }
   },
+  onBusFailure(ctx) {
+    channelsFor(ctx.device).forEach((ch) => {
+      const st = ctx.state.channels[ch]!;
+      st.beforeFailure = st.on;
+      // The device stops: its timers are cancelled, and so are the delays in progress.
+      st.offAtMs = null;
+      st.delayed = null;
+      st.delayAtMs = null;
+      const a = channelParams(ctx, ch).busFailure;
+      if (a === "on" || a === "off") setRelay(ctx, ch, a === "on");
+    });
+    ctx.state.meter.started = false;
+  },
+  onBusRecovery(ctx) {
+    if (metering(ctx)) ctx.schedule("meterSoon", 500);
+    channelsFor(ctx.device).forEach((ch) => {
+      const st = ctx.state.channels[ch]!;
+      const a = channelParams(ctx, ch).busRecovery ?? "previous";
+      const on =
+        a === "on" || a === "off" ? a === "on" : (st.beforeFailure ?? st.on);
+      st.beforeFailure = null;
+      commandSwitch(ctx, ch, on);
+      // The actuator reports its state after a restart.
+      statusObjects(ctx, ch).forEach((o) => ctx.setObject(o.id, st.on ? 1 : 0));
+      if (statusObjects(ctx, ch).length)
+        ctx.schedule(
+          `${ch}:status`,
+          numParam(channelParams(ctx, ch).statusDelayMs, 300),
+        );
+    });
+  },
   channelState(state, ch): JsonObject {
     const st = state.channels[ch];
     return st
@@ -603,6 +886,11 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
           offAtMs: st.offAtMs,
           forced: st.forced,
           shed: st.shed,
+          locked: st.locked,
+          logic: st.logic,
+          delayed: st.delayed,
+          delayAtMs: st.delayAtMs,
+          learnedScenes: { ...st.learned },
           energyWh: state.meter.channels[ch]?.energyWh ?? 0,
           powerW: state.meter.channels[ch]?.powerW ?? 0,
         }

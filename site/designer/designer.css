@@ -1048,7 +1048,7 @@ bd-guided {
   min-width: 0;
 }
 
-/* ── ETS-like workspace: stacked panels, tree and list, tabs at the bottom ── */
+/* ── Workspace: stacked panels, tree and list, tabs at the bottom ── */
 #pane-guided {
   overflow: hidden;
 }
@@ -1521,7 +1521,7 @@ bd-guided > .g-notice {
   color: #aaa;
   cursor: default;
 }
-/* Device parameters as in ETS: a flat list of pages on the left; on the right, one
+/* Device parameters: a flat list of pages on the left; on the right, one
    parameter per row, label on the left and value on the right. */
 .w-params {
   display: grid;
@@ -1644,4 +1644,135 @@ bd-guided > .g-notice {
   flex-direction: row;
   justify-content: flex-end;
   margin-top: 8px;
+}
+
+/* Parameter tree: groups of pages (an output) open and close. */
+.w-pgroup {
+  display: flex;
+  align-items: center;
+}
+.w-pgroup > .w-pitem {
+  flex: 1;
+  padding-left: 2px;
+}
+.w-ptog {
+  flex: none;
+  width: 1.6em;
+  padding: 0;
+  border: none;
+  background: none;
+  font-weight: 700;
+  color: var(--mute);
+  cursor: pointer;
+}
+.w-pitem.sub {
+  padding-left: 30px;
+}
+.w-psep {
+  margin: 14px 0 4px;
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12.5px;
+}
+/* Information box, as the “i” notes of parameter pages. */
+.w-info {
+  margin: 8px 0;
+  padding: 6px 10px;
+  border: 1px solid #b9d3ec;
+  border-radius: 4px;
+  background: #eef5fc;
+  font-size: 12.5px;
+  color: #234;
+}
+/* “Enable group object” boxes of a parameter page. */
+.g-check.g-enable {
+  align-items: flex-start;
+}
+.g-check.g-enable input {
+  margin-top: 3px;
+}
+/* Loads wired to an output. */
+.w-load {
+  margin: 8px 0;
+  padding: 2px 10px 6px;
+  border: 1px solid var(--line);
+  border-left: 3px solid #e6c3b2;
+  border-radius: 4px;
+}
+.w-load > legend {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 4px;
+  font-size: 12.5px;
+  font-weight: 600;
+}
+.w-total {
+  margin-right: auto;
+  font-size: 12.5px;
+  color: var(--mute);
+}
+.w-addload {
+  width: auto;
+}
+/* Tables: sort by a click on a header, resize a column by dragging its right edge. */
+.w-table th {
+  position: relative;
+}
+.w-sort {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.w-sort:hover {
+  text-decoration: underline;
+}
+.w-arrow {
+  margin-left: 4px;
+  font-size: 9px;
+}
+.w-colgrip {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 7px;
+  cursor: col-resize;
+  z-index: 1;
+}
+.w-colgrip:hover {
+  background: #9cc3e4;
+}
+.w-table.fixed {
+  table-layout: fixed;
+}
+.w-table.fixed td,
+.w-table.fixed th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.w-colgrip:focus-visible {
+  background: #9cc3e4;
+  outline: none;
+}
+/* Fields inside table cells (values entered in the diagram). */
+.w-table .w-num,
+.w-table .w-txt {
+  width: 100%;
+  min-width: 4em;
+  font: inherit;
+  padding: 1px 4px;
+  border: 1px solid #cfccc1;
+  border-radius: 4px;
+}
+.w-table .w-num:disabled,
+.w-table .w-txt:disabled {
+  background: transparent;
+  border-color: transparent;
 }

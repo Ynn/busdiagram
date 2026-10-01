@@ -213,6 +213,8 @@ export interface CouplerPlan {
   tOutMs: number;
   pass: boolean;
   tag: Tag;
+  /** Blocked because the segment on the other side has no bus voltage. */
+  noVoltage?: boolean;
   rcBefore: number;
   rcAfter: number;
 }
@@ -243,6 +245,8 @@ export class Network {
   readonly topology: Topology;
   private readonly modes = new Map<string, ExtMode>();
   private sideCache = new Map<string, Set<string>>();
+  /** Segments whose bus voltage is cut. */
+  private readonly unpowered = new Set<string>();
 
   constructor(
     readonly scenario: Scenario,
@@ -253,13 +257,24 @@ export class Network {
     this.resetModes();
   }
 
-  /** Restores the extension modes defined by the scenario. */
+  /** Restores the extension modes defined by the scenario, with the bus voltage on. */
   resetModes() {
+    this.unpowered.clear();
     this.modes.clear();
     this.scenario.lines.forEach(
       (l) => l.extension && this.modes.set(l.address, l.extension.mode),
     );
     this.sideCache.clear();
+  }
+
+  /** Does the segment have bus voltage? */
+  powered(segId: string): boolean {
+    return !this.unpowered.has(segId);
+  }
+
+  setPowered(segId: string, on: boolean) {
+    if (on) this.unpowered.delete(segId);
+    else this.unpowered.add(segId);
   }
 
   extMode(line: string): ExtMode {
@@ -420,7 +435,9 @@ export class Network {
           const c = this.coupler(pt.couplerId)!;
           const from = pt.side!;
           const to: Side = from === "A" ? "B" : "A";
-          const pass = this.passes(c, to, ga) && e.rc > 0;
+          // Without bus voltage on the other side, the coupler cannot send the telegram.
+          const noVoltage = !this.powered(c[to].seg);
+          const pass = this.passes(c, to, ga) && e.rc > 0 && !noVoltage;
           const tInMs = ta + T.couplerInMs;
           const tDecisionMs = tInMs + T.decisionMs;
           const tOutMs = tDecisionMs + T.couplerOutMs;
@@ -440,6 +457,7 @@ export class Network {
             tOutMs,
             pass,
             tag,
+            ...(noVoltage ? { noVoltage } : {}),
             rcBefore: e.rc,
             rcAfter: pass ? e.rc - 1 : e.rc,
           });

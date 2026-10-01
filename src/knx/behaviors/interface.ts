@@ -2,7 +2,7 @@
 // It has no group object: the tool writes and reads any group address from its individual
 // address (often A.L.255). Its telegrams follow the topology: couplers filter them like the
 // others. Group addresses assigned to the interface in the project (parameter groupAddresses)
-// enter the coupler filter tables, as ETS does for a modeled bus interface.
+// enter the coupler filter tables, as for a bus interface modeled in a project.
 import type { BehaviorDefinition } from "../contracts";
 
 export const usbInterface: BehaviorDefinition<Record<string, never>> = {

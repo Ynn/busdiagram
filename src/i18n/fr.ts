@@ -773,8 +773,8 @@ export const frMessages: Record<string, string> = {
     'ports.{0}.channel : "required", "optional" ou "none" attendu',
   'output: "switch", "motor" or "dim" expected':
     'output : "switch", "motor" ou "dim" attendu',
-  'ports.{0}.direction: "in" or "out" expected':
-    'ports.{0}.direction : "in" ou "out" attendu',
+  'ports.{0}.direction: "in", "out" or "both" expected':
+    'ports.{0}.direction : "in", "out" ou "both" attendu',
   "{0}: function expected": "{0} : fonction attendue",
   "create: function required": "create : fonction requise",
   "applyCommand: function required": "applyCommand : fonction requise",
@@ -1011,4 +1011,188 @@ export const frMessages: Record<string, string> = {
     "interact doit renvoyer l'état (objet)",
   "equipment {0}/{1} ({2}).interact({3}): {4}":
     "équipement {0}/{1} ({2}).interact({3}) : {4}",
+  "object, list of objects, or null expected":
+    "objet, liste d'objets ou null attendu",
+  "a shutter output drives one motor; connect each shutter to its own output":
+    "une sortie de store commande un seul moteur ; raccorder chaque store à sa propre sortie",
+  "Metering and load shedding": "Comptage et délestage",
+  "Load shedding": "Délestage",
+  Function: "Fonction",
+  Scenes: "Scènes",
+  Metering: "Comptage",
+  "Shedding applies when the device has a total power limit (page Metering and load shedding).":
+    "Le délestage s'applique quand l'appareil a une limite de puissance totale (page Comptage et délestage).",
+  Drive: "Entraînement",
+  Slats: "Lamelles",
+  Position: "Position",
+  Safety: "Sécurité",
+  "The wind alarm raises the shutter and blocks it until the alarm ends.":
+    "L'alarme vent remonte le store et le bloque jusqu'à la fin de l'alarme.",
+  "Limits and transitions": "Limites et transitions",
+  "Switching by dimming or by value": "Commutation par variation ou par valeur",
+  Gateway: "Passerelle",
+  Broadcast: "Diffusion générale",
+  Faults: "Défauts",
+  "A faulty ballast leaves its lamp off; the gateway reports it on this object.":
+    "Un ballast en défaut laisse sa lampe éteinte ; la passerelle le signale sur cet objet.",
+  Setpoints: "Consignes",
+  "Group objects": "Objets de groupe",
+  "Presence and window": "Présence et fenêtre",
+  Valve: "Vanne",
+  "parameterLayout: object expected": "parameterLayout : objet attendu",
+  "{0}: list expected": "{0} : liste attendue",
+  "{0}.{1}: unknown “{2}”": "{0}.{1} : « {2} » inconnu",
+  "{0}.initialState: only on channel pages":
+    "{0}.initialState : seulement sur les pages de canal",
+  "{0}: text expected": "{0} : texte attendu",
+  "{0}.scenes: true expected": "{0}.scenes : true attendu",
+  "{0}.when: object expected": "{0}.when : objet attendu",
+  "{0}.when.groupObject: unknown “{1}”":
+    "{0}.when.groupObject : « {1} » inconnu",
+  "{0}.when.parameter: unknown “{1}”": "{0}.when.parameter : « {1} » inconnu",
+  "{0}: unknown kind of item": "{0} : type d'élément inconnu",
+  "{0}.id: text expected": "{0}.id : texte attendu",
+  "{0}.id: duplicate “{1}”": "{0}.id : « {1} » en double",
+  "{0}.title: text expected": "{0}.title : texte attendu",
+  "{0}.when.{1}: list of values expected":
+    "{0}.when.{1} : liste de valeurs attendue",
+  "{0}.when: “is” or “not” expected": "{0}.when : « is » ou « not » attendu",
+  "{0}.id: letters, digits, “-”, or “_” expected":
+    "{0}.id : lettres, chiffres, « - » ou « _ » attendus",
+  "the device has already answered this read":
+    "l'appareil a déjà répondu à cette lecture",
+  "segment {0}: {1} devices, more than the 64 of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler":
+    "segment {0} : {1} participants, plus que les 64 d'un segment TP1 ; utiliser des participants TP1-256, ou un répéteur de ligne ou un coupleur de segment",
+  "{0}: group object “{1}” not enabled, nothing sent":
+    "{0} : objet de groupe « {1} » non activé, rien n'est envoyé",
+  "{0}: storing a scene needs a scene control object (DPT 18.001), nothing sent":
+    "{0} : mémoriser une scène demande un objet de commande de scène (DPT 18.001), rien n'est envoyé",
+  "{0}: input locked": "{0} : entrée verrouillée",
+  "{0}: input unlocked": "{0} : entrée déverrouillée",
+  "{0}: input locked, press ignored": "{0} : entrée verrouillée, appui ignoré",
+  "{0}: stopped, bus voltage failure":
+    "{0} : arrêt, coupure de la tension du bus",
+  "{0}: output locked, command stored without effect":
+    "{0} : sortie verrouillée, commande mémorisée sans effet",
+  "{0}: output locked": "{0} : sortie verrouillée",
+  "{0}: output unlocked": "{0} : sortie déverrouillée",
+  "{0}: switch-on delay of {1} s": "{0} : retard à l'enclenchement de {1} s",
+  "{0}: switch-off delay of {1} s": "{0} : retard au déclenchement de {1} s",
+  "{0}: scene storing disabled, scene {1} unchanged":
+    "{0} : mémorisation des scènes désactivée, scène {1} inchangée",
+  "{0}: scene {1} stored (on)": "{0} : scène {1} mémorisée (marche)",
+  "{0}: scene {1} stored (off)": "{0} : scène {1} mémorisée (arrêt)",
+  "Scene control": "Commande de scène",
+  "DPT 18.001: bit 6 is reserved; use 0–63 to recall a scene, 128–191 to store it":
+    "DPT 18.001 : le bit 6 est réservé ; 0–63 rappelle une scène, 128–191 la mémorise",
+  "Store scene {0}": "Mémoriser la scène {0}",
+  "behavior {0} takes its keys from its channels; remove “buttons”":
+    "le comportement {0} prend ses touches dans ses canaux ; retirer « buttons »",
+  "not forwarded, no bus voltage on the other side":
+    "non transmis, pas de tension de bus de l'autre côté",
+  "no bus voltage: no telegram": "pas de tension de bus : aucun télégramme",
+  "no bus voltage: not received": "pas de tension de bus : non reçu",
+  "{0}: no bus voltage, the device does not react":
+    "{0} : pas de tension de bus, le participant ne réagit pas",
+  "line {0}, second segment": "ligne {0}, second segment",
+  "Bus voltage restored on {0}": "Tension du bus rétablie sur {0}",
+  "Bus voltage cut on {0}": "Tension du bus coupée sur {0}",
+  Lock: "Verrouillage",
+  "Logic link": "Liaison logique",
+  "Switch-off delay": "Retard d'extinction",
+  "When locked": "Au verrouillage",
+  "End of lock": "Fin du verrouillage",
+  "Logic operation": "Opération logique",
+  "AND: on when the command and the logic object are 1":
+    "ET : marche quand la commande et l'objet logique valent 1",
+  "OR: on when the command or the logic object is 1":
+    "OU : marche quand la commande ou l'objet logique vaut 1",
+  "Scene storing": "Mémorisation des scènes",
+  "On bus voltage failure": "À la coupure de la tension du bus",
+  "On bus voltage recovery": "Au retour de la tension du bus",
+  "State before the failure": "État avant la coupure",
+  Delays: "Temporisations",
+  "Delays apply to the switching object; scenes, forcing, and the lock act at once.":
+    "Les temporisations s'appliquent à l'objet de commutation ; les scènes, le forçage et le verrouillage agissent immédiatement.",
+  "Forcing and lock": "Forçage et verrouillage",
+  "Forcing has priority over the lock; while either is active, commands are stored.":
+    "Le forçage est prioritaire sur le verrouillage ; tant que l'un des deux est actif, les commandes sont mémorisées.",
+  "Bus voltage": "Tension du bus",
+  "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.":
+    "Interface de boutons-poussoirs : chaque canal est une entrée de contact avec une fonction (commutation, variation, store, valeur, scène) ; l'appareil mesure lui-même les appuis courts et longs ; verrouillage, retour de la tension du bus et émission cyclique.",
+  "Value or scene": "Valeur ou scène",
+  LED: "LED",
+  Blind: "Store",
+  "Long press from": "Appui long à partir de",
+  "Short and long presses": "Appuis courts et longs",
+  "On press": "À l'appui",
+  "No action": "Aucune action",
+  "On release": "Au relâchement",
+  "Short press": "Appui court",
+  "Long press": "Appui long",
+  "Dimming operation": "Mode de variation",
+  "One key: short toggles, long dims in turn":
+    "Une touche : court inverse, long varie en alternance",
+  "Brighter: short on, long brighter":
+    "Plus clair : court marche, long plus clair",
+  "Darker: short off, long darker":
+    "Plus sombre : court arrêt, long plus sombre",
+  "Dimming step": "Pas de variation",
+  "100 %": "100 %",
+  "50 %": "50 %",
+  "25 %": "25 %",
+  "12.5 %": "12,5 %",
+  "6 %": "6 %",
+  "3 %": "3 %",
+  "1.5 %": "1,5 %",
+  "Blind operation": "Mode du store",
+  "One key: direction alternates": "Une touche : sens alterné",
+  "Up key": "Touche montée",
+  "Down key": "Touche descente",
+  "Stop on release": "Arrêt au relâchement",
+  "Value on short press": "Valeur à l'appui court",
+  "Value on long press": "Valeur à l'appui long",
+  "no long press": "pas d'appui long",
+  "Store by long press": "Mémoriser par appui long",
+  "No reaction": "Aucune réaction",
+  "When unlocked": "Au déverrouillage",
+  "Send the current value": "Envoyer la valeur actuelle",
+  "When locked (blind)": "Au verrouillage (store)",
+  "When unlocked (blind)": "Au déverrouillage (store)",
+  "On bus voltage recovery (blind)": "Au retour de la tension du bus (store)",
+  "Recovery delay": "Délai au retour",
+  "no cyclic sending": "pas d'émission cyclique",
+  "Cyclic sending of": "Émission cyclique de",
+  "Both values": "Les deux valeurs",
+  "Only 1 (on)": "Seulement 1 (marche)",
+  "Only 0 (off)": "Seulement 0 (arrêt)",
+  "LED lit for 0": "LED allumée pour 0",
+  "Storing needs a scene control object (DPT 18.001); a scene number object (17.001) only recalls.":
+    "La mémorisation demande un objet de commande de scène (DPT 18.001) ; un objet de numéro de scène (17.001) ne fait que rappeler.",
+  "While the input is locked, its presses are ignored.":
+    "Tant que l'entrée est verrouillée, ses appuis sont ignorés.",
+  "Without an LED object, the LED of a switching or dimming input shows its switching object.":
+    "Sans objet LED, la LED d'une entrée de commutation ou de variation montre son objet de commutation.",
+  "Bus voltage and cyclic sending": "Tension du bus et émission cyclique",
+  "Bus voltage recovery": "Retour de la tension du bus",
+  "No reaction for this function.": "Aucune réaction pour cette fonction.",
+  "Cyclic sending applies to the switching function.":
+    "L'émission cyclique concerne la fonction de commutation.",
+  "{0} links DPT 17.001 and DPT 18.001: recalls are read alike, but a 17.001 object reads a storing telegram (learn bit) as a recall.":
+    "{0} relie le DPT 17.001 et le DPT 18.001 : les rappels se lisent de la même façon, mais un objet 17.001 lit un télégramme de mémorisation (bit d'apprentissage) comme un rappel.",
+  "click to cut the bus voltage": "cliquer pour couper la tension du bus",
+  "no bus voltage: click to restore it":
+    "pas de tension de bus : cliquer pour la rétablir",
+  "contact input: the device measures short and long presses":
+    "entrée de contact : l'appareil mesure les appuis courts et longs",
+  "{0}: DALI scenes go from 1 to 16, scene {1} not stored":
+    "{0} : les scènes DALI vont de 1 à 16, scène {1} non mémorisée",
+  "{0}: scene {1} stored ({2} %)": "{0} : scène {1} mémorisée ({2} %)",
+  "switch-on delay: on in {0} s":
+    "retard à l'enclenchement : marche dans {0} s",
+  "switch-off delay: off in {0} s":
+    "retard au déclenchement : arrêt dans {0} s",
+  "timer: off in {0} s": "minuterie : arrêt dans {0} s",
+  Delay: "Retard",
+  "switching on in {0} s": "allumage dans {0} s",
 };

@@ -18,7 +18,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 - Objects linked to the same group address must have the same payload size (all one-bit, all one-byte, and so on).
 - Buttons (`buttons`) belong to devices whose behavior accepts inputs. An action is `{ "object": "<object id>", "value": <number | "toggle"> }` under `press`, or under `short`, `long`, and `release` for a two-function key. `led` names an object whose value lights the key indicator.
 - Numeric inputs (`inputs`) are `{ "id", "type": "number", "label", "object", "min", "max", "step" }`; the entered value is written to the object and transmitted.
-- Channels (`channels`) are actuator outputs: `{ id, label, parameters?, initialState?, equipment? }`. `equipment` connects a load such as a lamp or a shutter. Objects of an output port name their `channel`.
+- Channels (`channels`) are actuator outputs: `{ id, label, parameters?, initialState?, equipment? }`. `equipment` connects a load such as a lamp or a shutter, or a list of loads wired in parallel on the output (`[{ "type": "lamp" }, { "type": "lamp" }]`; one motor per shutter output). Objects of an output port name their `channel`.
 - Topology beyond one line: `topology.mainLines`, `topology.backbone`, `topology.ip` (`"areaCouplers"` or `"lineCouplers"`), and `topology.couplers` for per-coupler `"filter"`, `"route"`, or `"block"` settings. Devices with `"medium": "IP"` connect to the IP network.
 - Simulated clock: `"clock": { "start": "2026-09-28T21:57:00", "speed": 60 }` at the root enables `clockMaster/v1`, `timeSwitch/v1`, and time windows of `logicGate/v1`; `speed` is clock seconds per simulated second.
 - Heated rooms: `"rooms": [{ "id": "living", "name": "Living room", "temperatureC": 19, "outsideTemperatureC": 5 }]` at the root (optional `windowOpen`, `timeConstantMs`). A `roomThermostat/v1`, `windowContact/v1`, or `temperatureSensor/v1` device sets `"room": "living"`; a radiator load uses `"equipment": { "type": "radiator", "room": "living" }`.
@@ -166,8 +166,10 @@ Drives channel outputs with `switch` commands; connect a compatible equipment ty
 | --- | --- | --- | --- | --- |
 | `switch` | 1.001 | required | in |  |
 | `status` | 1.001 | required | out |  |
-| `scene` | 17.001 | optional | in |  |
+| `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current state |
 | `forced` | 2.001 | required | in |  |
+| `lock` | 1.001 | required | in | 1 locks the output in the state set by lockStart, 0 unlocks it (afterLock) |
+| `logic` | 1.001 | required | in | combined with the switching command by logicOperation (AND or OR) |
 | `power` | 14.056, 9.024 | required | out | electrical power drawn by the load of the channel: W with 14.056, kW with 9.024 |
 | `energy` | 13.010, 13.013 | required | out | active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013 |
 | `totalPower` | 14.056, 9.024 | none | out | sum of the power of all channels: W with 14.056, kW with 9.024 |
@@ -188,7 +190,15 @@ Channel `parameters`:
 - `loadShedding` (boolean, default false): Switch this output off while the total power limit of the actuator is exceeded (load shedding).
 - `relayMode` (string, default "normallyOpen"; "normallyOpen" (Normally open), "normallyClosed" (Normally closed)): normallyOpen closes the contact when the channel is on; normallyClosed closes it when the channel is off, so the load is powered while the switching state is 0. Status feedback reports the switching state, not the contact.
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms).
-- `afterForcing` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (Start), "off" (Stop), "toggle" (Toggle)): State after a priority override ends: follow the latest command received during the override, restore the previous state, keep the forced state, switch on, switch off, or invert the forced state.
+- `onDelayMs` (integer, default 0; ≥ 0): Delay between a 1 on the switching object and switching on (0: at once). A 0 received meanwhile cancels it; scenes, forcing, and the lock act at once.
+- `offDelayMs` (integer, default 0; ≥ 0): Delay between a 0 on the switching object and switching off (0: at once). A 1 received meanwhile cancels it.
+- `lockStart` (string, default "unchanged"; "unchanged" (Unchanged), "on" (On), "off" (Off)): State of the output when the lock object receives 1; while locked, commands are stored without effect. Forcing has priority over the lock.
+- `afterLock` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (On), "off" (Off), "toggle" (Toggle)): State when the lock object receives 0: follow the latest command received while locked, restore the state before the lock, keep the current state, switch on, switch off, or invert.
+- `logicOperation` (string, default "and"; "and" (AND: on when the command and the logic object are 1), "or" (OR: on when the command or the logic object is 1)): Combination of the switching command with the logic object (for example an enable from a presence detector). Until the logic object receives a value, the command acts alone.
+- `sceneLearning` (boolean, default true): A scene control telegram with the learn bit (DPT 18.001) stores the current state of the output as the scene; it replaces the configured preset until the simulation restarts.
+- `busFailure` (string, default "unchanged"; "unchanged" (Unchanged), "off" (Off), "on" (On)): State of the output when the bus voltage fails; the relay is then left as it is until the voltage returns.
+- `busRecovery` (string, default "previous"; "previous" (State before the failure), "off" (Off), "on" (On)): State of the output when the bus voltage returns; the status feedback is then sent.
+- `afterForcing` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (On), "off" (Off), "toggle" (Toggle)): State after a priority override ends: follow the latest command received during the override, restore the previous state, keep the forced state, switch on, switch off, or invert the forced state.
 Channel `initialState`:
 - `on` (boolean, default false): Switching state of the channel when the simulation starts.
 
@@ -204,7 +214,7 @@ Drives channel outputs with `motor` commands; connect a compatible equipment typ
 | `stopStep` | 1.007 | required | in |  |
 | `positionCommand` | 5.001 | required | in |  |
 | `positionStatus` | 5.001 | required | out |  |
-| `scene` | 17.001 | optional | in |  |
+| `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current position |
 | `slatCommand` | 5.001 | required | in | slat angle (0 % open, 100 % closed) of a venetian blind |
 | `slatStatus` | 5.001 | required | out | estimated slat angle, sent after stopping |
 | `windAlarm` | 1.005, 1.001 | optional | in | 1 raises the shutter and locks it against other commands; 0 releases it in place |
@@ -219,6 +229,7 @@ Channel `parameters`:
 - `stepPct` (number, default 0; ≥ 0 ; ≤ 100): Position step for a stop/step command received at rest by a shutter without slats (%). 0 (default): no movement, as in the KNX stop/step function, where the step turns slats; some actuators move a roller shutter by this amount instead.
 - `endSupplementPct` (number, default 0; ≥ 0 ; ≤ 50): Extra travel time toward 0% or 100%, as a percentage of full travel. The motor runs even if the estimate is already at the limit; the end stop recalibrates the estimate (often 5–10% on a real actuator).
 - `invertOutput` (boolean, default false): Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.
+- `sceneLearning` (boolean, default true): A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.
 Channel `initialState`:
 - `estimatedPositionPct` (number, default 0; ≥ 0 ; ≤ 100): Position the actuator assumes at start (0 = fully open, 100 = fully closed); the connected shutter starts at its own position.
 - `estimatedSlatPct` (number, default 0; ≥ 0 ; ≤ 100): Slat angle the actuator assumes at start (venetian blinds).
@@ -279,7 +290,7 @@ Drives channel outputs with `dim` commands; connect a compatible equipment type.
 | `value` | 5.001 | required | in |  |
 | `status` | 1.001 | required | out |  |
 | `valueStatus` | 5.001 | required | out |  |
-| `scene` | 17.001 | optional | in |  |
+| `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current level |
 | `colourTemperature` | 7.600 | required | in | colour temperature setpoint (K) of a tunable white channel |
 | `colourTemperatureStatus` | 7.600 | required | out | applied colour temperature (K) |
 
@@ -288,6 +299,7 @@ Channel `parameters`:
 - `onLevelPct` (number, default 100; ≥ 1 ; ≤ 100): Level reached when a value of 1 is received (fixed mode).
 - `dimTimeMs` (integer, default 5000; > 0): Time for a 0–100% relative dimming transition (DPT 3.007); smaller steps take less time.
 - `switchFadeMs` (integer, default 0; ≥ 0): Transition time when switching on or off (0 means immediate).
+- `sceneLearning` (boolean, default true): A scene control telegram with the learn bit (DPT 18.001) stores the current level as the scene; it replaces the configured preset until the simulation restarts.
 - `valueFadeMs` (integer, default 0; ≥ 0): Transition time to a received value (5.001) or scene preset.
 - `minLevelPct` (number, default 1; ≥ 0 ; ≤ 50): Minimum relative dimming level.
 - `maxLevelPct` (number, default 100; ≥ 50 ; ≤ 100): Upper limit for relative dimming and received values.
@@ -315,7 +327,7 @@ Drives channel outputs with `dim` commands; connect a compatible equipment type.
 | `value` | 5.001 | required | in |  |
 | `status` | 1.001 | required | out |  |
 | `valueStatus` | 5.001 | required | out |  |
-| `scene` | 17.001 | optional | in |  |
+| `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current level |
 | `error` | 1.005 | required | out | lamp or ballast fault in the group |
 | `broadcastSwitch` | 1.001 | none | in |  |
 | `broadcastValue` | 5.001 | none | in |  |
@@ -328,6 +340,7 @@ Channel `parameters`:
 - `onLevelPct` (number, default 100; ≥ 1 ; ≤ 100): Level reached when a value of 1 is received (fixed mode).
 - `dimTimeMs` (integer, default 5000; > 0): Time for a 0–100% relative dimming transition (DPT 3.007); smaller steps take less time.
 - `switchFadeMs` (integer, default 0; ≥ 0): Transition time when switching on or off (0 means immediate).
+- `sceneLearning` (boolean, default true): A scene control telegram with the learn bit (DPT 18.001) stores the current level as the scene; it replaces the configured preset until the simulation restarts.
 - `valueFadeMs` (integer, default 0; ≥ 0): Transition time to a received value (5.001) or scene preset.
 - `minLevelPct` (number, default 1; ≥ 0 ; ≤ 50): Minimum relative dimming level.
 - `maxLevelPct` (number, default 100; ≥ 50 ; ≤ 100): Upper limit for relative dimming and received values.
@@ -560,6 +573,47 @@ Channel `initialState`:
 - `powerW` (number, default 0; ≥ 0 ; ≤ 1000000): Power (W) drawn by the circuit when the simulation starts; a numeric input on the power object changes it.
 - `energyWh` (number, default 0; ≥ 0): Energy (Wh) already counted when the simulation starts.
 
+### `buttonInterface/v1`
+
+Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.
+
+| Port | DPTs | Channel | Direction | Description |
+| --- | --- | --- | --- | --- |
+| `switch` | 1.001 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
+| `dim` | 3.007 | required | out |  |
+| `move` | 1.008 | required | both | blind movement; with W set, a one-key input takes the direction of the last movement received |
+| `stopStep` | 1.007 | required | out |  |
+| `value` | 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102 | required | out | value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function |
+| `lock` | 1.001 | required | in | 1 locks the input (presses are ignored), 0 unlocks it |
+| `led` | 1.001 | required | in | state shown by the LED of the key |
+
+Channel `parameters`:
+- `function` (string, default "switch"; "switch" (Switching), "dim" (Dimming), "blind" (Blind), "value" (Value), "scene" (Scene)): What the input controls; the group objects and settings depend on it.
+- `longPressMs` (integer, default 500; ≥ 100 ; ≤ 10000): A press held at least this long is a long press; the device measures it in simulated time.
+- `switchLongPress` (boolean, default false): Tell short and long presses apart, with an action for each; otherwise one action when the key is pressed and one when it is released.
+- `onPress` (string, default "toggle"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the contact closes.
+- `onRelease` (string, default "none"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the contact opens.
+- `onShort` (string, default "toggle"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram after a short press, when the key is released.
+- `onLong` (string, default "none"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the long-press time is reached.
+- `dimMode` (string, default "single"; "single" (One key: short toggles, long dims in turn), "brighter" (Brighter: short on, long brighter), "darker" (Darker: short off, long darker)): One key switches with a short press and dims with a long press, brighter when the light is off and otherwise the other way than last time; two keys share the work, one brighter and one darker. Releasing the key stops dimming.
+- `dimStep` (integer, default 1; 1 (100 %), 2 (50 %), 3 (25 %), 4 (12.5 %), 5 (6 %), 6 (3 %), 7 (1.5 %)): Step code of the relative dimming telegram (DPT 3.007); 100 % dims until the key is released.
+- `blindMode` (string, default "single"; "single" (One key: direction alternates), "up" (Up key), "down" (Down key)): A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.
+- `stopOnRelease` (boolean, default false): Releasing the key after a long press stops the blind (hold to move); otherwise the blind runs to its end position unless a short press stops it.
+- `shortValue` (number, default 0): Value sent by a short press (by any press when there is no long-press value), in the unit of the object's DPT.
+- `longValue` (number | null, default null): Value sent by a long press; null sends the short-press value at once.
+- `sceneNumber` (integer, default 1; ≥ 1 ; ≤ 64): Scene recalled by a short press.
+- `sceneStore` (boolean, default false): A long press asks the actuators to store their current state as the scene (DPT 18.001, learn bit); a short press recalls it.
+- `lockStart` (string, default "none"; "none" (No reaction), "on" (On), "off" (Off)): Switching telegram sent when the lock object receives 1.
+- `lockEnd` (string, default "none"; "none" (No reaction), "update" (Send the current value), "on" (On), "off" (Off)): Switching telegram sent when the lock object receives 0.
+- `blindLockStart` (string, default "none"; "none" (No reaction), "up" (Up), "down" (Down)): Movement sent when the lock object receives 1.
+- `blindLockEnd` (string, default "none"; "none" (No reaction), "up" (Up), "down" (Down)): Movement sent when the lock object receives 0.
+- `busRecovery` (string, default "none"; "none" (No reaction), "update" (Send the current value), "on" (On), "off" (Off)): Switching telegram sent when the bus voltage returns after a failure.
+- `blindBusRecovery` (string, default "none"; "none" (No reaction), "up" (Up), "down" (Down)): Movement sent when the bus voltage returns after a failure.
+- `busRecoveryDelayMs` (integer, default 0; ≥ 0): Delay before the bus recovery reaction, so that the devices of a line do not all send at once.
+- `cyclicMs` (integer | null, default null; > 0): Send the switching object again at this interval, for example for a device that monitors it.
+- `cyclicWhen` (string, default "always"; "always" (Both values), "on" (Only 1 (on)), "off" (Only 0 (off))): Which value of the switching object is sent cyclically.
+- `ledInverted` (boolean, default false): The LED is lit while its object is 0 and off while it is 1.
+
 ## Equipment types
 
 ### `lamp`
@@ -672,12 +726,14 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 | `13.013` | Active energy (kWh) | 32 | -2147483648 … 2147483647 |
 | `14.056` | Power | 32 | -3.4e+38 … 3.4e+38 |
 | `17.001` | Scene number | 8 | 0 … 63 |
+| `18.001` | Scene control | 8 | 0 … 191 |
 | `20.102` | HVAC mode | 8 | 0 … 4 |
 
 ## Complete examples
 
 - `scenarios/air-quality.json`: Air quality: CO₂ and humidity control
 - `scenarios/boiler-room.json`: Heat pump and hot water behind a gateway
+- `scenarios/bus-voltage.json`: Bus voltage failure, lock, and switching delays
 - `scenarios/dali-gateway.json`: KNX/DALI gateway: groups, dimming, and faults
 - `scenarios/dimming.json`: Dimming actuator: switching, relative, and absolute dimming
 - `scenarios/energy-metering.json`: Energy metering and load shedding
@@ -685,6 +741,7 @@ Electrical appliance on a switched output (oven, water heater, socket): draws it
 - `scenarios/lighting-control.json`: Control multiple outputs
 - `scenarios/object-flags.json`: W and T flags: six-output actuator
 - `scenarios/priority-control.json`: Force an output
+- `scenarios/push-button-interface.json`: Push-button interface: one-key dimming and blind, scene storing
 - `scenarios/room-heating.json`: Room-by-room heating control
 - `scenarios/scenes.json`: Scenes
 - `scenarios/shutter-calibrated.json`: Shutter with correct actuator settings

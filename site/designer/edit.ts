@@ -43,14 +43,18 @@ export interface Chan extends J {
   label?: string;
   parameters?: J;
   initialState?: J;
-  equipment?: {
-    type: string;
-    view?: string;
-    room?: string;
-    parameters?: J;
-    initialState?: J;
-  } | null;
+  /** One load, several loads wired in parallel, or null for a free output. */
+  equipment?: Load | Load[] | null;
   scenes?: Record<string, number>;
+}
+/** A load connected to an output (lamp, appliance, shutter…). */
+export interface Load extends J {
+  type: string;
+  name?: string;
+  view?: string;
+  room?: string;
+  parameters?: J;
+  initialState?: J;
 }
 export interface Dev extends J {
   id: string;
@@ -62,9 +66,20 @@ export interface Dev extends J {
   objects: Obj[];
   buttons?: Btn[];
   channels?: Chan[];
+  /** Values that the reader enters in the diagram, written to an object and sent. */
+  inputs?: InputDoc[];
   description?: string;
   medium?: string;
   room?: string;
+}
+export interface InputDoc extends J {
+  id: string;
+  type: "number";
+  label?: string;
+  object: string;
+  min?: number;
+  max?: number;
+  step?: number;
 }
 export interface RoomDoc extends J {
   id: string;
@@ -220,7 +235,7 @@ export function newGa(doc: Doc, dpt: string, name: string): string {
 
 /**
  * New group address in a given middle group, as the “Add group addresses” command of
- * ETS: the first free subgroup; its DPT is set later by the first linked object.
+ * the first free subgroup; its DPT is set later by the first linked object.
  */
 export function newGaIn(
   doc: Doc,
@@ -1179,6 +1194,7 @@ export function setPortGas(
     throw new EditRefusal(t`object “${opts.objectId}” not found`);
   if (!gas.length && !opts.keepEmpty) {
     if (o) d.objects = d.objects.filter((x) => x !== o);
+    pruneInputs(d);
     return;
   }
   if (!o) {
@@ -1215,6 +1231,67 @@ export function setPortGas(
   setGas(o, gas);
 }
 
+// ── Values entered in the diagram ───────────────────────────────────────────
+
+/** Inputs whose object was deleted go with it. */
+function pruneInputs(d: Dev) {
+  if (!d.inputs) return;
+  d.inputs = d.inputs.filter((n) => d.objects.some((o) => o.id === n.object));
+  if (!d.inputs.length) delete d.inputs;
+}
+
+/** Numeric input of an object, or undefined. */
+export const inputOf = (d: Dev, objectId: string) =>
+  (d.inputs ?? []).find((n) => n.object === objectId);
+
+/**
+ * Let the reader enter a value for an object in the diagram (a measurement of a weather
+ * station, the power of a metered circuit…), or stop it with null. The value is written
+ * to the object and sent, so the object needs a group address.
+ */
+export function setInput(
+  doc: Doc,
+  devId: string,
+  objectId: string,
+  input: { label?: string; min?: number; max?: number; step?: number } | null,
+) {
+  const d = device(doc, devId);
+  const o = d.objects.find((x) => x.id === objectId);
+  if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
+  const current = inputOf(d, objectId);
+  if (!input) {
+    d.inputs = (d.inputs ?? []).filter((n) => n !== current);
+    if (!d.inputs.length) delete d.inputs;
+    return;
+  }
+  if (!gasOf(o).length)
+    throw new EditRefusal(
+      t`link ${o.name ?? o.id} to a group address first: an entered value is sent on it`,
+    );
+  const next: InputDoc = current ?? {
+    id: freeInputId(d, `${objectId}In`),
+    type: "number",
+    object: objectId,
+  };
+  (["label", "min", "max", "step"] as const).forEach((k) => {
+    const v = input[k];
+    if (v === undefined || v === "") delete next[k];
+    else (next as J)[k] = v;
+  });
+  if (!current) (d.inputs ??= []).push(next);
+}
+
+/** Identifier unused by the keys and inputs of a device. */
+function freeInputId(d: Dev, base: string) {
+  const used = new Set([
+    ...(d.buttons ?? []).map((b) => b.id),
+    ...(d.inputs ?? []).map((n) => n.id),
+  ]);
+  let id = base;
+  for (let n = 2; used.has(id); n++) id = `${base}${n}`;
+  return id;
+}
+
 // ── Object numbers ──────────────────────────────────────────────────────────
 
 /** Numbers reserved for each key: its single or short press, then its long press. */
@@ -1223,13 +1300,13 @@ export const KEY_BLOCK = 2;
 type PortTable = { ports: Record<string, { channel?: string }> };
 
 /**
- * Number of each group object of a device, as in the object table of an ETS
- * application: each key, then each channel, has a block of numbers of fixed size, so
+ * Number of each group object of a device, as in the object table of a
+ * product: each key, then each channel, has a block of numbers of fixed size, so
  * that a key or an output keeps its numbers when another one gains or loses objects.
  * In a key block, the single or short press comes first, then the long press; in a
  * channel block, the place is the order of the ports declared by the behavior. The
  * other objects (functions of the whole device) follow, in the order of the ports,
- * then of the scenario. Numbers start at 1; unused places are gaps, as in ETS.
+ * then of the scenario. Numbers start at 1; unused places are gaps.
  */
 export function objectNumbers(
   d: Dev,
@@ -1322,7 +1399,7 @@ export function switchChannels(d: Dev): SwitchChannelView[] {
   return (d.channels ?? []).map((c) => ({
     id: c.id,
     label: c.label ?? c.id,
-    load: !!c.equipment,
+    load: loadsOf(c).length > 0,
     commands: d.objects
       .filter((o) => o.port === "switch" && o.channel === c.id)
       .flatMap(gasOf),
@@ -1357,10 +1434,105 @@ export function setChannelLoad(
   doc: Doc,
   devId: string,
   ch: string,
-  equipment: { type: string; room?: string; parameters?: J } | null,
+  equipment: Load | null,
 ) {
   const c = channel(device(doc, devId), ch);
   c.equipment = equipment;
+}
+
+// ── Loads connected to an output ──
+
+/** Loads of an output, in order (the scenario writes one load as an object). */
+export const loadsOf = (c: Chan): Load[] =>
+  c.equipment == null
+    ? []
+    : Array.isArray(c.equipment)
+      ? c.equipment
+      : [c.equipment];
+
+/** Store the loads of an output: none as null, one as an object, several as a list. */
+function storeLoads(c: Chan, loads: Load[]) {
+  c.equipment =
+    loads.length === 0 ? null : loads.length === 1 ? loads[0]! : loads;
+}
+
+function loadAt(c: Chan, index: number): Load {
+  const l = loadsOf(c)[index];
+  if (!l) throw new EditRefusal(t`no load ${index + 1} on this output`);
+  return l;
+}
+
+/** Connect a load to an output, after the existing ones; return its index. */
+export function addLoad(doc: Doc, devId: string, ch: string, load: Load) {
+  const c = channel(device(doc, devId), ch);
+  const loads = [...loadsOf(c), load];
+  storeLoads(c, loads);
+  return loads.length - 1;
+}
+
+/** Disconnect a load from an output. */
+export function removeLoad(doc: Doc, devId: string, ch: string, index: number) {
+  const c = channel(device(doc, devId), ch);
+  loadAt(c, index);
+  storeLoads(
+    c,
+    loadsOf(c).filter((_, i) => i !== index),
+  );
+}
+
+/** Move a load up (-1) or down (+1) among the loads of its output. */
+export function moveLoad(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  index: number,
+  delta: -1 | 1,
+) {
+  const c = channel(device(doc, devId), ch);
+  const loads = [...loadsOf(c)];
+  const to = index + delta;
+  if (!loads[index] || !loads[to])
+    throw new EditRefusal(t`this load cannot move further`);
+  [loads[index], loads[to]] = [loads[to]!, loads[index]!];
+  storeLoads(c, loads);
+}
+
+/** Replace a load (another type), keeping its name and room. */
+export function setLoadType(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  index: number,
+  load: Load,
+) {
+  const c = channel(device(doc, devId), ch);
+  const old = loadAt(c, index);
+  // Only a load that heats or cools has a room: keep the previous one if it still applies.
+  const heats = !!captureRegistry().equipment.get(load.type)?.heatOutput;
+  const room = heats ? (old.room ?? load.room) : undefined;
+  const next: Load = {
+    ...load,
+    ...(old.name ? { name: old.name } : {}),
+    ...(room ? { room } : {}),
+  };
+  if (!room) delete next.room;
+  storeLoads(
+    c,
+    loadsOf(c).map((l, i) => (i === index ? next : l)),
+  );
+}
+
+/** Name of a load; an empty name removes it. */
+export function setLoadName(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  index: number,
+  name: string,
+) {
+  const l = loadAt(channel(device(doc, devId), ch), index);
+  if (name.trim()) l.name = name.trim();
+  else delete l.name;
 }
 
 // ── Rooms (heating) ──
@@ -1393,7 +1565,7 @@ export function setRoomField(
 export function removeRoom(doc: Doc, id: string) {
   const heaters = doc.devices.flatMap((d) =>
     (d.channels ?? [])
-      .filter((c) => c.equipment?.room === id)
+      .filter((c) => loadsOf(c).some((l) => l.room === id))
       .map((c) => `${d.name ?? d.id} · ${c.label ?? c.id}`),
   );
   if (heaters.length)
@@ -1412,16 +1584,17 @@ export function setDeviceRoom(doc: Doc, devId: string, room: string) {
   else delete d.room;
 }
 
-/** Room heated by the load connected to an output. */
+/** Room heated by a load connected to an output (the first one by default). */
 export function setEquipmentRoom(
   doc: Doc,
   devId: string,
   ch: string,
   room: string,
+  index = 0,
 ) {
   const c = channel(device(doc, devId), ch);
-  if (!c.equipment) throw new EditRefusal(t`no load connected`);
-  c.equipment.room = room;
+  if (!loadsOf(c).length) throw new EditRefusal(t`no load connected`);
+  loadAt(c, index).room = room;
 }
 
 /** Channel parameter, or device parameter if `ch` is null; undefined removes it. */
@@ -1431,17 +1604,21 @@ export function setParam(
   ch: string | null,
   key: string,
   value: unknown,
-  scope: "behavior" | "equipment" | "state" = "behavior",
+  scope: "behavior" | "equipment" | "equipmentState" | "state" = "behavior",
+  /** Load of the output, for the "equipment" and "equipmentState" scopes. */
+  index = 0,
 ) {
   const d = device(doc, devId);
   let target: J;
   if (ch === null) target = d.parameters ??= {};
   else {
     const c = channel(d, ch);
-    if (scope === "equipment") {
-      if (!c.equipment)
+    if (scope === "equipment" || scope === "equipmentState") {
+      if (!loadsOf(c).length)
         throw new EditRefusal(t`no equipment connected to this channel`);
-      target = c.equipment.parameters ??= {};
+      const l = loadAt(c, index);
+      target =
+        scope === "equipment" ? (l.parameters ??= {}) : (l.initialState ??= {});
     } else if (scope === "state") target = c.initialState ??= {};
     else target = c.parameters ??= {};
   }
@@ -1474,7 +1651,7 @@ export function setChannelScenes(
 export function addChannel(
   doc: Doc,
   devId: string,
-  equipment: Chan["equipment"],
+  equipment: Load | null,
 ): string {
   const d = device(doc, devId);
   d.channels ??= [];
@@ -1495,11 +1672,39 @@ export function addChannel(
   const ch: Chan = { id: `s${n}`, label, equipment };
   if (prev?.parameters) ch.parameters = copy(prev.parameters);
   if (prev?.initialState) ch.initialState = copy(prev.initialState);
-  if (equipment && prev?.equipment?.type === equipment.type)
+  if (equipment && prev && loadsOf(prev)[0]?.type === equipment.type)
     ch.equipment = copy(prev.equipment);
   d.channels.push(ch);
   sortObjects(d);
   return `s${n}`;
+}
+
+/**
+ * Number of outputs of an actuator: outputs are added after the last one (with the same
+ * load and settings) or removed from the end, with their objects.
+ */
+export function setOutputCount(
+  doc: Doc,
+  devId: string,
+  count: number,
+  load: Load | null,
+) {
+  const d = device(doc, devId);
+  if (!Number.isInteger(count) || count < 1 || count > 64)
+    throw new EditRefusal(t`number of outputs from 1 to 64 expected`);
+  while ((d.channels?.length ?? 0) < count) addChannel(doc, devId, load);
+  while ((d.channels?.length ?? 0) > count)
+    removeChannel(doc, devId, d.channels!.at(-1)!.id);
+}
+
+/** Number of keys of a push-button: keys are added after the last one or removed from the end. */
+export function setKeyCount(doc: Doc, devId: string, count: number) {
+  const d = device(doc, devId);
+  if (!Number.isInteger(count) || count < 1 || count > 32)
+    throw new EditRefusal(t`number of keys from 1 to 32 expected`);
+  while ((d.buttons?.length ?? 0) < count) addKey(doc, devId);
+  while ((d.buttons?.length ?? 0) > count)
+    removeKey(doc, devId, d.buttons!.at(-1)!.id);
 }
 
 export function removeChannel(doc: Doc, devId: string, ch: string) {
@@ -1507,6 +1712,7 @@ export function removeChannel(doc: Doc, devId: string, ch: string) {
   channel(d, ch);
   d.channels = d.channels!.filter((c) => c.id !== ch);
   d.objects = d.objects.filter((o) => o.channel !== ch);
+  pruneInputs(d);
   sortObjects(d);
 }
 
@@ -1576,6 +1782,7 @@ export function removeObject(doc: Doc, devId: string, objectId: string) {
   if ((d.buttons ?? []).some((b) => b.led === objectId))
     throw new EditRefusal(t`object used by an LED`);
   d.objects = d.objects.filter((o) => o.id !== objectId);
+  pruneInputs(d);
 }
 
 // ── Grouped operations: links and setting copies ──

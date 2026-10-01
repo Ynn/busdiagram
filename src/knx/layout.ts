@@ -79,6 +79,8 @@ export interface KeyG {
 
 export interface LoadG {
   channel: string;
+  /** Place of the load among the loads of its output (0 for the first). */
+  index: number;
   view: string;
   x: number;
   /** Top of the drawing area. */
@@ -248,8 +250,11 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
     ...d.buttons.map((b) => ({
       kind: "button" as const,
       id: b.id,
+      // A contact input faces the objects of its channel.
       ids: new Set(
-        [b.press, b.short, b.long].flatMap((a) => (a ? [a.object] : [])),
+        b.contact
+          ? d.objects.filter((o) => o.channel === b.id).map((o) => o.id)
+          : [b.press, b.short, b.long].flatMap((a) => (a ? [a.object] : [])),
       ),
     })),
     ...d.inputs.map((n) => ({
@@ -275,9 +280,14 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
       };
     return { kind: c.kind, id: c.id, top, h, rows };
   });
-  const overlap = keys.some((k, i) =>
-    keys.some((o, j) => j !== i && k.top < o.top + o.h && o.top < k.top + k.h),
-  );
+  // A key without objects (an input not yet configured) has no rows to face.
+  const overlap =
+    keys.some((k) => !k.rows.length) ||
+    keys.some((k, i) =>
+      keys.some(
+        (o, j) => j !== i && k.top < o.top + o.h && o.top < k.top + k.h,
+      ),
+    );
   if (overlap && keys.length) {
     // Several keys on the same objects: regular distribution over the object area.
     const zone = d.objects.length * ROW;
@@ -291,13 +301,15 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   const loads: LoadG[] = [];
   const make = (
     c: Device["channels"][number],
+    index: number,
     rows: number[],
     cy: number,
   ): LoadG => {
-    const view = c.equipmentConfig!.view;
+    const view = c.equipmentConfigs[index]!.view;
     const sz = sizeOf(view);
     return {
       channel: c.id,
+      index,
       view,
       x: 0,
       top: 0,
@@ -307,8 +319,10 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
       rows,
     };
   };
+  // Each load of an output is drawn; the loads of one output start at the same height
+  // and the stacking below separates them.
   d.channels.forEach((c) => {
-    if (!c.equipmentConfig) return;
+    if (!c.equipmentConfigs.length) return;
     const rows = d.objects.flatMap((o, i) =>
       o.channel === c.id && COMMAND_PORTS.includes(o.port) ? [i] : [],
     );
@@ -316,24 +330,24 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
       ? rows
       : d.objects.flatMap((o, i) => (o.channel === c.id ? [i] : []));
     if (!all.length) return;
-    loads.push(
-      make(c, all, ((Math.min(...all) + Math.max(...all) + 1) / 2 + 2) * ROW),
-    );
+    const cy = ((Math.min(...all) + Math.max(...all) + 1) / 2 + 2) * ROW;
+    c.equipmentConfigs.forEach((_, i) => loads.push(make(c, i, all, cy)));
   });
   // Channels driven only by a common object (e.g. stage object): stacked loads.
-  const orphans = d.channels.filter(
-    (c) => c.equipmentConfig && !loads.some((l) => l.channel === c.id),
+  const orphans = d.channels.flatMap((c) =>
+    loads.some((l) => l.channel === c.id)
+      ? []
+      : c.equipmentConfigs.map((e, i) => ({ c, i, view: e.view })),
   );
   if (orphans.length) {
     const shared = d.objects.flatMap((o, i) => (!o.channel ? [i] : []));
-    const size = (c: (typeof orphans)[number]) =>
-      sizeOf(c.equipmentConfig!.view).height + 6;
-    const total = orphans.reduce((a, c) => a + size(c), 0);
+    const size = (o: (typeof orphans)[number]) => sizeOf(o.view).height + 6;
+    const total = orphans.reduce((a, o) => a + size(o), 0);
     let y = Math.min(2 * ROW, h - total);
-    orphans.forEach((c) => {
-      const sz = sizeOf(c.equipmentConfig!.view);
-      loads.push(make(c, shared, y + (sz.anchorY ?? sz.height / 2) + 3));
-      y += size(c);
+    orphans.forEach((o) => {
+      const sz = sizeOf(o.view);
+      loads.push(make(o.c, o.i, shared, y + (sz.anchorY ?? sz.height / 2) + 3));
+      y += size(o);
     });
   }
   let minRel = 0;
@@ -346,7 +360,8 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   });
   // Loads taller than their object rows (a shutter spans about four rows) would
   // overlap: stack them in order, pushing down, then back up from the lowest limit.
-  const ordered = [...loads].sort((a, b) => a.top - b.top);
+  // Stack in the order of the rows, then of the loads of each output (a stable sort).
+  const ordered = [...loads].sort((a, b) => a.cy - b.cy);
   for (let i = 1; i < ordered.length; i++) {
     const prev = ordered[i - 1]!;
     const cur = ordered[i]!;

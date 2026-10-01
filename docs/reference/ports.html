@@ -57,7 +57,7 @@
 <tr>
 <td><code>switch</code></td>
 <td>Channel switch command (0 = off, 1 = on).</td>
-<td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>status</code></td>
@@ -67,12 +67,12 @@
 <tr>
 <td><code>move</code></td>
 <td>Shutter: 0 raises toward 0%, 1 lowers toward 100%.</td>
-<td><code>shutterActuator/v1</code></td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>stopStep</code></td>
 <td>Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).</td>
-<td><code>shutterActuator/v1</code></td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>positionCommand</code></td>
@@ -86,7 +86,7 @@
 </tr>
 <tr>
 <td><code>scene</code></td>
-<td>Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.</td>
+<td>Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels.</td>
 <td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
 </tr>
 <tr>
@@ -97,12 +97,12 @@
 <tr>
 <td><code>dim</code></td>
 <td>Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.</td>
-<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>value</code></td>
 <td>Brightness value in percent (5.001); zero switches off.</td>
-<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>systemGateway/v1</code></td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>systemGateway/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
@@ -218,6 +218,16 @@
 <td><code>temperature</code></td>
 <td>Sensor: room temperature (9.001).</td>
 <td><code>temperatureSensor/v1</code>, <code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>lock</td>
+<td><code>switchActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>logic</code></td>
+<td>logic</td>
+<td><code>switchActuator/v1</code></td>
 </tr>
 <tr>
 <td><code>power</code></td>
@@ -343,6 +353,11 @@
 <td><code>command</code></td>
 <td>command</td>
 <td><code>systemGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>led</code></td>
+<td>led</td>
+<td><code>buttonInterface/v1</code></td>
 </tr>
 </tbody></table>
 </div>

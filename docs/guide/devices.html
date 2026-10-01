@@ -374,19 +374,556 @@
 <p>A <code>&quot;toggle&quot;</code> value inverts the object that sends. With a separate status object, the model toggles from the last value sent, not from the status received; use the first form when the toggle must follow the load.</p>
 <p>A numeric input can send a setpoint:</p>
 <pre class="code"><code><span class="k">"inputs"</span>: [{ <span class="k">"id"</span>: <span class="s">"position"</span>, <span class="k">"type"</span>: <span class="s">"number"</span>, <span class="k">"label"</span>: <span class="s">"Setpoint (%)"</span>, <span class="k">"object"</span>: <span class="s">"target"</span>, <span class="k">"min"</span>: <span class="n">0</span>, <span class="k">"max"</span>: <span class="n">100</span>, <span class="k">"step"</span>: <span class="n">1</span> }]</code></pre><p>Keyboard controls: Tab focuses a key; Enter or Space activates a short press, and Shift+Enter activates a long press.</p>
-<h2 id="switching-actuator-switchactuator-v1"><a class="anchor" href="#switching-actuator-switchactuator-v1">#</a>Switching actuator: <code>switchActuator/v1</code></h2><p>An actuator has one channel per output. Its object ports include <code>switch</code> (command), <code>status</code> (feedback), <code>scene</code>, and <code>forced</code>.</p>
+<h2 id="push-button-interface-buttoninterface-v1"><a class="anchor" href="#push-button-interface-buttoninterface-v1">#</a>Push-button interface: <code>buttonInterface/v1</code></h2><p>A push-button interface (binary input) sits behind conventional push-buttons, as the interfaces used in training kits. Each <strong>channel is a contact input</strong>, drawn as a key on the diagram. Unlike <code>pushButton/v1</code>, the diagram does not decide short or long presses: the key reports when it is pressed and released, and the <strong>device measures the press itself</strong>, in simulated time, against <code>longPressMs</code> (0.5 s by default). Hold a key and release it as on a real push-button; with the keyboard, the key stays pressed while Enter or Space is held.</p>
+<p>The <code>function</code> parameter of each input decides its behavior and its group objects:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Function</th>
+<th>Behavior</th>
+<th>Ports</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>One action when the contact closes (<code>onPress</code>) and one when it opens (<code>onRelease</code>): <code>on</code>, <code>off</code>, <code>toggle</code>, or <code>none</code>. With <code>switchLongPress</code>, one action for a short press (<code>onShort</code>) and one for a long press (<code>onLong</code>).</td>
+<td><code>switch</code> (1.001)</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td><code>dimMode: &quot;single&quot;</code>: a short press toggles, a long press dims brighter when the light is off and otherwise the other way than last time, release stops. <code>&quot;brighter&quot;</code> and <code>&quot;darker&quot;</code> share the work between two keys. <code>dimStep</code> sets the step code (100 % dims until release).</td>
+<td><code>switch</code> (1.001), <code>dim</code> (3.007)</td>
+</tr>
+<tr>
+<td><code>blind</code></td>
+<td>A long press moves, a short press stops or steps. <code>blindMode: &quot;single&quot;</code> alternates the direction at each movement; <code>&quot;up&quot;</code> and <code>&quot;down&quot;</code> are the keys of a pair. With <code>stopOnRelease</code>, releasing the key stops the blind (hold to move).</td>
+<td><code>move</code> (1.008), <code>stopStep</code> (1.007)</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>Sends <code>shortValue</code>, or <code>longValue</code> after a long press; without <code>longValue</code>, the value is sent at once.</td>
+<td><code>value</code> (5.001, 5.004, 5.010, 7.600, 9.001, 20.102)</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>A short press recalls <code>sceneNumber</code>; with <code>sceneStore</code>, a long press stores it (DPT 18.001 with the learn bit).</td>
+<td><code>value</code> (17.001 or 18.001)</td>
+</tr>
+</tbody></table>
+</div><p>The <code>switch</code> and <code>move</code> objects have the W flag by default: when they also listen to the status of the load (<code>&quot;ga&quot;: [&quot;1/1/1&quot;, &quot;1/4/1&quot;]</code>), toggling and one-key dimming or blind start from the real state.</p>
+<p>Each input also has:</p>
+<ul>
+<li><strong>Lock:</strong> a <code>lock</code> object (1 = locked). While locked, presses are ignored; <code>lockStart</code> and <code>lockEnd</code> (or <code>blindLockStart</code> and <code>blindLockEnd</code>) send a reaction when the lock starts and ends, <code>lockEnd: &quot;update&quot;</code> sends the current value again.</li>
+<li><strong>Bus voltage recovery:</strong> <code>busRecovery</code> (or <code>blindBusRecovery</code>) sends a reaction when the bus voltage returns, after <code>busRecoveryDelayMs</code>. See <a href="#bus-voltage-failure-and-recovery">bus voltage</a>.</li>
+<li><strong>Cyclic sending:</strong> <code>cyclicMs</code> sends the switching object again at an interval; <code>cyclicWhen</code> limits it to 1 or 0.</li>
+<li><strong>LED:</strong> a <code>led</code> object shows a state on the key; without it, the LED of a switching or dimming input shows its switching object. <code>ledInverted</code> lights it for 0.</li>
+</ul>
+<p>The objects of each input form a fixed block of seven numbers (switching, dimming, up/down, stop/step, value, lock, LED), whatever its function, as in the product dialogs. The input count is set on the Configuration page of the designer.</p>
+<figure class="example" id="ex2">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Push-button interface: one-key dimming and blind, scene storing","description":"Each input of the interface is wired to a conventional push-button and has one function. The interface measures short and long presses itself: hold a key and release it. Input 2 dims on one key (short press toggles, long press dims brighter or darker in turn, release stops); input 3 moves the blind on one key (long press moves, the direction alternates, short press stops); input 4 recalls scene 1 with a short press and stores it with a long press (DPT 18.001), so each actuator keeps its current state as the new scene.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":320}}],"groupAddresses":[{"address":"1/1/1","name":"L1 switch","dpt":"1.001"},{"address":"1/1/2","name":"L2 switch","dpt":"1.001"},{"address":"1/2/2","name":"L2 relative dimming","dpt":"3.007"},{"address":"1/3/1","name":"Blind up/down","dpt":"1.008"},{"address":"1/3/2","name":"Blind stop/step","dpt":"1.007"},{"address":"1/4/1","name":"L1 switch status","dpt":"1.001"},{"address":"1/4/2","name":"L2 switch status","dpt":"1.001"},{"address":"1/5/1","name":"Scene control","dpt":"18.001"}],"devices":[{"id":"buttonInterface","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Input 1 switching","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"sw2","name":"Input 2 switching","ga":["1/1/2","1/4/2"],"dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"dim2","name":"Input 2 dimming","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"in2","flags":{"W":false,"T":true}},{"id":"mv3","name":"Input 3 up/down","ga":"1/3/1","dpt":"1.008","port":"move","channel":"in3","flags":{"W":true,"T":true}},{"id":"st3","name":"Input 3 stop/step","ga":"1/3/2","dpt":"1.007","port":"stopStep","channel":"in3","flags":{"W":false,"T":true}},{"id":"sc4","name":"Input 4 scene","ga":"1/5/1","dpt":"18.001","port":"value","channel":"in4","flags":{"W":false,"T":true}}],"channels":[{"id":"in1","label":"Input 1 · Light","equipment":null},{"id":"in2","label":"Input 2 · Dimming","parameters":{"function":"dim"},"equipment":null},{"id":"in3","label":"Input 3 · Blind","parameters":{"function":"blind"},"equipment":null},{"id":"in4","label":"Input 4 · Scene","parameters":{"function":"scene","sceneStore":true},"equipment":null}]},{"id":"switchActuator","name":"Switch actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"sw","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"st","name":"Status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":false,"T":true}},{"id":"sc","name":"Scene","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"a","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"L1","equipment":{"type":"lamp"},"scenes":{"1":1}}]},{"id":"dimmerActuator","name":"Dimming actuator","address":"1.1.3","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"sw","name":"Switch","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"dim","name":"Relative dimming","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"d1","flags":{"W":true,"T":false}},{"id":"st","name":"Status","ga":"1/4/2","dpt":"1.001","port":"status","channel":"d1","flags":{"W":false,"T":true}},{"id":"sc","name":"Scene","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"d1","flags":{"W":true,"T":false}}],"channels":[{"id":"d1","label":"L2","parameters":{"dimTimeMs":4000},"equipment":{"type":"dimmableLamp"},"scenes":{"1":60}}]},{"id":"shutterActuator","name":"Shutter actuator","address":"1.1.4","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"mv","name":"Up/down","ga":"1/3/1","dpt":"1.008","port":"move","channel":"s1","flags":{"W":true,"T":false}},{"id":"st","name":"Stop/step","ga":"1/3/2","dpt":"1.007","port":"stopStep","channel":"s1","flags":{"W":true,"T":false}},{"id":"sc","name":"Scene","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"s1","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"Blind","parameters":{"estimatedTravelTimeMs":20000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":20000}},"scenes":{"1":0}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex2-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex2-json">JSON</button><a class="try" href="../designer/index.html#template=push-button-interface" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex2-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Push-button interface: one-key dimming and blind, scene storing",
+  "description": "Each input of the interface is wired to a conventional push-button and has one function. The interface measures short and long presses itself: hold a key and release it. Input 2 dims on one key (short press toggles, long press dims brighter or darker in turn, release stops); input 3 moves the blind on one key (long press moves, the direction alternates, short press stops); input 4 recalls scene 1 with a short press and stores it with a long press (DPT 18.001), so each actuator keeps its current state as the new scene.",
+  "lines": [{ "address": "1.1", "name": "Example line", "powerSupply": { "currentMa": 320 } }],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "L1 switch", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "L2 switch", "dpt": "1.001" },
+    { "address": "1/2/2", "name": "L2 relative dimming", "dpt": "3.007" },
+    { "address": "1/3/1", "name": "Blind up/down", "dpt": "1.008" },
+    { "address": "1/3/2", "name": "Blind stop/step", "dpt": "1.007" },
+    { "address": "1/4/1", "name": "L1 switch status", "dpt": "1.001" },
+    { "address": "1/4/2", "name": "L2 switch status", "dpt": "1.001" },
+    { "address": "1/5/1", "name": "Scene control", "dpt": "18.001" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Input 1 switching",
+          "ga": ["1/1/1", "1/4/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw2",
+          "name": "Input 2 switching",
+          "ga": ["1/1/2", "1/4/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "dim2",
+          "name": "Input 2 dimming",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "in2",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mv3",
+          "name": "Input 3 up/down",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "st3",
+          "name": "Input 3 stop/step",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in3",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc4",
+          "name": "Input 4 scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "value",
+          "channel": "in4",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        { "id": "in1", "label": "Input 1 · Light", "equipment": null },
+        {
+          "id": "in2",
+          "label": "Input 2 · Dimming",
+          "parameters": { "function": "dim" },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Input 3 · Blind",
+          "parameters": { "function": "blind" },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Input 4 · Scene",
+          "parameters": { "function": "scene", "sceneStore": true },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "Status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "a", "label": "L1", "equipment": { "type": "lamp" }, "scenes": { "1": 1 } }
+      ]
+    },
+    {
+      "id": "dimmerActuator",
+      "name": "Dimming actuator",
+      "address": "1.1.3",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Switch",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "dim",
+          "name": "Relative dimming",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "Status",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "d1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "d1",
+          "label": "L2",
+          "parameters": { "dimTimeMs": 4000 },
+          "equipment": { "type": "dimmableLamp" },
+          "scenes": { "1": 60 }
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.4",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "mv",
+          "name": "Up/down",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "Stop/step",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Blind",
+          "parameters": { "estimatedTravelTimeMs": 20000 },
+          "equipment": { "type": "shutter", "parameters": { "actualTravelTimeMs": 20000 } },
+          "scenes": { "1": 0 }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex2-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Push-button interface: one-key dimming and blind, scene storing"</span>,
+  <span class="k">"description"</span>: <span class="s">"Each input of the interface is wired to a conventional push-button and has one function. The interface measures short and long presses itself: hold a key and release it. Input 2 dims on one key (short press toggles, long press dims brighter or darker in turn, release stops); input 3 moves the blind on one key (long press moves, the direction alternates, short press stops); input 4 recalls scene 1 with a short press and stores it with a long press (DPT 18.001), so each actuator keeps its current state as the new scene."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/2/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 relative dimming"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Blind up/down"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/2"</span>, <span class="k">"name"</span>: <span class="s">"Blind stop/step"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/5/1"</span>, <span class="k">"name"</span>: <span class="s">"Scene control"</span>, <span class="k">"dpt"</span>: <span class="s">"18.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button interface"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 1 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 2 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/2"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"dim2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 2 dimming"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mv3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 3 up/down"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 3 stop/step"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 4 scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"in1"</span>, <span class="k">"label"</span>: <span class="s">"Input 1 · Light"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 2 · Dimming"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 3 · Blind"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 4 · Scene"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"scene"</span>, <span class="k">"sceneStore"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switch actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"Switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"a"</span>, <span class="k">"label"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"dimmerActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Dimming actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"dimmerActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"dimmerActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"Switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"dim"</span>,
+          <span class="k">"name"</span>: <span class="s">"Relative dimming"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"d1"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"dimTimeMs"</span>: <span class="n">4000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">60</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Shutter actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"mv"</span>,
+          <span class="k">"name"</span>: <span class="s">"Up/down"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Stop/step"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scene"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Blind"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">20000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">20000</span> } },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><h2 id="switching-actuator-switchactuator-v1"><a class="anchor" href="#switching-actuator-switchactuator-v1">#</a>Switching actuator: <code>switchActuator/v1</code></h2><p>An actuator has one channel per output. Its object ports include <code>switch</code> (command), <code>status</code> (feedback), <code>scene</code>, and <code>forced</code>.</p>
 <ul>
 <li><strong>Status feedback:</strong> when the switching state changes, the <code>status</code> object takes its value and transmits it after <code>statusDelayMs</code> (300 ms by default).</li>
 <li><strong>Metering and load shedding:</strong> <code>power</code> (DPT 14.056 in W, or 9.024 in kW) and <code>energy</code> (DPT 13.010 in Wh, or 13.013 in kWh) objects on a channel report the power drawn by its load and the energy counted; <code>totalPower</code> and <code>powerLimit</code> objects without a channel report the total and a power limit alarm (<code>powerLimitW</code>). Loads declare their rated power with <code>powerW</code> (lamps, dimmable lamps, fans, and <code>appliance</code> loads). A channel with <code>&quot;loadShedding&quot;: true</code> is switched off while the limit is exceeded and switched on again after <code>sheddingTimeMs</code> if its command still requests it. Energy is counted <code>energyTimeScale</code> times faster than real time (60 by default). See the <a href="../examples/energy-metering.html">energy metering example</a>.</li>
 <li><strong>Relay operating mode:</strong> <code>&quot;parameters&quot;: { &quot;relayMode&quot;: &quot;normallyClosed&quot; }</code> on a channel inverts the contact: the load is powered while the switching state is 0, for example for a light that must stay on unless a command switches it off. The switching state, status feedback, timer, scenes, and priority override keep their usual meaning; only the contact is inverted. The diagram marks such an output with an inversion circle and the label <strong>NC</strong> on the load wire.</li>
 <li><strong>Staircase timer:</strong> <code>&quot;parameters&quot;: { &quot;timerMs&quot;: 10000 }</code> on a channel. A write of 1 closes the relay and starts a delay. <code>timerRetrigger</code> selects <code>&quot;restart&quot;</code> (default), <code>&quot;none&quot;</code>, or <code>&quot;add&quot;</code> (each new 1 adds a period, up to five). With <code>timerOffAllowed: false</code>, a write of 0 cannot cancel the timer. <code>timerWarningMs</code> briefly opens the output before expiry as a warning.</li>
-<li><strong>Scenes:</strong> <code>&quot;scenes&quot;: { &quot;1&quot;: 1, &quot;2&quot;: 0 }</code> on a channel defines its states. A <code>scene</code> object without a channel applies to all channels.</li>
+<li><strong>Scenes:</strong> <code>&quot;scenes&quot;: { &quot;1&quot;: 1, &quot;2&quot;: 0 }</code> on a channel defines its states. A <code>scene</code> object without a channel applies to all channels. A scene control object (DPT 18.001) also accepts storing: a telegram with the learn bit (value + 128) stores the current state of each channel as the scene, until the simulation restarts; <code>sceneLearning: false</code> refuses it.</li>
 <li><strong>Priority override:</strong> DPT 2.001 values 2 and 3 force off and on; 0 or 1 ends the override. Normal commands are stored during the override. <code>afterForcing</code> controls what happens afterward: <code>&quot;lastCommand&quot;</code> (default), <code>&quot;on&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;unchanged&quot;</code>, <code>&quot;previous&quot;</code>, or <code>&quot;toggle&quot;</code>.</li>
+<li><strong>Lock:</strong> a <code>lock</code> object (1 = locked) holds the output in the state set by <code>lockStart</code> (<code>&quot;unchanged&quot;</code>, <code>&quot;on&quot;</code>, or <code>&quot;off&quot;</code>); commands are stored meanwhile, and <code>afterLock</code> takes the same values as <code>afterForcing</code>. Forcing has priority over the lock.</li>
+<li><strong>Switching delays:</strong> <code>onDelayMs</code> and <code>offDelayMs</code> delay the commands of the <code>switch</code> object; the opposite command received during a delay cancels it. Scenes, forcing, and the lock act at once.</li>
+<li><strong>Logic link:</strong> a <code>logic</code> object is combined with the switching command by <code>logicOperation</code>: <code>&quot;and&quot;</code> switches on only while it is 1 (an enable), <code>&quot;or&quot;</code> switches on while either is 1. Until it receives a value, the command acts alone.</li>
+<li><strong>Bus voltage:</strong> <code>busFailure</code> sets the output when the bus voltage fails (<code>&quot;unchanged&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;on&quot;</code>); <code>busRecovery</code> sets it when the voltage returns (<code>&quot;previous&quot;</code>: the state before the failure, <code>&quot;off&quot;</code>, <code>&quot;on&quot;</code>), then the status is sent.</li>
 </ul>
-<figure class="example" id="ex2">
+<figure class="example" id="ex3">
 <div class="demo"><bus-diagram monitor="false"><script type="application/json">{"formatVersion":2,"title":"Timer, clock, and presence detection","description":"The actuator handles the delay: one on telegram is enough, and it switches off locally. Observe status telegrams in the monitor to measure the elapsed time.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/1","name":"L1 timer","dpt":"1.001"},{"address":"1/1/2","name":"L2 clock","dpt":"1.001"},{"address":"1/1/3","name":"L3 presence","dpt":"1.001"},{"address":"1/4/1","name":"L1 status feedback","dpt":"1.001"},{"address":"1/4/3","name":"L3 status feedback","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"key1","name":"Key 1","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Key 1","press":{"object":"key1","value":1}}]},{"id":"clk","name":"Weekly clock","address":"1.1.4","kind":"sensor","behavior":"pushButton/v1","description":"The buttons simulate the clock reaching its scheduled times.","objects":[{"id":"c1","name":"Channel A","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"8:00","icon":"clock","press":{"object":"c1","value":1}},{"id":"button-1","label":"8:05","icon":"clock","press":{"object":"c1","value":0}}]},{"id":"pir","name":"Presence detector","address":"1.1.5","kind":"sensor","behavior":"pushButton/v1","objects":[{"id":"p","name":"Presence","ga":"1/1/3","dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Passage","icon":"presence","press":{"object":"p","value":1}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"L1 uses a 10-second timer. L3 has a 30-second delay restarted on each detection. L4 is unused.","objects":[{"id":"c1","name":"Channel 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"e1","name":"Status 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":true,"T":true}},{"id":"c2","name":"Channel 2","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":"1/1/3","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"e3","name":"Status 3","ga":"1/4/3","dpt":"1.001","port":"status","channel":"s3","flags":{"W":true,"T":true}},{"id":"c4","name":"Channel 4","ga":[],"dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","parameters":{"timerMs":10000},"equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","parameters":{"timerMs":30000},"equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
-<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex2-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex2-json">JSON</button><a class="try" href="../designer/index.html#template=timers" title="Open in designer">Edit in designer ↗</a></div>
-<pre class="code" id="ex2-html"><code>&lt;<span class="t">bus-diagram</span> <span class="a">monitor</span>=<span class="s">"false"</span>&gt;
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex3-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex3-json">JSON</button><a class="try" href="../designer/index.html#template=timers" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex3-html"><code>&lt;<span class="t">bus-diagram</span> <span class="a">monitor</span>=<span class="s">"false"</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
 {
   "formatVersion": 2,
@@ -560,7 +1097,7 @@
   "options": { "speed": 1, "filterTables": false }
 }
 &lt;/<span class="t">script</span>&gt;
-&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex2-json" hidden><code>{
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex3-json" hidden><code>{
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Timer, clock, and presence detection"</span>,
   <span class="k">"description"</span>: <span class="s">"The actuator handles the delay: one on telegram is enough, and it switches off locally. Observe status telegrams in the monitor to measure the elapsed time."</span>,
@@ -731,7 +1268,286 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><p>A six-output actuator remains one KNX device. Declare six channels, using <code>&quot;equipment&quot;: null</code> for unused outputs.</p>
+</figure><h2 id="bus-voltage-failure-and-recovery"><a class="anchor" href="#bus-voltage-failure-and-recovery">#</a>Bus voltage failure and recovery</h2><p>Click the <strong>PSU</strong> label of a line or segment on the diagram to cut its bus voltage, and again to restore it; programmatically, <code>sim.setBusVoltage(&quot;L1.2&quot;, false)</code> (<code>L1.2b</code> for the segment behind an extension). The line is drawn grey and dashed, and its devices are greyed:</p>
+<ul>
+<li>each device first runs its bus failure behavior (a switch actuator sets <code>busFailure</code>; a shutter actuator stops its motors), then stops: its timers are cancelled, it neither receives nor sends, and its keys do nothing;</li>
+<li>couplers do not forward telegrams to the segment; the journal notes why;</li>
+<li>when the voltage returns, each device runs its recovery behavior (<code>busRecovery</code> of a switch actuator or a push-button interface) and restarts.</li>
+</ul>
+<p>The simulation starts with the installation already in operation: recovery reactions run only after a failure cut in the diagram, not at start. See the <a href="../examples/bus-voltage.html">bus voltage example</a>.</p>
+<figure class="example" id="ex4">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Bus voltage failure, lock, and switching delays","description":"Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.","lines":[{"address":"1.1","name":"Controls","powerSupply":{"currentMa":320}},{"address":"1.2","name":"Actuators","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"L1 switch","dpt":"1.001"},{"address":"1/1/2","name":"L2 switch","dpt":"1.001"},{"address":"1/4/1","name":"L1 switch status","dpt":"1.001"},{"address":"1/4/2","name":"L2 switch status","dpt":"1.001"},{"address":"1/6/1","name":"L1 lock","dpt":"1.001"}],"devices":[{"id":"buttonInterface","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Input 1 switching","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"lk2","name":"Input 2 lock","ga":"1/6/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"sw3","name":"Input 3 switching","ga":["1/1/2","1/4/2"],"dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1 · L1","parameters":{"busRecovery":"update","busRecoveryDelayMs":2000},"equipment":null},{"id":"in2","label":"Input 2 · Lock L1","equipment":null},{"id":"in3","label":"Input 3 · L2","equipment":null}]},{"id":"switchActuator","name":"Switch actuator","address":"1.2.1","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"sw1","name":"L1 switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"st1","name":"L1 status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":false,"T":true}},{"id":"lk1","name":"L1 lock","ga":"1/6/1","dpt":"1.001","port":"lock","channel":"a","flags":{"W":true,"T":false}},{"id":"sw2","name":"L2 switch","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"b","flags":{"W":true,"T":false}},{"id":"st2","name":"L2 status","ga":"1/4/2","dpt":"1.001","port":"status","channel":"b","flags":{"W":false,"T":true}}],"channels":[{"id":"a","label":"L1","parameters":{"lockStart":"off","busFailure":"off"},"equipment":{"type":"lamp"}},{"id":"b","label":"L2","parameters":{"onDelayMs":2000,"offDelayMs":5000},"equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex4-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex4-json">JSON</button><a class="try" href="../designer/index.html#template=bus-voltage" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex4-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Bus voltage failure, lock, and switching delays",
+  "description": "Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.",
+  "lines": [
+    { "address": "1.1", "name": "Controls", "powerSupply": { "currentMa": 320 } },
+    { "address": "1.2", "name": "Actuators", "powerSupply": { "currentMa": 640 } }
+  ],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "L1 switch", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "L2 switch", "dpt": "1.001" },
+    { "address": "1/4/1", "name": "L1 switch status", "dpt": "1.001" },
+    { "address": "1/4/2", "name": "L2 switch status", "dpt": "1.001" },
+    { "address": "1/6/1", "name": "L1 lock", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Input 1 switching",
+          "ga": ["1/1/1", "1/4/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "lk2",
+          "name": "Input 2 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw3",
+          "name": "Input 3 switching",
+          "ga": ["1/1/2", "1/4/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1 · L1",
+          "parameters": { "busRecovery": "update", "busRecoveryDelayMs": 2000 },
+          "equipment": null
+        },
+        { "id": "in2", "label": "Input 2 · Lock L1", "equipment": null },
+        { "id": "in3", "label": "Input 3 · L2", "equipment": null }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.2.1",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "L1 switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st1",
+          "name": "L1 status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "lk1",
+          "name": "L1 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "lock",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sw2",
+          "name": "L2 switch",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st2",
+          "name": "L2 status",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "b",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "L1",
+          "parameters": { "lockStart": "off", "busFailure": "off" },
+          "equipment": { "type": "lamp" }
+        },
+        {
+          "id": "b",
+          "label": "L2",
+          "parameters": { "onDelayMs": 2000, "offDelayMs": 5000 },
+          "equipment": { "type": "lamp" }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex4-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Bus voltage failure, lock, and switching delays"</span>,
+  <span class="k">"description"</span>: <span class="s">"Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay."</span>,
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Controls"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> } },
+    { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"name"</span>: <span class="s">"Actuators"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/6/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 lock"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button interface"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 1 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 2 lock"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 3 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/2"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 1 · L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"busRecovery"</span>: <span class="s">"update"</span>, <span class="k">"busRecoveryDelayMs"</span>: <span class="n">2000</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        { <span class="k">"id"</span>: <span class="s">"in2"</span>, <span class="k">"label"</span>: <span class="s">"Input 2 · Lock L1"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> },
+        { <span class="k">"id"</span>: <span class="s">"in3"</span>, <span class="k">"label"</span>: <span class="s">"Input 3 · L2"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switch actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.2.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 lock"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"lock"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"L2 switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st2"</span>,
+          <span class="k">"name"</span>: <span class="s">"L2 status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"label"</span>: <span class="s">"L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"lockStart"</span>: <span class="s">"off"</span>, <span class="k">"busFailure"</span>: <span class="s">"off"</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"b"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onDelayMs"</span>: <span class="n">2000</span>, <span class="k">"offDelayMs"</span>: <span class="n">5000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><p>A six-output actuator remains one KNX device. Declare six channels, using <code>&quot;equipment&quot;: null</code> for unused outputs. An output that supplies several loads lists them: <code>&quot;equipment&quot;: [{ &quot;type&quot;: &quot;lamp&quot; }, { &quot;type&quot;: &quot;lamp&quot; }]</code>; see <a href="concepts.html#channel-and-connected-equipment">concepts</a>.</p>
 <h2 id="energy-meter-energymeter-v1"><a class="anchor" href="#energy-meter-energymeter-v1">#</a>Energy meter: <code>energyMeter/v1</code></h2><p>An independent energy meter measures circuits that it does not switch: the supply of a heat pump or a water heater, a group of sockets, or a circuit switched by another actuator. Each channel is a measured circuit, with a <code>power</code> object (DPT 14.056 in W, or 9.024 in kW) and an <code>energy</code> object (DPT 13.010 in Wh, or 13.013 in kWh); a <code>totalPower</code> object without a channel sends the sum.</p>
 <p>The measured power of a circuit is given at start by <code>initialState.powerW</code> and changed by a numeric input on its <code>power</code> object, entered in the unit of that object. <code>initialState.energyWh</code> sets the meter index. Energy is integrated with the same time scale as actuator metering (<code>energyTimeScale</code>, 60 by default); power is sent when it changes by <code>powerSendDeltaW</code>, and energy every <code>meterIntervalMs</code>. The meter does not add the power of the circuits it measures to that of actuators: a sub-meter and the actuator that switches the same load report the same power. See the <a href="../examples/boiler-room.html">heat pump example</a>.</p>
 <h2 id="presence-detector-presencedetector-v1"><a class="anchor" href="#presence-detector-presencedetector-v1">#</a>Presence detector: <code>presenceDetector/v1</code></h2><p>A detection sends 1 through the <code>input</code> object. Each new detection restarts the hold timer (<code>&quot;parameters&quot;: { &quot;holdMs&quot;: 10000 }</code>); when it expires, the object sends 0. Set <code>retrigger: false</code> to avoid restarting or <code>sendOnEnd: false</code> to suppress the final 0. To model a detector that only sends 1 and relies on the actuator&#39;s timer, use <code>pushButton/v1</code> as in the <a href="../examples/timers.html">timer example</a>. The presence object may use DPT 1.001 or 1.018 (occupancy).</p>
@@ -819,7 +1635,7 @@
 <a href="../guide/shutters.html">Shutters →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#push-button-pushbutton-v1">Push-button: pushButton/v1</a></li><li><a href="#switching-actuator-switchactuator-v1">Switching actuator: switchActuator/v1</a></li><li><a href="#energy-meter-energymeter-v1">Energy meter: energyMeter/v1</a></li><li><a href="#presence-detector-presencedetector-v1">Presence detector: presenceDetector/v1</a></li><li><a href="#weather-station-weatherstation-v1">Weather station: weatherStation/v1</a></li><li><a href="#air-quality-sensor-airqualitysensor-v1">Air quality sensor: airQualitySensor/v1</a></li><li><a href="#logic-module-logicgate-v1">Logic module: logicGate/v1</a></li><li><a href="#clock-master-clockmaster-v1">Clock master: clockMaster/v1</a></li><li><a href="#weekly-time-switch-timeswitch-v1">Weekly time switch: timeSwitch/v1</a></li><li><a href="#display-and-supervisor-display-v1">Display and supervisor: display/v1</a></li><li><a href="#usb-interface-usbinterface-v1">USB interface: usbInterface/v1</a></li><li><a href="#passive-device-passive-v1">Passive device: passive/v1</a></li><li><a href="#gateway-to-another-system-systemgateway-v1">Gateway to another system: systemGateway/v1</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#push-button-pushbutton-v1">Push-button: pushButton/v1</a></li><li><a href="#push-button-interface-buttoninterface-v1">Push-button interface: buttonInterface/v1</a></li><li><a href="#switching-actuator-switchactuator-v1">Switching actuator: switchActuator/v1</a></li><li><a href="#bus-voltage-failure-and-recovery">Bus voltage failure and recovery</a></li><li><a href="#energy-meter-energymeter-v1">Energy meter: energyMeter/v1</a></li><li><a href="#presence-detector-presencedetector-v1">Presence detector: presenceDetector/v1</a></li><li><a href="#weather-station-weatherstation-v1">Weather station: weatherStation/v1</a></li><li><a href="#air-quality-sensor-airqualitysensor-v1">Air quality sensor: airQualitySensor/v1</a></li><li><a href="#logic-module-logicgate-v1">Logic module: logicGate/v1</a></li><li><a href="#clock-master-clockmaster-v1">Clock master: clockMaster/v1</a></li><li><a href="#weekly-time-switch-timeswitch-v1">Weekly time switch: timeSwitch/v1</a></li><li><a href="#display-and-supervisor-display-v1">Display and supervisor: display/v1</a></li><li><a href="#usb-interface-usbinterface-v1">USB interface: usbInterface/v1</a></li><li><a href="#passive-device-passive-v1">Passive device: passive/v1</a></li><li><a href="#gateway-to-another-system-systemgateway-v1">Gateway to another system: systemGateway/v1</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

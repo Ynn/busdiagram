@@ -168,7 +168,7 @@
     },
     "groupRanges": {
       "type": "array",
-      "description": "Names of main groups (\"1\") and middle groups (\"1/2\"), shown in the group address tree of the designer, as in ETS.",
+      "description": "Names of main groups (\"1\") and middle groups (\"1/2\"), shown in the group address tree of the designer.",
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -305,6 +305,10 @@
             {
               "const": "17.001",
               "description": "Scene number"
+            },
+            {
+              "const": "18.001",
+              "description": "Scene control"
             },
             {
               "const": "20.102",
@@ -544,7 +548,7 @@
             },
             {
               "const": "scene",
-              "description": "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels."
+              "description": "Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels."
             },
             {
               "const": "forced",
@@ -651,6 +655,14 @@
               "description": "Sensor: room temperature (9.001)."
             },
             {
+              "const": "lock",
+              "description": "lock"
+            },
+            {
+              "const": "logic",
+              "description": "logic"
+            },
+            {
               "const": "power",
               "description": "power"
             },
@@ -749,6 +761,10 @@
             {
               "const": "command",
               "description": "command"
+            },
+            {
+              "const": "led",
+              "description": "led"
             }
           ],
           "description": "Object role in the device's behavior."
@@ -1112,6 +1128,10 @@
             }
           ],
           "description": "Equipment type: lamp, shutter, or a registered extension type."
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the load, such as “Ceiling light”; shown in the diagram and the designer."
         },
         "view": {
           "type": "string",
@@ -1544,10 +1564,17 @@
               "$ref": "#/$defs/equipment"
             },
             {
+              "type": "array",
+              "items": {
+                "$ref": "#/$defs/equipment"
+              },
+              "description": "Several loads wired in parallel on the output; they all receive its commands."
+            },
+            {
               "type": "null"
             }
           ],
-          "description": "Connected equipment, or null for a free output without a drawn load."
+          "description": "Connected equipment: one load, a list of loads switched together, or null for a free output without a drawn load."
         },
         "scenes": {
           "type": "object",
@@ -1613,7 +1640,8 @@
                 "clockMaster/v1",
                 "timeSwitch/v1",
                 "systemGateway/v1",
-                "energyMeter/v1"
+                "energyMeter/v1",
+                "buttonInterface/v1"
               ]
             },
             {
@@ -1884,6 +1912,85 @@
                           "default": 300,
                           "description": "Delay before sending status feedback (ms)."
                         },
+                        "onDelayMs": {
+                          "title": "Switch-on delay",
+                          "unit": "ms",
+                          "type": "integer",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Delay between a 1 on the switching object and switching on (0: at once). A 0 received meanwhile cancels it; scenes, forcing, and the lock act at once."
+                        },
+                        "offDelayMs": {
+                          "title": "Switch-off delay",
+                          "unit": "ms",
+                          "type": "integer",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Delay between a 0 on the switching object and switching off (0: at once). A 1 received meanwhile cancels it."
+                        },
+                        "lockStart": {
+                          "title": "When locked",
+                          "type": "string",
+                          "enum": [
+                            "unchanged",
+                            "on",
+                            "off"
+                          ],
+                          "default": "unchanged",
+                          "description": "State of the output when the lock object receives 1; while locked, commands are stored without effect. Forcing has priority over the lock."
+                        },
+                        "afterLock": {
+                          "title": "End of lock",
+                          "type": "string",
+                          "enum": [
+                            "lastCommand",
+                            "previous",
+                            "unchanged",
+                            "on",
+                            "off",
+                            "toggle"
+                          ],
+                          "default": "lastCommand",
+                          "description": "State when the lock object receives 0: follow the latest command received while locked, restore the state before the lock, keep the current state, switch on, switch off, or invert."
+                        },
+                        "logicOperation": {
+                          "title": "Logic operation",
+                          "type": "string",
+                          "enum": [
+                            "and",
+                            "or"
+                          ],
+                          "default": "and",
+                          "description": "Combination of the switching command with the logic object (for example an enable from a presence detector). Until the logic object receives a value, the command acts alone."
+                        },
+                        "sceneLearning": {
+                          "title": "Scene storing",
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current state of the output as the scene; it replaces the configured preset until the simulation restarts."
+                        },
+                        "busFailure": {
+                          "title": "On bus voltage failure",
+                          "type": "string",
+                          "enum": [
+                            "unchanged",
+                            "off",
+                            "on"
+                          ],
+                          "default": "unchanged",
+                          "description": "State of the output when the bus voltage fails; the relay is then left as it is until the voltage returns."
+                        },
+                        "busRecovery": {
+                          "title": "On bus voltage recovery",
+                          "type": "string",
+                          "enum": [
+                            "previous",
+                            "off",
+                            "on"
+                          ],
+                          "default": "previous",
+                          "description": "State of the output when the bus voltage returns; the status feedback is then sent."
+                        },
                         "afterForcing": {
                           "title": "End of forcing",
                           "expert": true,
@@ -1931,11 +2038,19 @@
                         },
                         {
                           "const": "scene",
-                          "description": "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels."
+                          "description": "scene number (17.001), or scene control (18.001) whose learn bit stores the current state"
                         },
                         {
                           "const": "forced",
                           "description": "Priority override (2 = force off, 3 = force on, 0/1 = end override)."
+                        },
+                        {
+                          "const": "lock",
+                          "description": "1 locks the output in the state set by lockStart, 0 unlocks it (afterLock)"
+                        },
+                        {
+                          "const": "logic",
+                          "description": "combined with the switching command by logicOperation (AND or OR)"
                         },
                         {
                           "const": "power",
@@ -2065,6 +2180,12 @@
                           "type": "boolean",
                           "default": false,
                           "description": "Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands."
+                        },
+                        "sceneLearning": {
+                          "title": "Scene storing",
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts."
                         }
                       }
                     },
@@ -2118,7 +2239,7 @@
                         },
                         {
                           "const": "scene",
-                          "description": "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels."
+                          "description": "scene number (17.001), or scene control (18.001) whose learn bit stores the current position"
                         },
                         {
                           "const": "slatCommand",
@@ -2429,6 +2550,12 @@
                           "default": 0,
                           "description": "Transition time when switching on or off (0 means immediate)."
                         },
+                        "sceneLearning": {
+                          "title": "Scene storing",
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current level as the scene; it replaces the configured preset until the simulation restarts."
+                        },
                         "valueFadeMs": {
                           "title": "Fade on value",
                           "unit": "ms",
@@ -2568,7 +2695,7 @@
                         },
                         {
                           "const": "scene",
-                          "description": "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels."
+                          "description": "scene number (17.001), or scene control (18.001) whose learn bit stores the current level"
                         },
                         {
                           "const": "colourTemperature",
@@ -2657,6 +2784,12 @@
                           "default": 0,
                           "description": "Transition time when switching on or off (0 means immediate)."
                         },
+                        "sceneLearning": {
+                          "title": "Scene storing",
+                          "type": "boolean",
+                          "default": true,
+                          "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current level as the scene; it replaces the configured preset until the simulation restarts."
+                        },
                         "valueFadeMs": {
                           "title": "Fade on value",
                           "unit": "ms",
@@ -2796,7 +2929,7 @@
                         },
                         {
                           "const": "scene",
-                          "description": "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels."
+                          "description": "scene number (17.001), or scene control (18.001) whose learn bit stores the current level"
                         },
                         {
                           "const": "error",
@@ -4012,6 +4145,332 @@
                         {
                           "const": "totalPower",
                           "description": "sum of the measured circuits: W with 14.056, kW with 9.024"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "behavior": {
+                "const": "buttonInterface/v1"
+              }
+            },
+            "required": [
+              "behavior"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "maxProperties": 0
+              },
+              "channels": {
+                "items": {
+                  "properties": {
+                    "parameters": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "properties": {
+                        "function": {
+                          "title": "Function",
+                          "type": "string",
+                          "enum": [
+                            "switch",
+                            "dim",
+                            "blind",
+                            "value",
+                            "scene"
+                          ],
+                          "default": "switch",
+                          "description": "What the input controls; the group objects and settings depend on it."
+                        },
+                        "longPressMs": {
+                          "title": "Long press from",
+                          "unit": "ms",
+                          "type": "integer",
+                          "minimum": 100,
+                          "maximum": 10000,
+                          "default": 500,
+                          "description": "A press held at least this long is a long press; the device measures it in simulated time."
+                        },
+                        "switchLongPress": {
+                          "title": "Short and long presses",
+                          "type": "boolean",
+                          "default": false,
+                          "description": "Tell short and long presses apart, with an action for each; otherwise one action when the key is pressed and one when it is released."
+                        },
+                        "onPress": {
+                          "title": "On press",
+                          "type": "string",
+                          "enum": [
+                            "on",
+                            "off",
+                            "toggle",
+                            "none"
+                          ],
+                          "default": "toggle",
+                          "description": "Switching telegram when the contact closes."
+                        },
+                        "onRelease": {
+                          "title": "On release",
+                          "type": "string",
+                          "enum": [
+                            "on",
+                            "off",
+                            "toggle",
+                            "none"
+                          ],
+                          "default": "none",
+                          "description": "Switching telegram when the contact opens."
+                        },
+                        "onShort": {
+                          "title": "Short press",
+                          "type": "string",
+                          "enum": [
+                            "on",
+                            "off",
+                            "toggle",
+                            "none"
+                          ],
+                          "default": "toggle",
+                          "description": "Switching telegram after a short press, when the key is released."
+                        },
+                        "onLong": {
+                          "title": "Long press",
+                          "type": "string",
+                          "enum": [
+                            "on",
+                            "off",
+                            "toggle",
+                            "none"
+                          ],
+                          "default": "none",
+                          "description": "Switching telegram when the long-press time is reached."
+                        },
+                        "dimMode": {
+                          "title": "Dimming operation",
+                          "type": "string",
+                          "enum": [
+                            "single",
+                            "brighter",
+                            "darker"
+                          ],
+                          "default": "single",
+                          "description": "One key switches with a short press and dims with a long press, brighter when the light is off and otherwise the other way than last time; two keys share the work, one brighter and one darker. Releasing the key stops dimming."
+                        },
+                        "dimStep": {
+                          "title": "Dimming step",
+                          "type": "integer",
+                          "enum": [
+                            1,
+                            2,
+                            3,
+                            4,
+                            5,
+                            6,
+                            7
+                          ],
+                          "default": 1,
+                          "description": "Step code of the relative dimming telegram (DPT 3.007); 100 % dims until the key is released."
+                        },
+                        "blindMode": {
+                          "title": "Blind operation",
+                          "type": "string",
+                          "enum": [
+                            "single",
+                            "up",
+                            "down"
+                          ],
+                          "default": "single",
+                          "description": "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram."
+                        },
+                        "stopOnRelease": {
+                          "title": "Stop on release",
+                          "type": "boolean",
+                          "default": false,
+                          "description": "Releasing the key after a long press stops the blind (hold to move); otherwise the blind runs to its end position unless a short press stops it."
+                        },
+                        "shortValue": {
+                          "title": "Value on short press",
+                          "type": "number",
+                          "default": 0,
+                          "description": "Value sent by a short press (by any press when there is no long-press value), in the unit of the object's DPT."
+                        },
+                        "longValue": {
+                          "title": "Value on long press",
+                          "type": [
+                            "number",
+                            "null"
+                          ],
+                          "default": null,
+                          "description": "Value sent by a long press; null sends the short-press value at once."
+                        },
+                        "sceneNumber": {
+                          "title": "Scene number",
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 64,
+                          "default": 1,
+                          "description": "Scene recalled by a short press."
+                        },
+                        "sceneStore": {
+                          "title": "Store by long press",
+                          "type": "boolean",
+                          "default": false,
+                          "description": "A long press asks the actuators to store their current state as the scene (DPT 18.001, learn bit); a short press recalls it."
+                        },
+                        "lockStart": {
+                          "title": "When locked",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "on",
+                            "off"
+                          ],
+                          "default": "none",
+                          "description": "Switching telegram sent when the lock object receives 1."
+                        },
+                        "lockEnd": {
+                          "title": "When unlocked",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "update",
+                            "on",
+                            "off"
+                          ],
+                          "default": "none",
+                          "description": "Switching telegram sent when the lock object receives 0."
+                        },
+                        "blindLockStart": {
+                          "title": "When locked (blind)",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down"
+                          ],
+                          "default": "none",
+                          "description": "Movement sent when the lock object receives 1."
+                        },
+                        "blindLockEnd": {
+                          "title": "When unlocked (blind)",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down"
+                          ],
+                          "default": "none",
+                          "description": "Movement sent when the lock object receives 0."
+                        },
+                        "busRecovery": {
+                          "title": "On bus voltage recovery",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "update",
+                            "on",
+                            "off"
+                          ],
+                          "default": "none",
+                          "description": "Switching telegram sent when the bus voltage returns after a failure."
+                        },
+                        "blindBusRecovery": {
+                          "title": "On bus voltage recovery (blind)",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down"
+                          ],
+                          "default": "none",
+                          "description": "Movement sent when the bus voltage returns after a failure."
+                        },
+                        "busRecoveryDelayMs": {
+                          "title": "Recovery delay",
+                          "unit": "ms",
+                          "type": "integer",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Delay before the bus recovery reaction, so that the devices of a line do not all send at once."
+                        },
+                        "cyclicMs": {
+                          "title": "Cyclic sending",
+                          "unit": "ms",
+                          "type": [
+                            "integer",
+                            "null"
+                          ],
+                          "exclusiveMinimum": 0,
+                          "default": null,
+                          "description": "Send the switching object again at this interval, for example for a device that monitors it."
+                        },
+                        "cyclicWhen": {
+                          "title": "Cyclic sending of",
+                          "type": "string",
+                          "enum": [
+                            "always",
+                            "on",
+                            "off"
+                          ],
+                          "default": "always",
+                          "description": "Which value of the switching object is sent cyclically."
+                        },
+                        "ledInverted": {
+                          "title": "LED lit for 0",
+                          "type": "boolean",
+                          "default": false,
+                          "description": "The LED is lit while its object is 0 and off while it is 1."
+                        }
+                      }
+                    },
+                    "initialState": {
+                      "type": "object",
+                      "maxProperties": 0
+                    }
+                  }
+                }
+              },
+              "objects": {
+                "items": {
+                  "properties": {
+                    "port": {
+                      "oneOf": [
+                        {
+                          "const": "switch",
+                          "description": "switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state"
+                        },
+                        {
+                          "const": "dim",
+                          "description": "Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming."
+                        },
+                        {
+                          "const": "move",
+                          "description": "blind movement; with W set, a one-key input takes the direction of the last movement received"
+                        },
+                        {
+                          "const": "stopStep",
+                          "description": "Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down)."
+                        },
+                        {
+                          "const": "value",
+                          "description": "value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function"
+                        },
+                        {
+                          "const": "lock",
+                          "description": "1 locks the input (presses are ignored), 0 unlocks it"
+                        },
+                        {
+                          "const": "led",
+                          "description": "state shown by the LED of the key"
                         }
                       ]
                     }

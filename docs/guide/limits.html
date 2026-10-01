@@ -55,8 +55,8 @@
 <li><strong>Timing:</strong> propagation is slowed for inspection; it does not reproduce real twisted-pair bus timing.</li>
 <li><strong>Group services:</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code>, and <code>GroupValueResponse</code> are modeled. Individual-address programming telegrams are outside the model.</li>
 <li><strong>TP exchange:</strong> the frame view shows a group data frame. Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model.</li>
-<li><strong>Object flags:</strong> W, T, R, and U are modeled; C is always enabled. Initialization-read behavior is not modeled.</li>
-<li><strong>Internal associations:</strong> a device may deliver its own transmitted telegram to other local objects on the same group address, subject to W. Real product behavior varies.</li>
+<li><strong>Object flags:</strong> W, T, R, and U are modeled; C is always enabled. Initialization-read behavior is not modeled. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
+<li><strong>Internal associations:</strong> a device delivers its own transmitted telegram to its other objects on the same group address, subject to their W flag. The KNX Application Layer updates all of them without condition; BusDiagram keeps the W flag so that a status object does not act as a command, and real products differ on this point.</li>
 <li><strong>Power supplies:</strong> drawn on lines and segments that declare one; main lines and the backbone are not given one, and the bus load (consumption against rated current) is not computed.</li>
 <li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
 <li><strong>Couplers:</strong> filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see <a href="couplers.html">couplers and repeaters</a>.</li>
@@ -65,7 +65,9 @@
 <li><strong>Shutters:</strong> the actuator estimates travel without a position sensor; the connected shutter moves at its own speed. See <a href="shutters.html">shutters</a>.</li>
 <li><strong>Clock:</strong> the simulated clock has no time zone and no summer time change; DPT 19.001 (date and time with quality flags) is not supported. The clock in the timers example is a push-button that simulates scheduled times; see the <a href="../examples/time-schedule.html">time schedule example</a> for a clock master and a time switch.</li>
 <li><strong>Relay feedback:</strong> it reports the controlled relay state, not a measured mains voltage.</li>
-<li><strong>Scenes:</strong> scene recall (DPT 17.001) is modeled; scene storage (DPT 18.001) is not.</li>
+<li><strong>Scenes:</strong> recall (DPT 17.001 and 18.001) and storing by the learn bit (DPT 18.001) are modeled; a stored scene lasts until the simulation restarts.</li>
+<li><strong>Bus voltage:</strong> a line or segment can lose its bus voltage from its power supply on the diagram; devices then stop and run their failure and recovery behavior. Behavior after a download of the configuration is outside the model, and the simulation starts with the installation already in operation, without a recovery reaction.</li>
+<li><strong>Push-button interface:</strong> contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Contact type (normally open or closed), debounce, and telegram rate limits are not modeled.</li>
 <li><strong>DPTs:</strong> only the <a href="../reference/dpt.html">listed data types</a> are simulated; passive and display devices can show other standard DPTs as raw bytes.</li>
 <li><strong>Other systems:</strong> a gateway models only its KNX side; Modbus, BACnet, and M-Bus are not simulated.</li>
 <li><strong>USB interface panel:</strong> group reads and writes are modeled, without programming or downloads.</li>

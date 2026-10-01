@@ -1,4 +1,4 @@
-// Renaming in place, as in ETS: double-click the name, press F2, or choose Rename in the
+// Renaming in place: double-click the name, press F2, or choose Rename in the
 // context menu; Enter or leaving the field confirms, Escape cancels.
 import { html } from "lit";
 import type { TemplateResult } from "lit";

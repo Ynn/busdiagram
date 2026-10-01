@@ -104,7 +104,7 @@
 <td><code>groupRanges</code></td>
 <td>list of object</td>
 <td></td>
-<td>Names of main groups (&quot;1&quot;) and middle groups (&quot;1/2&quot;), shown in the group address tree of the designer, as in ETS.</td>
+<td>Names of main groups (&quot;1&quot;) and middle groups (&quot;1/2&quot;), shown in the group address tree of the designer.</td>
 </tr>
 <tr>
 <td><code>groupAddresses</code></td>
@@ -296,7 +296,7 @@
 </tr>
 <tr>
 <td><code>behavior</code></td>
-<td><code>&quot;pushButton/v1&quot;</code>, <code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code> or string (validated format)</td>
+<td><code>&quot;pushButton/v1&quot;</code>, <code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code>, <code>&quot;buttonInterface/v1&quot;</code> or string (validated format)</td>
 <td>yes</td>
 <td>Versioned ID of the device&#39;s registered behavior.</td>
 </tr>
@@ -570,9 +570,9 @@
 </tr>
 <tr>
 <td><code>equipment</code></td>
-<td><a href="#equipment">Equipment</a> or null</td>
+<td><a href="#equipment">Equipment</a> or list of <a href="#equipment">Equipment</a> or null</td>
 <td></td>
-<td>Connected equipment, or null for a free output without a drawn load.</td>
+<td>Connected equipment: one load, a list of loads switched together, or null for a free output without a drawn load.</td>
 </tr>
 <tr>
 <td><code>scenes</code></td>
@@ -596,6 +596,12 @@
 <td><code>&quot;lamp&quot;</code>, <code>&quot;shutter&quot;</code>, <code>&quot;dimmableLamp&quot;</code>, <code>&quot;daliGroup&quot;</code>, <code>&quot;radiator&quot;</code>, <code>&quot;fan&quot;</code>, <code>&quot;appliance&quot;</code> or string (validated format)</td>
 <td>yes</td>
 <td>Equipment type: lamp, shutter, or a registered extension type.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>string</td>
+<td></td>
+<td>Name of the load, such as “Ceiling light”; shown in the diagram and the designer.</td>
 </tr>
 <tr>
 <td><code>view</code></td>

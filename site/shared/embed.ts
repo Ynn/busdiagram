@@ -37,6 +37,23 @@ export function embedSnippet(
 }
 
 /** standalone HTML page: built-in bundle, no external files, works offline. */
+/**
+ * Build of a library bundle, from its banner: its version (or development build
+ * identifier) and the address of its source code.
+ */
+export function buildInfo(bundleSource: string): {
+  label: string | null;
+  source: string;
+} {
+  const head = bundleSource.slice(0, bundleSource.indexOf("*/"));
+  return {
+    label: /BusDiagram v(\S+)/.exec(head)?.[1] ?? null,
+    source:
+      /https:\/\/github\.com\/[^\s)]+/.exec(head)?.[0] ??
+      "https://github.com/Ynn/busdiagram",
+  };
+}
+
 export function standalonePage(
   scenario: unknown,
   bundleSource: string,
@@ -47,12 +64,9 @@ export function standalonePage(
   const title = String(
     (scenario as { title?: string })?.title ?? "BusDiagram",
   ).replace(/[<&]/g, "");
-  // The library banner gives the version; the page points to the license and the
-  // source of that exact version (the third-party notices travel in the script).
-  const version = /BusDiagram v([\w.+-]+)/.exec(bundleSource)?.[1];
-  const source = version
-    ? `https://github.com/Ynn/busdiagram/tree/v${version}`
-    : "https://github.com/Ynn/busdiagram";
+  // The library banner names the build and the source code that corresponds to it.
+  const { label, source } = buildInfo(bundleSource);
+  const version = label;
   return `<!doctype html>
 <!-- Made with BusDiagram${version ? ` v${version}` : ""}, AGPL-3.0-only. Source code: ${source}. The notices of the third-party components are at the top of the first script. -->
 <html lang="${lang.replace(/[^\w-]/g, "")}">

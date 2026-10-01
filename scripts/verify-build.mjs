@@ -39,7 +39,12 @@ for (const [name, code] of [
   ["bus-diagram.js", bundle],
   ["bus-diagram.esm.js", esm],
 ])
-  if (!code.startsWith(`/*! BusDiagram v${pkg.version} `))
+  // A release build names its version; a development build adds "+dev.<commit>".
+  if (
+    !new RegExp(
+      `^/\\*! BusDiagram v${pkg.version.replaceAll(".", "\\.")}[ +]`,
+    ).test(code)
+  )
     throw new Error(`${name} does not start with the v${pkg.version} banner.`);
 // The banner carries the license notices of every bundled package.
 for (const head of notices(LIBRARY).packages)

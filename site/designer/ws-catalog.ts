@@ -11,18 +11,11 @@ import { SNIPPETS } from "./snippets";
 const CATALOG_GROUPS: [() => string, string[]][] = [
   [
     () => t`Controls`,
-    ["pushButton2", "pushButton4", "dimmingPushButton", "roomThermostat"],
+    ["pushButton4", "buttonInterface4", "dimmingPushButton", "roomThermostat"],
   ],
   [
     () => t`Actuators`,
-    [
-      "switchActuator4",
-      "switchActuator6",
-      "dim",
-      "dali",
-      "shutterActuator",
-      "heatingActuator",
-    ],
+    ["switchActuator4", "dim", "dali", "shutterActuator", "heatingActuator"],
   ],
   [
     () => t`Sensors`,
@@ -50,6 +43,25 @@ export interface CatalogEntry {
   channels: number;
 }
 
+/**
+ * One entry per type: the number of keys or outputs is set on the Configuration page of
+ * the device, so the catalog names the type and gives the count it starts with.
+ */
+const CATALOG_NAMES: Record<string, () => [string, string]> = {
+  pushButton4: () => [
+    t`Push-button`,
+    t`Four keys to start with; set the number of keys on the Configuration page of its parameters.`,
+  ],
+  buttonInterface4: () => [
+    t`Push-button interface`,
+    t`Four inputs to start with; set the number of inputs on the Configuration page, and the function of each input on its pages.`,
+  ],
+  switchActuator4: () => [
+    t`Switch actuator`,
+    t`Four outputs to start with, one lamp each; set the number of outputs on the Configuration page, and the loads of each output.`,
+  ],
+};
+
 const previews = new Map<string, CatalogEntry | null>();
 /** Catalog entry of a template: the device it creates on an empty installation. */
 export function templateEntry(id: string): CatalogEntry | null {
@@ -68,8 +80,8 @@ export function templateEntry(id: string): CatalogEntry | null {
         d
           ? {
               value: `snippet:${id}`,
-              label: s!.label,
-              hint: s!.hint,
+              label: CATALOG_NAMES[id]?.()[0] ?? s!.label,
+              hint: CATALOG_NAMES[id]?.()[1] ?? s!.hint,
               behavior: d.behavior,
               channels: d.channels?.length ?? 0,
               objects: d.objects.map((o) => ({
@@ -95,7 +107,10 @@ export function catalogGroups(reg: Registry): [string, CatalogEntry[]][] {
     ],
   );
   const others = SNIPPETS.filter(
-    (s) => !listed.has(s.id) && !["ga", "line"].includes(s.id),
+    (s) =>
+      !listed.has(s.id) &&
+      // Variants of a listed type (another number of keys or outputs).
+      !["ga", "line", "pushButton2", "switchActuator6"].includes(s.id),
   )
     .map((s) => templateEntry(s.id))
     .filter((e): e is CatalogEntry => !!e);

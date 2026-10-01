@@ -102,7 +102,7 @@
 </tbody></table>
 </div><p>A DPT 9.001 value uses two payload bytes after the APCI. Until an object receives or measures a value, a 9.xxx object can remain unknown.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Room thermostat</h2><p><code>roomThermostat/v1</code> measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.</p>
-<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint.</p>
+<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by <code>hvacMode</code> (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint.</p>
 <p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output at the setpoint and restarts below the <code>hysteresisK</code> threshold.</p>
 <div class="table"><table>
 <thead>
@@ -153,7 +153,7 @@
 <td><code>presence</code></td>
 <td>1.018 or 1.001</td>
 <td>Receive</td>
-<td>Presence requests comfort.</td>
+<td>Presence requests comfort, except during building protection.</td>
 </tr>
 <tr>
 <td><code>window</code></td>

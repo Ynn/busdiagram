@@ -53,6 +53,11 @@ await writeFile(
 );
 
 // The banner, the documentation footer, and the CDN integrity hashes depend on the version.
-execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit" });
+// This build is the release: npm creates its commit and the vX.Y.Z tag right after.
+execFileSync("npm", ["run", "build"], {
+  cwd: root,
+  stdio: "inherit",
+  env: { ...process.env, BUSDIAGRAM_RELEASE: "1" },
+});
 git("add", "CHANGELOG.md", "README.md", "docs", "demo");
 console.log(`release: version ${version} prepared.`);

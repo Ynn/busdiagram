@@ -155,7 +155,8 @@ export function toV2(
             }),
           }),
         ),
-        buttons: d.buttons.length
+        // Keys of contact inputs come from the channels: they are not written.
+        buttons: d.buttons.some((b) => !b.contact)
           ? d.buttons.map((b) =>
               compact({
                 id: b.id,
@@ -191,8 +192,21 @@ export function toV2(
           : undefined,
         channels: d.channels.length
           ? d.channels.map((c) => {
-              const eq = c.equipmentConfig;
-              const edef = eq ? registry.equipment.get(eq.type) : undefined;
+              // One load as an object, several as a list, none as null.
+              const loads = c.equipmentConfigs.map((eq) => {
+                const edef = registry.equipment.get(eq.type);
+                return compact({
+                  type: eq.type,
+                  name: eq.name ?? undefined,
+                  view: eq.view !== eq.type ? eq.view : undefined,
+                  room: eq.room ?? undefined,
+                  parameters: withoutDefaults(eq.parameters, edef?.parameters),
+                  initialState: withoutDefaults(
+                    eq.initialState,
+                    edef?.initialState,
+                  ),
+                });
+              });
               return compact({
                 id: c.id,
                 label: c.label !== c.id ? c.label : undefined,
@@ -204,21 +218,7 @@ export function toV2(
                   c.initialState,
                   def?.channelInitialState,
                 ),
-                equipment: eq
-                  ? compact({
-                      type: eq.type,
-                      view: eq.view !== eq.type ? eq.view : undefined,
-                      room: eq.room ?? undefined,
-                      parameters: withoutDefaults(
-                        eq.parameters,
-                        edef?.parameters,
-                      ),
-                      initialState: withoutDefaults(
-                        eq.initialState,
-                        edef?.initialState,
-                      ),
-                    })
-                  : null,
+                equipment: loads.length > 1 ? loads : (loads[0] ?? null),
                 scenes: c.scenes.size
                   ? Object.fromEntries(
                       [...c.scenes].map(([k, v]) => [String(k), v]),

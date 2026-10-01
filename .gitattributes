@@ -1,0 +1,4 @@
+# Generated, minified bundles: a string literal of a dependency can end a line with a
+# space (Lit's "[ \t\n\f\r]"); whitespace checks do not apply to them.
+demo/*.js -whitespace
+docs/**/*.js -whitespace

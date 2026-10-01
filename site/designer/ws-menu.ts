@@ -83,7 +83,7 @@ function linkWith(host: Host, key: string, kind: "obj" | "ga") {
 }
 
 /**
- * Commands of a tree node or list row, as in the context menus of ETS. The same element
+ * Commands of a tree node or list row. The same element
  * has the same commands wherever it appears; a list row also offers to open it.
  */
 export function menuFor(

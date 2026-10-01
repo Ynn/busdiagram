@@ -40,6 +40,35 @@ A numeric input can send a setpoint:
 
 Keyboard controls: Tab focuses a key; Enter or Space activates a short press, and Shift+Enter activates a long press.
 
+## Push-button interface: `buttonInterface/v1`
+
+A push-button interface (binary input) sits behind conventional push-buttons, as the interfaces used in training kits. Each **channel is a contact input**, drawn as a key on the diagram. Unlike `pushButton/v1`, the diagram does not decide short or long presses: the key reports when it is pressed and released, and the **device measures the press itself**, in simulated time, against `longPressMs` (0.5 s by default). Hold a key and release it as on a real push-button; with the keyboard, the key stays pressed while Enter or Space is held.
+
+The `function` parameter of each input decides its behavior and its group objects:
+
+| Function | Behavior | Ports |
+| --- | --- | --- |
+| `switch` | One action when the contact closes (`onPress`) and one when it opens (`onRelease`): `on`, `off`, `toggle`, or `none`. With `switchLongPress`, one action for a short press (`onShort`) and one for a long press (`onLong`). | `switch` (1.001) |
+| `dim` | `dimMode: "single"`: a short press toggles, a long press dims brighter when the light is off and otherwise the other way than last time, release stops. `"brighter"` and `"darker"` share the work between two keys. `dimStep` sets the step code (100 % dims until release). | `switch` (1.001), `dim` (3.007) |
+| `blind` | A long press moves, a short press stops or steps. `blindMode: "single"` alternates the direction at each movement; `"up"` and `"down"` are the keys of a pair. With `stopOnRelease`, releasing the key stops the blind (hold to move). | `move` (1.008), `stopStep` (1.007) |
+| `value` | Sends `shortValue`, or `longValue` after a long press; without `longValue`, the value is sent at once. | `value` (5.001, 5.004, 5.010, 7.600, 9.001, 20.102) |
+| `scene` | A short press recalls `sceneNumber`; with `sceneStore`, a long press stores it (DPT 18.001 with the learn bit). | `value` (17.001 or 18.001) |
+
+The `switch` and `move` objects have the W flag by default: when they also listen to the status of the load (`"ga": ["1/1/1", "1/4/1"]`), toggling and one-key dimming or blind start from the real state.
+
+Each input also has:
+
+- **Lock:** a `lock` object (1 = locked). While locked, presses are ignored; `lockStart` and `lockEnd` (or `blindLockStart` and `blindLockEnd`) send a reaction when the lock starts and ends, `lockEnd: "update"` sends the current value again.
+- **Bus voltage recovery:** `busRecovery` (or `blindBusRecovery`) sends a reaction when the bus voltage returns, after `busRecoveryDelayMs`. See [bus voltage](#bus-voltage-failure-and-recovery).
+- **Cyclic sending:** `cyclicMs` sends the switching object again at an interval; `cyclicWhen` limits it to 1 or 0.
+- **LED:** a `led` object shows a state on the key; without it, the LED of a switching or dimming input shows its switching object. `ledInverted` lights it for 0.
+
+The objects of each input form a fixed block of seven numbers (switching, dimming, up/down, stop/step, value, lock, LED), whatever its function, as in the product dialogs. The input count is set on the Configuration page of the designer.
+
+```knx
+scenario: push-button-interface
+```
+
 ## Switching actuator: `switchActuator/v1`
 
 An actuator has one channel per output. Its object ports include `switch` (command), `status` (feedback), `scene`, and `forced`.
@@ -48,15 +77,33 @@ An actuator has one channel per output. Its object ports include `switch` (comma
 - **Metering and load shedding:** `power` (DPT 14.056 in W, or 9.024 in kW) and `energy` (DPT 13.010 in Wh, or 13.013 in kWh) objects on a channel report the power drawn by its load and the energy counted; `totalPower` and `powerLimit` objects without a channel report the total and a power limit alarm (`powerLimitW`). Loads declare their rated power with `powerW` (lamps, dimmable lamps, fans, and `appliance` loads). A channel with `"loadShedding": true` is switched off while the limit is exceeded and switched on again after `sheddingTimeMs` if its command still requests it. Energy is counted `energyTimeScale` times faster than real time (60 by default). See the [energy metering example](../examples/energy-metering.html).
 - **Relay operating mode:** `"parameters": { "relayMode": "normallyClosed" }` on a channel inverts the contact: the load is powered while the switching state is 0, for example for a light that must stay on unless a command switches it off. The switching state, status feedback, timer, scenes, and priority override keep their usual meaning; only the contact is inverted. The diagram marks such an output with an inversion circle and the label **NC** on the load wire.
 - **Staircase timer:** `"parameters": { "timerMs": 10000 }` on a channel. A write of 1 closes the relay and starts a delay. `timerRetrigger` selects `"restart"` (default), `"none"`, or `"add"` (each new 1 adds a period, up to five). With `timerOffAllowed: false`, a write of 0 cannot cancel the timer. `timerWarningMs` briefly opens the output before expiry as a warning.
-- **Scenes:** `"scenes": { "1": 1, "2": 0 }` on a channel defines its states. A `scene` object without a channel applies to all channels.
+- **Scenes:** `"scenes": { "1": 1, "2": 0 }` on a channel defines its states. A `scene` object without a channel applies to all channels. A scene control object (DPT 18.001) also accepts storing: a telegram with the learn bit (value + 128) stores the current state of each channel as the scene, until the simulation restarts; `sceneLearning: false` refuses it.
 - **Priority override:** DPT 2.001 values 2 and 3 force off and on; 0 or 1 ends the override. Normal commands are stored during the override. `afterForcing` controls what happens afterward: `"lastCommand"` (default), `"on"`, `"off"`, `"unchanged"`, `"previous"`, or `"toggle"`.
+- **Lock:** a `lock` object (1 = locked) holds the output in the state set by `lockStart` (`"unchanged"`, `"on"`, or `"off"`); commands are stored meanwhile, and `afterLock` takes the same values as `afterForcing`. Forcing has priority over the lock.
+- **Switching delays:** `onDelayMs` and `offDelayMs` delay the commands of the `switch` object; the opposite command received during a delay cancels it. Scenes, forcing, and the lock act at once.
+- **Logic link:** a `logic` object is combined with the switching command by `logicOperation`: `"and"` switches on only while it is 1 (an enable), `"or"` switches on while either is 1. Until it receives a value, the command acts alone.
+- **Bus voltage:** `busFailure` sets the output when the bus voltage fails (`"unchanged"`, `"off"`, `"on"`); `busRecovery` sets it when the voltage returns (`"previous"`: the state before the failure, `"off"`, `"on"`), then the status is sent.
 
 ```knx
 scenario: timers
 attrs: monitor="false"
 ```
 
-A six-output actuator remains one KNX device. Declare six channels, using `"equipment": null` for unused outputs.
+## Bus voltage failure and recovery
+
+Click the **PSU** label of a line or segment on the diagram to cut its bus voltage, and again to restore it; programmatically, `sim.setBusVoltage("L1.2", false)` (`L1.2b` for the segment behind an extension). The line is drawn grey and dashed, and its devices are greyed:
+
+- each device first runs its bus failure behavior (a switch actuator sets `busFailure`; a shutter actuator stops its motors), then stops: its timers are cancelled, it neither receives nor sends, and its keys do nothing;
+- couplers do not forward telegrams to the segment; the journal notes why;
+- when the voltage returns, each device runs its recovery behavior (`busRecovery` of a switch actuator or a push-button interface) and restarts.
+
+The simulation starts with the installation already in operation: recovery reactions run only after a failure cut in the diagram, not at start. See the [bus voltage example](../examples/bus-voltage.html).
+
+```knx
+scenario: bus-voltage
+```
+
+A six-output actuator remains one KNX device. Declare six channels, using `"equipment": null` for unused outputs. An output that supplies several loads lists them: `"equipment": [{ "type": "lamp" }, { "type": "lamp" }]`; see [concepts](concepts.html#channel-and-connected-equipment).
 
 ## Energy meter: `energyMeter/v1`
 

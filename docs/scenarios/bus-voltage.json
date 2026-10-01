@@ -1,0 +1,219 @@
+{
+  "formatVersion": 2,
+  "title": "Bus voltage failure, lock, and switching delays",
+  "description": "Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Controls",
+      "powerSupply": {
+        "currentMa": 320
+      }
+    },
+    {
+      "address": "1.2",
+      "name": "Actuators",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "L1 switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "L2 switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 switch status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/2",
+      "name": "L2 switch status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/6/1",
+      "name": "L1 lock",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Input 1 switching",
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "lk2",
+          "name": "Input 2 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        },
+        {
+          "id": "sw3",
+          "name": "Input 3 switching",
+          "ga": [
+            "1/1/2",
+            "1/4/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in3",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1 · L1",
+          "parameters": {
+            "busRecovery": "update",
+            "busRecoveryDelayMs": 2000
+          },
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Input 2 · Lock L1",
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Input 3 · L2",
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.2.1",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "L1 switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st1",
+          "name": "L1 status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "lk1",
+          "name": "L1 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "lock",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "sw2",
+          "name": "L2 switch",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "st2",
+          "name": "L2 status",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "b",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "L1",
+          "parameters": {
+            "lockStart": "off",
+            "busFailure": "off"
+          },
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "b",
+          "label": "L2",
+          "parameters": {
+            "onDelayMs": 2000,
+            "offDelayMs": 5000
+          },
+          "equipment": {
+            "type": "lamp"
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

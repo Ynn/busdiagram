@@ -62,7 +62,7 @@ describe("delayed-switch extension without engine changes", () => {
   it("the alternative view only changes the design: same lamp model", () => {
     const sim = createSimulator(example());
     const s2 = sim.scenario.devicesById.get("switchActuator")!.channels[1]!;
-    expect(s2.equipmentConfig).toMatchObject({
+    expect(s2.equipmentConfigs[0]).toMatchObject({
       type: "lamp",
       view: "ledStrip",
     });

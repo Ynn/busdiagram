@@ -88,6 +88,15 @@ const TABLE: DptInfo[] = [
     max: 63,
     integer: true,
   },
+  // Scene control: bit 7 = 1 stores the scene (learn), bits 0–5 = scene number − 1.
+  {
+    id: "18.001",
+    name: "Scene control",
+    bits: 8,
+    min: 0,
+    max: 191,
+    integer: true,
+  },
   // One-byte HVAC mode: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection.
   {
     id: "20.102",
@@ -416,6 +425,8 @@ export function dptTitle(dpt: string, t: Translate = en): string {
       return t`Counter`;
     case "17.001":
       return t`Scene number`;
+    case "18.001":
+      return t`Scene control`;
     default:
       return dpt;
   }
@@ -450,6 +461,8 @@ export function checkValue(
     return t`DPT ${dpt} expects an integer`;
   if (d.codec === "date" && !validDate(v))
     return t`${v} is not a valid date (YYYYMMDD)`;
+  if (dpt === "18.001" && v & 0x40)
+    return t`DPT 18.001: bit 6 is reserved; use 0–63 to recall a scene, 128–191 to store it`;
   return null;
 }
 
@@ -526,6 +539,7 @@ export function decode(dpt: string, raw: number): number {
   if (d.bits === 16) return decodeFloat16(raw);
   if (dpt === "5.001") return ((raw & 0xff) * 100) / 255;
   if (dpt === "17.001") return raw & 0x3f;
+  if (dpt === "18.001") return raw & 0xbf;
   return raw & 0xff;
 }
 
@@ -654,6 +668,10 @@ export function formatValue(
       return `${Math.round(v)} %`;
     case "17.001":
       return t`Scene ${v + 1}`;
+    case "18.001":
+      return v & 0x80
+        ? t`Store scene ${(v & 0x3f) + 1}`
+        : t`Scene ${(v & 0x3f) + 1}`;
     default:
       return String(v);
   }

@@ -1,0 +1,337 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bus voltage failure · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
+<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+
+<script defer src="../assets/search-index.js?v=0.3.1"></script>
+<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/push-button-interface.html">Push-button interface</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/boiler-room.html">Heat pump behind a gateway</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li><li class="cur"><a href="../examples/bus-voltage.html">Bus voltage failure</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+<h1 id="bus-voltage-failure-lock-and-delays"><a class="anchor" href="#bus-voltage-failure-lock-and-delays">#</a>Bus voltage failure, lock, and delays</h1><p>The push-button interface is on line 1.1, the switch actuator on line 1.2. Each line has its own power supply.</p>
+<ul>
+<li>Switch L1 on with input 1, then click <strong>PSU 640 mA</strong> on line 1.2. The actuator switches L1 off, as set for a bus voltage failure (<code>busFailure: &quot;off&quot;</code>). The line turns grey: its devices neither receive nor send, and the line coupler no longer forwards telegrams to it.</li>
+<li>Click the label again. L1 returns to its state before the failure (<code>busRecovery: &quot;previous&quot;</code>) and the actuator sends its status.</li>
+<li>Cut the voltage of line 1.1 instead: input 1 sends its current value again 2 seconds after the voltage returns (<code>busRecovery: &quot;update&quot;</code>).</li>
+<li>Input 2 locks L1, as for cleaning: L1 switches off and ignores commands until the lock ends; the last command received is then applied.</li>
+<li>Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.</li>
+</ul>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Bus voltage failure, lock, and switching delays","description":"Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.","lines":[{"address":"1.1","name":"Controls","powerSupply":{"currentMa":320}},{"address":"1.2","name":"Actuators","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"L1 switch","dpt":"1.001"},{"address":"1/1/2","name":"L2 switch","dpt":"1.001"},{"address":"1/4/1","name":"L1 switch status","dpt":"1.001"},{"address":"1/4/2","name":"L2 switch status","dpt":"1.001"},{"address":"1/6/1","name":"L1 lock","dpt":"1.001"}],"devices":[{"id":"buttonInterface","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Input 1 switching","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"lk2","name":"Input 2 lock","ga":"1/6/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"sw3","name":"Input 3 switching","ga":["1/1/2","1/4/2"],"dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1 · L1","parameters":{"busRecovery":"update","busRecoveryDelayMs":2000},"equipment":null},{"id":"in2","label":"Input 2 · Lock L1","equipment":null},{"id":"in3","label":"Input 3 · L2","equipment":null}]},{"id":"switchActuator","name":"Switch actuator","address":"1.2.1","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"sw1","name":"L1 switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"st1","name":"L1 status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":false,"T":true}},{"id":"lk1","name":"L1 lock","ga":"1/6/1","dpt":"1.001","port":"lock","channel":"a","flags":{"W":true,"T":false}},{"id":"sw2","name":"L2 switch","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"b","flags":{"W":true,"T":false}},{"id":"st2","name":"L2 status","ga":"1/4/2","dpt":"1.001","port":"status","channel":"b","flags":{"W":false,"T":true}}],"channels":[{"id":"a","label":"L1","parameters":{"lockStart":"off","busFailure":"off"},"equipment":{"type":"lamp"}},{"id":"b","label":"L2","parameters":{"onDelayMs":2000,"offDelayMs":5000},"equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=bus-voltage" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Bus voltage failure, lock, and switching delays",
+  "description": "Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay.",
+  "lines": [
+    { "address": "1.1", "name": "Controls", "powerSupply": { "currentMa": 320 } },
+    { "address": "1.2", "name": "Actuators", "powerSupply": { "currentMa": 640 } }
+  ],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "L1 switch", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "L2 switch", "dpt": "1.001" },
+    { "address": "1/4/1", "name": "L1 switch status", "dpt": "1.001" },
+    { "address": "1/4/2", "name": "L2 switch status", "dpt": "1.001" },
+    { "address": "1/6/1", "name": "L1 lock", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Input 1 switching",
+          "ga": ["1/1/1", "1/4/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "lk2",
+          "name": "Input 2 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw3",
+          "name": "Input 3 switching",
+          "ga": ["1/1/2", "1/4/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1 · L1",
+          "parameters": { "busRecovery": "update", "busRecoveryDelayMs": 2000 },
+          "equipment": null
+        },
+        { "id": "in2", "label": "Input 2 · Lock L1", "equipment": null },
+        { "id": "in3", "label": "Input 3 · L2", "equipment": null }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.2.1",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "L1 switch",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st1",
+          "name": "L1 status",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "lk1",
+          "name": "L1 lock",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "lock",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sw2",
+          "name": "L2 switch",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st2",
+          "name": "L2 status",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "b",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "L1",
+          "parameters": { "lockStart": "off", "busFailure": "off" },
+          "equipment": { "type": "lamp" }
+        },
+        {
+          "id": "b",
+          "label": "L2",
+          "parameters": { "onDelayMs": 2000, "offDelayMs": 5000 },
+          "equipment": { "type": "lamp" }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Bus voltage failure, lock, and switching delays"</span>,
+  <span class="k">"description"</span>: <span class="s">"Click the PSU label of line 1.2 to cut its bus voltage: the switch actuator switches output L1 off, as set for a bus voltage failure, its card turns grey, and the line coupler no longer forwards telegrams to the line. Click again to restore the voltage: L1 returns to its state before the failure and the actuator sends its status. Input 2 locks L1 (cleaning lock): while locked, L1 stays off and commands are stored. Input 3 switches L2 with a 2-second switch-on delay and a 5-second switch-off delay."</span>,
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Controls"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> } },
+    { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"name"</span>: <span class="s">"Actuators"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"L2 switch status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/6/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 lock"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button interface"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 1 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 2 lock"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Input 3 switching"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/2"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 1 · L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"busRecovery"</span>: <span class="s">"update"</span>, <span class="k">"busRecoveryDelayMs"</span>: <span class="n">2000</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        { <span class="k">"id"</span>: <span class="s">"in2"</span>, <span class="k">"label"</span>: <span class="s">"Input 2 · Lock L1"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> },
+        { <span class="k">"id"</span>: <span class="s">"in3"</span>, <span class="k">"label"</span>: <span class="s">"Input 3 · L2"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switch actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.2.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk1"</span>,
+          <span class="k">"name"</span>: <span class="s">"L1 lock"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"lock"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"L2 switch"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st2"</span>,
+          <span class="k">"name"</span>: <span class="s">"L2 status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"label"</span>: <span class="s">"L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"lockStart"</span>: <span class="s">"off"</span>, <span class="k">"busFailure"</span>: <span class="s">"off"</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"b"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onDelayMs"</span>: <span class="n">2000</span>, <span class="k">"offDelayMs"</span>: <span class="n">5000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/usb-interface.html">← USB interface tool</a>
+<a href="../examples/display-options.html">Display options →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+</body>
+</html>

@@ -684,7 +684,24 @@ export const styles = css`
     padding: 0 5px;
     border: 1.5px solid currentColor;
     border-radius: 4px;
+    font: inherit;
     font-size: 11px;
+    color: inherit;
+    background: #fff;
+    cursor: pointer;
+  }
+  .seglabel .psu:hover,
+  .seglabel .psu:focus-visible {
+    background: #eef8f2;
+  }
+  .seglabel .psu.off {
+    color: #8a8478;
+    border-style: dashed;
+    background: #f1efe9;
+  }
+  .card.unpowered {
+    opacity: 0.55;
+    filter: grayscale(0.8);
   }
   .zone {
     position: absolute;
@@ -761,6 +778,29 @@ export const styles = css`
     -webkit-line-clamp: 2;
     overflow: hidden;
     overflow-wrap: anywhere;
+  }
+  .countdown {
+    position: absolute;
+    z-index: 3;
+    padding: 1px 6px;
+    border-radius: 9px;
+    border: 1.5px solid #c98a00;
+    background: #fff7e0;
+    color: #6b4a00;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    line-height: 16px;
+    white-space: nowrap;
+    pointer-events: auto;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  }
+  .countdown b {
+    font-weight: 700;
+  }
+  .countdown.delay.on {
+    border-color: #2e8b57;
+    background: #e9f7ef;
+    color: #1d5e3a;
   }
   .loadlbl small {
     display: block;

@@ -20,7 +20,6 @@ import type { Host, WorkspaceState } from "./workspace";
 import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
 import * as P from "./params";
 import { defaultEquipmentParams, tt } from "./params";
-import type { Page } from "./params";
 
 type Mutate = (doc: Doc) => void;
 /** The installation, a device editor, and a group-address editor are the three views. A refusal appears in a banner; fields */
@@ -58,8 +57,10 @@ export class GuidedEditor extends LitElement implements Host {
   /** Expanded cards (keys and outputs), preserved across renders. */
   private opened = new Set<string>();
   /** Selected parameter page of each device. */
-  private pageOf = new Map<string, string>();
-  /** Panels of the ETS-like workspace (contents, selections, expanded nodes). */
+  pageOf = new Map<string, string>();
+  /** Expanded groups of the parameter tree (“device|output”). */
+  pageGroups = new Set<string>();
+  /** Panels of the Workspace (contents, selections, expanded nodes). */
   ws: WorkspaceState = initialWorkspace();
   /** Last successful grouped operation; it can be undone from the banner. */
   notice: string | null = null;
@@ -164,103 +165,9 @@ export class GuidedEditor extends LitElement implements Host {
 
   // ── Views used by the workspace ──
 
-  /** Parameters as in ETS: pages listed on the left, the selected page on the right. */
+  /** Parameters as in the parameter dialog of a product (see params.ts). */
   deviceParameters(doc: Doc, d: Dev) {
-    const def = this.registry.behaviors.get(d.behavior);
-    const keys = def?.acceptsInputs && def.ports.input;
-    const groups: {
-      title: string | null;
-      pages: Page[];
-      add?: TemplateResult;
-    }[] = [
-      {
-        title: null,
-        pages: [
-          {
-            key: "general",
-            label: t`General`,
-            body: () => P.generalPage(this, doc, d),
-          },
-          ...(def?.ports.display && !def.acceptsInputs
-            ? [P.displayPage(this, doc, d)]
-            : []),
-        ],
-      },
-      ...(keys
-        ? [
-            {
-              title: t`Keys`,
-              pages: P.keyPages(this, doc, d),
-              add: html`<button
-                class="w-padd"
-                @click=${() => this.run(t`Key`, (x) => void E.addKey(x, d.id))}
-              >
-                + ${t`Add a key`}
-              </button>`,
-            },
-          ]
-        : []),
-      ...(def?.output
-        ? [
-            {
-              title: t`Outputs`,
-              pages: P.outputPages(this, doc, d, def),
-              add: html`<button
-                class="w-padd"
-                @click=${() => P.addOutput(this, d, def)}
-              >
-                + ${t`Add an output`}
-              </button>`,
-            },
-          ]
-        : []),
-    ];
-    const ports = def ? P.portsPage(this, doc, d, def) : null;
-    if (ports) groups.push({ title: null, pages: [ports] });
-    const all = groups.flatMap((g) => g.pages);
-    const cur = all.find((p) => p.key === this.pageOf.get(d.id)) ?? all[0]!;
-    const open = (key: string) => {
-      this.pageOf.set(d.id, key);
-      this.requestUpdate();
-    };
-    const g0 = (p: Page) =>
-      groups.find((g) => g.pages.includes(p))?.title === t`Outputs`
-        ? t`Output ${p.label}`
-        : p.label;
-    // As in ETS: a flat list of pages on the left, the parameters of the page on the
-    // right, one per row, with the label on the left and the value on the right.
-    return html`<div class="w-params">
-      <nav class="w-pmenu" aria-label=${t`Parameter pages`}>
-        ${groups.map(
-          (g) =>
-            html`${g.pages.map(
-              (p) =>
-                html`<button
-                  class="w-pitem"
-                  aria-current=${p === cur ? "page" : "false"}
-                  title=${p.sum ?? p.label}
-                  @click=${() => open(p.key)}
-                >
-                  ${g.title === t`Outputs` ? t`Output ${p.label}` : p.label}
-                </button>`,
-            )}
-            ${g.add ?? nothing}`,
-        )}
-      </nav>
-      <div class="w-ppage" data-page=${cur.key}>
-        ${
-          cur.key === "general"
-            ? cur.body()
-            : html`<section class="g-sec">
-                <h3>
-                  ${g0(cur)}
-                  ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
-                </h3>
-                ${cur.body()}
-              </section>`
-        }
-      </div>
-    </div>`;
+    return P.deviceParameters(this, doc, d);
   }
 
   gaProperties(doc: Doc, g: E.Ga) {
@@ -1220,6 +1127,24 @@ export class GuidedEditor extends LitElement implements Host {
         return t`Temperature sensor`;
       case "passive/v1":
         return t`Device without logic`;
+      case "buttonInterface/v1":
+        return n === 1
+          ? t`Push-button interface · 1 input`
+          : t`Push-button interface · ${n} inputs`;
+      case "energyMeter/v1":
+        return t`Energy meter`;
+      case "weatherStation/v1":
+        return t`Weather station`;
+      case "airQualitySensor/v1":
+        return t`Air quality sensor`;
+      case "logicGate/v1":
+        return t`Logic module`;
+      case "clockMaster/v1":
+        return t`Clock master`;
+      case "timeSwitch/v1":
+        return t`Weekly time switch`;
+      case "systemGateway/v1":
+        return t`Gateway to another system`;
       default:
         return t`Extension ${d.behavior}`;
     }
@@ -1616,38 +1541,6 @@ export class GuidedEditor extends LitElement implements Host {
     });
   }
 
-  /** Choosing a unique address (emitting port, key), with creation on the fly. */
-  gaPicker(
-    doc: Doc,
-    label: string,
-    value: string | null,
-    dpt: string | null,
-    allowNone: boolean,
-    newName: string,
-    apply: (ga: string | null, doc: Doc) => void,
-  ): TemplateResult {
-    const compatible = this.compatible(doc, dpt);
-    return html`<label class="g-field"
-      ><span>${label}</span>
-      <select
-        data-v=${value ?? ""}
-        @change=${(e: Event) => {
-          const v = (e.target as HTMLSelectElement).value;
-          this.run(label, (x) => {
-            if (v === "__new")
-              apply(E.newGa(x, dpt ?? "1.001", newName || label), x);
-            else apply(v || null, x);
-          });
-        }}
-      >
-        ${allowNone ? html`<option value="" ?selected=${!value}>${t`— none —`}</option>` : nothing}
-        ${value && !compatible.some((g) => g.address === value) ? html`<option value=${value} selected>${value}</option>` : nothing}
-        ${compatible.map((g) => html`<option value=${g.address} ?selected=${g.address === value}>${g.address} · ${g.name ?? ""}</option>`)}
-        <option value="__new">+ ${t`new address`}</option>
-      </select>
-    </label>`;
-  }
-
   /** "+" menu that adds an address to a list. */
   gaAdder(
     doc: Doc,
@@ -1721,13 +1614,24 @@ export class GuidedEditor extends LitElement implements Host {
       );
   }
 
-  private paramField(
+  paramField(
     key: string,
     p: ParamProperty,
     raw: unknown,
-    on: (v: unknown) => void,
+    set: (v: unknown) => void,
     required: boolean,
   ) {
+    // A value equal to the default is stored as absent, as ↺ does: the field then shows
+    // the default and no reset button, whether the value was typed or chosen.
+    const on = (v: unknown) =>
+      set(
+        !required &&
+          p.default !== undefined &&
+          v !== undefined &&
+          JSON.stringify(v) === JSON.stringify(p.default)
+          ? undefined
+          : v,
+      );
     const types = Array.isArray(p.type) ? p.type : [p.type];
     const label = tt(p.title) || key;
     const help = tt(p.description);

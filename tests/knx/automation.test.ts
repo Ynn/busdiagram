@@ -243,6 +243,13 @@ describe("venetian blind slats", () => {
     expect(Number(blind(sim).positionPct)).toBeCloseTo(pos, 5);
   });
 
+  it("the slat angle is known from the start, before any movement", () => {
+    const sim = load("venetian-blind.json");
+    expect(obj(sim, "blindActuator", "slatStatus")).toBe(
+      Number(blind(sim).slatPct),
+    );
+  });
+
   it("a short press at rest turns the slats by one step and reports the angle", () => {
     const sim = load("venetian-blind.json");
     sim.input("pushButton", "key2", "short");

@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 import { defineConfig } from "vite";
 import type { Plugin } from "vite";
 import { LIBRARY, notices } from "./scripts/notices.mjs";
+import { buildId } from "./scripts/build-id.mjs";
 
 const pkg = JSON.parse(
   readFileSync(resolve(import.meta.dirname, "package.json"), "utf8"),
@@ -10,9 +11,11 @@ const pkg = JSON.parse(
 
 // The banner travels with every copy of the file (CDN, download from the designer,
 // standalone page): it carries the license, the address of the corresponding source,
-// and the notices of the third-party components included in the bundle.
-const banner = `/*! BusDiagram v${pkg.version} | ${pkg.license} | Copyright (C) 2026 ${pkg.author}
-Source code of this version: https://github.com/Ynn/busdiagram/tree/v${pkg.version}
+// and the notices of the third-party components included in the bundle. A development
+// build says so, instead of naming the source code of a released version.
+const build = buildId(pkg.version);
+const banner = `/*! BusDiagram v${build.label} | ${pkg.license} | Copyright (C) 2026 ${pkg.author}
+${build.note}: ${build.source}
 
 Third-party components included in this file:
 

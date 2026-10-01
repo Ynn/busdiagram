@@ -24,6 +24,7 @@ import { airQualitySensor } from "./behaviors/air-quality";
 import { clockMaster, timeSwitch } from "./behaviors/time";
 import { systemGateway } from "./behaviors/gateway";
 import { energyMeter } from "./behaviors/energy-meter";
+import { buttonInterface } from "./behaviors/button-interface";
 import {
   heatingActuator,
   roomThermostat,
@@ -143,6 +144,7 @@ registerBehavior("clockMaster/v1", clockMaster);
 registerBehavior("timeSwitch/v1", timeSwitch);
 registerBehavior("systemGateway/v1", systemGateway);
 registerBehavior("energyMeter/v1", energyMeter);
+registerBehavior("buttonInterface/v1", buttonInterface);
 
 // Definitions delivered with the simulator (as opposed to extensions).
 const STANDARD_BEHAVIORS = new Set(behaviors.keys());

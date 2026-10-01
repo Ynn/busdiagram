@@ -113,6 +113,8 @@ interface DeviceRuntime {
   state: unknown;
   ctx: BehaviorContext<unknown>;
   timers: Map<string, Scheduled<Item>>;
+  /** No bus voltage on the device's segment: the device neither receives nor sends. */
+  down: boolean;
 }
 
 interface EquipmentRuntime {
@@ -130,6 +132,10 @@ const EXPLANATORY = new Set<JournalKind>([
   "output-changed",
   "timer-fired",
 ]);
+
+/** Key of a load: "device/channel" for the first one, then "device/channel#2", "#3"… */
+export const loadKey = (deviceId: string, channelId: string, index = 0) =>
+  index ? `${deviceId}/${channelId}#${index + 1}` : `${deviceId}/${channelId}`;
 
 export class SimulationFault extends Error {}
 
@@ -169,7 +175,10 @@ export class Simulation {
     { value: number | null; updatedAtMs: number | null }
   >();
   private outputs = new Map<string, OutputCommand | null>();
+  /** Loads by key: "device/channel" for the first load of an output, "device/channel#2"… */
   private equipment = new Map<string, EquipmentRuntime>();
+  /** Keys of the loads of each output ("device/channel"), in order. */
+  private loads = new Map<string, string[]>();
   private rooms = new Map<
     string,
     {
@@ -215,6 +224,7 @@ export class Simulation {
     this.withCause(ev.id, () =>
       this.devices.forEach(
         (rt) =>
+          !rt.down &&
           rt.def.onClockChange &&
           this.hook(rt, "onClockChange", () => rt.def.onClockChange!(rt.ctx)),
       ),
@@ -267,15 +277,20 @@ export class Simulation {
       d.channels.forEach((c) => {
         const key = `${d.id}/${c.id}`;
         this.outputs.set(key, null);
-        const cfg = c.equipmentConfig;
-        const def = cfg ? this.registry.equipment.get(cfg.type) : undefined;
-        if (cfg && def)
-          this.equipment.set(key, {
+        const keys: string[] = [];
+        c.equipmentConfigs.forEach((cfg, i) => {
+          const def = this.registry.equipment.get(cfg.type);
+          if (!def) return;
+          const k = loadKey(d.id, c.id, i);
+          keys.push(k);
+          this.equipment.set(k, {
             type: cfg.type,
             config: cfg,
             def,
             state: def.create(cfg.parameters, cfg.initialState),
           });
+        });
+        this.loads.set(key, keys);
       });
       const def = this.registry.behaviors.get(d.behavior);
       if (!def)
@@ -288,6 +303,7 @@ export class Simulation {
         state: undefined,
         ctx: undefined as never,
         timers: new Map(),
+        down: false,
       };
       rt.state = def.createState(d);
       rt.ctx = this.makeContext(rt);
@@ -312,6 +328,7 @@ export class Simulation {
     this.objects.clear();
     this.outputs.clear();
     this.equipment.clear();
+    this.loads.clear();
     this.rooms.clear();
     this.active.clear();
     this.history = [];
@@ -508,8 +525,10 @@ export class Simulation {
   private process(item: Item) {
     switch (item.type) {
       case "tick":
-        this.tickers.forEach((rt) =>
-          this.hook(rt, "onTick", () => rt.def.onTick!(rt.ctx, TICK_MS)),
+        this.tickers.forEach(
+          (rt) =>
+            !rt.down &&
+            this.hook(rt, "onTick", () => rt.def.onTick!(rt.ctx, TICK_MS)),
         );
         this.queue.push(this.timeMs + TICK_MS, { type: "tick" });
         break;
@@ -541,7 +560,7 @@ export class Simulation {
           couplerId: c.couplerId,
           ga: a.tel.ga,
           message: this
-            .t`${this.network.couplerName(cpl)} ${cpl.address}: ${c.pass ? (c.tag === "rep" ? this.t`repeated` : this.t`forwarded`) : this.t`filtered`}`,
+            .t`${this.network.couplerName(cpl)} ${cpl.address}: ${c.pass ? (c.tag === "rep" ? this.t`repeated` : this.t`forwarded`) : c.noVoltage ? this.t`not forwarded, no bus voltage on the other side` : this.t`filtered`}`,
           data: {
             tag: c.tag,
             pass: c.pass,
@@ -671,19 +690,23 @@ export class Simulation {
       transmit: (id) => this.transmit(rt, obj(id)),
       setOutput: (ch, cmd) => this.setOutput(d, chan(ch), cmd),
       getOutput: (ch) => this.outputs.get(`${d.id}/${chan(ch).id}`) ?? null,
-      readEquipment: (ch) => {
-        const eq = this.equipment.get(`${d.id}/${chan(ch).id}`);
+      readEquipment: (ch, index = 0) => {
+        const eq = this.equipment.get(loadKey(d.id, chan(ch).id, index));
         return eq ? clone(eq.state) : null;
       },
+      // Power drawn through the output: the sum of its loads that report one.
       readPower: (ch) => {
-        const eq = this.equipment.get(`${d.id}/${chan(ch).id}`);
-        if (!eq?.def.powerW) return null;
-        try {
-          const w = eq.def.powerW(eq.state, eq.config.parameters);
-          return Number.isFinite(w) ? w : null;
-        } catch {
-          return null;
+        let total: number | null = null;
+        for (const eq of this.loadsOf(`${d.id}/${chan(ch).id}`)) {
+          if (!eq.def.powerW) continue;
+          try {
+            const w = eq.def.powerW(eq.state, eq.config.parameters);
+            if (Number.isFinite(w)) total = (total ?? 0) + w;
+          } catch {
+            // A failing extension reports no power for its load.
+          }
         }
+        return total;
       },
       readRoom: () => (d.room ? this.room(d.room) : null),
       clock: () => this.clock(),
@@ -763,20 +786,23 @@ export class Simulation {
     const key = `${d.id}/${c.id}`;
     // Repeating the same order is idempotent and does not restart the physical model.
     if (sameCommand(this.outputs.get(key), cmd)) return;
-    const eq = this.equipment.get(key);
-    if (eq && eq.def.accepts !== cmd.type) {
+    // The loads of an output are wired in parallel: they all receive the command.
+    const loads = this.loadsOf(key);
+    const wrong = loads.find((eq) => eq.def.accepts !== cmd.type);
+    if (wrong) {
       this.raise({
         timeMs: this.timeMs,
         level: "error",
         code: "incompatible-command",
         message: this
-          .t`${key}: command “${cmd.type}” incompatible with equipment ${eq.type}`,
+          .t`${key}: command “${cmd.type}” incompatible with equipment ${wrong.type}`,
         deviceId: d.id,
       });
       return;
     }
     this.outputs.set(key, { ...cmd });
-    if (eq) eq.state = eq.def.applyCommand(eq.state, cmd, eq.config.parameters);
+    for (const eq of loads)
+      eq.state = eq.def.applyCommand(eq.state, cmd, eq.config.parameters);
     this.log("output-changed", this.cause, {
       deviceId: d.id,
       channelId: c.id,
@@ -796,6 +822,7 @@ export class Simulation {
         message: reason,
       });
     if (this.initializing) return;
+    if (rt.down) return void ignore(this.t`no bus voltage: no telegram`);
     if (!o.flags.T)
       return void ignore(
         this.t`T flag disabled: value changed locally, no telegram`,
@@ -934,7 +961,8 @@ export class Simulation {
     value: number,
   ): Telegram | null {
     const rt = this.devices.get(deviceId);
-    if (!rt || !parseGA(ga) || isBroadcastGA(ga) || this.fault) return null;
+    if (!rt || rt.down || !parseGA(ga) || isBroadcastGA(ga) || this.fault)
+      return null;
     const dpt = this.gaDpt(ga);
     if (service === "GroupValueWrite") {
       // Reject invalid values before transmission; otherwise carry the encoded value.
@@ -985,6 +1013,19 @@ export class Simulation {
     if (!a || !rt) return;
     const tel = a.tel;
     const d = rt.device;
+    if (rt.down) {
+      // Sent before the voltage was cut: the device is off and does not receive it.
+      this.log("telegram-received", tel.eventId, {
+        deviceId,
+        telegramId,
+        ga: tel.ga,
+        value: tel.value,
+        message: this.t`no bus voltage: not received`,
+        data: { internal, associated: 0 },
+      });
+      this.settle(telegramId);
+      return;
+    }
     const assoc = d.objects.filter(
       (o) => o.gas.includes(tel.ga) && !(internal && o.id === tel.objectId),
     );
@@ -1065,7 +1106,12 @@ export class Simulation {
     this.settle(telegramId);
   }
 
-  /** Reply to a read: every object with R set and this sending address responds. */
+  /**
+   * Reply to a read. As in the KNX Application Layer, the read is passed to the objects
+   * associated with the address in the order of the device's table, and a device sends
+   * only one response: the first object with R set and a known value answers, on its
+   * sending address.
+   */
   private answerRead(
     rt: DeviceRuntime,
     tel: Telegram,
@@ -1076,6 +1122,7 @@ export class Simulation {
     if (internal) return;
     // A read on any associated address is answered on the object's sending address
     // (its first address), which may differ from the address that was read.
+    let answered = false;
     rt.device.objects
       .filter((o) => o.gas.includes(tel.ga))
       .forEach((o) => {
@@ -1084,7 +1131,9 @@ export class Simulation {
           ? this.t`R flag off: no response`
           : cur.value === null
             ? this.t`unknown value: no response`
-            : null;
+            : answered
+              ? this.t`the device has already answered this read`
+              : null;
         reception.objects.push({
           objectId: o.id,
           result: why ? "ignored" : "accepted",
@@ -1099,6 +1148,7 @@ export class Simulation {
           });
           return;
         }
+        answered = true;
         const sending = o.gas[0]!;
         if (sending !== tel.ga)
           this.log("note", causeId, {
@@ -1137,6 +1187,14 @@ export class Simulation {
     const rt = this.devices.get(deviceId);
     if (!rt || this.fault) return [];
     const d = rt.device;
+    if (rt.down) {
+      this.log("input", null, {
+        deviceId,
+        message: this.t`${inputId}: no bus voltage, the device does not react`,
+        data: { inputId, gesture },
+      });
+      return [];
+    }
     if (gesture === "value") {
       const inp = d.inputs.find((x) => x.id === inputId);
       if (!inp || typeof value !== "number" || !Number.isFinite(value))
@@ -1144,7 +1202,8 @@ export class Simulation {
       value = Math.min(inp.max, Math.max(inp.min, value));
     } else {
       const b = d.buttons.find((x) => x.id === inputId);
-      if (!b || !b[gesture]) return [];
+      const contact = gesture === "down" || gesture === "up";
+      if (!b || (contact ? !b.contact : b.contact || !b[gesture])) return [];
     }
     const first = this.nextTelegramId;
     const before = this.nextEventId;
@@ -1198,11 +1257,22 @@ export class Simulation {
     return this.outputs.get(`${deviceId}/${channelId}`) ?? null;
   }
 
+  /** State of a load of an output: the first one, or the one at `index` (0-based). */
   equipmentState(
     deviceId: string,
     channelId: string,
+    index = 0,
   ): Readonly<JsonObject> | null {
-    return this.equipment.get(`${deviceId}/${channelId}`)?.state ?? null;
+    return (
+      this.equipment.get(loadKey(deviceId, channelId, index))?.state ?? null
+    );
+  }
+
+  /** Loads of an output, in order. */
+  private loadsOf(channelKey: string): EquipmentRuntime[] {
+    return (this.loads.get(channelKey) ?? []).map((k) =>
+      this.equipment.get(k)!,
+    );
   }
 
   /** Physical action on equipment, such as a simulated fault, recorded in the journal. */
@@ -1211,8 +1281,9 @@ export class Simulation {
     channelId: string,
     action: string,
     payload: JsonValue = null,
+    index = 0,
   ): boolean {
-    const eq = this.equipment.get(`${deviceId}/${channelId}`);
+    const eq = this.equipment.get(loadKey(deviceId, channelId, index));
     if (!eq?.def.interact || this.fault) return false;
     let next: JsonObject;
     try {
@@ -1299,6 +1370,7 @@ export class Simulation {
       this.devices.forEach(
         (rt) =>
           rt.device.room === roomId &&
+          !rt.down &&
           rt.def.onRoomChange &&
           this.hook(rt, "onRoomChange", () =>
             rt.def.onRoomChange!(rt.ctx, info),
@@ -1310,6 +1382,65 @@ export class Simulation {
     );
     if (events.length) this.lastStop = { timeMs: this.timeMs, events };
     return this.history.filter((t) => t.id >= first);
+  }
+
+  /**
+   * Cut or restore the bus voltage of a line segment (`L1.1`, or `L1.1b` behind its
+   * extension), as when its power supply is switched off. Its devices run their bus
+   * failure or recovery behavior; while the voltage is cut they neither receive nor send,
+   * and couplers do not forward telegrams to the segment. Returns the telegrams sent.
+   */
+  setBusVoltage(segmentId: string, on: boolean): Telegram[] {
+    const sg = this.network.topology.segments.get(segmentId);
+    if (
+      !sg ||
+      sg.kind !== "line" ||
+      this.fault ||
+      this.network.powered(segmentId) === on
+    )
+      return [];
+    const first = this.nextTelegramId;
+    const before = this.nextEventId;
+    this.network.setPowered(segmentId, on);
+    const where = sg.downstream
+      ? this.t`line ${sg.ref}, second segment`
+      : this.t`line ${sg.ref}`;
+    const ev = this.log("input", null, {
+      message: on
+        ? this.t`Bus voltage restored on ${where}`
+        : this.t`Bus voltage cut on ${where}`,
+      data: { action: "busVoltage", segment: segmentId, value: on ? 1 : 0 },
+    });
+    this.withCause(ev.id, () =>
+      sg.points.forEach((pt) => {
+        const rt = pt.deviceId ? this.devices.get(pt.deviceId) : undefined;
+        if (!rt) return;
+        if (on) {
+          rt.down = false;
+          this.hook(rt, "onBusRecovery", () => rt.def.onBusRecovery?.(rt.ctx));
+          return;
+        }
+        rt.down = true;
+        this.hook(rt, "onBusFailure", () => rt.def.onBusFailure?.(rt.ctx));
+        rt.timers.forEach((t) => this.queue.cancel(t));
+        rt.timers.clear();
+      }),
+    );
+    const events = this.journal.filter(
+      (e) => e.id >= before && EXPLANATORY.has(e.kind),
+    );
+    if (events.length) this.lastStop = { timeMs: this.timeMs, events };
+    return this.history.filter((t) => t.id >= first);
+  }
+
+  /** Does the segment (`L1.1`, `L1.1b`…) have bus voltage? */
+  busVoltage(segmentId: string): boolean {
+    return this.network.powered(segmentId);
+  }
+
+  /** Does the device have bus voltage on its segment? */
+  devicePowered(deviceId: string): boolean {
+    return this.devices.get(deviceId)?.down !== true;
   }
 
   channelState(deviceId: string, channelId: string): JsonObject {
@@ -1400,8 +1531,10 @@ export class Simulation {
           output: clone(this.outputs.get(key) ?? null),
           state: clone(this.channelState(d.id, c.id)),
         };
-        const eq = this.equipment.get(key);
-        if (eq) equipment[key] = { type: eq.type, state: clone(eq.state) };
+        (this.loads.get(key) ?? []).forEach((k) => {
+          const eq = this.equipment.get(k)!;
+          equipment[k] = { type: eq.type, state: clone(eq.state) };
+        });
       });
     });
     return {
@@ -1423,6 +1556,9 @@ export class Simulation {
         ]),
       ),
       telegramsInFlight: this.active.size,
+      unpoweredSegments: [...this.network.topology.segments.keys()].filter(
+        (id) => !this.network.powered(id),
+      ),
       diagnostics: clone(this.diagnostics),
     };
   }

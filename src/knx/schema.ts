@@ -46,7 +46,7 @@ export const PORT_DOCS: Record<string, string> = {
   positionCommand: "Shutter target position in percent.",
   positionStatus: "Actuator's estimated shutter position, sent after stopping.",
   scene:
-    "Scene number (bus byte 0–63 represents scenes 1–64); without a channel, apply to all channels.",
+    "Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels.",
   forced:
     "Priority override (2 = force off, 3 = force on, 0/1 = end override).",
   dim: "Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.",
@@ -321,7 +321,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
       groupRanges: {
         type: "array",
         description:
-          'Names of main groups ("1") and middle groups ("1/2"), shown in the group address tree of the designer, as in ETS.',
+          'Names of main groups ("1") and middle groups ("1/2"), shown in the group address tree of the designer.',
         items: {
           type: "object",
           additionalProperties: false,
@@ -681,6 +681,9 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
             description:
               "Equipment type: lamp, shutter, or a registered extension type.",
           },
+          name: text(
+            "Name of the load, such as “Ceiling light”; shown in the diagram and the designer.",
+          ),
           view: text(
             "View type; defaults to the equipment type, such as an extension's ledStrip view.",
           ),
@@ -729,9 +732,18 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
             description: "Initial application state of the channel.",
           },
           equipment: {
-            anyOf: [{ $ref: "#/$defs/equipment" }, { type: "null" }],
+            anyOf: [
+              { $ref: "#/$defs/equipment" },
+              {
+                type: "array",
+                items: { $ref: "#/$defs/equipment" },
+                description:
+                  "Several loads wired in parallel on the output; they all receive its commands.",
+              },
+              { type: "null" },
+            ],
             description:
-              "Connected equipment, or null for a free output without a drawn load.",
+              "Connected equipment: one load, a list of loads switched together, or null for a free output without a drawn load.",
           },
           scenes: {
             type: "object",

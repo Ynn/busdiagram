@@ -75,8 +75,8 @@ export const designerFr: Record<string, string> = {
   "name of the main group": "nom du groupe principal",
   "Middle group {0}": "Groupe médian {0}",
   "name of the middle group": "nom du groupe médian",
-  "Main groups, middle groups, and addresses, as in ETS. Name the groups to organize the installation by function. Drag an address onto an object of a device to link it.":
-    "Groupes principaux, groupes médians et adresses, comme dans ETS. Nommez les groupes pour organiser l'installation par fonction. Faites glisser une adresse sur un objet d'un appareil pour la lier.",
+  "Main groups, middle groups, and addresses. Name the groups to organize the installation by function. Drag an address onto an object of a device to link it.":
+    "Groupes principaux, groupes médians et adresses. Nommez les groupes pour organiser l'installation par fonction. Faites glisser une adresse sur un objet d'un appareil pour la lier.",
   "Other devices": "Autres appareils",
   "{0} group objects": "{0} objets de groupe",
   "{0} channels": "{0} canaux",
@@ -799,4 +799,106 @@ export const designerFr: Record<string, string> = {
   "Order group objects by number": "Ordonner les objets de groupe par numéro",
   "The group objects are already in the order of their numbers.":
     "Les objets de groupe sont déjà dans l'ordre de leurs numéros.",
+  "no load {0} on this output": "pas de charge {0} sur cette sortie",
+  "this load cannot move further": "cette charge ne peut pas aller plus loin",
+  "Group object {0}: drag it onto a group address to link it; click to open its associations.":
+    "Objet de groupe {0} : le faire glisser sur une adresse de groupe pour le lier ; cliquer pour ouvrir ses associations.",
+  "Object {0}": "Objet {0}",
+  "no group address": "aucune adresse de groupe",
+  "Enable group object “{0}” ({1})": "Activer l'objet de groupe « {0} » ({1})",
+  "Enable group object “{0}”": "Activer l'objet de groupe « {0} »",
+  Configuration: "Configuration",
+  "Each key has a block of two group objects: the single or short press, then the long press.":
+    "Chaque touche a un bloc de deux objets de groupe : l'appui simple ou court, puis l'appui long.",
+  "Group object": "Objet de groupe",
+  "The LED and a toggle key follow the value of the key's group object. So that they follow the actual state of the load, link the status address to the same object as well: it is then listened to, after the sending address.":
+    "La LED et une touche en bascule suivent la valeur de l'objet de groupe de la touche. Pour qu'elles suivent l'état réel de la charge, lier aussi l'adresse de retour d'état à ce même objet : elle est alors écoutée, après l'adresse d'émission.",
+  "no load": "aucune charge",
+  Settings: "Réglages",
+  "Connected loads": "Charges raccordées",
+  "No other output of the same type.": "Aucune autre sortie du même type.",
+  "Output {0} deleted, with its objects.":
+    "Sortie {0} supprimée, avec ses objets.",
+  "An enabled group object appears in the Group objects tab. Link it to a group address there, or drag it onto an address of the Group addresses panel.":
+    "Un objet de groupe activé apparaît dans l'onglet Objets de groupe. Le lier à une adresse de groupe depuis cet onglet, ou le faire glisser sur une adresse du panneau Adresses de groupe.",
+  "Connect a load": "Raccorder une charge",
+  "Wiring of the installation, simulated by BusDiagram. A shutter output drives one motor.":
+    "Câblage de l'installation, simulé par BusDiagram. Une sortie de store commande un seul moteur.",
+  "Wiring of the installation, simulated by BusDiagram. The loads below are wired in parallel on output {0}: it switches them all together.":
+    "Câblage de l'installation, simulé par BusDiagram. Les charges ci-dessous sont raccordées en parallèle sur la sortie {0} : elle les commute toutes ensemble.",
+  "No load: the output is free.": "Aucune charge : la sortie est libre.",
+  "Rated power of the output: {0} W": "Puissance nominale de la sortie : {0} W",
+  "Connect a load to {0}": "Raccorder une charge à {0}",
+  "Connect a load…": "Raccorder une charge…",
+  "Move up": "Monter",
+  "Move a load": "Déplacer une charge",
+  "This is the first load.": "C'est la première charge.",
+  "Move down": "Descendre",
+  "This is the last load.": "C'est la dernière charge.",
+  Disconnect: "Débrancher",
+  "Disconnect a load": "Débrancher une charge",
+  "Load {0}": "Charge {0}",
+  "Disconnect load {0}": "Débrancher la charge {0}",
+  "Type of load": "Type de charge",
+  "number of outputs from 1 to 64 expected":
+    "nombre de sorties de 1 à 64 attendu",
+  "number of keys from 1 to 32 expected": "nombre de touches de 1 à 32 attendu",
+  "Number of keys": "Nombre de touches",
+  "Number of outputs": "Nombre de sorties",
+  "An output is a relay or a channel of the actuator: it has its own settings and group objects, and is controlled on its own. The loads connected to one output are wired in parallel: they always switch together.":
+    "Une sortie est un relais ou un canal de l'actionneur : elle a ses propres réglages et objets de groupe, et se commande indépendamment. Les charges raccordées à une même sortie sont câblées en parallèle : elles commutent toujours ensemble.",
+  "Enabled functions": "Fonctions activées",
+  "Push-button": "Poussoir",
+  "Switch actuator": "Commutateur",
+  "Command L{0}": "Commande L{0}",
+  "Four keys to start with; set the number of keys on the Configuration page of its parameters.":
+    "Quatre touches au départ ; régler le nombre de touches dans la page Configuration de ses paramètres.",
+  "Four outputs to start with, one lamp each; set the number of outputs on the Configuration page, and the loads of each output.":
+    "Quatre sorties au départ, une lampe chacune ; régler le nombre de sorties dans la page Configuration, et les charges de chaque sortie.",
+  "Other settings": "Autres réglages",
+  "Sort by {0}": "Trier par {0}",
+  "Resize column {0}": "Redimensionner la colonne {0}",
+  Channel: "Canal",
+  actions: "actions",
+  "{0} pixels": "{0} pixels",
+  "automatic width": "largeur automatique",
+  "Drag, or use the arrow keys; double-click or Home: automatic widths":
+    "Faire glisser, ou utiliser les flèches ; double-clic ou Début : largeurs automatiques",
+  "link {0} to a group address first: an entered value is sent on it":
+    "lier d'abord {0} à une adresse de groupe : une valeur saisie est émise sur celle-ci",
+  "Value entered in the diagram": "Valeur saisie dans le schéma",
+  "{0} of {1}": "{0} de {1}",
+  "Inputs in the diagram": "Saisies dans le schéma",
+  "Values that the reader types in the diagram (a measured wind speed, the power of a circuit…): the value is written to the object and sent on its group address. This belongs to the simulation, not to the device configuration.":
+    "Valeurs que le lecteur saisit dans le schéma (une vitesse de vent mesurée, la puissance d'un circuit…) : la valeur est écrite dans l'objet et émise sur son adresse de groupe. Cela relève de la simulation, pas de la configuration des appareils.",
+  Entered: "Saisie",
+  "Value of {0} entered in the diagram": "Valeur de {0} saisie dans le schéma",
+  "Label of the input of {0}": "Libellé de la saisie de {0}",
+  Minimum: "Minimum",
+  Maximum: "Maximum",
+  "Add a channel": "Ajouter un canal",
+  "Delete channel": "Supprimer le canal",
+  "Number of channels": "Nombre de canaux",
+  "Number of inputs": "Nombre d'entrées",
+  Input: "Entrée",
+  "Add an input": "Ajouter une entrée",
+  "Delete input": "Supprimer l'entrée",
+  "Input {0} deleted, with its objects.":
+    "Entrée {0} supprimée, avec ses objets.",
+  "Channel {0} deleted, with its objects.":
+    "Canal {0} supprimé, avec ses objets.",
+  "An input is a contact of the interface, wired to a conventional push-button; on the diagram it is a key. Its function, chosen on its Function page, decides its group objects.":
+    "Une entrée est un contact de l'interface, raccordé à un bouton-poussoir conventionnel ; sur le schéma, c'est une touche. Sa fonction, choisie sur sa page Fonction, décide de ses objets de groupe.",
+  "Push-button interface": "Interface de boutons-poussoirs",
+  "Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction. The device measures short and long presses.":
+    "Quatre entrées de contact pour boutons-poussoirs conventionnels ; chacune a une fonction (commutation, variation, store, valeur, scène), un verrouillage et une réaction au retour de la tension du bus. L'appareil mesure les appuis courts et longs.",
+  "Lighting input {0}": "Éclairage entrée {0}",
+  "Input {0}": "Entrée {0}",
+  "Switching {0}": "Commutation {0}",
+  "Four inputs to start with; set the number of inputs on the Configuration page, and the function of each input on its pages.":
+    "Quatre entrées au départ ; régler le nombre d'entrées sur la page Configuration, et la fonction de chaque entrée sur ses pages.",
+  "Push-button interface · 1 input":
+    "Interface de boutons-poussoirs · 1 entrée",
+  "Push-button interface · {0} inputs":
+    "Interface de boutons-poussoirs · {0} entrées",
 };

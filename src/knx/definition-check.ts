@@ -156,9 +156,11 @@ export function checkBehavior<S>(
         );
       if (
         port.direction !== undefined &&
-        !["in", "out"].includes(port.direction)
+        !["in", "out", "both"].includes(port.direction)
       )
-        out.push(t`ports.${name}.direction: "in" or "out" expected`);
+        out.push(
+          t`ports.${name}.direction: "in", "out" or "both" expected`,
+        );
     }
   if (d.output !== undefined && !["switch", "motor", "dim"].includes(d.output))
     out.push(t`output: "switch", "motor" or "dim" expected`);
@@ -171,6 +173,9 @@ export function checkBehavior<S>(
     "onRoomChange",
     "channelState",
     "deviceState",
+    "onBusFailure",
+    "onBusRecovery",
+    "contactKey",
   ].forEach((h) => {
     const f = (d as unknown as Record<string, unknown>)[h];
     if (f !== undefined && typeof f !== "function")
@@ -179,6 +184,8 @@ export function checkBehavior<S>(
   checkParamSchema(d.parameters, "parameters", out);
   checkParamSchema(d.channelParameters, "channelParameters", out);
   checkParamSchema(d.channelInitialState, "channelInitialState", out);
+  if (d.parameterLayout !== undefined)
+    checkLayout(d as BehaviorDefinition<unknown>, out);
   if (out.length)
     throw new TypeError(
       t`Invalid behavior “${id}”:` + `\n• ${out.join("\n• ")}`,
@@ -189,6 +196,96 @@ export function checkBehavior<S>(
     parameters: deepFreezeClone(d.parameters),
     channelParameters: deepFreezeClone(d.channelParameters),
     channelInitialState: deepFreezeClone(d.channelInitialState),
+    parameterLayout: deepFreezeClone(d.parameterLayout),
+  });
+}
+
+/** Pages of parameters: their shape, and the parameters, states, and ports they name. */
+function checkLayout(d: BehaviorDefinition<unknown>, out: string[]) {
+  const t = hostTranslator();
+  const layout = d.parameterLayout as unknown;
+  if (!layout || typeof layout !== "object") {
+    out.push(t`parameterLayout: object expected`);
+    return;
+  }
+  (["device", "channel"] as const).forEach((scope) => {
+    const pages = (layout as Record<string, unknown>)[scope];
+    if (pages === undefined) return;
+    const at = `parameterLayout.${scope}`;
+    if (!Array.isArray(pages)) return void out.push(t`${at}: list expected`);
+    const params = Object.keys(
+      (scope === "device" ? d.parameters : d.channelParameters)?.properties ??
+        {},
+    );
+    const state = Object.keys(d.channelInitialState?.properties ?? {});
+    const ports = Object.keys(d.ports ?? {});
+    const ids = new Set<string>();
+    const items = (list: unknown, path: string) => {
+      if (!Array.isArray(list)) return void out.push(t`${path}: list expected`);
+      list.forEach((raw, i) => {
+        const p = `${path}[${i}]`;
+        const item = raw as Record<string, unknown>;
+        if (!item || typeof item !== "object")
+          return void out.push(t`${p}: object expected`);
+        const name = (k: string, known: string[]) => {
+          if (typeof item[k] !== "string" || !known.includes(item[k]))
+            out.push(t`${p}.${k}: unknown “${String(item[k])}”`);
+        };
+        if ("parameter" in item) name("parameter", params);
+        else if ("initialState" in item) {
+          if (scope === "device")
+            out.push(t`${p}.initialState: only on channel pages`);
+          name("initialState", state);
+        } else if ("groupObject" in item) name("groupObject", ports);
+        else if ("heading" in item || "note" in item) {
+          const v = item.heading ?? item.note;
+          if (typeof v !== "string") out.push(t`${p}: text expected`);
+        } else if ("scenes" in item) {
+          if (item.scenes !== true) out.push(t`${p}.scenes: true expected`);
+        } else if ("when" in item) {
+          const w = item.when as Record<string, unknown> | undefined;
+          if (!w || typeof w !== "object")
+            out.push(t`${p}.when: object expected`);
+          else if ("groupObject" in w) {
+            if (
+              typeof w.groupObject !== "string" ||
+              !ports.includes(w.groupObject)
+            )
+              out.push(
+                t`${p}.when.groupObject: unknown “${String(w.groupObject)}”`,
+              );
+          } else {
+            if (
+              typeof w.parameter !== "string" ||
+              !params.includes(w.parameter)
+            )
+              out.push(
+                t`${p}.when.parameter: unknown “${String(w.parameter)}”`,
+              );
+            (["is", "not"] as const).forEach((k) => {
+              if (w[k] !== undefined && !Array.isArray(w[k]))
+                out.push(t`${p}.when.${k}: list of values expected`);
+            });
+            if (w.is === undefined && w.not === undefined)
+              out.push(t`${p}.when: “is” or “not” expected`);
+          }
+          items(item.items, `${p}.items`);
+        } else out.push(t`${p}: unknown kind of item`);
+      });
+    };
+    pages.forEach((raw, i) => {
+      const page = raw as Record<string, unknown>;
+      const p = `${at}[${i}]`;
+      if (!page || typeof page !== "object")
+        return void out.push(t`${p}: object expected`);
+      if (typeof page.id !== "string" || !/^[A-Za-z0-9_-]+$/.test(page.id))
+        out.push(t`${p}.id: letters, digits, “-”, or “_” expected`);
+      else if (ids.has(page.id)) out.push(t`${p}.id: duplicate “${page.id}”`);
+      else ids.add(page.id);
+      if (typeof page.title !== "string")
+        out.push(t`${p}.title: text expected`);
+      items(page.items, `${p}.items`);
+    });
   });
 }
 

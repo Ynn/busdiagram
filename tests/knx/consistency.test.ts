@@ -240,3 +240,29 @@ describe("different kinds of data on one group address", () => {
     );
   });
 });
+
+describe("TP1 segment size", () => {
+  it("warns above 64 devices on one segment", async () => {
+    const { buildScenario } = await import("../../src/knx/scenario");
+    const { configWarnings } = await import("../../src/knx/consistency");
+    const { en } = await import("../../src/i18n");
+    const scenario = (n: number) =>
+      buildScenario({
+        formatVersion: 2,
+        title: "Segment",
+        lines: [{ address: "1.1" }],
+        groupAddresses: [],
+        devices: Array.from({ length: n }, (_, i) => ({
+          id: `d${i}`,
+          address: `1.1.${i + 1}`,
+          kind: "generic",
+          behavior: "passive/v1",
+          objects: [],
+        })),
+      });
+    const codes = (n: number) =>
+      configWarnings(scenario(n), en).map((w) => w.code);
+    expect(codes(64)).not.toContain("config-segment-size");
+    expect(codes(65)).toContain("config-segment-size");
+  });
+});

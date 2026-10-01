@@ -3,6 +3,7 @@
 // heating actuator (DPT 5.001 control value converted to PWM for a
 // thermoelectric valve), window contact, and temperature sensor. Measurements
 // come from the room state (ctx.readRoom()).
+import { heatingLayout, thermostatLayout } from "./layouts";
 import type {
   BehaviorContext,
   BehaviorDefinition,
@@ -75,9 +76,15 @@ function publish(ctx: BehaviorContext<unknown>, port: string, value: number) {
   });
 }
 
-/** Mode priority in this simulator: open window > presence > preselection. */
+/**
+ * Mode priority in this simulator: open window > protection preselected > presence >
+ * preselection. As on most room controllers, presence extends comfort from the
+ * standby or economy mode, but does not end a building protection mode (absence,
+ * holidays) set centrally.
+ */
 function modeOf(st: ThermostatState): number {
   if (st.window) return HVAC.protection;
+  if (st.preset === HVAC.protection) return HVAC.protection;
   if (st.presence) return HVAC.comfort;
   return st.preset === HVAC.auto ? HVAC.comfort : st.preset;
 }
@@ -496,6 +503,7 @@ const thermostatParams: ParamSchema = {
 };
 
 export const roomThermostat: BehaviorDefinition<ThermostatState> = {
+  parameterLayout: thermostatLayout,
   description:
     "Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling.",
   parameters: thermostatParams,
@@ -851,6 +859,7 @@ const heatingChannelParams: ParamSchema = {
 };
 
 export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
+  parameterLayout: heatingLayout,
   description:
     "Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.",
   channelParameters: heatingChannelParams,

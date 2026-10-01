@@ -58,6 +58,8 @@ export interface GroupAddress {
 
 export interface EquipmentConfig {
   type: string;
+  /** Name of the load ("Ceiling light"), or null. */
+  name: string | null;
   /** Graphic view (default: type). */
   view: string;
   /** Room heated or cooled by this equipment, or null. */
@@ -67,7 +69,8 @@ export interface EquipmentConfig {
 }
 
 export interface Channel extends ChannelInfo {
-  equipmentConfig: EquipmentConfig | null;
+  /** Loads connected to the output, in order; they all receive its commands. */
+  equipmentConfigs: EquipmentConfig[];
 }
 
 export interface KnxObject extends ObjectInfo {
@@ -185,7 +188,7 @@ export interface Scenario {
   clock: ClockConfig | null;
   topology: TopologyConfig;
   groupAddresses: Map<string, GroupAddress>;
-  /** Names of main groups ("1") and middle groups ("1/2"), as in the ETS group address tree. */
+  /** Names of main groups ("1") and middle groups ("1/2"), as in the group address tree. */
   groupRanges: Map<string, string>;
   devices: Device[];
   devicesById: Map<string, Device>;
@@ -363,7 +366,7 @@ const CHANNEL_V2 = [
   "equipment",
   "scenes",
 ];
-const EQUIP_V2 = ["type", "view", "room", "parameters", "initialState"];
+const EQUIP_V2 = ["type", "name", "view", "room", "parameters", "initialState"];
 const OPTIONS_KEYS = ["speed", "filterTables"];
 
 type Rec = Record<string, unknown>;
@@ -1128,7 +1131,7 @@ export function buildScenario(
 
       let rawParams: unknown = c.parameters;
       let rawInit: unknown = c.initialState;
-      let equipment: EquipmentConfig | null = null;
+      const equipment: EquipmentConfig[] = [];
       let rawEquip: unknown = c.equipment;
       if (!v2) {
         // Translation v1: seconds → milliseconds, load → equipment.
@@ -1182,77 +1185,90 @@ export function buildScenario(
         problems,
       );
 
-      if (rawEquip !== undefined && rawEquip !== null) {
-        const ep = `${cp}.equipment`;
-        if (!isRecord(rawEquip)) err(ep, "type", t`object or null expected`);
-        else {
-          unknownKeys(rawEquip, EQUIP_V2, ep);
-          const type = nonEmpty(rawEquip, "type", ep) ?? "";
-          const def = registry.equipment.get(type);
-          if (type && !def)
-            err(
-              `${ep}.type`,
-              "unknown-equipment",
-              t`unknown equipment “${type}” (available: ${[...registry.equipment.keys()].join(", ")})`,
+      // One load, a list of loads switched together by the output, or none.
+      const rawLoads =
+        rawEquip === undefined || rawEquip === null
+          ? []
+          : Array.isArray(rawEquip)
+            ? rawEquip.map((x, i) => [x, `${cp}.equipment[${i}]`] as const)
+            : [[rawEquip, `${cp}.equipment`] as const];
+      rawLoads.forEach(([rawEquip, ep]) => {
+        if (!isRecord(rawEquip))
+          return err(ep, "type", t`object, list of objects, or null expected`);
+        unknownKeys(rawEquip, EQUIP_V2, ep);
+        const type = nonEmpty(rawEquip, "type", ep) ?? "";
+        const def = registry.equipment.get(type);
+        if (type && !def)
+          err(
+            `${ep}.type`,
+            "unknown-equipment",
+            t`unknown equipment “${type}” (available: ${[...registry.equipment.keys()].join(", ")})`,
+          );
+        if (
+          def &&
+          behavior &&
+          behavior.output &&
+          def.accepts !== behavior.output
+        )
+          err(
+            `${ep}.type`,
+            "incompatible",
+            t`“${type}” expects “${def.accepts}” commands, behavior ${behaviorId} sends “${behavior.output}”`,
+          );
+        if (def && behavior && !behavior.output)
+          err(
+            `${ep}.type`,
+            "incompatible",
+            t`behavior ${behaviorId} drives no output`,
+          );
+        const room = roomRef(rawEquip, ep);
+        if (!room && def?.heatOutput)
+          err(
+            `${ep}.room`,
+            "required",
+            t`heated or cooled room required (“room”)`,
+          );
+        const before = problems.length;
+        const eqParams = validateParams(
+          def?.parameters,
+          rawEquip.parameters,
+          `${ep}.parameters`,
+          problems,
+          t,
+        );
+        if (def?.checkParameters && problems.length === before)
+          def
+            .checkParameters(eqParams, t)
+            .forEach((x) =>
+              err(`${ep}.parameters.${x.parameter}`, "range", x.message),
             );
-          if (
-            def &&
-            behavior &&
-            behavior.output &&
-            def.accepts !== behavior.output
-          )
-            err(
-              `${ep}.type`,
-              "incompatible",
-              t`“${type}” expects “${def.accepts}” commands, behavior ${behaviorId} sends “${behavior.output}”`,
-            );
-          if (def && behavior && !behavior.output)
-            err(
-              `${ep}.type`,
-              "incompatible",
-              t`behavior ${behaviorId} drives no output`,
-            );
-          const room = roomRef(rawEquip, ep);
-          if (!room && def?.heatOutput)
-            err(
-              `${ep}.room`,
-              "required",
-              t`heated or cooled room required (“room”)`,
-            );
-          const before = problems.length;
-          const eqParams = validateParams(
-            def?.parameters,
-            rawEquip.parameters,
-            `${ep}.parameters`,
+        equipment.push({
+          type,
+          name: str(rawEquip, "name", ep) ?? null,
+          // A shutter with slats is drawn as a venetian blind unless a view is given.
+          view:
+            str(rawEquip, "view", ep) ??
+            (type === "shutter" && Number(eqParams.slatTravelMs ?? 0) > 0
+              ? "venetianBlind"
+              : type),
+          room,
+          parameters: eqParams,
+          initialState: validateParams(
+            def?.initialState,
+            rawEquip.initialState,
+            `${ep}.initialState`,
             problems,
             t,
-          );
-          if (def?.checkParameters && problems.length === before)
-            def
-              .checkParameters(eqParams, t)
-              .forEach((x) =>
-                err(`${ep}.parameters.${x.parameter}`, "range", x.message),
-              );
-          equipment = {
-            type,
-            // A shutter with slats is drawn as a venetian blind unless a view is given.
-            view:
-              str(rawEquip, "view", ep) ??
-              (type === "shutter" && Number(eqParams.slatTravelMs ?? 0) > 0
-                ? "venetianBlind"
-                : type),
-            room,
-            parameters: eqParams,
-            initialState: validateParams(
-              def?.initialState,
-              rawEquip.initialState,
-              `${ep}.initialState`,
-              problems,
-              t,
-            ),
-          };
-        }
-      }
+          ),
+        });
+      });
+      // A motor output drives one motor: shutters wired in parallel need a relay.
+      if (behavior?.output === "motor" && equipment.length > 1)
+        err(
+          `${cp}.equipment`,
+          "range",
+          t`a shutter output drives one motor; connect each shutter to its own output`,
+        );
 
       const scenes = new Map<number, number>();
       if (c.scenes !== undefined) {
@@ -1294,8 +1310,9 @@ export function buildScenario(
         parameters: chParams,
         initialState: chInit,
         scenes,
-        equipment: equipment?.type ?? null,
-        equipmentConfig: equipment,
+        equipment: equipment[0]?.type ?? null,
+        loads: equipment.map((e) => e.type),
+        equipmentConfigs: equipment,
       });
     });
 
@@ -1304,28 +1321,29 @@ export function buildScenario(
     if (behaviorId === "daliGateway/v1") {
       const owners = new Map<number, string>();
       channels.forEach((channel, index) => {
-        const equipment = channel.equipmentConfig;
-        if (equipment?.type !== "daliGroup") return;
-        const first = Number(equipment.parameters.firstAddress ?? 0);
-        const count = Number(equipment.parameters.ballasts ?? 2);
-        if (
-          !Number.isInteger(first) ||
-          !Number.isInteger(count) ||
-          first < 0 ||
-          count < 1 ||
-          first + count > 64
-        )
-          return;
-        for (let address = first; address < first + count; address++) {
-          const previous = owners.get(address);
-          if (previous)
-            err(
-              `${p}.channels[${index}].equipment.parameters.firstAddress`,
-              "duplicate",
-              t`DALI short address A${address} is already assigned to channel ${previous}; overlapping groups are outside this model`,
-            );
-          else owners.set(address, channel.id);
-        }
+        channel.equipmentConfigs.forEach((equipment, li) => {
+          if (equipment.type !== "daliGroup") return;
+          const first = Number(equipment.parameters.firstAddress ?? 0);
+          const count = Number(equipment.parameters.ballasts ?? 2);
+          if (
+            !Number.isInteger(first) ||
+            !Number.isInteger(count) ||
+            first < 0 ||
+            count < 1 ||
+            first + count > 64
+          )
+            return;
+          for (let address = first; address < first + count; address++) {
+            const previous = owners.get(address);
+            if (previous)
+              err(
+                `${p}.channels[${index}].equipment${channel.equipmentConfigs.length > 1 ? `[${li}]` : ""}.parameters.firstAddress`,
+                "duplicate",
+                t`DALI short address A${address} is already assigned to channel ${previous}; overlapping groups are outside this model`,
+              );
+            else owners.set(address, channel.id);
+          }
+        });
       });
     }
 
@@ -1617,6 +1635,43 @@ export function buildScenario(
         led,
       });
     });
+
+    // Contact inputs: one key per channel, pressed and released on the diagram.
+    if (behavior?.contactInputs) {
+      if (rawButtons.length)
+        err(
+          `${p}.buttons`,
+          "incompatible",
+          t`behavior ${behaviorId} takes its keys from its channels; remove “buttons”`,
+        );
+      channels.forEach((c, ci) => {
+        const own = objects.filter((o) => o.channel === c.id);
+        let key: ReturnType<NonNullable<typeof behavior.contactKey>> = {};
+        try {
+          key = behavior.contactKey?.(c, own) ?? {};
+        } catch {
+          // A failing extension gets the default key.
+        }
+        buttons.push({
+          id: c.id,
+          index: ci,
+          label: c.label,
+          icon: ICONS.includes(key.icon as ButtonIcon)
+            ? (key.icon as ButtonIcon)
+            : "toggle",
+          press: null,
+          short: null,
+          long: null,
+          release: null,
+          led:
+            key.led !== undefined
+              ? key.led
+              : (own.find((o) => o.port === "led")?.id ?? null),
+          ledInverted: key.ledInverted === true,
+          contact: true,
+        });
+      });
+    }
 
     // Digital entries
     const inputs: NumberInput[] = [];

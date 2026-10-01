@@ -1,6 +1,7 @@
 // ShutterActuator/v1: shutter actuator without sensor. It estimates position from
 // its configured travel time and commands the motor (up/down/stop). The actual shutter,
 // with its own travel time, is never copied into this estimate.
+import { shutterLayout } from "./layouts";
 import type {
   BehaviorContext,
   BehaviorDefinition,
@@ -11,6 +12,8 @@ import type {
 type Phase = "idle" | "pending" | "moving";
 
 interface ShutterChannelState {
+  /** Scenes stored by a scene control telegram (DPT 18.001): scene → position %. */
+  learned: Record<string, number>;
   /** Estimated position at the last reference point (movement start or stop). */
   estimatedPositionPct: number;
   phase: Phase;
@@ -310,12 +313,41 @@ function finish(ctx: Ctx, ch: string) {
   publish(ctx, ch);
 }
 
-function applyScene(ctx: Ctx, channels: string[], raw: number) {
+/**
+ * Scene telegram: move each channel to its preset, or, with the learn bit of a scene
+ * control telegram (DPT 18.001), store the current estimated position as the scene.
+ */
+function applyScene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
   const scene = (raw & 0x3f) + 1;
+  if (dpt === "18.001" && raw & 0x80) {
+    channels.forEach((ch) => {
+      const st = ctx.state.channels[ch];
+      if (!st) return;
+      if (
+        ctx.device.channels.find((c) => c.id === ch)?.parameters
+          .sceneLearning === false
+      ) {
+        ctx.note(
+          ctx.t`${ch}: scene storing disabled, scene ${scene} unchanged`,
+        );
+        return;
+      }
+      const pos = Math.round(
+        projectEstimate(
+          st,
+          ctx.timeMs,
+          travelFor(params(ctx, ch), st.direction),
+        ),
+      );
+      st.learned[String(scene)] = pos;
+      ctx.note(ctx.t`${ch}: scene ${scene} stored (${pos} %)`);
+    });
+    return;
+  }
   channels.forEach((ch) => {
-    const preset = ctx.device.channels
-      .find((c) => c.id === ch)
-      ?.scenes.get(scene);
+    const preset =
+      ctx.state.channels[ch]?.learned[String(scene)] ??
+      ctx.device.channels.find((c) => c.id === ch)?.scenes.get(scene);
     if (preset === undefined) {
       ctx.note(ctx.t`${ch}: no preset for scene ${scene}, command ignored`);
       return;
@@ -335,6 +367,7 @@ function windAlarm(ctx: Ctx, ch: string, on: boolean) {
 }
 
 export const shutterActuator: BehaviorDefinition<ShutterState> = {
+  parameterLayout: shutterLayout,
   description:
     "Shutter actuator without sensor: position estimated from the configured travel time.",
   channelParameters: {
@@ -426,6 +459,13 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         description:
           "Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.",
       },
+      sceneLearning: {
+        title: "Scene storing",
+        type: "boolean",
+        default: true,
+        description:
+          "A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.",
+      },
     },
   },
   channelInitialState: {
@@ -480,10 +520,12 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       direction: "out",
     },
     scene: {
-      dpts: ["17.001"],
+      dpts: ["17.001", "18.001"],
       channel: "optional",
       title: "Scene",
       direction: "in",
+      description:
+        "scene number (17.001), or scene control (18.001) whose learn bit stores the current position",
     },
     slatCommand: {
       dpts: ["5.001"],
@@ -521,6 +563,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         stopAtMs: null,
         unpublished: false,
         windLock: false,
+        learned: {},
         estimatedSlatPct: Number(c.initialState.estimatedSlatPct ?? 0),
         slatPhaseMs: 0,
         targetSlatPct: null,
@@ -531,10 +574,14 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
   onInit(ctx) {
     ctx.device.channels.forEach((c) => {
       motor(ctx, c.id, null);
-      const est = ctx.state.channels[c.id]!.estimatedPositionPct;
+      const st = ctx.state.channels[c.id]!;
       ctx.device.objects
         .filter((o) => o.port === "positionStatus" && o.channel === c.id)
-        .forEach((o) => ctx.setObject(o.id, est));
+        .forEach((o) => ctx.setObject(o.id, st.estimatedPositionPct));
+      // The slat angle is known from the start too (a read answers it).
+      ctx.device.objects
+        .filter((o) => o.port === "slatStatus" && o.channel === c.id)
+        .forEach((o) => ctx.setObject(o.id, st.estimatedSlatPct));
     });
   },
   onObjectWrite(ctx, e) {
@@ -575,9 +622,20 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
             (c) => !ctx.state.channels[c]?.windLock,
           ),
           e.newValue,
+          o.dpt,
         );
         break;
     }
+  },
+  onBusFailure(ctx) {
+    // The motors stop; the estimated position is kept where the movement ended.
+    ctx.device.channels.forEach((c) => {
+      const st = ctx.state.channels[c.id];
+      if (!st) return;
+      if (haltMotion(ctx, c.id))
+        ctx.note(ctx.t`${c.id}: stopped, bus voltage failure`);
+      st.targetPct = null;
+    });
   },
   onTimer(ctx, key) {
     const [ch, what] = key.split(":");
@@ -618,6 +676,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       startedAtMs: st.startedAtMs,
       stopAtMs: st.stopAtMs,
       windLock: st.windLock,
+      learnedScenes: { ...st.learned },
     };
   },
 };

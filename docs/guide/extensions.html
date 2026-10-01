@@ -140,7 +140,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </tr>
 <tr>
 <td><code>onInput(ctx, input)</code></td>
-<td>A local <code>press</code>, <code>short</code>, <code>long</code>, or <code>value</code> action occurs.</td>
+<td>A local <code>press</code>, <code>short</code>, <code>long</code>, <code>release</code>, or <code>value</code> action occurs; for a behavior with <code>contactInputs</code>, the edges <code>down</code> and <code>up</code> of a channel&#39;s key.</td>
 </tr>
 <tr>
 <td><code>onObjectWrite(ctx, event)</code></td>
@@ -163,6 +163,14 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>The <a href="time.html#simulated-clock">simulated clock</a> is set to another time; reschedule clock-based deadlines.</td>
 </tr>
 <tr>
+<td><code>onBusFailure(ctx)</code></td>
+<td>The bus voltage of the device&#39;s segment fails; set the outputs, then the device stops (its timers are cancelled).</td>
+</tr>
+<tr>
+<td><code>onBusRecovery(ctx)</code></td>
+<td>The bus voltage returns; the device restarts with its state.</td>
+</tr>
+<tr>
 <td><code>channelState(state, channel)</code></td>
 <td>Channel state is requested by the inspector or <code>getState()</code>.</td>
 </tr>
@@ -171,8 +179,9 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Device state is requested, such as a thermostat display.</td>
 </tr>
 </tbody></table>
-</div><p>The context <code>ctx</code> exposes <code>t</code> for translated messages, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>getOutput</code>, <code>readEquipment</code>, <code>readPower</code>, <code>readRoom</code>, <code>setOutsideTemperature</code>, <code>clock</code>, <code>schedule</code>, <code>cancel</code>, and <code>note</code>. <code>setObject</code> changes a local value without transmitting. <code>transmit</code> checks flag T and the sending address. <code>readPower</code> returns the power drawn by a channel&#39;s load, in W, when the load models it. <code>clock()</code> returns the simulated clock (<code>nowMs</code>, <code>speed</code>) or <code>null</code> without one; divide a clock delay by <code>speed</code> to schedule it in simulation time. <code>note</code> adds an explanation to the event log.</p>
+</div><p>The context <code>ctx</code> exposes <code>t</code> for translated messages, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>getOutput</code>, <code>readEquipment</code>, <code>readPower</code>, <code>readRoom</code>, <code>setOutsideTemperature</code>, <code>clock</code>, <code>schedule</code>, <code>cancel</code>, and <code>note</code>. <code>setObject</code> changes a local value without transmitting. <code>transmit</code> checks flag T and the sending address. <code>readEquipment(channel, index)</code> returns the state of a load of a channel: the first one by default, or another one when several loads are wired to the output (<code>ctx.device.channels[i].loads</code> lists their types). <code>readPower</code> returns the power drawn through a channel, in W: the sum of its loads that model it. <code>clock()</code> returns the simulated clock (<code>nowMs</code>, <code>speed</code>) or <code>null</code> without one; divide a clock delay by <code>speed</code> to schedule it in simulation time. <code>note</code> adds an explanation to the event log.</p>
 <p>Equipment models can define <code>heatOutput(state, parameters)</code> to heat or cool a room and <code>checkParameters(parameters, t)</code> to validate related parameters. A view can define <code>interact(state, action, parameters, equipment)</code> to respond to a user action. Use simulation time and <code>ctx.schedule</code> for delayed behavior; browser timers such as <code>setTimeout</code> do not follow simulation time.</p>
+<p>With <code>contactInputs: true</code>, each channel of a device is drawn as a key that reports its edges, and the behavior measures presses with <code>ctx.schedule</code>; <code>contactKey(channel, objects)</code> can choose the key&#39;s icon and the object shown by its LED. A port with <code>direction: &quot;both&quot;</code> sends and listens, so the designer enables its W and T flags.</p>
 <p>An exception in a behavior pauses only that diagram and reports an <code>extension-error</code>. An exception in a view replaces that view with an error frame and reports <code>view-error</code> in <code>getState()</code>.</p>
 <h3 id="definition-checks"><a class="anchor" href="#definition-checks">#</a>Definition checks</h3><p><code>registerBehavior</code> validates ports, supported DPTs, output types, and parameter defaults. Parameter schemas use a flat subset of JSON Schema: scalar <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>string</code>, and <code>null</code> properties, with bounds, <code>enum</code>, <code>enumTitles</code>, <code>default</code>, and <code>description</code>. Nested objects and arrays are unsupported. A registered definition is copied and frozen.</p>
 <h3 id="labels-for-guided-editing"><a class="anchor" href="#labels-for-guided-editing">#</a>Labels for guided editing</h3><p>Optional metadata makes an extension usable in the <a href="designer.html">guided designer</a>:</p>
@@ -216,7 +225,59 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Name of the connected load.</td>
 </tr>
 </tbody></table>
-</div><p>Use <code>ctx.t</code> for messages in the diagram&#39;s selected language. Supply extension translations with <code>BusDiagram.registerMessages(language, messages)</code>; see <a href="languages.html#messages-in-an-extension">Languages</a>.</p>
+</div><h3 id="pages-of-parameters"><a class="anchor" href="#pages-of-parameters">#</a>Pages of parameters</h3><p>The designer shows the parameters of a device as pages, like a parameter dialog: pages of the device, then a group of pages for each channel. <code>parameterLayout</code> declares them; without it, the designer makes one page of device parameters and one page of channel settings. Every parameter or port that no page names is still shown, on an automatic page.</p>
+<pre class="code"><code>parameterLayout: {
+  device: [
+    { id: <span class="s">"general"</span>, title: <span class="s">"General"</span>, items: [
+      { parameter: <span class="s">"delayMs"</span> },
+      { groupObject: <span class="s">"alarm"</span> },
+      { when: { groupObject: <span class="s">"alarm"</span> }, items: [{ parameter: <span class="s">"alarmDelayMs"</span> }] }
+    ] }
+  ],
+  channel: [
+    { id: <span class="s">"function"</span>, title: <span class="s">"Function"</span>, items: [
+      { groupObject: <span class="s">"switch"</span> },
+      { parameter: <span class="s">"mode"</span> },
+      { when: { parameter: <span class="s">"mode"</span>, is: [<span class="s">"timed"</span>] }, items: [{ parameter: <span class="s">"durationMs"</span> }] },
+      { heading: <span class="s">"Status"</span> },
+      { groupObject: <span class="s">"status"</span> },
+      { note: <span class="s">"The status follows the relay."</span> }
+    ] }
+  ]
+}</code></pre><div class="table"><table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Row</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ parameter }</code></td>
+<td>A parameter of the device (device pages) or of the channel (channel pages).</td>
+</tr>
+<tr>
+<td><code>{ initialState }</code></td>
+<td>An initial state of the channel (channel pages).</td>
+</tr>
+<tr>
+<td><code>{ groupObject }</code></td>
+<td>The box that enables the group object of a port; group addresses are linked in the Group objects tab, never on a parameter page.</td>
+</tr>
+<tr>
+<td><code>{ heading }</code>, <code>{ note }</code></td>
+<td>A heading, or an information box.</td>
+</tr>
+<tr>
+<td><code>{ scenes: true }</code></td>
+<td>The scenes of a channel.</td>
+</tr>
+<tr>
+<td><code>{ when, items }</code></td>
+<td>Items shown only when a parameter has (<code>is</code>) or does not have (<code>not</code>) one of the given values, its default value counting when it is absent, or when the group object of a port is enabled (<code>{ groupObject }</code>).</td>
+</tr>
+</tbody></table>
+</div><p><code>registerBehavior</code> checks the names used by the pages. Titles, headings, and notes are translated like parameter titles.</p>
+<p>Use <code>ctx.t</code> for messages in the diagram&#39;s selected language. Supply extension translations with <code>BusDiagram.registerMessages(language, messages)</code>; see <a href="languages.html#messages-in-an-extension">Languages</a>.</p>
 <h2 id="register-a-view"><a class="anchor" href="#register-a-view">#</a>Register a view</h2><pre class="code"><code>BusDiagram.registerEquipmentView(<span class="s">"ledStrip"</span>, {
   size: { width: <span class="n">84</span>, height: <span class="n">30</span> },
   render: ({ state, label, box }) =&gt; BusDiagram.html<span class="s">`

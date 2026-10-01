@@ -53,6 +53,7 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
 | `groupRead(address, interface?)` | Read a group value through the USB interface. |
 | `roomAction(roomId, action, value)` | Set a room's window state or outside temperature. |
 | `setClock(value)` | Set the simulated clock to a local date and time (`YYYY-MM-DDTHH:MM[:SS]`). |
+| `setBusVoltage(segment, on)` | Cut (`false`) or restore (`true`) the bus voltage of a line segment: `L1.1`, or `L1.1b` behind its extension. |
 
 ### `getState()` example
 
@@ -84,8 +85,9 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
     "living": { "temperatureC": 20.8, "outsideTemperatureC": 5, "windowOpen": false }
   },
   "telegramsInFlight": 0,
+  "unpoweredSegments": [],
   "diagnostics": []
 }
 ```
 
-The `objects` map uses `deviceId/objectId` identifiers. `channels` and `equipment` use `deviceId/channelId`; `rooms` uses room IDs. Unknown values are `null`.
+The `objects` map uses `deviceId/objectId` identifiers. `channels` and `equipment` use `deviceId/channelId`; `rooms` uses room IDs. `unpoweredSegments` lists the segments whose bus voltage is cut. Unknown values are `null`.

@@ -34,7 +34,7 @@ The designer can add this device through its guided device selector.
 
 The panel uses the group's declared DPT, or a DPT inferred from associated objects. Its telegrams follow the same couplers and filter tables as device telegrams and appear in the bus monitor.
 
-A USB interface has no communication objects, so its addresses are not in the coupler filter tables unless they are assigned to it, as in ETS for a modeled bus interface. List them in the `groupAddresses` parameter, for example `"parameters": { "groupAddresses": "1/1/1 1/4/1" }`. Without it, a write to an address used only on another line is filtered by the first coupler, and the response to a read cannot come back. See [filter tables](couplers.html#filter-tables-and-routing-counter).
+A USB interface has no communication objects, so its addresses are not in the coupler filter tables unless they are assigned to it, as for a bus interface modeled in a project. List them in the `groupAddresses` parameter, for example `"parameters": { "groupAddresses": "1/1/1 1/4/1" }`. Without it, a write to an address used only on another line is filtered by the first coupler, and the response to a read cannot come back. See [filter tables](couplers.html#filter-tables-and-routing-counter).
 
 A read request may use any address associated with the object that should answer; the response is always sent on that object's sending address, its first address. If the sending address is not the one that was read, the response can act on other devices; the KNX training documentation therefore recommends reading on the sending address.
 

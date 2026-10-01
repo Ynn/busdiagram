@@ -1,24 +1,39 @@
-// Parameters of a device, as the Parameters tab of ETS: the general page, one page per
+// Parameters of a device, as the parameters tab of a product: the general page, one page per
 // key or output, and the objects shared by all outputs, with their port rows.
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { live } from "lit/directives/live.js";
-import type { BehaviorDefinition, BehaviorPort } from "../../src/knx/contracts";
+import type {
+  BehaviorDefinition,
+  BehaviorPort,
+  ParameterCondition,
+  ParameterItem,
+  ParameterPage,
+} from "../../src/knx/contracts";
+import { fieldValue } from "./field-value";
+import { dptInfo } from "../../src/knx/dpt";
 import type { Registry } from "../../src/knx/registry";
 import type { Chan, Dev, Doc, Gesture } from "./edit";
 import * as E from "./edit";
 import { t } from "./lang";
 import type { GuidedEditor } from "./guided";
+import { openMenu } from "./ws-menu";
+import { dataTable } from "./ws-table";
+import type { MenuItem } from "./ws-state";
 
 export const tt = (text: string | undefined) =>
   text ? (t.s ? t.s(text) : text) : "";
 
-/** A page of device parameters, listed in the menu on the left. */
+/** A page of device parameters, or a group of pages, in the tree on the left. */
 export interface Page {
   key: string;
   label: string;
   sum?: string;
-  body: () => TemplateResult;
+  body?: () => TemplateResult;
+  /** Pages of a group (an output: its settings, its connected loads). */
+  children?: Page[];
+  /** Commands of its context menu. */
+  menu?: () => MenuItem[];
 }
 
 /** General page of a device: identity, place on the bus, device settings. */
@@ -120,16 +135,7 @@ export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
       )}
     </section>
     ${visu ? visualisation(ed, d, place) : nothing}
-    ${
-      def?.parameters
-        ? html`<section class="g-sec">
-            <h3>${t`Device settings`}</h3>
-            ${ed.params(def.parameters, d.parameters ?? {}, (k, v) =>
-              ed.run(t`Setting`, (x) => E.setParam(x, d.id, null, k, v)),
-            )}
-          </section>`
-        : nothing
-    }
+
     <section class="g-sec g-danger">
       ${ed.dangerButton(
         `dev:${d.id}`,
@@ -179,13 +185,677 @@ export function visualisation(ed: GuidedEditor, d: Dev, place: string) {
   </section>`;
 }
 
-export function keyPages(ed: GuidedEditor, doc: Doc, d: Dev): Page[] {
-  const kinds = E.actionKinds();
-  const gestureLabel: Record<Gesture, string> = {
-    press: t`Press`,
-    short: t`Short press`,
-    long: t`Long press`,
+// ── Parameter tree ───────────────────────────────────────────────────────────
+
+/**
+ * Parameters of a device, organized as the parameter dialog of a product: a tree of pages on
+ * the left, the selected page on the right with one parameter per row. The pages come
+ * from the layout declared by the behavior (or derived from its schemas): pages of the
+ * device, then a group per output with its pages and its connected loads.
+ * Parameter pages show no group address: a parameter enables a group object, which is
+ * linked in the Group objects tab. Loads wired to the outputs (specific to the
+ * simulation) have their own page.
+ */
+export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
+  const def = ed.registry.behaviors.get(d.behavior);
+  const layout = def ? layoutOf(def) : { device: [], channel: [] };
+  const pages: Page[] = [
+    {
+      key: "general",
+      label: t`General`,
+      body: () => generalPage(ed, doc, d),
+    },
+  ];
+  if (def?.ports.display && !def.acceptsInputs)
+    pages.push(displayPage(ed, doc, d));
+  if (def?.acceptsInputs && def.ports.input)
+    pages.push(keysConfigPage(ed, d), ...keyPages(ed, d));
+  if (def && hasChannels(def))
+    pages.push(
+      outputsConfigPage(ed, doc, d, def, layout.channel[0]?.id ?? LOADS),
+    );
+  if (def)
+    layout.device.forEach((page) =>
+      pages.push({
+        key: `dev:${page.id}`,
+        label: tt(page.title),
+        body: () => layoutItems(ed, doc, d, def, undefined, page.items),
+      }),
+    );
+  if (def && hasChannels(def))
+    pages.push(...outputPages(ed, doc, d, def, layout.channel));
+  const inputs = def ? inputsPage(ed, d, def) : null;
+  if (inputs) pages.push(inputs);
+
+  const leaves = pages.flatMap((p) => p.children ?? [p]);
+  const cur = leaves.find((p) => p.key === ed.pageOf.get(d.id)) ?? leaves[0]!;
+  const group = pages.find((p) => p.children?.includes(cur));
+  const open = (key: string) => {
+    ed.pageOf.set(d.id, key);
+    ed.requestUpdate();
   };
+  const isOpen = (p: Page) =>
+    p === group || ed.pageGroups.has(`${d.id}|${p.key}`);
+  const toggle = (p: Page) => {
+    const k = `${d.id}|${p.key}`;
+    if (ed.pageGroups.has(k)) ed.pageGroups.delete(k);
+    else ed.pageGroups.add(k);
+    ed.requestUpdate();
+  };
+  const item = (p: Page, sub: boolean) =>
+    html`<button
+      class="w-pitem ${sub ? "sub" : ""}"
+      aria-current=${p === cur ? "page" : "false"}
+      title=${p.sum ?? p.label}
+      data-page=${p.key}
+      @click=${() => open(p.key)}
+      @contextmenu=${(e: MouseEvent) =>
+        p.menu ? openMenu(ed, e, p.menu()) : undefined}
+    >
+      ${p.label}
+    </button>`;
+  return html`<div class="w-params">
+    <nav class="w-pmenu" aria-label=${t`Parameter pages`}>
+      ${pages.map((p) =>
+        p.children
+          ? html`<div
+                class="w-pgroup ${isOpen(p) ? "open" : ""}"
+                data-page=${p.key}
+              >
+                <button
+                  class="w-ptog"
+                  aria-expanded=${String(isOpen(p))}
+                  aria-label=${isOpen(p) ? t`Collapse` : t`Expand`}
+                  @click=${() => toggle(p)}
+                >
+                  ${isOpen(p) ? "−" : "+"}
+                </button>
+                <button
+                  class="w-pitem"
+                  title=${p.sum ?? p.label}
+                  @click=${() => {
+                    ed.pageGroups.add(`${d.id}|${p.key}`);
+                    open(p.children![0]!.key);
+                  }}
+                  @contextmenu=${(e: MouseEvent) =>
+                    p.menu ? openMenu(ed, e, p.menu()) : undefined}
+                >
+                  ${p.label}
+                </button>
+              </div>
+              ${isOpen(p) ? p.children.map((c) => item(c, true)) : nothing}`
+          : item(p, false),
+      )}
+    </nav>
+    <div class="w-ppage" data-page=${cur.key}>
+      ${
+        cur.key === "general"
+          ? cur.body!()
+          : html`<section class="g-sec">
+              <h3>
+                ${group ? html`${group.label} › ` : nothing}${cur.label}
+                ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
+              </h3>
+              ${cur.body!()}
+            </section>`
+      }
+    </div>
+  </div>`;
+}
+
+/**
+ * Values that the reader enters in the diagram (a measurement, a power, a setpoint):
+ * this level belongs to the simulation, like the loads, not to the device configuration.
+ */
+function inputsPage(
+  ed: GuidedEditor,
+  d: Dev,
+  def: BehaviorDefinition<unknown>,
+): Page | null {
+  if (!def.acceptsInputs) return null;
+  const candidates = E.objectsInOrder(d).filter(
+    (o) => o.port === "input" || def.ports[o.port]?.direction === "out",
+  );
+  if (!candidates.length) return null;
+  const n = E.objectNumbers(d);
+  type O = E.Obj;
+  const set = (o: O, patch: Record<string, unknown> | null) =>
+    ed.run(t`Value entered in the diagram`, (x) => {
+      const cur = E.inputOf(d, o.id);
+      E.setInput(
+        x,
+        d.id,
+        o.id,
+        patch === null ? null : { ...(cur ?? {}), ...patch },
+      );
+    });
+  const numberField = (o: O, k: "min" | "max" | "step", label: string) => {
+    const cur = E.inputOf(d, o.id);
+    const range = dptInfo(o.dpt ?? "");
+    const placeholder = k === "min" ? range?.min : k === "max" ? range?.max : 1;
+    return html`<input
+      type="number"
+      class="w-num"
+      aria-label=${t`${label} of ${o.name ?? o.id}`}
+      placeholder=${placeholder ?? ""}
+      ?disabled=${!cur}
+      .value=${fieldValue(cur?.[k] === undefined ? "" : String(cur[k]))}
+      @change=${(e: Event) => {
+        const v = (e.target as HTMLInputElement).value;
+        set(o, { [k]: v === "" ? undefined : Number(v) });
+      }}
+    />`;
+  };
+  return {
+    key: "inputs",
+    label: t`Inputs in the diagram`,
+    body: () =>
+      html`<p class="w-info">
+          ${t`Values that the reader types in the diagram (a measured wind speed, the power of a circuit…): the value is written to the object and sent on its group address. This belongs to the simulation, not to the device configuration.`}
+        </p>
+        ${dataTable<O>(
+          ed,
+          "inputs",
+          [
+            {
+              id: "object",
+              label: t`Group object`,
+              sort: (o) => n.get(o.id) ?? 0,
+              cell: (o) => `${n.get(o.id)}: ${o.name ?? o.id}`,
+            },
+            {
+              id: "on",
+              label: t`Entered`,
+              sort: (o) => (E.inputOf(d, o.id) ? 0 : 1),
+              td: (o) =>
+                html`<td class="w-flag">
+                  <input
+                    type="checkbox"
+                    aria-label=${t`Value of ${o.name ?? o.id} entered in the diagram`}
+                    .checked=${live(!!E.inputOf(d, o.id))}
+                    @change=${(e: Event) =>
+                      set(
+                        o,
+                        (e.target as HTMLInputElement).checked
+                          ? { label: o.name ?? o.id }
+                          : null,
+                      )}
+                  />
+                </td>`,
+            },
+            {
+              id: "label",
+              label: t`Label`,
+              cell: (o) => {
+                const cur = E.inputOf(d, o.id);
+                return html`<input
+                  class="w-txt"
+                  aria-label=${t`Label of the input of ${o.name ?? o.id}`}
+                  ?disabled=${!cur}
+                  .value=${fieldValue(cur?.label ?? "")}
+                  @change=${(e: Event) =>
+                    set(o, { label: (e.target as HTMLInputElement).value })}
+                />`;
+              },
+            },
+            {
+              id: "min",
+              label: t`Minimum`,
+              cell: (o) => numberField(o, "min", t`Minimum`),
+            },
+            {
+              id: "max",
+              label: t`Maximum`,
+              cell: (o) => numberField(o, "max", t`Maximum`),
+            },
+            {
+              id: "step",
+              label: t`Step`,
+              cell: (o) => numberField(o, "step", t`Step`),
+            },
+          ],
+          candidates,
+          (o, cells) =>
+            html`<tr data-obj=${o.id}>
+              ${cells}
+            </tr>`,
+        )}`,
+  };
+}
+
+/** Commands to open a page from a context menu or a row. */
+const openPage = (ed: GuidedEditor, d: Dev, key: string) => () => {
+  ed.pageOf.set(d.id, key);
+  ed.requestUpdate();
+};
+
+/** Focus a field of the page just opened (rename an output or a key). */
+const focusField = (selector: string) =>
+  setTimeout(() =>
+    document.querySelector<HTMLInputElement>(selector)?.select(),
+  );
+
+// ── Layout of the parameters ────────────────────────────────────────────────
+
+/**
+ * A behavior has channels when it drives outputs, or when some of its ports belong to a
+ * channel (the measured circuits of an energy meter).
+ */
+export const hasChannels = (def: BehaviorDefinition<unknown>) =>
+  !!def.output ||
+  Object.values(def.ports).some((p) => p.channel === "required");
+
+/**
+ * Words for the channels of a behavior: the outputs of an actuator, the inputs of a
+ * push-button interface, the channels of other devices (the circuits of a meter).
+ */
+function channelWords(def: BehaviorDefinition<unknown>) {
+  if (def.output)
+    return {
+      count: t`Number of outputs`,
+      one: t`Output`,
+      add: t`Add an output`,
+      remove: t`Delete output`,
+      group: (label: string) => t`Output ${label}`,
+      removed: (label: string) => t`Output ${label} deleted, with its objects.`,
+    };
+  if (def.contactInputs)
+    return {
+      count: t`Number of inputs`,
+      one: t`Input`,
+      add: t`Add an input`,
+      remove: t`Delete input`,
+      group: (label: string) => label,
+      removed: (label: string) => t`Input ${label} deleted, with its objects.`,
+    };
+  return {
+    count: t`Number of channels`,
+    one: t`Channel`,
+    add: t`Add a channel`,
+    remove: t`Delete channel`,
+    group: (label: string) => t`Channel ${label}`,
+    removed: (label: string) => t`Channel ${label} deleted, with its objects.`,
+  };
+}
+
+/**
+ * Pages added by the designer have identifiers that a declared page cannot take
+ * (declared identifiers are letters, digits, “-”, and “_”).
+ */
+const AUTO = "#auto";
+const LOADS = "#loads";
+
+/** Ports whose objects the generic pages enable (keys and displays have their pages). */
+function enabledPorts(
+  def: BehaviorDefinition<unknown>,
+  scope: "device" | "channel",
+) {
+  const generic = !def.output && !def.ports.input && !def.ports.display;
+  return Object.entries(def.ports)
+    .filter(([name, p]) =>
+      scope === "channel"
+        ? p.channel === "required" || p.channel === "optional"
+        : p.channel !== "required" &&
+          (generic ||
+            p.channel === "optional" ||
+            (!def.acceptsInputs && name !== "display" && !!def.output)),
+    )
+    .map(([name]) => name);
+}
+
+const itemsOf = (items: readonly ParameterItem[]): ParameterItem[] =>
+  items.flatMap((i) => ("when" in i ? [i, ...itemsOf(i.items)] : [i]));
+
+/**
+ * Pages of a behavior: its declared layout, or one page derived from its schemas; then
+ * an automatic page for what no page places, so that every setting stays reachable.
+ */
+export function layoutOf(def: BehaviorDefinition<unknown>): {
+  device: ParameterPage[];
+  channel: ParameterPage[];
+} {
+  const props = (s?: { properties: Record<string, { expert?: boolean }> }) =>
+    Object.entries(s?.properties ?? {});
+  const derive = (
+    params: [string, { expert?: boolean }][],
+    state: string[],
+    ports: string[],
+    scenes: boolean,
+  ): ParameterItem[] => [
+    ...params.filter(([, p]) => !p.expert).map(([k]) => ({ parameter: k })),
+    ...state.map((k) => ({ initialState: k })),
+    ...(params.some(([, p]) => p.expert)
+      ? [
+          { heading: "Advanced settings" },
+          ...params
+            .filter(([, p]) => p.expert)
+            .map(([k]) => ({ parameter: k })),
+        ]
+      : []),
+    ...(ports.length
+      ? [
+          { heading: "Group objects" },
+          ...ports.map((k) => ({ groupObject: k })),
+        ]
+      : []),
+    ...(scenes
+      ? [{ when: { groupObject: "scene" }, items: [{ scenes: true as const }] }]
+      : []),
+  ];
+  const declared = def.parameterLayout;
+  const device: ParameterPage[] = [...(declared?.device ?? [])];
+  const channel: ParameterPage[] = hasChannels(def)
+    ? [...(declared?.channel ?? [])]
+    : [];
+  // What the declared pages leave out.
+  const placed = (pages: ParameterPage[]) => {
+    const all = pages.flatMap((p) => itemsOf(p.items));
+    return {
+      params: new Set(
+        all.flatMap((i) => ("parameter" in i ? [i.parameter] : [])),
+      ),
+      state: new Set(
+        all.flatMap((i) => ("initialState" in i ? [i.initialState] : [])),
+      ),
+      ports: new Set(
+        all.flatMap((i) => ("groupObject" in i ? [i.groupObject] : [])),
+      ),
+      scenes: all.some((i) => "scenes" in i),
+    };
+  };
+  const pd = placed(device);
+  const devItems = derive(
+    props(def.parameters).filter(([k]) => !pd.params.has(k)),
+    [],
+    enabledPorts(def, "device").filter((k) => !pd.ports.has(k)),
+    false,
+  );
+  if (devItems.length) {
+    const onlyObjects = devItems.every(
+      (i) => "groupObject" in i || "heading" in i,
+    );
+    device.push({
+      id: AUTO,
+      title:
+        onlyObjects && def.output
+          ? "Objects shared by all outputs"
+          : device.length
+            ? "Other settings"
+            : "Parameters",
+      // A page of objects only needs no heading.
+      items: onlyObjects ? devItems.filter((i) => !("heading" in i)) : devItems,
+    });
+  }
+  if (hasChannels(def)) {
+    const pc = placed(channel);
+    const chItems = derive(
+      props(def.channelParameters).filter(([k]) => !pc.params.has(k)),
+      Object.keys(def.channelInitialState?.properties ?? {}).filter(
+        (k) => !pc.state.has(k),
+      ),
+      enabledPorts(def, "channel").filter((k) => !pc.ports.has(k)),
+      !pc.scenes && !!def.ports.scene,
+    );
+    if (chItems.length)
+      channel.push({
+        id: AUTO,
+        title: channel.length ? "Other settings" : "Settings",
+        items: chItems,
+      });
+  }
+  return { device, channel };
+}
+
+/**
+ * Rows of a page: parameters (of the device, or of channel `c`), initial states, boxes
+ * that enable group objects, headings, notes, scenes, and conditional items.
+ */
+function layoutItems(
+  ed: GuidedEditor,
+  _doc: Doc,
+  d: Dev,
+  def: BehaviorDefinition<unknown>,
+  c: Chan | undefined,
+  items: readonly ParameterItem[],
+): TemplateResult {
+  const schema = c ? def.channelParameters : def.parameters;
+  const values = (c ? c.parameters : d.parameters) ?? {};
+  const valueOf = (k: string) =>
+    values[k] !== undefined ? values[k] : schema?.properties[k]?.default;
+  const enabled = (port: string) =>
+    d.objects.some(
+      (o) =>
+        o.port === port && (c ? o.channel === c.id : o.channel === undefined),
+    );
+  const shown = (w: ParameterCondition) =>
+    "groupObject" in w
+      ? enabled(w.groupObject)
+      : // Guarded: a faulty extension must not break the page.
+        (!Array.isArray(w.is) ||
+          w.is.some((v) => v === valueOf(w.parameter))) &&
+        (!Array.isArray(w.not) ||
+          !w.not.some((v) => v === valueOf(w.parameter)));
+  const row = (i: ParameterItem): TemplateResult | typeof nothing => {
+    if ("parameter" in i) {
+      const p = schema?.properties[i.parameter];
+      if (!p) return nothing;
+      return ed.paramField(
+        i.parameter,
+        p,
+        values[i.parameter],
+        (v) =>
+          ed.run(t`Setting`, (x) =>
+            E.setParam(x, d.id, c?.id ?? null, i.parameter, v),
+          ),
+        !!schema?.required?.includes(i.parameter),
+      );
+    }
+    if ("initialState" in i) {
+      const p = def.channelInitialState?.properties[i.initialState];
+      if (!p || !c) return nothing;
+      return ed.paramField(
+        i.initialState,
+        p,
+        c.initialState?.[i.initialState],
+        (v) =>
+          ed.run(t`Setting`, (x) =>
+            E.setParam(x, d.id, c.id, i.initialState, v, "state"),
+          ),
+        false,
+      );
+    }
+    if ("groupObject" in i) {
+      const p = def.ports[i.groupObject];
+      return p
+        ? html`${portRows(ed, d, i.groupObject, p, c?.id, c ? (c.label ?? c.id) : (d.name ?? d.id))}`
+        : nothing;
+    }
+    if ("heading" in i) return html`<h4 class="w-psep">${tt(i.heading)}</h4>`;
+    if ("note" in i) return html`<p class="w-info">${tt(i.note)}</p>`;
+    if ("scenes" in i)
+      return c
+        ? ed.text(
+            t`Scenes (number=value, e.g. 1=1, 2=0)`,
+            E.switchChannels(d).find((x) => x.id === c.id)?.scenes ?? "",
+            (v) =>
+              ed.run(t`Scenes`, (x) => E.setChannelScenes(x, d.id, c.id, v)),
+          )
+        : nothing;
+    return shown(i.when) ? html`${i.items.map(row)}` : nothing;
+  };
+  return html`<div class="g-row">${items.map(row)}</div>`;
+}
+
+// ── Group objects enabled by parameters ─────────────────────────────────────
+
+/**
+ * “Enable group object” rows, one per port,: ticking the box creates the
+ * object, without a group address; unticking it deletes the object. Group addresses are
+ * linked in the Group objects tab, never on a parameter page.
+ */
+export function portRows(
+  ed: GuidedEditor,
+  d: Dev,
+  port: string,
+  p: BehaviorPort,
+  ch: string | undefined,
+  owner: string,
+) {
+  const objs = d.objects.filter(
+    (o) =>
+      o.port === port && (ch === undefined ? !o.channel : o.channel === ch),
+  );
+  const title = tt(p.title) || port;
+  const dpt = p.dpts === "any" ? "1.001" : p.dpts[0]!;
+  const opts = {
+    dpt,
+    W: p.direction !== "out",
+    T: p.direction === "out" || p.direction === "both",
+    name: ch === undefined ? title : `${title} ${owner}`,
+  };
+  const row = (o: E.Obj | undefined) => {
+    const label =
+      objs.length > 1
+        ? t`Enable group object “${title}” (${o!.name ?? o!.id})`
+        : t`Enable group object “${title}”`;
+    return html`<label class="g-check g-enable" data-obj=${o?.id ?? ""}>
+      <input
+        type="checkbox"
+        aria-label=${label}
+        .checked=${!!o}
+        @change=${(e: Event) => {
+          const on = (e.target as HTMLInputElement).checked;
+          ed.run(on ? t`Activate ${title}` : t`Deactivate ${title}`, (x) =>
+            E.setPortGas(x, d.id, port, ch, [], {
+              ...opts,
+              objectId: o?.id,
+              keepEmpty: on,
+            }),
+          );
+        }}
+      />
+      <span>${label}</span>
+    </label>`;
+  };
+  return objs.length ? objs.map(row) : [row(undefined)];
+}
+
+// ── Keys ─────────────────────────────────────────────────────────────────────
+
+const gestureLabels = (): Record<Gesture, string> => ({
+  press: t`Press`,
+  short: t`Short press`,
+  long: t`Long press`,
+});
+
+/** Configuration of a push-button: one row per key, as the configuration page of a product. */
+function keysConfigPage(ed: GuidedEditor, d: Dev): Page {
+  const keys = E.keysOf(d);
+  return {
+    key: "config",
+    label: t`Configuration`,
+    menu: () => [
+      {
+        label: t`Add a key`,
+        run: () => ed.run(t`Key`, (x) => void E.addKey(x, d.id)),
+      },
+    ],
+    body: () =>
+      html`<div class="g-row">
+          <label class="g-field narrow"
+            ><span>${t`Number of keys`}</span>
+            <input
+              type="number"
+              min="1"
+              max="32"
+              .value=${fieldValue(String(keys.length))}
+              @change=${(e: Event) =>
+                ed.run(t`Number of keys`, (x) =>
+                  E.setKeyCount(
+                    x,
+                    d.id,
+                    Number((e.target as HTMLInputElement).value),
+                  ),
+                )}
+          /></label>
+        </div>
+        ${dataTable<E.KeyView>(
+          ed,
+          "keys",
+          [
+            {
+              id: "key",
+              label: t`Key`,
+              sort: (k) => keys.indexOf(k),
+              cell: (k) =>
+                html`<button
+                  class="w-link"
+                  @click=${openPage(ed, d, `key:${k.id}`)}
+                >
+                  ${k.label}
+                </button>`,
+            },
+            {
+              id: "gesture",
+              label: t`Gesture`,
+              sort: (k) => k.mode,
+              cell: (k) =>
+                k.mode === "press"
+                  ? t`single press`
+                  : t`short press + long press`,
+            },
+            {
+              id: "led",
+              label: t`LED`,
+              sort: (k) => (k.led ? 0 : 1),
+              cell: (k) => (k.led ? "✓" : ""),
+            },
+          ],
+          keys,
+          (k, cells) =>
+            html`<tr
+              @dblclick=${openPage(ed, d, `key:${k.id}`)}
+              @contextmenu=${(e: MouseEvent) =>
+                openMenu(ed, e, keyMenu(ed, d, k))}
+            >
+              ${cells}
+            </tr>`,
+        )}
+        <div class="g-row g-end">
+          <button
+            class="g-btn"
+            @click=${() => ed.run(t`Key`, (x) => void E.addKey(x, d.id))}
+          >
+            + ${t`Add a key`}
+          </button>
+        </div>`,
+  };
+}
+
+function keyMenu(ed: GuidedEditor, d: Dev, k: E.KeyView): MenuItem[] {
+  return [
+    { label: t`Open`, run: openPage(ed, d, `key:${k.id}`) },
+    {
+      label: t`Rename`,
+      run: () => {
+        openPage(ed, d, `key:${k.id}`)();
+        focusField(".w-ppage .g-field input");
+      },
+    },
+    {
+      label: t`Add a key`,
+      run: () => ed.run(t`Key`, (x) => void E.addKey(x, d.id)),
+    },
+    {
+      label: t`Delete key`,
+      run: () => ed.run(t`Delete key`, (x) => E.removeKey(x, d.id, k.id)),
+    },
+  ];
+}
+
+export function keyPages(ed: GuidedEditor, d: Dev): Page[] {
+  const kinds = E.actionKinds();
+  const gestureLabel = gestureLabels();
   const summary = (k: E.KeyView) =>
     (
       Object.entries(k.gestures) as [
@@ -197,13 +867,14 @@ export function keyPages(ed: GuidedEditor, doc: Doc, d: Dev): Page[] {
         const v =
           kinds[a.kind].values.find(([x]) => x === a.value)?.[1] ??
           String(a.value);
-        return `${k.mode === "press" ? "" : `${gestureLabel[g]} : `}${v} → ${a.ga ?? "—"}`;
+        return `${k.mode === "press" ? "" : `${gestureLabel[g]} : `}${v}`;
       })
       .join(" · ") + (k.led ? ` · ${t`LED`}` : "");
   return E.keysOf(d).map((k): Page => ({
     key: `key:${k.id}`,
     label: k.label,
     sum: summary(k),
+    menu: () => keyMenu(ed, d, k),
     body: () => html`
       <div class="g-row">
         ${ed.text(t`Label`, k.label, (v) => ed.run(t`Label`, (x) => E.setKeyLabel(x, d.id, k.id, v)))}
@@ -264,15 +935,6 @@ export function keyPages(ed: GuidedEditor, doc: Doc, d: Dev): Page[] {
                   ),
                 ),
             )}
-            ${ed.gaPicker(
-              doc,
-              t`Sending address`,
-              a.ga,
-              kind.dpt,
-              false,
-              `${d.name ?? d.id} ${k.label}`,
-              (ga, x) => E.setGestureGa(x, d.id, k.id, g, ga!),
-            )}
           </div>
         </fieldset>`;
       })}
@@ -284,25 +946,10 @@ export function keyPages(ed: GuidedEditor, doc: Doc, d: Dev): Page[] {
             @change=${(e: Event) => ed.run(t`LED`, (x) => E.setKeyLed(x, d.id, k.id, (e.target as HTMLInputElement).checked))}
           />${t`LED`}</label
         >
-        ${ed.gaPicker(
-          doc,
-          t`Status feedback listened to (LED)`,
-          k.feedback,
-          "1.001",
-          true,
-          t`Status ${k.label}`,
-          (ga, x) => E.setKeyFeedback(x, d.id, k.id, ga),
-        )}
       </div>
-      <div class="g-row g-end">
-        ${ed.dangerButton(
-          `key:${d.id}:${k.id}`,
-          t`Delete key`,
-          t`Delete key ${k.label}?`,
-          () => ed.run(t`Deletion`, (x) => E.removeKey(x, d.id, k.id)),
-          true,
-        )}
-      </div>
+      <p class="w-info">
+        ${t`The LED and a toggle key follow the value of the key's group object. So that they follow the actual state of the load, link the status address to the same object as well: it is then listened to, after the sending address.`}
+      </p>
     `,
   }));
 }
@@ -348,9 +995,8 @@ export function addOutput(
 ) {
   const equipments = equipmentChoices(ed, def);
   ed.run(t`Output`, (x) => {
-    const e =
-      d.channels?.[d.channels.length - 1]?.equipment?.type ??
-      equipments[0]?.[0];
+    const last = d.channels?.[d.channels.length - 1];
+    const e = (last && E.loadsOf(last)[0]?.type) ?? equipments[0]?.[0];
     E.addChannel(
       x,
       d.id,
@@ -359,208 +1005,465 @@ export function addOutput(
   });
 }
 
+// ── Outputs ──────────────────────────────────────────────────────────────────
+
+/** A new load of a given type, with its required parameters and a heated room. */
+function newLoad(ed: GuidedEditor, doc: Doc, type: string, c?: Chan): E.Load {
+  return {
+    type,
+    ...(ed.registry.equipment.get(type)?.heatOutput
+      ? { room: E.roomsOf(doc)[0]?.id ?? E.addRoom(doc) }
+      : {}),
+    ...defaultEquipmentParams(ed.registry, type, c),
+  };
+}
+
+/** Names of the loads of an output, for summaries. */
+function loadsText(
+  ed: GuidedEditor,
+  def: BehaviorDefinition<unknown>,
+  c: Chan,
+) {
+  const titles = new Map(equipmentChoices(ed, def));
+  const loads = E.loadsOf(c);
+  return loads.length
+    ? loads.map((l) => l.name ?? titles.get(l.type) ?? l.type).join(", ")
+    : t`no load`;
+}
+
+function outputMenu(
+  ed: GuidedEditor,
+  doc: Doc,
+  d: Dev,
+  def: BehaviorDefinition<unknown>,
+  c: Chan,
+  /** First page of an output (its settings). */
+  first: string,
+): MenuItem[] {
+  return [
+    { label: t`Settings`, run: openPage(ed, d, `ch:${c.id}:${first}`) },
+    ...(def.output
+      ? [
+          {
+            label: t`Connected loads`,
+            run: openPage(ed, d, `ch:${c.id}:${LOADS}`),
+          },
+        ]
+      : []),
+    {
+      label: t`Rename`,
+      run: () => {
+        openPage(ed, d, `ch:${c.id}:${first}`)();
+        focusField(".w-ppage .g-field input");
+      },
+    },
+    {
+      label: t`Copy settings to…`,
+      run: () => {
+        openPage(ed, d, `ch:${c.id}:${first}`)();
+        ed.copy = {
+          dev: d.id,
+          ch: c.id,
+          targets: new Set(),
+          what: { parameters: true, load: false, scenes: false },
+        };
+        ed.requestUpdate();
+      },
+      disabled: E.copyTargets(doc, d.id, c.id).length
+        ? undefined
+        : t`No other output of the same type.`,
+    },
+    {
+      label: channelWords(def).add,
+      run: () => addOutput(ed, d, def),
+    },
+    {
+      label: channelWords(def).remove,
+      run: () => {
+        const words = channelWords(def);
+        if (ed.run(words.remove, (x) => E.removeChannel(x, d.id, c.id)))
+          ed.announce(words.removed(c.label ?? c.id));
+      },
+    },
+  ];
+}
+
+/**
+ * Configuration of an actuator, as the configuration page of a product: the number of outputs,
+ * then one row per output with its connected loads and the functions it enables.
+ */
+function outputsConfigPage(
+  ed: GuidedEditor,
+  doc: Doc,
+  d: Dev,
+  def: BehaviorDefinition<unknown>,
+  first: string,
+): Page {
+  const titles = Object.fromEntries(
+    Object.entries(def.ports).map(([k, p]) => [k, tt(p.title) || k]),
+  );
+  const count = d.channels?.length ?? 0;
+  // An actuator has outputs with loads; an energy meter has measured channels (circuits).
+  const outputs = !!def.output;
+  const words = channelWords(def);
+  const countLabel = words.count;
+  const functions = (c: Chan) =>
+    [
+      ...new Set(
+        E.objectsInOrder(d)
+          .filter((o) => o.channel === c.id)
+          .map((o) => titles[o.port] ?? o.port),
+      ),
+    ].join(", ") || "—";
+  return {
+    key: "config",
+    label: t`Configuration`,
+    menu: () => [
+      {
+        label: words.add,
+        run: () => addOutput(ed, d, def),
+      },
+    ],
+    body: () =>
+      html`<div class="g-row">
+          <label class="g-field narrow"
+            ><span>${countLabel}</span>
+            <input
+              type="number"
+              min="1"
+              max="64"
+              .value=${fieldValue(String(count))}
+              @change=${(e: Event) => {
+                const n = Number((e.target as HTMLInputElement).value);
+                const last = d.channels?.at(-1);
+                const type =
+                  (last && E.loadsOf(last)[0]?.type) ??
+                  equipmentChoices(ed, def)[0]?.[0];
+                ed.run(countLabel, (x) =>
+                  E.setOutputCount(
+                    x,
+                    d.id,
+                    n,
+                    type ? newLoad(ed, x, type) : null,
+                  ),
+                );
+              }}
+          /></label>
+        </div>
+        ${
+          outputs
+            ? html`<p class="w-info">
+                ${t`An output is a relay or a channel of the actuator: it has its own settings and group objects, and is controlled on its own. The loads connected to one output are wired in parallel: they always switch together.`}
+              </p>`
+            : def.contactInputs
+              ? html`<p class="w-info">
+                  ${t`An input is a contact of the interface, wired to a conventional push-button; on the diagram it is a key. Its function, chosen on its Function page, decides its group objects.`}
+                </p>`
+              : nothing
+        }
+        ${dataTable<Chan>(
+          ed,
+          "outputs",
+          [
+            {
+              id: "output",
+              label: words.one,
+              sort: (c) => (d.channels ?? []).indexOf(c),
+              cell: (c) =>
+                html`<button
+                  class="w-link"
+                  @click=${openPage(ed, d, `ch:${c.id}:${first}`)}
+                >
+                  ${c.label ?? c.id}
+                </button>`,
+            },
+            ...(outputs
+              ? [
+                  {
+                    id: "loads",
+                    label: t`Connected loads`,
+                    sort: (c: Chan) => loadsText(ed, def, c),
+                    cell: (c: Chan) =>
+                      html`<button
+                        class="w-link"
+                        @click=${openPage(ed, d, `ch:${c.id}:${LOADS}`)}
+                      >
+                        ${loadsText(ed, def, c)}
+                      </button>`,
+                  },
+                ]
+              : []),
+            {
+              id: "functions",
+              label: t`Enabled functions`,
+              sort: (c) => functions(c),
+              cell: (c) => functions(c),
+            },
+          ],
+          d.channels ?? [],
+          (c, cells) =>
+            html`<tr
+              data-ch=${c.id}
+              @dblclick=${openPage(ed, d, `ch:${c.id}:${first}`)}
+              @contextmenu=${(e: MouseEvent) =>
+                openMenu(ed, e, outputMenu(ed, doc, d, def, c, first))}
+            >
+              ${cells}
+            </tr>`,
+        )}`,
+  };
+}
+
+/** A group per output: the pages of the channel layout, then its connected loads. */
 export function outputPages(
   ed: GuidedEditor,
   doc: Doc,
   d: Dev,
   def: BehaviorDefinition<unknown>,
+  layout: ParameterPage[],
 ): Page[] {
-  const equipments = equipmentChoices(ed, def);
-  const chPorts = Object.entries(def.ports).filter(
-    ([, p]) => p.channel === "required",
-  );
-  const eqTitle = (type: string | undefined) =>
-    type
-      ? (equipments.find(([id]) => id === type)?.[1] ?? type)
-      : t`free output`;
   return (d.channels ?? []).map((c): Page => {
-    const eq = c.equipment?.type ?? "";
-    const edef = eq ? ed.registry.equipment.get(eq) : undefined;
-    const portGas = (port: string) =>
-      d.objects
-        .filter((o) => o.port === port && o.channel === c.id)
-        .flatMap(E.gasOf);
-    const sum = chPorts
-      .map(([port, p]) => [tt(p.title) || port, portGas(port)] as const)
-      .filter(([, g]) => g.length)
-      .map(([title, g]) => `${title} ${g.join(", ")}`)
-      .join(" · ");
+    const menu = () => outputMenu(ed, doc, d, def, c, layout[0]?.id ?? LOADS);
     return {
       key: `ch:${c.id}`,
-      label: c.label ?? c.id,
-      sum: `${eqTitle(eq)} · ${sum || t`no address`}`,
-      body: () => {
-        const more = [
-          ...(def.ports.scene
-            ? [
-                ed.text(
-                  t`Scenes (number=value, e.g. 1=1, 2=0)`,
-                  E.switchChannels(d).find((x) => x.id === c.id)?.scenes ?? "",
-                  (v) =>
-                    ed.run(t`Scenes`, (x) =>
-                      E.setChannelScenes(x, d.id, c.id, v),
-                    ),
-                ),
-              ]
-            : []),
-          ...ed.paramFields(
-            def.channelParameters,
-            c.parameters ?? {},
-            (k, v) =>
-              ed.run(t`Setting`, (x) => E.setParam(x, d.id, c.id, k, v)),
-            true,
-          ),
-          ...ed.paramFields(
-            edef?.parameters,
-            c.equipment?.parameters ?? {},
-            (k, v) =>
-              ed.run(t`Setting`, (x) =>
-                E.setParam(x, d.id, c.id, k, v, "equipment"),
-              ),
-            true,
-          ),
-        ];
-        const basic = [
-          ...ed.paramFields(
-            def.channelParameters,
-            c.parameters ?? {},
-            (k, v) =>
-              ed.run(t`Setting`, (x) => E.setParam(x, d.id, c.id, k, v)),
-            false,
-          ),
-          ...ed.paramFields(
-            edef?.parameters,
-            c.equipment?.parameters ?? {},
-            (k, v) =>
-              ed.run(t`Setting`, (x) =>
-                E.setParam(x, d.id, c.id, k, v, "equipment"),
-              ),
-            false,
-          ),
-        ];
-        return html`
-          <div class="g-row">
-            ${ed.text(t`Label`, c.label ?? c.id, (v) => ed.run(t`Label`, (x) => E.setChannelLabel(x, d.id, c.id, v)))}
-            ${ed.select(
-              t`Connected load`,
-              [["", t`none (unused output)`], ...equipments],
-              eq,
-              (v) =>
-                ed.run(t`Connected load`, (x) =>
-                  E.setChannelLoad(
-                    x,
-                    d.id,
-                    c.id,
-                    v
-                      ? {
-                          type: v,
-                          ...(ed.registry.equipment.get(v)?.heatOutput
-                            ? { room: E.roomsOf(x)[0]?.id ?? E.addRoom(x) }
-                            : {}),
-                          ...defaultEquipmentParams(ed.registry, v, c),
-                        }
-                      : null,
-                  ),
-                ),
-            )}
-            ${
-              edef?.heatOutput
-                ? ed.select(
-                    t`Heated room`,
-                    E.roomsOf(doc).map(
-                      (r) => [r.id, r.name ?? r.id] as [string, string],
-                    ),
-                    c.equipment?.room ?? "",
-                    (v) =>
-                      ed.run(t`Heated room`, (x) =>
-                        E.setEquipmentRoom(x, d.id, c.id, v),
-                      ),
-                  )
+      label: channelWords(def).group(c.label ?? c.id),
+      sum: def.output ? loadsText(ed, def, c) : undefined,
+      menu,
+      children: [
+        ...layout.map((page, i) => ({
+          key: `ch:${c.id}:${page.id}`,
+          label: tt(page.title),
+          menu,
+          body: () =>
+            html`${
+              i === 0
+                ? html`<div class="g-row">
+                    ${ed.text(t`Label`, c.label ?? c.id, (v) => ed.run(t`Label`, (x) => E.setChannelLabel(x, d.id, c.id, v)))}
+                  </div>`
                 : nothing
             }
-          </div>
-          <div class="g-ports">
-            ${chPorts.map(([port, p]) =>
-              portRows(ed, doc, d, port, p, c.id, c.label ?? c.id),
-            )}
-          </div>
-          ${basic.length ? html`<div class="g-row">${basic}</div>` : nothing}
-          ${
-            more.length
-              ? html`<details class="g-more">
-                  <summary>${t`More options`}</summary>
-                  <div class="g-row">${more}</div>
-                </details>`
-              : nothing
-          }
-          ${copyPanel(ed, doc, d, c)}
-          <div class="g-row g-end">
+            ${layoutItems(ed, doc, d, def, c, page.items)}
+            ${i === 0 ? copyPanel(ed, doc, d, c) : nothing}
             ${
-              ed.copy?.dev === d.id && ed.copy.ch === c.id
-                ? nothing
-                : html`<button
-                    class="g-btn small"
-                    ?disabled=${!E.copyTargets(doc, d.id, c.id).length}
-                    @click=${() => {
-                      ed.copy = {
-                        dev: d.id,
-                        ch: c.id,
-                        targets: new Set(),
-                        what: {
-                          parameters: true,
-                          load: false,
-                          scenes: false,
-                        },
-                      };
-                      ed.requestUpdate();
-                    }}
-                  >
-                    ${t`Copy settings to…`}
-                  </button>`
-            }
-            ${ed.dangerButton(
-              `ch:${d.id}:${c.id}`,
-              t`Delete output`,
-              t`Delete output ${c.label ?? c.id} and its objects?`,
-              () => ed.run(t`Deletion`, (x) => E.removeChannel(x, d.id, c.id)),
-              true,
-            )}
-          </div>
-        `;
-      },
+              i === 0
+                ? html`<div class="g-row g-end">
+                    ${
+                      ed.copy?.dev === d.id && ed.copy.ch === c.id
+                        ? nothing
+                        : html`<button
+                            class="g-btn small"
+                            ?disabled=${!E.copyTargets(doc, d.id, c.id).length}
+                            @click=${() => {
+                              ed.copy = {
+                                dev: d.id,
+                                ch: c.id,
+                                targets: new Set(),
+                                what: {
+                                  parameters: true,
+                                  load: false,
+                                  scenes: false,
+                                },
+                              };
+                              ed.requestUpdate();
+                            }}
+                          >
+                            ${t`Copy settings to…`}
+                          </button>`
+                    }
+                  </div>`
+                : nothing
+            }`,
+        })),
+        ...(def.output
+          ? [
+              {
+                key: `ch:${c.id}:${LOADS}`,
+                label: t`Connected loads`,
+                sum: loadsText(ed, def, c),
+                menu,
+                body: () => connectedLoads(ed, doc, d, def, c),
+              },
+            ]
+          : []),
+      ],
     };
   });
 }
 
-/** Ports without channel or "all channels" (e.g. common scene at all exits). */
-export function portsPage(
+/**
+ * Loads wired to an output: this level belongs to the simulation, not to the device configuration. The loads of an output are
+ * wired in parallel: its relay or dimmer drives them all.
+ */
+function connectedLoads(
   ed: GuidedEditor,
   doc: Doc,
   d: Dev,
   def: BehaviorDefinition<unknown>,
-): Page | null {
-  // Thermostat, contact, and sensor: no outputs, push-button keys, or display.
-  const generic = !def.output && !def.ports.input && !def.ports.display;
-  const ports = Object.entries(def.ports).filter(
-    ([name, p]) =>
-      (generic && p.channel !== "required") ||
-      p.channel === "optional" ||
-      (p.channel !== "required" &&
-        !def.acceptsInputs &&
-        !["display"].includes(name) &&
-        def.output),
-  );
-  if (!ports.length) return null;
-  return {
-    key: "ports",
-    label: generic ? t`Objects by function` : t`Objects shared by all outputs`,
-    body: () =>
-      html`<div class="g-ports">
-        ${ports.map(([port, p]) =>
-          portRows(ed, doc, d, port, p, undefined, d.name ?? d.id),
-        )}
-      </div>`,
-  };
+  c: Chan,
+) {
+  const choices = equipmentChoices(ed, def);
+  const loads = E.loadsOf(c);
+  const single = def.output === "motor";
+  const watts = loads
+    .map((l) => {
+      const p = ed.registry.equipment.get(l.type)?.parameters?.properties
+        .powerW;
+      const w = l.parameters?.powerW ?? p?.default;
+      return typeof w === "number" ? w : null;
+    })
+    .filter((w): w is number => w !== null);
+  const add = (type: string) =>
+    ed.run(
+      t`Connect a load`,
+      (x) => void E.addLoad(x, d.id, c.id, newLoad(ed, x, type, c)),
+    );
+  return html`
+    <p class="w-info">
+      ${
+        single
+          ? t`Wiring of the installation, simulated by BusDiagram. A shutter output drives one motor.`
+          : t`Wiring of the installation, simulated by BusDiagram. The loads below are wired in parallel on output ${c.label ?? c.id}: it switches them all together.`
+      }
+    </p>
+    ${loads.map((l, i) => loadSection(ed, doc, d, c, l, i, loads.length, choices))}
+    ${loads.length ? nothing : html`<p class="w-empty">${t`No load: the output is free.`}</p>`}
+    <div class="g-row g-end">
+      ${
+        watts.length > 1
+          ? html`<span class="w-total"
+              >${t`Rated power of the output: ${watts.reduce((a, b) => a + b, 0)} W`}</span
+            >`
+          : nothing
+      }
+      ${
+        single && loads.length
+          ? nothing
+          : html`<select
+              class="g-add w-addload"
+              data-v=""
+              aria-label=${t`Connect a load to ${c.label ?? c.id}`}
+              @change=${(e: Event) => {
+                const sel = e.target as HTMLSelectElement;
+                const v = sel.value;
+                sel.value = "";
+                if (v) add(v);
+              }}
+            >
+              <option value="">+ ${t`Connect a load…`}</option>
+              ${choices.map(([id, label]) => html`<option value=${id}>${label}</option>`)}
+            </select>`
+      }
+    </div>
+  `;
+}
+
+function loadSection(
+  ed: GuidedEditor,
+  doc: Doc,
+  d: Dev,
+  c: Chan,
+  l: E.Load,
+  i: number,
+  count: number,
+  choices: [string, string][],
+) {
+  const edef = ed.registry.equipment.get(l.type);
+  const on =
+    (scope: "equipment" | "equipmentState") => (k: string, v: unknown) =>
+      ed.run(t`Setting`, (x) => E.setParam(x, d.id, c.id, k, v, scope, i));
+  const menu = (): MenuItem[] => [
+    {
+      label: t`Move up`,
+      run: () =>
+        ed.run(t`Move a load`, (x) => E.moveLoad(x, d.id, c.id, i, -1)),
+      disabled: i > 0 ? undefined : t`This is the first load.`,
+    },
+    {
+      label: t`Move down`,
+      run: () => ed.run(t`Move a load`, (x) => E.moveLoad(x, d.id, c.id, i, 1)),
+      disabled: i < count - 1 ? undefined : t`This is the last load.`,
+    },
+    {
+      label: t`Disconnect`,
+      run: () =>
+        ed.run(t`Disconnect a load`, (x) => E.removeLoad(x, d.id, c.id, i)),
+    },
+  ];
+  const more = [
+    ...ed.paramFields(
+      edef?.parameters,
+      l.parameters ?? {},
+      on("equipment"),
+      true,
+    ),
+    ...ed.paramFields(
+      edef?.initialState,
+      l.initialState ?? {},
+      on("equipmentState"),
+      true,
+    ),
+  ];
+  return html`<fieldset
+    class="w-load"
+    data-load=${i}
+    @contextmenu=${(e: MouseEvent) => {
+      if ((e.target as HTMLElement).closest("input, select, textarea")) return;
+      openMenu(ed, e, menu());
+    }}
+  >
+    <legend>
+      ${t`Load ${i + 1}`}
+      <button
+        class="w-small"
+        title=${t`Disconnect`}
+        aria-label=${t`Disconnect load ${i + 1}`}
+        @click=${() =>
+          ed.run(t`Disconnect a load`, (x) => E.removeLoad(x, d.id, c.id, i))}
+      >
+        ×
+      </button>
+    </legend>
+    <div class="g-row">
+      ${ed.select(t`Type`, choices, l.type, (v) =>
+        ed.run(t`Type of load`, (x) =>
+          E.setLoadType(x, d.id, c.id, i, newLoad(ed, x, v, c)),
+        ),
+      )}
+      ${ed.text(t`Name`, l.name ?? "", (v) =>
+        ed.run(t`Name`, (x) => E.setLoadName(x, d.id, c.id, i, v)),
+      )}
+      ${
+        edef?.heatOutput
+          ? ed.select(
+              t`Heated room`,
+              E.roomsOf(doc).map(
+                (r) => [r.id, r.name ?? r.id] as [string, string],
+              ),
+              l.room ?? "",
+              (v) =>
+                ed.run(t`Heated room`, (x) =>
+                  E.setEquipmentRoom(x, d.id, c.id, v, i),
+                ),
+            )
+          : nothing
+      }
+      ${ed.paramFields(edef?.parameters, l.parameters ?? {}, on("equipment"), false)}
+      ${ed.paramFields(
+        edef?.initialState,
+        l.initialState ?? {},
+        on("equipmentState"),
+        false,
+      )}
+    </div>
+    ${
+      more.length
+        ? html`<details class="g-more">
+            <summary>${t`More options`}</summary>
+            <div class="g-row">${more}</div>
+          </details>`
+        : nothing
+    }
+  </fieldset>`;
 }
 
 /**
@@ -677,171 +1580,6 @@ export function copyPanel(ed: GuidedEditor, doc: Doc, d: Dev, c: Chan) {
       </button>
     </div>
   </fieldset>`;
-}
-
-/**
- * One line per port: a port that receives can listen to multiple addresses, a port that emits
- * has only one sending address.
- */
-/**
- * Association rows for a port, with or without a channel: one per object. Multiple
- * objects on the same port remain distinct; each keeps its addresses and flags.
- */
-export function portRows(
-  ed: GuidedEditor,
-  doc: Doc,
-  d: Dev,
-  port: string,
-  p: BehaviorPort,
-  ch: string | undefined,
-  owner: string,
-) {
-  const objs = d.objects.filter(
-    (o) =>
-      o.port === port && (ch === undefined ? !o.channel : o.channel === ch),
-  );
-  const title = tt(p.title) || port;
-  const fallback = p.dpts === "any" ? "1.001" : p.dpts[0]!;
-  const row = (o: E.Obj | undefined) => {
-    const dpt = o?.dpt ?? fallback;
-    const opts = {
-      dpt,
-      W: p.direction !== "out",
-      T: p.direction === "out",
-      name: ch === undefined ? title : `${title} ${owner}`,
-    };
-    return portRow(
-      ed,
-      doc,
-      objs.length > 1 ? `${title} · ${o!.name ?? o!.id}` : title,
-      p.direction,
-      o ? E.gasOf(o) : [],
-      dpt,
-      `${title} ${owner}`,
-      // An active object stays when its last address is removed, as in ETS.
-      (x, list) =>
-        E.setPortGas(x, d.id, port, ch, list, {
-          ...opts,
-          objectId: o?.id,
-          keepEmpty: !!o,
-        }),
-      o?.id,
-      (x, on) =>
-        E.setPortGas(x, d.id, port, ch, [], {
-          ...opts,
-          objectId: o?.id,
-          keepEmpty: on,
-        }),
-    );
-  };
-  return objs.length ? objs.map(row) : [row(undefined)];
-}
-
-export function portRow(
-  ed: GuidedEditor,
-  doc: Doc,
-  title: string,
-  direction: "in" | "out" | undefined,
-  gas: string[],
-  dpt: string,
-  newName: string,
-  set: (doc: Doc, list: string[]) => void,
-  objectId?: string,
-  activate?: (doc: Doc, on: boolean) => void,
-) {
-  const out = direction === "out";
-  const compatible = ed.compatible(doc, dpt);
-  return html`<div
-    class="g-port ${activate && !objectId ? "off" : ""}"
-    data-obj=${objectId ?? ""}
-  >
-    ${
-      activate
-        ? html`<input
-            type="checkbox"
-            class="g-active"
-            title=${t`Active: the group object exists and can be linked`}
-            aria-label=${t`${title}: active`}
-            .checked=${!!objectId}
-            @change=${(e: Event) => {
-              const on = (e.target as HTMLInputElement).checked;
-              ed.run(on ? t`Activate ${title}` : t`Deactivate ${title}`, (x) =>
-                activate(x, on),
-              );
-            }}
-          />`
-        : nothing
-    }
-    <span class="g-plabel"
-      >${title}<small>${out ? t`sends` : t`listens`}</small></span
-    >
-    ${
-      out
-        ? html`<div class="g-selgo">
-            <select
-              aria-label=${title}
-              data-v=${gas[0] ?? ""}
-              @change=${(e: Event) => {
-                const v = (e.target as HTMLSelectElement).value;
-                ed.run(title, (x) =>
-                  set(
-                    x,
-                    v === "__new" ? [E.newGa(x, dpt, newName)] : v ? [v] : [],
-                  ),
-                );
-              }}
-            >
-              <option value="">${t`— none —`}</option>
-              ${gas[0] && !compatible.some((g) => g.address === gas[0]) ? html`<option value=${gas[0]}>${gas[0]}</option>` : nothing}
-              ${compatible.map((g) => html`<option value=${g.address} ?selected=${g.address === gas[0]}>${g.address} · ${g.name ?? ""}</option>`)}
-              <option value="__new">+ ${t`new address`}</option>
-            </select>
-            ${
-              gas[0]
-                ? html`<button
-                    class="g-go"
-                    title=${t`Show address ${gas[0]}`}
-                    aria-label=${t`Show address ${gas[0]}`}
-                    @click=${() => ed.go(`ga:${gas[0]}`)}
-                  >
-                    ›
-                  </button>`
-                : nothing
-            }
-          </div>`
-        : html`<div class="g-chips">
-            ${gas.map(
-              (g) =>
-                html`<span class="g-chip"
-                  ><button
-                    class="g-chip-go"
-                    title=${t`Show address ${g}`}
-                    @click=${() => ed.go(`ga:${g}`)}
-                  >
-                    ${g}
-                  </button>
-                  <small
-                    >${doc.groupAddresses.find((x) => x.address === g)?.name ?? ""}</small
-                  >
-                  <button
-                    title=${t`Remove`}
-                    aria-label=${t`Remove ${g}`}
-                    @click=${() =>
-                      ed.run(title, (x) =>
-                        set(
-                          x,
-                          gas.filter((y) => y !== g),
-                        ),
-                      )}
-                  >
-                    ×
-                  </button></span
-                >`,
-            )}
-            ${ed.gaAdder(doc, dpt, gas, newName, (ga, x) => set(x, [...gas, ga]), title)}
-          </div>`
-    }
-  </div>`;
 }
 
 /** Required parameters of a new equipment, with usable default values. */

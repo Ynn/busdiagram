@@ -87,6 +87,19 @@ describe("room and PI control in steady state", () => {
     expect(sim.deviceState("livingThermostat")).toMatchObject({ mode: 4 });
   });
 
+  it("presence does not end a building protection set centrally (absence, holidays)", () => {
+    const sim = load("room-heating.json");
+    sim.groupWrite("usbInterface", "3/2/0", 4);
+    sim.advance(3000);
+    sim.press("livingThermostat", "presence", "press");
+    sim.advance(3000);
+    expect(sim.deviceState("livingThermostat")).toMatchObject({ mode: 4 });
+    // Back to economy: presence extends comfort again.
+    sim.groupWrite("usbInterface", "3/2/0", 3);
+    sim.advance(3000);
+    expect(sim.deviceState("livingThermostat")).toMatchObject({ mode: 1 });
+  });
+
   it("local command updates the thermostat setpoint and sends 9.001 status", () => {
     const sim = load("room-heating.json");
     sim.input("livingThermostat", "setpoint", "value", 22.5);
@@ -274,5 +287,67 @@ describe("room validation", () => {
     expect(sim.journal.some((e) => e.message?.includes("no temperature"))).toBe(
       true,
     );
+  });
+});
+
+describe("temperature sensor", () => {
+  const scenario = (outsideC: number, parameters: Record<string, unknown>) => ({
+    formatVersion: 2,
+    title: "Sensor",
+    lines: [{ address: "1.1" }],
+    rooms: [
+      {
+        id: "r",
+        name: "Room",
+        temperatureC: 21,
+        outsideTemperatureC: outsideC,
+      },
+    ],
+    groupAddresses: [{ address: "1/1/1", name: "Temperature", dpt: "9.001" }],
+    devices: [
+      {
+        id: "s",
+        address: "1.1.1",
+        kind: "sensor",
+        behavior: "temperatureSensor/v1",
+        room: "r",
+        parameters,
+        objects: [
+          {
+            id: "t",
+            ga: "1/1/1",
+            dpt: "9.001",
+            port: "temperature",
+            flags: { W: false, T: true, R: true },
+          },
+        ],
+      },
+    ],
+  });
+
+  it("sends the room temperature when it changes by the threshold", () => {
+    const sim = createSimulator(scenario(5, { sendDeltaK: 0.5 }));
+    const sent: number[] = [];
+    sim.onTelegram((t) => t.value !== null && sent.push(Number(t.value)));
+    // At start the value is known (a read answers it) but not sent.
+    expect(sim.objectValue("s", "t")).toBe(21);
+    sim.advance(60_000);
+    expect(sent.length).toBeGreaterThan(0);
+    // Successive values differ by at least the threshold.
+    [21, ...sent]
+      .slice(1)
+      .forEach((v, i, all) =>
+        expect(Math.abs(v - ([21, ...all][i] ?? 21))).toBeGreaterThanOrEqual(
+          0.5 - 1e-6,
+        ),
+      );
+  });
+
+  it("sends cyclically even without change", () => {
+    const sim = createSimulator(scenario(21, { cyclicMs: 2000 }));
+    let count = 0;
+    sim.onTelegram(() => count++);
+    sim.advance(9_000);
+    expect(count).toBeGreaterThanOrEqual(3);
   });
 });

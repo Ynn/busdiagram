@@ -1,4 +1,4 @@
-// Programming gestures follow ETS: a catalog entry is dropped onto a line; a group address
+// Programming gestures follow the usual commissioning workflow: a catalog entry is dropped onto a line; a group address
 // is dropped onto a group object, or a group object onto a group address; the first
 // address of an object is its sending address. Every gesture calls the same edit
 // operation as the equivalent button, with the same checks and one undo step.
@@ -127,7 +127,7 @@ export function objTarget(host: Host, ga: string | null, middle?: string) {
       host.ws.hint = "";
       const [devId, objectId] = ref.split("/") as [string, string];
       if (ga) return link(host, ga, devId, objectId);
-      // Onto a middle group: create an address there and link it, as in ETS.
+      // Onto a middle group: create an address there and link it.
       const d = devOf(doc, devId);
       const o = d?.objects.find((x) => x.id === objectId);
       if (!d || !o || !middle) return;

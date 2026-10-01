@@ -2,6 +2,7 @@ import { LitElement, html, nothing, svg } from "lit";
 import type { PropertyValues, TemplateResult } from "lit";
 import type {
   JournalEvent,
+  JsonObject,
   OutputCommand,
   SimSnapshot,
 } from "../knx/contracts";
@@ -59,6 +60,8 @@ interface Hold {
   hasLong: boolean;
   /** A long press was sent; release sends the stop-dimming action. */
   longFired?: boolean;
+  /** Contact input: release sends "up"; the device measures the press itself. */
+  contact?: boolean;
   pointerId: number | null;
 }
 
@@ -579,7 +582,7 @@ export class BusDiagram extends LitElement {
   private gesture(
     dev: string,
     id: string,
-    g: "press" | "short" | "long" | "release" | "value",
+    g: "press" | "short" | "long" | "release" | "value" | "down" | "up",
     value?: number,
   ) {
     const sim = this.sim;
@@ -612,9 +615,13 @@ export class BusDiagram extends LitElement {
       start: performance.now(),
       fired: false,
       hasLong: !!b.long,
+      contact: !!b.contact,
       pointerId: e.pointerId,
     };
-    if (b.press) {
+    if (b.contact) {
+      this.hold.fired = true;
+      this.gesture(d.id, b.id, "down");
+    } else if (b.press) {
       this.hold.fired = true;
       this.gesture(d.id, b.id, "press");
     } else this.afterInput();
@@ -629,7 +636,8 @@ export class BusDiagram extends LitElement {
     )
       return;
     this.hold = null;
-    if (!h.fired) this.gesture(h.dev, h.button, "short");
+    if (h.contact) this.gesture(h.dev, h.button, "up");
+    else if (!h.fired) this.gesture(h.dev, h.button, "short");
     else if (h.longFired && this.hasRelease(h.dev, h.button))
       this.gesture(h.dev, h.button, "release");
     else this.afterInput();
@@ -643,7 +651,8 @@ export class BusDiagram extends LitElement {
     const h = this.hold;
     if (!h || (h.pointerId !== null && e.pointerId !== h.pointerId)) return;
     this.hold = null;
-    if (h.longFired && this.hasRelease(h.dev, h.button))
+    if (h.contact) this.gesture(h.dev, h.button, "up");
+    else if (h.longFired && this.hasRelease(h.dev, h.button))
       this.gesture(h.dev, h.button, "release");
     else this.requestUpdate();
   }
@@ -659,6 +668,15 @@ export class BusDiagram extends LitElement {
 
   private onKeyUp(e: KeyboardEvent, d: Device, b: Button) {
     if (e.key !== "Enter" && e.key !== " ") return;
+    if (b.contact) {
+      e.preventDefault();
+      e.stopPropagation();
+      if (this.hold?.dev === d.id && this.hold.button === b.id) {
+        this.hold = null;
+        this.gesture(d.id, b.id, "up");
+      }
+      return;
+    }
     const k = this.keyLong;
     if (!k || k.dev !== d.id || k.button !== b.id) return;
     this.keyLong = null;
@@ -673,6 +691,21 @@ export class BusDiagram extends LitElement {
     // Inside a reveal.js slide, Space and Enter must not advance the slide.
     e.stopPropagation();
     if (e.repeat || !this.sim) return;
+    // A contact key stays pressed while the key is held down.
+    if (b.contact) {
+      if (this.hold) return;
+      this.hold = {
+        dev: d.id,
+        button: b.id,
+        start: performance.now(),
+        fired: true,
+        hasLong: false,
+        contact: true,
+        pointerId: null,
+      };
+      this.gesture(d.id, b.id, "down");
+      return;
+    }
     const g = b.press
       ? "press"
       : e.shiftKey && b.long
@@ -759,7 +792,9 @@ export class BusDiagram extends LitElement {
       tel,
       ...this.animTel(tel, s, g, topo, t),
     }));
-    const hasLong = s.devices.some((d) => d.buttons.some((b) => b.long));
+    const hasLong = s.devices.some((d) =>
+      d.buttons.some((b) => b.long || b.contact),
+    );
     const exts = s.lines.filter((l) => l.extension?.switchable);
     const stop = sim.paused && this.stepMode ? sim.lastStop : null;
 
@@ -1045,12 +1080,14 @@ export class BusDiagram extends LitElement {
     const parts: TemplateResult[] = [];
     g.segs.forEach((sg) => {
       const ip = sg.kind === "ip";
+      // A segment without bus voltage is drawn grey and dashed.
+      const dead = !ip && !sim.busVoltage(sg.id);
       const d = sg.pts.map((p) => p.join(",")).join(" ");
       parts.push(
-        svg`<polyline points=${d} fill="none" stroke=${ip ? C.ip : C.bus} stroke-width=${segW[sg.kind]} stroke-linecap="round" stroke-linejoin="round" stroke-dasharray=${ip ? "7 6" : "none"}></polyline>`,
+        svg`<polyline points=${d} fill="none" stroke=${ip ? C.ip : dead ? "#a9a49a" : C.bus} stroke-width=${segW[sg.kind]} stroke-linecap="round" stroke-linejoin="round" stroke-dasharray=${ip ? "7 6" : dead ? "10 7" : "none"}></polyline>`,
       );
       // Bright center highlight gives the cable shape.
-      if (!ip)
+      if (!ip && !dead)
         parts.push(
           svg`<polyline points=${d} fill="none" stroke="#8fe0bd" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"></polyline>`,
         );
@@ -1119,22 +1156,44 @@ export class BusDiagram extends LitElement {
     return html`<svg width=${g.W} height=${g.H}>${parts}</svg>`;
   }
 
-  /** Power supply of a line segment (L1.1) or of its downstream segment (L1.1b). */
+  /**
+   * Power supply of a line segment (L1.1) or of its downstream segment (L1.1b); a click
+   * cuts or restores the bus voltage of the segment.
+   */
   private segPsu(s: Scenario, segId: string) {
     const m = /^L(\d+\.\d+)(b?)$/.exec(segId);
     const l = m ? s.lines.find((x) => x.address === m[1]) : undefined;
     const psu = m?.[2] ? l?.extension?.powerSupply : l?.powerSupply;
     if (!psu) return nothing;
+    const on = this.sim?.busVoltage(segId) ?? true;
     const text = psu.currentMa
       ? this.tr`PSU ${psu.currentMa} mA`
       : this.tr`PSU`;
-    return html`<span
-      class="psu"
-      title=${[this.tr`Bus power supply with choke`, psu.name]
-        .filter(Boolean)
-        .join(" · ")}
-      >${text}</span
-    >`;
+    const label = [
+      this.tr`Bus power supply with choke`,
+      psu.name,
+      on
+        ? this.tr`click to cut the bus voltage`
+        : this.tr`no bus voltage: click to restore it`,
+    ]
+      .filter(Boolean)
+      .join(" · ");
+    return html`<button
+      class="psu ${on ? "" : "off"}"
+      title=${label}
+      aria-label=${label}
+      aria-pressed=${on ? "false" : "true"}
+      @click=${(e: Event) => {
+        e.stopPropagation();
+        const sim = this.sim;
+        if (!sim) return;
+        const sent = sim.setBusVoltage(segId, !on);
+        if (this.stepMode && sent.length) sim.pause();
+        this.afterInput();
+      }}
+    >
+      ${text}${on ? nothing : html` · ${this.tr`off`}`}
+    </button>`;
   }
 
   private renderSegLabels(g: Geometry, s: Scenario) {
@@ -1200,7 +1259,7 @@ export class BusDiagram extends LitElement {
     return html`
       ${dg.plate ? this.renderPlate(d, dg, sim) : nothing}
       <div
-        class="card ${sup ? "sup" : ""}"
+        class="card ${sup ? "sup" : ""} ${sim.devicePowered(d.id) ? "" : "unpowered"}"
         style="left:${dg.x}px;top:${dg.top}px;width:${dg.w}px;grid-auto-rows:${ROW - 1}px;${sel ? `box-shadow:0 0 0 4px ${hexA(C.cpl, 0.35)}` : ""}"
         title=${this.tr`Click to inspect objects and channels`}
         @click=${(e: Event) => {
@@ -1246,7 +1305,9 @@ export class BusDiagram extends LitElement {
   private renderKey(d: Device, k: KeyG, plateTop: number, sim: Simulation) {
     const b = d.buttons.find((x) => x.id === k.id)!;
     const down = this.hold?.dev === d.id && this.hold.button === b.id;
-    const led = b.led ? !!sim.objectValue(d.id, b.led) : null;
+    const led = b.led
+      ? !!sim.objectValue(d.id, b.led) !== !!b.ledInverted
+      : null;
     const act = (name: string, a: Button["press"]) => {
       if (!a) return "";
       const o = d.objects.find((x) => x.id === a.object);
@@ -1256,6 +1317,9 @@ export class BusDiagram extends LitElement {
     const [main, sub] = b.label.split(/\s+·\s+/, 2);
     const title = [
       b.label,
+      b.contact
+        ? this.tr`contact input: the device measures short and long presses`
+        : "",
       act(this.tr`press`, b.press),
       act(this.tr`short press`, b.short),
       act(this.tr`long press`, b.long),
@@ -1357,18 +1421,22 @@ export class BusDiagram extends LitElement {
 
   private renderLoad(d: Device, l: LoadG, sim: Simulation) {
     const c = d.channels.find((x) => x.id === l.channel)!;
+    const cfg = c.equipmentConfigs[l.index];
     const view = equipmentView(l.view);
-    const state = sim.equipmentState(d.id, c.id) ?? {};
+    const state = sim.equipmentState(d.id, c.id, l.index) ?? {};
+    // Several loads on one output: each shows its name, or its rank.
+    const label =
+      c.equipmentConfigs.length > 1
+        ? `${c.label} · ${cfg?.name ?? l.index + 1}`
+        : cfg?.name
+          ? `${c.label} · ${cfg.name}`
+          : c.label;
     const app = sim.channelState(d.id, c.id);
     const notes = [
       app.forced
         ? app.forced === "on"
           ? this.tr`forced on`
           : this.tr`forced off`
-        : "",
-      typeof app.offAtMs === "number"
-        ? this
-            .tr`off in ${Math.max(0, (app.offAtMs - sim.timeMs) / 1000).toFixed(0)} s`
         : "",
       app.shed ? this.tr`shed` : "",
       // Metered output: measured power.
@@ -1390,13 +1458,21 @@ export class BusDiagram extends LitElement {
           () =>
             view.render({
               state,
-              label: c.label,
+              label,
               box,
               note,
               t: this.tr,
-              parameters: c.equipmentConfig?.parameters ?? {},
+              parameters: cfg?.parameters ?? {},
               act: (action, payload) => {
-                if (sim.equipmentAction(d.id, c.id, action, payload ?? null))
+                if (
+                  sim.equipmentAction(
+                    d.id,
+                    c.id,
+                    action,
+                    payload ?? null,
+                    l.index,
+                  )
+                )
                   this.afterInput();
               },
             }),
@@ -1406,7 +1482,7 @@ export class BusDiagram extends LitElement {
           class="loadlbl"
           style="position:absolute;left:${l.x}px;top:${l.top}px"
         >
-          ${c.label} · ${this.tr`view “${l.view}” missing`}
+          ${label} · ${this.tr`view “${l.view}” missing`}
         </div>`;
     // For a shutter, show the actuator estimate beside actual position without conflating them.
     const est = app.estimatedPositionPct;
@@ -1440,7 +1516,43 @@ export class BusDiagram extends LitElement {
             >
           </div>`
         : nothing;
-    return html`${drawn}${strip}`;
+    return html`${drawn}${strip}${l.index === 0 ? this.renderCountdown(l, app, sim) : nothing}`;
+  }
+
+  /**
+   * Countdown of an output, on its first load: a pending switch-on or switch-off delay, or
+   * the staircase timer. A clock, the state reached (I on, O off), and the time left.
+   */
+  private renderCountdown(l: LoadG, app: JsonObject, sim: Simulation) {
+    const delayed =
+      typeof app.delayAtMs === "number" && typeof app.delayed === "boolean";
+    const at = delayed
+      ? (app.delayAtMs as number)
+      : typeof app.offAtMs === "number"
+        ? app.offAtMs
+        : null;
+    if (at === null) return nothing;
+    const on = delayed && app.delayed === true;
+    const left = Math.max(0, (at - sim.timeMs) / 1000);
+    const shown = left < 10 ? left.toFixed(1) : left.toFixed(0);
+    const sec = new Intl.NumberFormat(this.tr.lang ?? "en", {
+      minimumFractionDigits: left < 10 ? 1 : 0,
+      maximumFractionDigits: left < 10 ? 1 : 0,
+    }).format(Number(shown));
+    const title = delayed
+      ? on
+        ? this.tr`switch-on delay: on in ${sec} s`
+        : this.tr`switch-off delay: off in ${sec} s`
+      : this.tr`timer: off in ${sec} s`;
+    return html`<div
+      class="countdown ${on ? "on" : "off"} ${delayed ? "delay" : "timer"}"
+      style="left:${l.x - 10}px;top:${l.top - 12}px"
+      title=${title}
+      aria-label=${title}
+      role="timer"
+    >
+      <span aria-hidden="true">⏱ ${on ? "I" : "O"}</span> <b>${sec} s</b>
+    </div>`;
   }
 
   /** Isolate extension view rendering; on error, draw a fallback frame and report a diagnostic. */
@@ -1813,12 +1925,13 @@ export class BusDiagram extends LitElement {
               c.parameters.estimatedTravelTimeUpMs,
             ),
           ]);
-          if (c.equipmentConfig)
+          const motor = c.equipmentConfigs[0];
+          if (motor)
             rows.push([
               this.tr`Actual travel time`,
               times(
-                c.equipmentConfig.parameters.actualTravelTimeMs,
-                c.equipmentConfig.parameters.actualTravelTimeUpMs,
+                motor.parameters.actualTravelTimeMs,
+                motor.parameters.actualTravelTimeUpMs,
               ),
             ]);
         } else {
@@ -1837,13 +1950,22 @@ export class BusDiagram extends LitElement {
               this
                 .tr`switching off in ${((app.offAtMs - sim.timeMs) / 1000).toFixed(1)} s`,
             ]);
+          if (typeof app.delayAtMs === "number")
+            rows.push([
+              this.tr`Delay`,
+              app.delayed
+                ? this
+                    .tr`switching on in ${((app.delayAtMs - sim.timeMs) / 1000).toFixed(1)} s`
+                : this
+                    .tr`switching off in ${((app.delayAtMs - sim.timeMs) / 1000).toFixed(1)} s`,
+            ]);
           if (eq && "on" in eq)
             rows.push([this.tr`Equipment`, eq.on ? this.tr`on` : this.tr`off`]);
         }
         return html`<tr class="head">
             <td colspan="2">
               ${c.label}<small
-                >${c.equipment ? c.equipment : this.tr`unused`}</small
+                >${c.loads.length ? c.loads.join(" + ") : this.tr`unused`}</small
               >
             </td>
           </tr>
@@ -1958,6 +2080,18 @@ export class BusDiagram extends LitElement {
     </div>`;
   }
 
+  /**
+   * Cut (false) or restore (true) the bus voltage of a line segment: `L1.1`, or `L1.1b`
+   * behind its extension. Returns the telegrams sent by the devices' reactions.
+   */
+  setBusVoltage(segmentId: string, on: boolean) {
+    const sim = this.sim;
+    if (!sim) return [];
+    const out = sim.setBusVoltage(segmentId, on);
+    this.afterInput();
+    return out;
+  }
+
   roomAction(roomId: string, action: "window" | "outside", value: number) {
     const sim = this.sim;
     if (!sim) return [];
@@ -1991,13 +2125,21 @@ export class BusDiagram extends LitElement {
             .map((d) => ({ d, ds: sim.deviceState(d.id) }))
             .filter((x) => typeof x.ds.setpointC === "number");
           const emitters = s.devices.flatMap((d) =>
-            d.channels
-              .filter((c) => c.equipmentConfig?.room === r.id)
-              .map((c) => ({
-                d,
-                c,
-                open: Number(sim.equipmentState(d.id, c.id)?.openPct ?? 0),
-              })),
+            d.channels.flatMap((c) =>
+              c.equipmentConfigs.flatMap((e, i) =>
+                e.room === r.id
+                  ? [
+                      {
+                        d,
+                        c,
+                        open: Number(
+                          sim.equipmentState(d.id, c.id, i)?.openPct ?? 0,
+                        ),
+                      },
+                    ]
+                  : [],
+              ),
+            ),
           );
           return html`<div class="room ${st.windowOpen ? "open" : ""}">
             <div class="room-head">

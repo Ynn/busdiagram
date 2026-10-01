@@ -1,5 +1,5 @@
 // Numbers of group objects in the designer: a fixed block per key and per output, as in the
-// object table of an ETS application, so that a key keeps its numbers when another changes.
+// object table of a product, so that a key keeps its numbers when another changes.
 import { describe, expect, it } from "vitest";
 import * as E from "../../site/designer/edit";
 import { SNIPPETS } from "../../site/designer/snippets";

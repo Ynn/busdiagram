@@ -15,38 +15,37 @@ export interface ConfigWarning {
 export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
   const out: ConfigWarning[] = [];
   for (const d of s.devices) {
-    for (const c of d.channels) {
-      const eq = c.equipmentConfig;
-      if (!eq) continue;
-      // Heating actuator output and thermoelectric valve.
-      if (d.behavior === "heatingActuator/v1" && eq.type === "radiator") {
-        const actuatorNo = c.parameters.valveType === "normallyOpen";
-        const valveNo = eq.parameters.normallyOpen === true;
-        if (actuatorNo !== valveNo)
-          out.push({
-            code: "config-valve",
-            deviceId: d.id,
-            channelId: c.id,
-            message: actuatorNo
-              ? t`${d.name || d.id} · ${c.label}: the actuator expects a normally open valve, but the valve is normally closed; the valve opens when no heat is requested.`
-              : t`${d.name || d.id} · ${c.label}: the actuator expects a normally closed valve, but the valve is normally open; the valve opens when no heat is requested.`,
-          });
+    for (const c of d.channels)
+      for (const eq of c.equipmentConfigs) {
+        // Heating actuator output and thermoelectric valve.
+        if (d.behavior === "heatingActuator/v1" && eq.type === "radiator") {
+          const actuatorNo = c.parameters.valveType === "normallyOpen";
+          const valveNo = eq.parameters.normallyOpen === true;
+          if (actuatorNo !== valveNo)
+            out.push({
+              code: "config-valve",
+              deviceId: d.id,
+              channelId: c.id,
+              message: actuatorNo
+                ? t`${d.name || d.id} · ${c.label}: the actuator expects a normally open valve, but the valve is normally closed; the valve opens when no heat is requested.`
+                : t`${d.name || d.id} · ${c.label}: the actuator expects a normally closed valve, but the valve is normally open; the valve opens when no heat is requested.`,
+            });
+        }
+        // Shutter actuator output and motor wiring.
+        if (d.behavior === "shutterActuator/v1" && eq.type === "shutter") {
+          const compensated = c.parameters.invertOutput === true;
+          const reversed = eq.parameters.wiringReversed === true;
+          if (compensated !== reversed)
+            out.push({
+              code: "config-wiring",
+              deviceId: d.id,
+              channelId: c.id,
+              message: reversed
+                ? t`${d.name || d.id} · ${c.label}: the motor is wired in reverse and the actuator does not compensate it; the shutter moves opposite to the commands.`
+                : t`${d.name || d.id} · ${c.label}: the actuator inverts its output, but the motor is wired normally; the shutter moves opposite to the commands.`,
+            });
+        }
       }
-      // Shutter actuator output and motor wiring.
-      if (d.behavior === "shutterActuator/v1" && eq.type === "shutter") {
-        const compensated = c.parameters.invertOutput === true;
-        const reversed = eq.parameters.wiringReversed === true;
-        if (compensated !== reversed)
-          out.push({
-            code: "config-wiring",
-            deviceId: d.id,
-            channelId: c.id,
-            message: reversed
-              ? t`${d.name || d.id} · ${c.label}: the motor is wired in reverse and the actuator does not compensate it; the shutter moves opposite to the commands.`
-              : t`${d.name || d.id} · ${c.label}: the actuator inverts its output, but the motor is wired normally; the shutter moves opposite to the commands.`,
-          });
-      }
-    }
     // Window contact: the input interpretation must match the contact type.
     if (d.behavior === "windowContact/v1") {
       const nc = d.parameters.contactType === "normallyClosed";
@@ -61,6 +60,25 @@ export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
         });
     }
   }
+  // A TP1 segment takes up to 64 devices (KNX TP1 specification, TP1-64 devices); more
+  // need TP1-256 devices or a line extension (repeater or segment coupler).
+  const perSegment = new Map<string, number>();
+  for (const d of s.devices)
+    if (d.medium === "TP" && d.line) {
+      const key = `${d.line}${d.downstream ? " · 2" : ""}`;
+      perSegment.set(key, (perSegment.get(key) ?? 0) + 1);
+    }
+  perSegment.forEach((n, key) => {
+    if (n > 64)
+      out.push({
+        code: "config-segment-size",
+        deviceId: s.devices.find(
+          (d) => `${d.line}${d.downstream ? " · 2" : ""}` === key,
+        )!.id,
+        message: t`segment ${key}: ${n} devices, more than the 64 of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler`,
+      });
+  });
+
   // Group addresses linking one-bit DPTs with opposite meanings for the same state.
   const opposite: [string, string][] = [["1.009", "1.019"]];
   const byGa = new Map<string, { deviceId: string; dpt: string }[]>();
@@ -85,7 +103,18 @@ export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
     const kinds = [...new Set(list.map((x) => x.dpt))].filter(
       (d) => !d.startsWith("1."),
     );
-    if (kinds.length > 1) {
+    if (
+      kinds.length === 2 &&
+      kinds.includes("17.001") &&
+      kinds.includes("18.001")
+    )
+      // Scene number and scene control agree on recalls; only storing differs.
+      out.push({
+        code: "config-datatype",
+        deviceId: list.find((x) => x.dpt === "17.001")!.deviceId,
+        message: t`${ga} links DPT 17.001 and DPT 18.001: recalls are read alike, but a 17.001 object reads a storing telegram (learn bit) as a recall.`,
+      });
+    else if (kinds.length > 1) {
       const [a, b] = kinds as [string, string];
       out.push({
         code: "config-datatype",

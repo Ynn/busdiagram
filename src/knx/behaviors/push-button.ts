@@ -50,6 +50,7 @@ export const pushButton: BehaviorDefinition<Record<string, never>> = {
       ctx.transmit(inp.object);
       return;
     }
+    if (input.gesture === "down" || input.gesture === "up") return;
     const b = d.buttons.find((x) => x.id === input.inputId);
     const action = b?.[input.gesture];
     if (!action) return;

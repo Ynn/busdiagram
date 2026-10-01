@@ -285,6 +285,13 @@
 <td>0 → <code>0x00</code> → Scene 1 ; 63 → <code>0x3F</code> → Scene 64</td>
 </tr>
 <tr>
+<td><code>18.001</code></td>
+<td>Scene control</td>
+<td>1 byte</td>
+<td>0 … 191</td>
+<td>0 → <code>0x00</code> → Scene 1 ; 191 → <code>0xBF</code> → Store scene 64</td>
+</tr>
+<tr>
 <td><code>20.102</code></td>
 <td>HVAC mode</td>
 <td>1 byte</td>
@@ -295,6 +302,7 @@
 </div><p>Values of 1, 2, or 4 bits occupy the low bits of the APCI byte. Longer values follow it as 1 to 4 additional payload bytes, as shown in the Size column; the frame length grows accordingly.</p>
 <p>Other standard DPTs can be used on the objects of passive and display devices, which show them without simulating them: see <a href="../guide/devices.html#passive-device-passive-v1">passive devices</a>.</p>
 <p>In JSON, a time of day (10.001) is a number of seconds counted from 00:00 on the day given by the week day: 0 means no day, 86400 × n + seconds means day n (1 = Monday, 7 = Sunday). A date (11.001) is written as the number <code>YYYYMMDD</code>.</p>
+<p>A scene control (18.001) is written as the bus byte: 0–63 recalls scenes 1–64, and adding 128 (the learn bit) stores the scene instead; bit 6 is reserved.</p>
 
 <nav class="pager">
 <a href="../reference/ports.html">← Ports</a>

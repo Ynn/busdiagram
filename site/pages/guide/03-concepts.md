@@ -48,6 +48,20 @@ A group telegram has a source individual address, a destination group address, a
 
 A channel is an actuator output, such as a relay or motor drive. Its behavior sends commands such as `on/off` or `up/down/stop`. Connected equipment, such as a lamp or shutter, responds to those commands and has its own physical state. It does not know about group addresses or DPTs.
 
+An output can supply several loads wired in parallel, as a lighting circuit supplies several luminaires: `equipment` is then a list, and every load receives the commands of the output. A metering actuator measures the sum of their powers. A shutter output drives a single motor.
+
+```json
+"channels": [{
+  "id": "s1",
+  "label": "L1",
+  "equipment": [
+    { "type": "lamp", "name": "Ceiling", "parameters": { "powerW": 75 } },
+    { "type": "lamp", "name": "Wall" },
+    { "type": "appliance", "name": "Socket", "parameters": { "powerW": 1000 } }
+  ]
+}]
+```
+
 The separation makes it possible to show a [miscalibrated shutter](shutters.html): the actuator estimates position using its configured travel time while the connected shutter moves at its actual speed.
 
 ## Internal association

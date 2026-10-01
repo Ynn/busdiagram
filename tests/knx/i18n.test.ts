@@ -122,6 +122,20 @@ describe("registered metadata", () => {
       collect(definition.parameters);
       collect(definition.channelParameters);
       collect(definition.channelInitialState);
+      // Titles, headings, and notes of the parameter pages.
+      const items = (list: readonly Record<string, unknown>[]): void =>
+        list.forEach((item) => {
+          if (typeof item.heading === "string") titles.add(item.heading);
+          if (typeof item.note === "string") titles.add(item.note);
+          if (Array.isArray(item.items)) items(item.items);
+        });
+      const layout = definition.parameterLayout;
+      [...(layout?.device ?? []), ...(layout?.channel ?? [])].forEach(
+        (page) => {
+          titles.add(page.title);
+          items(page.items as unknown as Record<string, unknown>[]);
+        },
+      );
     });
     registry.equipment.forEach((definition) => {
       if (definition.title) titles.add(definition.title);

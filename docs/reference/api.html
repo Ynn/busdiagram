@@ -179,6 +179,10 @@
 <td><code>setClock(value)</code></td>
 <td>Set the simulated clock to a local date and time (<code>YYYY-MM-DDTHH:MM[:SS]</code>).</td>
 </tr>
+<tr>
+<td><code>setBusVoltage(segment, on)</code></td>
+<td>Cut (<code>false</code>) or restore (<code>true</code>) the bus voltage of a line segment: <code>L1.1</code>, or <code>L1.1b</code> behind its extension.</td>
+</tr>
 </tbody></table>
 </div><h3 id="getstate-example"><a class="anchor" href="#getstate-example">#</a><code>getState()</code> example</h3><pre class="code"><code>{
   <span class="k">"timeMs"</span>: <span class="n">11639</span>,
@@ -207,8 +211,9 @@
     <span class="k">"living"</span>: { <span class="k">"temperatureC"</span>: <span class="n">20.8</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span>, <span class="k">"windowOpen"</span>: <span class="kw">false</span> }
   },
   <span class="k">"telegramsInFlight"</span>: <span class="n">0</span>,
+  <span class="k">"unpoweredSegments"</span>: [],
   <span class="k">"diagnostics"</span>: []
-}</code></pre><p>The <code>objects</code> map uses <code>deviceId/objectId</code> identifiers. <code>channels</code> and <code>equipment</code> use <code>deviceId/channelId</code>; <code>rooms</code> uses room IDs. Unknown values are <code>null</code>.</p>
+}</code></pre><p>The <code>objects</code> map uses <code>deviceId/objectId</code> identifiers. <code>channels</code> and <code>equipment</code> use <code>deviceId/channelId</code>; <code>rooms</code> uses room IDs. <code>unpoweredSegments</code> lists the segments whose bus voltage is cut. Unknown values are <code>null</code>.</p>
 
 <nav class="pager">
 <a href="../reference/dpt.html">← DPT</a>

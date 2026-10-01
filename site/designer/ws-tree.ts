@@ -182,7 +182,7 @@ export function topologyTree(host: Host, doc: Doc): Node[] {
     const ext = doc.lines.find((l) => String(l.address) === line)?.extension as
       { address?: string; mode?: string } | undefined;
     const devs = at(line);
-    // With a line extension, the devices are grouped by segment, as in ETS.
+    // With a line extension, the devices are grouped by segment.
     const children: Node[] = ext
       ? ([1, 2] as const).map((seg) => {
           const label =

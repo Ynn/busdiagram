@@ -24,6 +24,7 @@ import type { BusDiagram } from "../../src/ui/bus-diagram";
 import type { ToolbarMode, ViewOptions } from "../../src/ui/options";
 import bundleSource from "../../dist/bus-diagram.js?raw";
 import {
+  buildInfo,
   embedSnippet,
   encodeShare,
   escapeScript,
@@ -740,10 +741,10 @@ $("#ext-close").addEventListener("click", () =>
   $<HTMLDialogElement>("#ext-dialog").close(),
 );
 $("#about").addEventListener("click", () => {
-  const v = BusDiagramApi.version;
-  $("#about-version").textContent = `v${v}`;
-  $<HTMLAnchorElement>("#about-source").href =
-    `https://github.com/Ynn/busdiagram/tree/v${v}`;
+  // The banner of the bundled library names the build and its source code.
+  const build = buildInfo(bundleSource);
+  $("#about-version").textContent = `v${build.label ?? BusDiagramApi.version}`;
+  $<HTMLAnchorElement>("#about-source").href = build.source;
   $<HTMLDialogElement>("#about-dialog").showModal();
 });
 $("#about-close").addEventListener("click", () =>
