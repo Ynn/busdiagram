@@ -4,6 +4,32 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Designer: the guided editor follows the working logic of ETS:
+  - two stacked panels, each showing the Topology, the Group addresses, the Catalog, or the Installation, with a tree on the left and a list with tabs at its bottom;
+  - Topology tree of areas, lines, and devices, which open to show their group objects; a device has Group objects and Parameters tabs, a group object has Associations and Properties tabs;
+  - Group addresses tree of main groups, middle groups, and addresses, with names for the groups (new optional root field `groupRanges`) and commands to add them;
+  - Catalog of the device types the simulator models, added by drag and drop onto a line, by double-click, or with Items … Add;
+  - drag and drop of a group address onto a group object or of a group object onto an address (or onto a middle group, which creates an address); the whole list of a panel that shows an address, an object, a middle group, or a line accepts the drop; the first address is the sending one, changed with Set as sending; objects of different data sizes cannot be linked;
+  - the flags of the objects linked to a group address can be changed in its Associations tab;
+  - drag and drop of a device onto another line to move it;
+  - device parameters as in ETS: a list of pages (General, each key or output, shared objects) on the left and the parameters of the selected page on the right, one per row;
+  - a group object can be activated without group address from its key or output page, then linked by drag and drop;
+  - context menus (right-click, context-menu key, or Shift+F10) on every tree node and list row, with the same commands for an element wherever it appears;
+  - renaming in place by double-click, F2, or Rename in the context menu;
+  - a filter above each tree;
+  - stable numbers of group objects: a fixed block per key and per output, in the order of the keys and outputs, so that a key keeps its numbers when another key changes its gestures; guided edits keep the objects in that order, and Order group objects by number reorders a scenario written by hand;
+  - the segments of a line with a line repeater or segment coupler appear in the Topology tree;
+  - resizable trees, lists, and panels, alternating row colors, and a visible hover row;
+  - a resizable separator between the editor and the preview, and a button to hide the preview.
+
+- Designer: an About box with the version, the license, the address of the source code, and a notice of independence from KNX Association; the documentation footer and the README carry the same notice.
+
+### Changed
+
+- `bus-diagram.js` and `bus-diagram.esm.js` start with the license notices of the third-party components they include and the address of the source code of their version, so that every copy (CDN, download from the designer, standalone page) carries them. A standalone page exported by the designer also names its version, license, and source.
+
 ## [0.3.1] - 2026-09-29
 
 ### Changed

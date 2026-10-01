@@ -39,6 +39,7 @@ import type { GuidedEditor, Refusal } from "./guided";
 import "./guided";
 import { cursorContext, nodeForPath, parsePath } from "./json-tree";
 import { setDesignerLanguage, t } from "./lang";
+import { initLayout } from "./layout";
 import { SNIPPETS, SnippetRefusal } from "./snippets";
 
 // ── Language: saved choice, or English on first use ──
@@ -84,6 +85,11 @@ const pageTexts = (): Record<string, string> => ({
   "bus-diagram.js library": t`bus-diagram.js library`,
   Language: t`Language`,
   Help: t`Help`,
+  About: t`About`,
+  "BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.": t`BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.`,
+  "License:": t`License:`,
+  "Source code": t`Source code`,
+  "Third-party notices": t`Third-party notices`,
   Guided: t`Guided`,
   "JSON scenario": t`JSON scenario`,
   "Ctrl+Space: suggestions (fields, ports, DPTs, declared group addresses, objects and channels of the device).": t`Ctrl+Space: suggestions (fields, ports, DPTs, declared group addresses, objects and channels of the device).`,
@@ -94,6 +100,11 @@ const pageTexts = (): Record<string, string> => ({
   Monitor: t`Monitor`,
   Description: t`Description`,
   "16:9 slide": t`16:9 slide`,
+  "Undo (Ctrl+Z)": t`Undo (Ctrl+Z)`,
+  "Redo (Ctrl+Y)": t`Redo (Ctrl+Y)`,
+  Undo: t`Undo`,
+  Redo: t`Redo`,
+  "Drag or use the arrow keys; double-click to reset": t`Drag or use the arrow keys; double-click to reset`,
   Open: t`Open`,
   Copy: t`Copy`,
   Close: t`Close`,
@@ -113,6 +124,7 @@ function applyPageTexts() {
     .forEach((el) => el.setAttribute("aria-label", tr(el.dataset.aria)));
 }
 applyPageTexts();
+initLayout(() => window.dispatchEvent(new Event("resize")));
 
 // The extension scripts are for window.BusDiagram: this is the designer's instance,
 // shared with the preview. They are stored to reopen a project that uses them.
@@ -464,6 +476,8 @@ guided.registry = registry;
 guided.commit = tryCommit;
 guided.undo = () => undo(editor);
 guided.redo = () => redo(editor);
+$("#undo-btn").addEventListener("click", () => undo(editor));
+$("#redo-btn").addEventListener("click", () => redo(editor));
 guided.convert = () => convertToV2();
 guided.onSelect = (id) => (guided.selected = id);
 preview.addEventListener("bd-select", (e) => {
@@ -724,6 +738,16 @@ $("#ext-add").addEventListener("click", () => {
 });
 $("#ext-close").addEventListener("click", () =>
   $<HTMLDialogElement>("#ext-dialog").close(),
+);
+$("#about").addEventListener("click", () => {
+  const v = BusDiagramApi.version;
+  $("#about-version").textContent = `v${v}`;
+  $<HTMLAnchorElement>("#about-source").href =
+    `https://github.com/Ynn/busdiagram/tree/v${v}`;
+  $<HTMLDialogElement>("#about-dialog").showModal();
+});
+$("#about-close").addEventListener("click", () =>
+  $<HTMLDialogElement>("#about-dialog").close(),
 );
 $<HTMLInputElement>("#ext-file").addEventListener("change", async (e) => {
   const input = e.target as HTMLInputElement;

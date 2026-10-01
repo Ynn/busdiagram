@@ -185,6 +185,8 @@ export interface Scenario {
   clock: ClockConfig | null;
   topology: TopologyConfig;
   groupAddresses: Map<string, GroupAddress>;
+  /** Names of main groups ("1") and middle groups ("1/2"), as in the ETS group address tree. */
+  groupRanges: Map<string, string>;
   devices: Device[];
   devicesById: Map<string, Device>;
   options: { speed: number; filterTables: boolean };
@@ -289,6 +291,7 @@ const ROOT_V2 = [
   "lines",
   "devices",
   "groupAddresses",
+  "groupRanges",
   "ipRouter",
   "topology",
   "rooms",
@@ -915,6 +918,27 @@ export function buildScenario(
       name: str(g, "name", p) ?? "",
       dpt,
     });
+  });
+
+  // Names of main and middle groups: "M" (0–31) or "M/m" (middle 0–7).
+  const groupRanges = new Map<string, string>();
+  arr(raw, "groupRanges", "").forEach((r, i) => {
+    const p = `groupRanges[${i}]`;
+    if (!isRecord(r)) return err(p, "type", t`object expected`);
+    unknownKeys(r, ["address", "name"], p);
+    const address = str(r, "address", p, true);
+    const name = str(r, "name", p, true);
+    if (address === undefined || name === undefined) return;
+    const m = /^(\d{1,2})(?:\/(\d))?$/.exec(address);
+    if (!m || Number(m[1]) > 31 || (m[2] !== undefined && Number(m[2]) > 7))
+      return err(
+        `${p}.address`,
+        "address",
+        t`“${address}” is not a main group (0–31) or a middle group (0–31/0–7)`,
+      );
+    if (groupRanges.has(address))
+      return err(p, "duplicate", t`duplicate group range ${address}`);
+    groupRanges.set(address, name);
   });
 
   // ── Participants
@@ -1811,6 +1835,7 @@ export function buildScenario(
     clock,
     topology,
     groupAddresses,
+    groupRanges,
     devices,
     devicesById,
     options: { speed, filterTables },

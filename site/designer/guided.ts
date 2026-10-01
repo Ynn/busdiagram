@@ -6,21 +6,21 @@ import { fieldValue } from "./field-value";
 import { LitElement, html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { live } from "lit/directives/live.js";
-import type {
-  BehaviorDefinition,
-  BehaviorPort,
-  ParamProperty,
-  ParamSchema,
-} from "../../src/knx/contracts";
+import type { ParamProperty, ParamSchema } from "../../src/knx/contracts";
 import { SUPPORTED_DPTS, dptBits, dptName } from "../../src/knx/dpt";
 import { isStandardBehavior } from "../../src/knx/registry";
 import { Network } from "../../src/knx/network";
 import type { Registry } from "../../src/knx/registry";
 import { buildScenario } from "../../src/knx/scenario";
-import type { Chan, Dev, Doc, Gesture } from "./edit";
+import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { t } from "./lang";
 import { SNIPPETS, freeAddress } from "./snippets";
+import type { Host, WorkspaceState } from "./workspace";
+import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
+import * as P from "./params";
+import { defaultEquipmentParams, tt } from "./params";
+import type { Page } from "./params";
 
 type Mutate = (doc: Doc) => void;
 /** The installation, a device editor, and a group-address editor are the three views. A refusal appears in a banner; fields */
@@ -30,9 +30,7 @@ export interface Refusal {
   path?: string;
 }
 
-const tt = (text: string | undefined) => (text ? (t.s ? t.s(text) : text) : "");
-
-export class GuidedEditor extends LitElement {
+export class GuidedEditor extends LitElement implements Host {
   static override properties = {
     doc: { attribute: false },
     selected: { attribute: false },
@@ -59,15 +57,12 @@ export class GuidedEditor extends LitElement {
   private selectAdded: Set<string> | null = null;
   /** Expanded cards (keys and outputs), preserved across renders. */
   private opened = new Set<string>();
-  /** Visited views ("← Back") and their scroll positions. */
-  private history: { sel: string | null; scroll: number }[] = [];
-  /** During back navigation, do not add the previous card to history. */
-  private goingBack = false;
-  private restoreScroll: number | null = null;
-  /** Object to be shown after navigation (open, centered and highlighted line). */
-  private focusObj: string | null = null;
+  /** Selected parameter page of each device. */
+  private pageOf = new Map<string, string>();
+  /** Panels of the ETS-like workspace (contents, selections, expanded nodes). */
+  ws: WorkspaceState = initialWorkspace();
   /** Last successful grouped operation; it can be undone from the banner. */
-  private notice: string | null = null;
+  notice: string | null = null;
   /** Editing objects associated with an address (address form). */
   private members: {
     addr: string;
@@ -75,7 +70,7 @@ export class GuidedEditor extends LitElement {
     filter: string;
   } | null = null;
   /** Copy settings from one output to others. */
-  private copy: {
+  copy: {
     dev: string;
     ch: string;
     targets: Set<string>;
@@ -111,15 +106,17 @@ export class GuidedEditor extends LitElement {
       this.notice = null;
       this.members = null;
       this.copy = null;
-      // Sheet left, with its position: « ← Previous » takes it back.
-      const prev = changed.get("selected") as string | null | undefined;
-      if (prev !== undefined && prev !== this.selected && !this.goingBack) {
-        this.history.push({
-          sel: prev,
-          scroll: this.closest(".pane")?.scrollTop ?? 0,
-        });
-        if (this.history.length > 50) this.history.shift();
-      }
+      // A device or an address selected elsewhere (diagram, problems list) is shown in its
+      // panel, unless the panel already shows it or one of its channels or objects.
+      const id = this.selected;
+      const shown = this.ws.panels.some(
+        (p) =>
+          p.sel === id ||
+          p.sel === `dev:${id}` ||
+          p.sel?.startsWith(`obj:${id}/`) ||
+          p.sel?.startsWith(`chan:${id}/`),
+      );
+      if (id && !shown) reveal(this, id.startsWith("ga:") ? id : `dev:${id}`);
     }
     if (changed.has("doc")) this.confirming = null;
   }
@@ -134,89 +131,168 @@ export class GuidedEditor extends LitElement {
     this.querySelectorAll<HTMLSelectElement>("select[data-v]").forEach((s) => {
       if (s.value !== s.dataset.v) s.value = s.dataset.v!;
     });
-    const pane = this.closest(".pane");
-    if (changed.has("selected") && changed.get("selected") !== undefined) {
-      if (this.restoreScroll !== null)
-        pane?.scrollTo({ top: this.restoreScroll });
-      else if (!this.focusObj) pane?.scrollTo({ top: 0 });
-      this.restoreScroll = null;
-      this.goingBack = false;
-    }
-    if (this.focusObj) this.showObject(this.focusObj);
   }
 
-  /** Center and highlight the line of an object; opens the advanced table if it does not have a line. */
-  private showObject(id: string) {
-    const el = [...this.querySelectorAll<HTMLElement>("[data-obj]")].find(
-      (x) => x.dataset.obj === id && x.offsetParent !== null,
-    );
-    const dev = this.doc?.devices.find((d) => d.id === this.selected);
-    if (!el) {
-      const key = `${dev?.id}:expert`;
-      if (dev && !this.opened.has(key)) {
-        this.opened.add(key);
-        this.requestUpdate();
-        return;
-      }
-      this.focusObj = null;
-      return;
-    }
-    this.focusObj = null;
-    el.scrollIntoView({ block: "center" });
-    el.classList.remove("g-flash");
-    void el.offsetWidth;
-    el.classList.add("g-flash");
-    el.querySelector<HTMLElement>("select, input, button")?.focus({
-      preventScroll: true,
-    });
-  }
-
-  /** Map (output or key) that contains the object, to be unfolded to show it. */
-  private cardOf(d: Dev, objectId: string): string | null {
-    const o = d.objects.find((x) => x.id === objectId);
-    if (!o) return null;
-    if (o.channel) return `${d.id}:ch:${o.channel}`;
-    const b = (d.buttons ?? []).find(
-      (x) =>
-        [x.press, x.short, x.long, x.release].some(
-          (a) => a?.object === objectId,
-        ) || x.led === objectId,
-    );
-    return b ? `${d.id}:key:${b.id}` : null;
-  }
-
-  private back() {
-    const h = this.history.pop();
-    if (!h) return;
-    this.goingBack = true;
-    this.restoreScroll = h.scroll;
-    this.onSelect(h.sel);
-  }
-
-  /** Readable name of a card (for « ← Previous »). */
-  private selLabel(sel: string | null) {
-    if (!sel) return t`Installation`;
-    if (sel.startsWith("ga:")) return sel.slice(3);
-    const d = this.doc?.devices.find((x) => x.id === sel);
-    return d?.name ?? sel;
-  }
-
-  private run(label: string, mutate: Mutate): boolean {
+  run(label: string, mutate: Mutate): boolean {
     const refusal = this.commit(label, mutate);
     this.alert = refusal;
     return !refusal;
   }
 
-  /** Opens a sheet; with `objectId`, unfolds its map and shows the line of the object. */
-  private go(id: string | null, objectId?: string) {
-    if (objectId && id) {
-      const d = this.doc?.devices.find((x) => x.id === id);
-      const card = d ? this.cardOf(d, objectId) : null;
-      if (card) this.opened.add(card);
-      this.focusObj = objectId;
-    }
-    if (id === this.selected) this.requestUpdate();
-    else this.onSelect(id);
+  refuse(label: string, message: string) {
+    this.alert = { label, message };
+  }
+
+  announce(text: string) {
+    this.notice = text;
+    this.requestUpdate();
+  }
+
+  /** Shows a device, an address (“ga:…”), or with `objectId` a group object, in its panel. */
+  go(id: string | null, objectId?: string) {
+    if (!id) return;
+    reveal(
+      this,
+      id.startsWith("ga:")
+        ? id
+        : objectId
+          ? `obj:${id}/${objectId}`
+          : `dev:${id}`,
+    );
+    this.onSelect(id);
+  }
+
+  // ── Views used by the workspace ──
+
+  /** Parameters as in ETS: pages listed on the left, the selected page on the right. */
+  deviceParameters(doc: Doc, d: Dev) {
+    const def = this.registry.behaviors.get(d.behavior);
+    const keys = def?.acceptsInputs && def.ports.input;
+    const groups: {
+      title: string | null;
+      pages: Page[];
+      add?: TemplateResult;
+    }[] = [
+      {
+        title: null,
+        pages: [
+          {
+            key: "general",
+            label: t`General`,
+            body: () => P.generalPage(this, doc, d),
+          },
+          ...(def?.ports.display && !def.acceptsInputs
+            ? [P.displayPage(this, doc, d)]
+            : []),
+        ],
+      },
+      ...(keys
+        ? [
+            {
+              title: t`Keys`,
+              pages: P.keyPages(this, doc, d),
+              add: html`<button
+                class="w-padd"
+                @click=${() => this.run(t`Key`, (x) => void E.addKey(x, d.id))}
+              >
+                + ${t`Add a key`}
+              </button>`,
+            },
+          ]
+        : []),
+      ...(def?.output
+        ? [
+            {
+              title: t`Outputs`,
+              pages: P.outputPages(this, doc, d, def),
+              add: html`<button
+                class="w-padd"
+                @click=${() => P.addOutput(this, d, def)}
+              >
+                + ${t`Add an output`}
+              </button>`,
+            },
+          ]
+        : []),
+    ];
+    const ports = def ? P.portsPage(this, doc, d, def) : null;
+    if (ports) groups.push({ title: null, pages: [ports] });
+    const all = groups.flatMap((g) => g.pages);
+    const cur = all.find((p) => p.key === this.pageOf.get(d.id)) ?? all[0]!;
+    const open = (key: string) => {
+      this.pageOf.set(d.id, key);
+      this.requestUpdate();
+    };
+    const g0 = (p: Page) =>
+      groups.find((g) => g.pages.includes(p))?.title === t`Outputs`
+        ? t`Output ${p.label}`
+        : p.label;
+    // As in ETS: a flat list of pages on the left, the parameters of the page on the
+    // right, one per row, with the label on the left and the value on the right.
+    return html`<div class="w-params">
+      <nav class="w-pmenu" aria-label=${t`Parameter pages`}>
+        ${groups.map(
+          (g) =>
+            html`${g.pages.map(
+              (p) =>
+                html`<button
+                  class="w-pitem"
+                  aria-current=${p === cur ? "page" : "false"}
+                  title=${p.sum ?? p.label}
+                  @click=${() => open(p.key)}
+                >
+                  ${g.title === t`Outputs` ? t`Output ${p.label}` : p.label}
+                </button>`,
+            )}
+            ${g.add ?? nothing}`,
+        )}
+      </nav>
+      <div class="w-ppage" data-page=${cur.key}>
+        ${
+          cur.key === "general"
+            ? cur.body()
+            : html`<section class="g-sec">
+                <h3>
+                  ${g0(cur)}
+                  ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
+                </h3>
+                ${cur.body()}
+              </section>`
+        }
+      </div>
+    </div>`;
+  }
+
+  gaProperties(doc: Doc, g: E.Ga) {
+    return this.gaView(doc, g);
+  }
+
+  topologySettings(doc: Doc) {
+    return this.linesSection(doc);
+  }
+
+  lineSettings(_doc: Doc, l: Doc["lines"][number]) {
+    const line = String(l.address);
+    return html`<div class="w-bar w-linebar">
+        <label class="g-field"
+          ><span>${t`Name of line ${line}`}</span>
+          <input
+            .value=${fieldValue(String(l.name ?? ""))}
+            @change=${(e: Event) =>
+              this.run(t`Line name`, (d) =>
+                E.setLineName(
+                  d,
+                  line,
+                  (e.target as HTMLInputElement).value.trim(),
+                ),
+              )}
+        /></label>
+      </div>
+      ${this.lineExtension(l, line)}`;
+  }
+
+  installation(doc: Doc) {
+    return this.home(doc);
   }
 
   override render() {
@@ -233,52 +309,7 @@ export class GuidedEditor extends LitElement {
       </p>`;
     const doc = this.doc;
     if (!doc) return nothing;
-    const dev = doc.devices.find((d) => d.id === this.selected) ?? null;
-    const ga = this.selected?.startsWith("ga:")
-      ? (doc.groupAddresses.find((g) => `ga:${g.address}` === this.selected) ??
-        null)
-      : null;
-    const title = dev ? (dev.name ?? dev.id) : ga ? ga.address : null;
     return html`
-      <div class="g-head">
-        <nav class="g-crumb">
-          ${
-            this.history.length
-              ? html`<button
-                  class="g-prev"
-                  title=${t`Back to: ${this.selLabel(this.history.at(-1)!.sel)}`}
-                  @click=${() => this.back()}
-                >
-                  ← ${t`Back`}
-                </button>`
-              : nothing
-          }
-          ${
-            title
-              ? html`<button class="g-back" @click=${() => this.go(null)}>
-                    ${t`Installation`}
-                  </button>
-                  <span>/</span> <b>${title}</b>`
-              : html`<b>${t`Installation`}</b>`
-          }
-        </nav>
-        <button
-          class="g-icon"
-          title=${t`Undo (Ctrl+Z)`}
-          aria-label=${t`Undo`}
-          @click=${() => this.undo()}
-        >
-          ↶
-        </button>
-        <button
-          class="g-icon"
-          title=${t`Redo (Ctrl+Y)`}
-          aria-label=${t`Redo`}
-          @click=${() => this.redo()}
-        >
-          ↷
-        </button>
-      </div>
       ${
         this.notice
           ? html`<div class="g-notice" role="status">
@@ -322,7 +353,7 @@ export class GuidedEditor extends LitElement {
             </div>`
           : nothing
       }
-      ${dev ? this.deviceView(doc, dev) : ga ? this.gaView(doc, ga) : this.home(doc)}
+      ${this.draft ? this.draftView() : nothing} ${renderWorkspace(this, doc)}
     `;
   }
 
@@ -410,7 +441,6 @@ export class GuidedEditor extends LitElement {
 
   private home(doc: Doc) {
     return html`
-      ${this.draft ? this.draftView() : nothing}
       <section class="g-sec">
         <h3>${t`Title and instructions`}</h3>
         ${this.text(t`Title`, doc.title ?? "", (v) =>
@@ -426,8 +456,7 @@ export class GuidedEditor extends LitElement {
           true,
         )}
       </section>
-      ${this.linesSection(doc)} ${this.clockSection(doc)}
-      ${this.roomsSection(doc)} ${this.gaSection(doc)}
+      ${this.clockSection(doc)} ${this.roomsSection(doc)}
     `;
   }
 
@@ -781,9 +810,57 @@ export class GuidedEditor extends LitElement {
       ${this.couplersSection(doc)}`;
   }
 
+  /**
+   * Drop on a line: a catalog entry adds a device there; a device of another line moves
+   * there with a free address of that line (objects and addresses are kept).
+   */
+  private lineDrop(line: string) {
+    const kind = (e: DragEvent) =>
+      e.dataTransfer?.types.includes("application/x-bd-device")
+        ? "device"
+        : e.dataTransfer?.types.includes("application/x-bd-move")
+          ? "move"
+          : null;
+    const box = (e: DragEvent) => e.currentTarget as HTMLElement;
+    return {
+      over: (e: DragEvent) => {
+        if (!kind(e)) return;
+        e.preventDefault();
+        box(e).classList.add("drop-ok");
+      },
+      leave: (e: DragEvent) => box(e).classList.remove("drop-ok"),
+      drop: (e: DragEvent) => {
+        box(e).classList.remove("drop-ok");
+        const k = kind(e);
+        if (!k) return;
+        e.preventDefault();
+        if (k === "device") {
+          const v = e.dataTransfer!.getData("application/x-bd-device");
+          if (v) this.insertDevice(line, v);
+          return;
+        }
+        const id = e.dataTransfer!.getData("application/x-bd-move");
+        const before = this.doc?.devices.find((d) => d.id === id);
+        if (!before || before.address?.startsWith(`${line}.`)) return;
+        const from = before.address;
+        if (this.run(t`Moving a device`, (d) => E.moveDevice(d, id, line))) {
+          const after = this.doc?.devices.find((d) => d.id === id);
+          this.notice = t`${before.name ?? id} moved from ${from ?? "—"} to ${after?.address ?? "—"}; its objects and addresses are kept.`;
+          this.requestUpdate();
+        }
+      },
+    };
+  }
+
   private lineBlock(doc: Doc, l: Doc["lines"][number], devs: Dev[]) {
     const line = String(l.address);
-    return html`<div class="g-line">
+    const drop = this.lineDrop(line);
+    return html`<div
+      class="g-line"
+      @dragover=${drop.over}
+      @dragleave=${drop.leave}
+      @drop=${drop.drop}
+    >
       <div class="g-line-head">
         <code class="g-tag">${t`Line`} ${line}</code>
         <input
@@ -831,7 +908,6 @@ export class GuidedEditor extends LitElement {
     </div>`;
   }
 
-  /** Line repeater or segment coupler attached to the main segment of the line. */
   /** Power supply selector of a line or of its downstream segment. */
   private psuSelect(
     label: string,
@@ -1003,7 +1079,17 @@ export class GuidedEditor extends LitElement {
     return html`<ul class="g-list">
       ${devs.map(
         (d) =>
-          html`<li>
+          html`<li class="g-dragrow">
+            <span
+              class="g-grip"
+              draggable="true"
+              title=${t`Drag the device onto another line to move it`}
+              @dragstart=${(e: DragEvent) => {
+                e.dataTransfer?.setData("application/x-bd-move", d.id);
+                if (e.dataTransfer) e.dataTransfer.effectAllowed = "move";
+              }}
+              >⠿</span
+            >
             <button class="g-item" @click=${() => this.go(d.id)}>
               <code>${d.address ?? "IP"}</code>
               <b>${d.name ?? d.id}</b>
@@ -1015,6 +1101,58 @@ export class GuidedEditor extends LitElement {
     </ul>`;
   }
 
+  /**
+   * Insert a device on a line: `snippet:<id>` for a template, `ext:<behavior>` for an
+   * extension. An extension with required values opens a draft form first.
+   */
+  insertDevice(line: string, v: string, downstream = false) {
+    if (v.startsWith("ext:")) {
+      const needs = this.draftNeeds(v.slice(4));
+      if (Object.values(needs).some((n) => n.length)) {
+        // Required values use defaults when available; otherwise the user must enter them.
+        const pre = (list: typeof needs.device) =>
+          Object.fromEntries(
+            list
+              .filter(([, p]) => p.default !== undefined)
+              .map(([k, p]) => [k, p.default]),
+          );
+        this.draft = {
+          line,
+          behavior: v.slice(4),
+          values: {
+            device: pre(needs.device),
+            channel: pre(needs.channel),
+            channelState: pre(needs.channelState),
+            equipment: pre(needs.equipment),
+            equipmentState: pre(needs.equipmentState),
+          },
+        };
+        this.requestUpdate();
+        this.updateComplete.then(() =>
+          this.querySelector(".g-draft")?.scrollIntoView({ block: "nearest" }),
+        );
+        return;
+      }
+    }
+    const ok = this.run(t`Adding a device`, (d) => {
+      // Statement on the actual document (editor's), not on the current display.
+      this.selectAdded = new Set(d.devices.map((x) => x.id));
+      if (v.startsWith("snippet:"))
+        Object.assign(
+          d,
+          SNIPPETS.find((x) => x.id === v.slice(8))!.apply(d, { line }),
+        );
+      else addGeneric(d, v.slice(4), this.registry, line);
+      const added = d.devices.filter((x) => !this.selectAdded!.has(x.id));
+      // Group objects in the order of their numbers, as edits keep them.
+      added.forEach(E.sortObjects);
+      // Dropped on the segment behind a line extension.
+      if (downstream) added.forEach((x) => E.setDownstream(d, x.id, true));
+    });
+    if (!ok) this.selectAdded = null;
+    this.requestUpdate();
+  }
+
   private addDevice(line: string) {
     const extensions = [...this.registry.behaviors].filter(
       ([id]) => !isStandardBehavior(id),
@@ -1024,51 +1162,10 @@ export class GuidedEditor extends LitElement {
       data-v=""
       aria-label=${t`Add a device on line ${line}`}
       @change=${(e: Event) => {
-        const v = (e.target as HTMLSelectElement).value;
-        if (!v) return;
-        if (v.startsWith("ext:")) {
-          const needs = this.draftNeeds(v.slice(4));
-          if (Object.values(needs).some((n) => n.length)) {
-            // Required values use defaults when available; otherwise the user must enter them.
-            const pre = (list: typeof needs.device) =>
-              Object.fromEntries(
-                list
-                  .filter(([, p]) => p.default !== undefined)
-                  .map(([k, p]) => [k, p.default]),
-              );
-            this.draft = {
-              line,
-              behavior: v.slice(4),
-              values: {
-                device: pre(needs.device),
-                channel: pre(needs.channel),
-                channelState: pre(needs.channelState),
-                equipment: pre(needs.equipment),
-                equipmentState: pre(needs.equipmentState),
-              },
-            };
-            (e.target as HTMLSelectElement).value = "";
-            this.requestUpdate();
-            this.updateComplete.then(() =>
-              this.querySelector(".g-draft")?.scrollIntoView({
-                block: "nearest",
-              }),
-            );
-            return;
-          }
-        }
-        const ok = this.run(t`Adding a device`, (d) => {
-          // Statement on the actual document (editor's), not on the current display.
-          this.selectAdded = new Set(d.devices.map((x) => x.id));
-          if (v.startsWith("snippet:"))
-            Object.assign(
-              d,
-              SNIPPETS.find((s) => s.id === v.slice(8))!.apply(d, { line }),
-            );
-          else addGeneric(d, v.slice(4), this.registry, line);
-        });
-        if (!ok) this.selectAdded = null;
-        this.requestUpdate();
+        const sel = e.target as HTMLSelectElement;
+        const v = sel.value;
+        sel.value = "";
+        if (v) this.insertDevice(line, v);
       }}
     >
       <option value="">+ ${t`Add a device…`}</option>
@@ -1083,233 +1180,9 @@ export class GuidedEditor extends LitElement {
     </select>`;
   }
 
-  private gaSection(doc: Doc) {
-    return html`<section class="g-sec">
-      <h3>${t`Group addresses`}</h3>
-      ${
-        doc.groupAddresses.length
-          ? html`<ul class="g-list">
-              ${doc.groupAddresses.map((g) => {
-                const u = E.gaUsage(doc, g.address);
-                const dpt = E.gaDpt(doc, g.address);
-                // An address read (R) and updated by response (U) is used, even without T or W.
-                const warn =
-                  !u.senders.length && !u.responders.length
-                    ? t`nobody sends`
-                    : !u.receivers.length && !u.updaters.length
-                      ? t`nobody listens`
-                      : "";
-                return html`<li>
-                  <button
-                    class="g-item"
-                    @click=${() => this.go(`ga:${g.address}`)}
-                  >
-                    <code>${g.address}</code>
-                    <b>${g.name ?? ""}</b>
-                    <small
-                      >${dpt ? dptName(dpt, t) : ""}${
-                        warn
-                          ? html` · <em class="g-warn">${warn}</em>`
-                          : nothing
-                      }</small
-                    >
-                    <span class="g-chev">›</span>
-                  </button>
-                </li>`;
-              })}
-            </ul>`
-          : html`<p class="g-empty">${t`No group address.`}</p>`
-      }
-      <div class="g-row g-end">
-        <select
-          class="g-add"
-          data-v=""
-          @change=${(e: Event) => {
-            const v = (e.target as HTMLSelectElement).value;
-            if (!v) return;
-            let created = "";
-            if (
-              this.run(t`New group address`, (d) => {
-                created = E.newGa(d, v, t`New function`);
-              })
-            )
-              this.go(`ga:${created}`);
-            this.requestUpdate();
-          }}
-        >
-          <option value="">+ ${t`New group address…`}</option>
-          ${SUPPORTED_DPTS.map((x) => html`<option value=${x}>${dptName(x, t)}</option>`)}
-        </select>
-      </div>
-    </section>`;
-  }
-
   // ── View 2: device ──
 
-  private deviceView(doc: Doc, d: Dev) {
-    const def = this.registry.behaviors.get(d.behavior);
-    const lv = E.levelsOf(doc);
-    const visu = d.kind === "supervisor";
-    const places: [string, string][] = [
-      ...(visu && lv.ip
-        ? [["IP", t`IP network (KNXnet/IP routing)`] as [string, string]]
-        : []),
-      ...(lv.backbone ? [["0.0", t`backbone 0.0`] as [string, string]] : []),
-      ...E.areasOf(doc).flatMap((a) => [
-        ...(lv.mainLines.includes(a)
-          ? [[`${a}.0`, t`main line ${a}.0`] as [string, string]]
-          : []),
-        ...doc.lines
-          .filter((l) => String(l.address).startsWith(`${a}.`))
-          .map(
-            (l) =>
-              [String(l.address), t`line ${String(l.address)}`] as [
-                string,
-                string,
-              ],
-          ),
-      ]),
-    ];
-    const place = E.lineOf(d) ?? "";
-    const ext = doc.lines.find((l) => String(l.address) === place)
-      ?.extension as { address?: string } | undefined;
-    return html`<section class="g-sec">
-        <h3>${d.name ?? d.id} <code>${d.address ?? "IP"}</code></h3>
-        <p class="g-hint">
-          ${this.typeLabel(d)}${def?.description ? html` — ${tt(def.description)}` : nothing}
-          ${def ? nothing : html`<br /><b>${t`Behavior not loaded in the designer: data kept, limited forms.`}</b>`}
-        </p>
-        <div class="g-row">
-          ${this.text(t`Name`, d.name ?? "", (v) => this.run(t`Name`, (x) => E.setDeviceField(x, d.id, "name", v)))}
-          ${this.select(visu ? t`Connection` : t`Line`, places, place, (v) =>
-            this.run(t`Connection`, (x) => E.connectDevice(x, d.id, v)),
-          )}
-          ${
-            place !== "IP" && d.address !== undefined
-              ? html`${this.text(
-                  t`Individual address`,
-                  d.address,
-                  (v) =>
-                    this.run(t`Individual address`, (x) =>
-                      E.setDeviceAddress(x, d.id, v),
-                    ),
-                  false,
-                  "narrow",
-                )}`
-              : nothing
-          }
-          ${
-            E.roomsOf(doc).length && !def?.output
-              ? this.select(
-                  t`Room`,
-                  [
-                    ["", t`none`],
-                    ...E.roomsOf(doc).map(
-                      (r) => [r.id, r.name ?? r.id] as [string, string],
-                    ),
-                  ],
-                  d.room ?? "",
-                  (v) => this.run(t`Room`, (x) => E.setDeviceRoom(x, d.id, v)),
-                )
-              : nothing
-          }
-        </div>
-        ${
-          ext && place !== "IP"
-            ? html`<label class="g-check">
-                <input
-                  type="checkbox"
-                  .checked=${live(d.downstream === true)}
-                  @change=${(e: Event) =>
-                    this.run(t`Segment`, (x) =>
-                      E.setDownstream(
-                        x,
-                        d.id,
-                        (e.target as HTMLInputElement).checked,
-                      ),
-                    )}
-                />
-                ${t`On the segment behind the line extension (${String(ext.address ?? "")})`}
-              </label>`
-            : nothing
-        }
-        ${this.text(
-          t`Help text (shown in the diagram inspector)`,
-          d.description ?? "",
-          (v) =>
-            this.run(t`Help text`, (x) =>
-              E.setDeviceField(x, d.id, "description", v),
-            ),
-          true,
-        )}
-      </section>
-      ${visu ? this.visualisation(d, place) : nothing}
-      ${def?.acceptsInputs && def.ports.input ? this.keys(doc, d) : nothing}
-      ${def?.ports.display && !def.acceptsInputs ? this.displays(doc, d) : nothing}
-      ${def?.output ? this.channels(doc, d, def) : nothing}
-      ${def ? this.devicePorts(doc, d, def) : nothing}
-      ${
-        def?.parameters
-          ? html`<section class="g-sec">
-              <h3>${t`Device settings`}</h3>
-              ${this.params(def.parameters, d.parameters ?? {}, (k, v) =>
-                this.run(t`Setting`, (x) => E.setParam(x, d.id, null, k, v)),
-              )}
-            </section>`
-          : nothing
-      }
-      ${this.expert(d)}
-      <section class="g-sec g-danger">
-        ${this.dangerButton(
-          `dev:${d.id}`,
-          t`Delete device`,
-          t`Delete “${d.name ?? d.id}”? Its group addresses remain declared.`,
-          () => {
-            if (this.run(t`Deletion`, (x) => E.removeDevice(x, d.id)))
-              this.go(null);
-          },
-        )}
-      </section>`;
-  }
-
-  /** Supervisor: how it sees the bus and whether the project declares its addresses through a dummy device. */
-  private visualisation(d: Dev, place: string) {
-    const known = d.inFilterTables !== false;
-    return html`<section class="g-sec">
-      <h3>${t`What reaches the supervisor`}</h3>
-      <p class="g-hint">
-        ${
-          place === "IP"
-            ? t`On the IP network, the supervisor receives what the KNXnet/IP routers let through: their filter table decides.`
-            : t`Connected to a line through an interface, the supervisor receives what travels on that line: the couplers decide what gets there.`
-        }
-      </p>
-      <label class="g-check">
-        <input
-          type="checkbox"
-          .checked=${live(known)}
-          @change=${(e: Event) =>
-            this.run(t`Declaration in the project`, (x) =>
-              E.setInFilterTables(
-                x,
-                d.id,
-                (e.target as HTMLInputElement).checked,
-              ),
-            )}
-        />
-        ${t`Declared in the project (dummy device with its addresses)`}
-      </label>
-      <p class="g-hint">
-        ${
-          known
-            ? t`The project knows its addresses: the filter tables let them through to it.`
-            : t`This supervisor is not declared in the project: couplers block the addresses only it uses. Remedies: declare it (dummy device), or set the couplers to “route everything”.`
-        }
-      </p>
-    </section>`;
-  }
-
-  private typeLabel(d: Dev): string {
+  typeLabel(d: Dev): string {
     const n = (d.channels ?? []).length;
     const k = (d.buttons ?? []).length;
     switch (d.behavior) {
@@ -1373,457 +1246,11 @@ export class GuidedEditor extends LitElement {
 
   // ── Touches ───────────────────────────────────────────────────────────────
 
-  private keys(doc: Doc, d: Dev) {
-    const kinds = E.actionKinds();
-    const gestureLabel: Record<Gesture, string> = {
-      press: t`Press`,
-      short: t`Short press`,
-      long: t`Long press`,
-    };
-    const summary = (k: E.KeyView) =>
-      (
-        Object.entries(k.gestures) as [
-          Gesture,
-          NonNullable<E.KeyView["gestures"][Gesture]>,
-        ][]
-      )
-        .map(([g, a]) => {
-          const v =
-            kinds[a.kind].values.find(([x]) => x === a.value)?.[1] ??
-            String(a.value);
-          return `${k.mode === "press" ? "" : `${gestureLabel[g]} : `}${v} → ${a.ga ?? "—"}`;
-        })
-        .join(" · ") + (k.led ? ` · ${t`LED`}` : "");
-    return html`<section class="g-sec">
-      <h3>${t`Keys`}</h3>
-      ${E.keysOf(d).map((k) =>
-        this.card(
-          `${d.id}:key:${k.id}`,
-          html`<b>${k.label}</b><span class="g-sum">${summary(k)}</span>`,
-          () => html`
-            <div class="g-row">
-              ${this.text(t`Label`, k.label, (v) => this.run(t`Label`, (x) => E.setKeyLabel(x, d.id, k.id, v)))}
-              ${this.select(
-                t`Gesture`,
-                [
-                  ["press", t`single press`],
-                  ["shortlong", t`short press + long press`],
-                ],
-                k.mode,
-                (v) =>
-                  this.run(t`Gesture`, (x) =>
-                    E.setKeyMode(x, d.id, k.id, v as "press" | "shortlong"),
-                  ),
-              )}
-            </div>
-            ${(
-              Object.entries(k.gestures) as [
-                Gesture,
-                NonNullable<E.KeyView["gestures"][Gesture]>,
-              ][]
-            ).map(([g, a]) => {
-              const kind = kinds[a.kind];
-              return html`<fieldset class="g-gesture" data-obj=${a.objectId}>
-                <legend>${gestureLabel[g]}</legend>
-                <div class="g-row">
-                  ${this.select(
-                    t`Function`,
-                    Object.entries(kinds).map(([id, x]) => [id, x.label]),
-                    a.kind,
-                    (v) => {
-                      const nk = kinds[v as E.ActionKind];
-                      this.run(t`Function`, (x) =>
-                        E.setGestureAction(
-                          x,
-                          d.id,
-                          k.id,
-                          g,
-                          v as E.ActionKind,
-                          nk.values[0]![0],
-                        ),
-                      );
-                    },
-                  )}
-                  ${this.select(
-                    t`Value sent`,
-                    kind.values.map(([v, l]) => [String(v), l]),
-                    String(a.value),
-                    (v) =>
-                      this.run(t`Value sent`, (x) =>
-                        E.setGestureAction(
-                          x,
-                          d.id,
-                          k.id,
-                          g,
-                          a.kind,
-                          v === "toggle" ? "toggle" : Number(v),
-                        ),
-                      ),
-                  )}
-                  ${this.gaPicker(
-                    doc,
-                    t`Sending address`,
-                    a.ga,
-                    kind.dpt,
-                    false,
-                    `${d.name ?? d.id} ${k.label}`,
-                    (ga, x) => E.setGestureGa(x, d.id, k.id, g, ga!),
-                  )}
-                </div>
-              </fieldset>`;
-            })}
-            <div class="g-row">
-              <label class="g-check"
-                ><input
-                  type="checkbox"
-                  .checked=${live(k.led)}
-                  @change=${(e: Event) => this.run(t`LED`, (x) => E.setKeyLed(x, d.id, k.id, (e.target as HTMLInputElement).checked))}
-                />${t`LED`}</label
-              >
-              ${this.gaPicker(
-                doc,
-                t`Status feedback listened to (LED)`,
-                k.feedback,
-                "1.001",
-                true,
-                t`Status ${k.label}`,
-                (ga, x) => E.setKeyFeedback(x, d.id, k.id, ga),
-              )}
-            </div>
-            <div class="g-row g-end">
-              ${this.dangerButton(
-                `key:${d.id}:${k.id}`,
-                t`Delete key`,
-                t`Delete key ${k.label}?`,
-                () => this.run(t`Deletion`, (x) => E.removeKey(x, d.id, k.id)),
-                true,
-              )}
-            </div>
-          `,
-        ),
-      )}
-      <button
-        class="g-btn"
-        @click=${() => this.run(t`Key`, (x) => void E.addKey(x, d.id))}
-      >
-        + ${t`Add a key`}
-      </button>
-    </section>`;
-  }
-
   // ── Afficheur ─────────────────────────────────────────────────────────────
-
-  private displays(doc: Doc, d: Dev) {
-    return html`<section class="g-sec">
-      <h3>${t`Displayed values`}</h3>
-      <div class="g-chips">
-        ${d.objects
-          .filter((o) => o.port === "display")
-          .map(
-            (o) =>
-              html`<span class="g-chip"
-                >${E.gasOf(o).join(", ") || "—"} · ${o.name ?? o.id}
-                <button
-                  title=${t`Remove`}
-                  @click=${() => this.run(t`Removal`, (x) => E.removeObject(x, d.id, o.id))}
-                >
-                  ×
-                </button></span
-              >`,
-          )}
-        ${this.gaAdder(doc, null, [], "", (ga, x) => E.addDisplay(x, d.id, ga), t`Display an address`)}
-      </div>
-    </section>`;
-  }
 
   // ── Actuator outputs ──────────────────────────────────────────────────
 
-  private channels(doc: Doc, d: Dev, def: BehaviorDefinition<unknown>) {
-    const equipments = [...this.registry.equipment]
-      .filter(([, e]) => e.accepts === def.output)
-      .map(([id, e]) => [id, e.title ? tt(e.title) : id] as [string, string]);
-    const chPorts = Object.entries(def.ports).filter(
-      ([, p]) => p.channel === "required",
-    );
-    const eqTitle = (type: string | undefined) =>
-      type
-        ? (equipments.find(([id]) => id === type)?.[1] ?? type)
-        : t`free output`;
-    return html`<section class="g-sec">
-      <h3>${t`Outputs`}</h3>
-      ${(d.channels ?? []).map((c) => {
-        const eq = c.equipment?.type ?? "";
-        const edef = eq ? this.registry.equipment.get(eq) : undefined;
-        const portGas = (port: string) =>
-          d.objects
-            .filter((o) => o.port === port && o.channel === c.id)
-            .flatMap(E.gasOf);
-        const sum = chPorts
-          .map(([port, p]) => [tt(p.title) || port, portGas(port)] as const)
-          .filter(([, g]) => g.length)
-          .map(([title, g]) => `${title} ${g.join(", ")}`)
-          .join(" · ");
-        return this.card(
-          `${d.id}:ch:${c.id}`,
-          html`<b>${c.label ?? c.id}</b
-            ><span class="g-sum"
-              >${eqTitle(eq)} · ${sum || t`no address`}</span
-            >`,
-          () => {
-            const more = [
-              ...(def.ports.scene
-                ? [
-                    this.text(
-                      t`Scenes (number=value, e.g. 1=1, 2=0)`,
-                      E.switchChannels(d).find((x) => x.id === c.id)?.scenes ??
-                        "",
-                      (v) =>
-                        this.run(t`Scenes`, (x) =>
-                          E.setChannelScenes(x, d.id, c.id, v),
-                        ),
-                    ),
-                  ]
-                : []),
-              ...this.paramFields(
-                def.channelParameters,
-                c.parameters ?? {},
-                (k, v) =>
-                  this.run(t`Setting`, (x) => E.setParam(x, d.id, c.id, k, v)),
-                true,
-              ),
-              ...this.paramFields(
-                edef?.parameters,
-                c.equipment?.parameters ?? {},
-                (k, v) =>
-                  this.run(t`Setting`, (x) =>
-                    E.setParam(x, d.id, c.id, k, v, "equipment"),
-                  ),
-                true,
-              ),
-            ];
-            const basic = [
-              ...this.paramFields(
-                def.channelParameters,
-                c.parameters ?? {},
-                (k, v) =>
-                  this.run(t`Setting`, (x) => E.setParam(x, d.id, c.id, k, v)),
-                false,
-              ),
-              ...this.paramFields(
-                edef?.parameters,
-                c.equipment?.parameters ?? {},
-                (k, v) =>
-                  this.run(t`Setting`, (x) =>
-                    E.setParam(x, d.id, c.id, k, v, "equipment"),
-                  ),
-                false,
-              ),
-            ];
-            return html`
-              <div class="g-row">
-                ${this.text(t`Label`, c.label ?? c.id, (v) => this.run(t`Label`, (x) => E.setChannelLabel(x, d.id, c.id, v)))}
-                ${this.select(
-                  t`Connected load`,
-                  [["", t`none (unused output)`], ...equipments],
-                  eq,
-                  (v) =>
-                    this.run(t`Connected load`, (x) =>
-                      E.setChannelLoad(
-                        x,
-                        d.id,
-                        c.id,
-                        v
-                          ? {
-                              type: v,
-                              ...(this.registry.equipment.get(v)?.heatOutput
-                                ? { room: E.roomsOf(x)[0]?.id ?? E.addRoom(x) }
-                                : {}),
-                              ...defaultEquipmentParams(this.registry, v, c),
-                            }
-                          : null,
-                      ),
-                    ),
-                )}
-                ${
-                  edef?.heatOutput
-                    ? this.select(
-                        t`Heated room`,
-                        E.roomsOf(doc).map(
-                          (r) => [r.id, r.name ?? r.id] as [string, string],
-                        ),
-                        c.equipment?.room ?? "",
-                        (v) =>
-                          this.run(t`Heated room`, (x) =>
-                            E.setEquipmentRoom(x, d.id, c.id, v),
-                          ),
-                      )
-                    : nothing
-                }
-              </div>
-              <div class="g-ports">
-                ${chPorts.map(([port, p]) =>
-                  this.portRows(doc, d, port, p, c.id, c.label ?? c.id),
-                )}
-              </div>
-              ${basic.length ? html`<div class="g-row">${basic}</div>` : nothing}
-              ${
-                more.length
-                  ? html`<details class="g-more">
-                      <summary>${t`More options`}</summary>
-                      <div class="g-row">${more}</div>
-                    </details>`
-                  : nothing
-              }
-              ${this.copyPanel(doc, d, c)}
-              <div class="g-row g-end">
-                ${
-                  this.copy?.dev === d.id && this.copy.ch === c.id
-                    ? nothing
-                    : html`<button
-                        class="g-btn small"
-                        ?disabled=${!E.copyTargets(doc, d.id, c.id).length}
-                        @click=${() => {
-                          this.copy = {
-                            dev: d.id,
-                            ch: c.id,
-                            targets: new Set(),
-                            what: {
-                              parameters: true,
-                              load: false,
-                              scenes: false,
-                            },
-                          };
-                          this.requestUpdate();
-                        }}
-                      >
-                        ${t`Copy settings to…`}
-                      </button>`
-                }
-                ${this.dangerButton(
-                  `ch:${d.id}:${c.id}`,
-                  t`Delete output`,
-                  t`Delete output ${c.label ?? c.id} and its objects?`,
-                  () =>
-                    this.run(t`Deletion`, (x) =>
-                      E.removeChannel(x, d.id, c.id),
-                    ),
-                  true,
-                )}
-              </div>
-            `;
-          },
-        );
-      })}
-      <button
-        class="g-btn"
-        @click=${() =>
-          this.run(t`Output`, (x) => {
-            const e =
-              d.channels?.[d.channels.length - 1]?.equipment?.type ??
-              equipments[0]?.[0];
-            E.addChannel(
-              x,
-              d.id,
-              e
-                ? { type: e, ...defaultEquipmentParams(this.registry, e) }
-                : null,
-            );
-          })}
-      >
-        + ${t`Add an output`}
-      </button>
-    </section>`;
-  }
-
-  /** Ports without channel or "all channels" (e.g. common scene at all exits). */
-  private devicePorts(doc: Doc, d: Dev, def: BehaviorDefinition<unknown>) {
-    // Thermostat, contact, and sensor: no outputs, push-button keys, or display.
-    const generic = !def.output && !def.ports.input && !def.ports.display;
-    const ports = Object.entries(def.ports).filter(
-      ([name, p]) =>
-        (generic && p.channel !== "required") ||
-        p.channel === "optional" ||
-        (p.channel !== "required" &&
-          !def.acceptsInputs &&
-          !["display"].includes(name) &&
-          def.output),
-    );
-    if (!ports.length) return nothing;
-    return html`<section class="g-sec">
-      <h3>${generic ? t`Group objects` : t`Objects shared by all outputs`}</h3>
-      <div class="g-ports">
-        ${ports.map(([port, p]) =>
-          this.portRows(doc, d, port, p, undefined, d.name ?? d.id),
-        )}
-      </div>
-    </section>`;
-  }
-
   // ── Expert mode: object table ────────────────────────────────────────
-
-  private expert(d: Dev) {
-    const key = `${d.id}:expert`;
-    return html`<details
-      class="g-sec g-fold"
-      ?open=${this.opened.has(key)}
-      @toggle=${(e: Event) => {
-        if ((e.target as HTMLDetailsElement).open) this.opened.add(key);
-        else this.opened.delete(key);
-      }}
-    >
-      <summary>${t`Communication objects: names and flags`}</summary>
-      <p class="g-hint">
-        ${t`W: accepts received writes · T: can send · R: answers reads, on its sending address · U: a received response updates it. C (communication) is always active.`}
-      </p>
-      <table class="g-table">
-        <tr>
-          <th>${t`Object`}</th>
-          <th>${t`Port`}</th>
-          <th>${t`Addresses`}</th>
-          <th>W</th>
-          <th>T</th>
-          <th>R</th>
-          <th>U</th>
-          <th></th>
-        </tr>
-        ${d.objects.map(
-          (o) =>
-            html`<tr data-obj=${o.id}>
-              <td class="g-obj-name">
-                <input
-                  aria-label=${t`Name of object ${o.id}`}
-                  placeholder=${o.id}
-                  .value=${fieldValue(o.name ?? "")}
-                  @change=${(e: Event) => this.run(t`Object name`, (x) => E.setObjectName(x, d.id, o.id, (e.target as HTMLInputElement).value))}
-                />${o.channel ? html`<small>${o.channel}</small>` : nothing}
-              </td>
-              <td><code>${o.port}</code></td>
-              <td><code>${E.gasOf(o).join(", ") || "—"}</code></td>
-              ${(["W", "T", "R", "U"] as const).map(
-                (f) =>
-                  html`<td>
-                    <input
-                      type="checkbox"
-                      aria-label=${`${o.name ?? o.id} ${f}`}
-                      .checked=${live(E.flagOf(o, f))}
-                      @change=${(e: Event) => this.run(t`Flag ${f}`, (x) => E.setObjectFlag(x, d.id, o.id, f, (e.target as HTMLInputElement).checked))}
-                    />
-                  </td>`,
-              )}
-              <td>
-                <button
-                  class="g-x"
-                  title=${t`Delete object`}
-                  @click=${() => this.run(t`Deleting the object`, (x) => E.removeObject(x, d.id, o.id))}
-                >
-                  ×
-                </button>
-              </td>
-            </tr>`,
-        )}
-      </table>
-    </details>`;
-  }
 
   // ── View 3: group address ──
 
@@ -2105,126 +1532,10 @@ export class GuidedEditor extends LitElement {
     </section>`;
   }
 
-  /**
-   * Copy settings from one output to other outputs of the same behavior: categories
-   * selected, balance before applying; objects and addresses of targets never changed.
-   */
-  private copyPanel(doc: Doc, d: Dev, c: Chan) {
-    const cp = this.copy;
-    if (!cp || cp.dev !== d.id || cp.ch !== c.id) return nothing;
-    // Double-worded ("not used"): the output identifier distinguishes them.
-    const raw = E.copyTargets(doc, d.id, c.id);
-    const targets = raw.map((x) =>
-      raw.filter((y) => y.dev === x.dev && y.label === x.label).length > 1
-        ? { ...x, label: `${x.label} (${x.ch})` }
-        : x,
-    );
-    const def = this.registry.behaviors.get(d.behavior);
-    const cats: [keyof E.CopyWhat, string, boolean][] = [
-      ["parameters", t`Output settings`, true],
-      ["load", t`Connected load (type, room, settings)`, !!def?.output],
-      ["scenes", t`Scenes`, !!def?.ports.scene],
-    ];
-    const chosen = targets.filter((x) => cp.targets.has(`${x.dev}/${x.ch}`));
-    const what = cats.filter(([k, , ok]) => ok && cp.what[k]);
-    const byDev = new Map<string, typeof targets>();
-    targets.forEach((x) =>
-      byDev.set(x.deviceName, [...(byDev.get(x.deviceName) ?? []), x]),
-    );
-    return html`<fieldset class="g-gesture g-copy">
-      <legend>${t`Copy settings of ${c.label ?? c.id}`}</legend>
-      <div class="g-row">
-        ${cats
-          .filter(([, , ok]) => ok)
-          .map(
-            ([k, label]) =>
-              html`<label class="g-check"
-                ><input
-                  type="checkbox"
-                  .checked=${live(cp.what[k])}
-                  @change=${(e: Event) => {
-                    cp.what[k] = (e.target as HTMLInputElement).checked;
-                    this.requestUpdate();
-                  }}
-                />${label}</label
-              >`,
-          )}
-      </div>
-      <p class="g-hint">
-        ${t`To (same device type) — objects and group addresses of the chosen outputs are not changed:`}
-      </p>
-      ${[...byDev].map(
-        ([name, list]) =>
-          html`<div class="g-row">
-            <small class="g-cdev">${name}</small>
-            ${list.map((x) => {
-              const key = `${x.dev}/${x.ch}`;
-              return html`<label class="g-check"
-                ><input
-                  type="checkbox"
-                  .checked=${live(cp.targets.has(key))}
-                  @change=${(e: Event) => {
-                    if ((e.target as HTMLInputElement).checked)
-                      cp.targets.add(key);
-                    else cp.targets.delete(key);
-                    this.requestUpdate();
-                  }}
-                />${x.label}</label
-              >`;
-            })}
-          </div>`,
-      )}
-      <p class="g-plan-line">
-        ${
-          chosen.length && what.length
-            ? t`Summary: ${what.map(([, l]) => l.toLowerCase()).join(", ")} of ${c.label ?? c.id} → ${chosen.map((x) => x.label).join(", ")}.`
-            : t`Choose at least one output and one category.`
-        }
-      </p>
-      <div class="g-row g-end">
-        <button
-          class="g-btn"
-          @click=${() => ((this.copy = null), this.requestUpdate())}
-        >
-          ${t`Undo`}
-        </button>
-        <button
-          class="g-btn solid"
-          ?disabled=${!chosen.length || !what.length}
-          @click=${() => {
-            const label = t`Settings of ${c.label ?? c.id} copied to ${chosen.length} output(s)`;
-            const whatSel: E.CopyWhat = {
-              parameters: cp.what.parameters,
-              load: cp.what.load && !!def?.output,
-              scenes: cp.what.scenes && !!def?.ports.scene,
-            };
-            if (
-              this.run(label, (x) =>
-                E.copyChannelSettings(
-                  x,
-                  d.id,
-                  c.id,
-                  chosen.map((y) => ({ dev: y.dev, ch: y.ch })),
-                  whatSel,
-                ),
-              )
-            ) {
-              this.copy = null;
-              this.notice = label;
-            }
-            this.requestUpdate();
-          }}
-        >
-          ${t`Copy`}
-        </button>
-      </div>
-    </fieldset>`;
-  }
-
   // ── Controls ──
 
   /** Two-step delete button: the first click requests confirmation in place. */
-  private dangerButton(
+  dangerButton(
     key: string,
     label: string,
     question: string,
@@ -2255,7 +1566,7 @@ export class GuidedEditor extends LitElement {
     </span>`;
   }
 
-  private text(
+  text(
     label: string,
     value: string,
     on: (v: string) => void,
@@ -2279,7 +1590,7 @@ export class GuidedEditor extends LitElement {
     </label>`;
   }
 
-  private select(
+  select(
     label: string,
     options: [string, string][],
     value: string,
@@ -2298,7 +1609,7 @@ export class GuidedEditor extends LitElement {
   }
 
   /** Available group addresses for a DPT: matching data size; created on demand if needed. */
-  private compatible(doc: Doc, dpt: string | null) {
+  compatible(doc: Doc, dpt: string | null) {
     return doc.groupAddresses.filter((g) => {
       const gd = E.gaDpt(doc, g.address);
       return !dpt || !gd || dptBits(gd) === dptBits(dpt);
@@ -2306,7 +1617,7 @@ export class GuidedEditor extends LitElement {
   }
 
   /** Choosing a unique address (emitting port, key), with creation on the fly. */
-  private gaPicker(
+  gaPicker(
     doc: Doc,
     label: string,
     value: string | null,
@@ -2338,7 +1649,7 @@ export class GuidedEditor extends LitElement {
   }
 
   /** "+" menu that adds an address to a list. */
-  private gaAdder(
+  gaAdder(
     doc: Doc,
     dpt: string | null,
     present: string[],
@@ -2371,138 +1682,8 @@ export class GuidedEditor extends LitElement {
     </select>`;
   }
 
-  /**
-   * One line per port: a port that receives can listen to multiple addresses, a port that emits
-   * has only one sending address.
-   */
-  /**
-   * Association rows for a port, with or without a channel: one per object. Multiple
-   * objects on the same port remain distinct; each keeps its addresses and flags.
-   */
-  private portRows(
-    doc: Doc,
-    d: Dev,
-    port: string,
-    p: BehaviorPort,
-    ch: string | undefined,
-    owner: string,
-  ) {
-    const objs = d.objects.filter(
-      (o) =>
-        o.port === port && (ch === undefined ? !o.channel : o.channel === ch),
-    );
-    const title = tt(p.title) || port;
-    const fallback = p.dpts === "any" ? "1.001" : p.dpts[0]!;
-    const row = (o: E.Obj | undefined) => {
-      const dpt = o?.dpt ?? fallback;
-      return this.portRow(
-        doc,
-        objs.length > 1 ? `${title} · ${o!.name ?? o!.id}` : title,
-        p.direction,
-        o ? E.gasOf(o) : [],
-        dpt,
-        `${title} ${owner}`,
-        (x, list) =>
-          E.setPortGas(x, d.id, port, ch, list, {
-            dpt,
-            W: p.direction !== "out",
-            T: p.direction === "out",
-            name: ch === undefined ? title : `${title} ${owner}`,
-            objectId: o?.id,
-          }),
-        o?.id,
-      );
-    };
-    return objs.length ? objs.map(row) : [row(undefined)];
-  }
-
-  private portRow(
-    doc: Doc,
-    title: string,
-    direction: "in" | "out" | undefined,
-    gas: string[],
-    dpt: string,
-    newName: string,
-    set: (doc: Doc, list: string[]) => void,
-    objectId?: string,
-  ) {
-    const out = direction === "out";
-    const compatible = this.compatible(doc, dpt);
-    return html`<div class="g-port" data-obj=${objectId ?? ""}>
-      <span class="g-plabel"
-        >${title}<small>${out ? t`sends` : t`listens`}</small></span
-      >
-      ${
-        out
-          ? html`<div class="g-selgo">
-              <select
-                aria-label=${title}
-                data-v=${gas[0] ?? ""}
-                @change=${(e: Event) => {
-                  const v = (e.target as HTMLSelectElement).value;
-                  this.run(title, (x) =>
-                    set(
-                      x,
-                      v === "__new" ? [E.newGa(x, dpt, newName)] : v ? [v] : [],
-                    ),
-                  );
-                }}
-              >
-                <option value="">${t`— none —`}</option>
-                ${gas[0] && !compatible.some((g) => g.address === gas[0]) ? html`<option value=${gas[0]}>${gas[0]}</option>` : nothing}
-                ${compatible.map((g) => html`<option value=${g.address} ?selected=${g.address === gas[0]}>${g.address} · ${g.name ?? ""}</option>`)}
-                <option value="__new">+ ${t`new address`}</option>
-              </select>
-              ${
-                gas[0]
-                  ? html`<button
-                      class="g-go"
-                      title=${t`Show address ${gas[0]}`}
-                      aria-label=${t`Show address ${gas[0]}`}
-                      @click=${() => this.go(`ga:${gas[0]}`)}
-                    >
-                      ›
-                    </button>`
-                  : nothing
-              }
-            </div>`
-          : html`<div class="g-chips">
-              ${gas.map(
-                (g) =>
-                  html`<span class="g-chip"
-                    ><button
-                      class="g-chip-go"
-                      title=${t`Show address ${g}`}
-                      @click=${() => this.go(`ga:${g}`)}
-                    >
-                      ${g}
-                    </button>
-                    <small
-                      >${doc.groupAddresses.find((x) => x.address === g)?.name ?? ""}</small
-                    >
-                    <button
-                      title=${t`Remove`}
-                      aria-label=${t`Remove ${g}`}
-                      @click=${() =>
-                        this.run(title, (x) =>
-                          set(
-                            x,
-                            gas.filter((y) => y !== g),
-                          ),
-                        )}
-                    >
-                      ×
-                    </button></span
-                  >`,
-              )}
-              ${this.gaAdder(doc, dpt, gas, newName, (ga, x) => set(x, [...gas, ga]), title)}
-            </div>`
-      }
-    </div>`;
-  }
-
   /** Parameters of a schema: current settings, or advanced settings (expert). */
-  private params(
+  params(
     schema: ParamSchema,
     values: Record<string, unknown>,
     on: (key: string, v: unknown) => void,
@@ -2520,7 +1701,7 @@ export class GuidedEditor extends LitElement {
       }`;
   }
 
-  private paramFields(
+  paramFields(
     schema: ParamSchema | undefined,
     values: Record<string, unknown>,
     on: (key: string, v: unknown) => void,
@@ -2677,23 +1858,6 @@ const sizeLabel = (bits: number) =>
               : t`1 byte`;
 
 /** Required values of equipment (e.g. actual travel of a shutter), recapture of the channel if possible. */
-function defaultEquipmentParams(registry: Registry, type: string, c?: Chan) {
-  const def = registry.equipment.get(type);
-  const params: Record<string, unknown> = {};
-  (def?.parameters?.required ?? []).forEach((k) => {
-    const p = def!.parameters!.properties[k]!;
-    const fromChannel = c?.parameters?.estimatedTravelTimeMs;
-    params[k] =
-      p.default ??
-      (k === "actualTravelTimeMs" && typeof fromChannel === "number"
-        ? fromChannel
-        : p.unit === "ms"
-          ? 20000
-          : (p.minimum ?? 1));
-  });
-  return Object.keys(params).length ? { parameters: params } : {};
-}
-
 /** Extension device: chosen behavior, with one output if the behavior controls one. */
 type Scope =
   "device" | "channel" | "channelState" | "equipment" | "equipmentState";

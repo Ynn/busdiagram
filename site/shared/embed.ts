@@ -47,19 +47,27 @@ export function standalonePage(
   const title = String(
     (scenario as { title?: string })?.title ?? "BusDiagram",
   ).replace(/[<&]/g, "");
+  // The library banner gives the version; the page points to the license and the
+  // source of that exact version (the third-party notices travel in the script).
+  const version = /BusDiagram v([\w.+-]+)/.exec(bundleSource)?.[1];
+  const source = version
+    ? `https://github.com/Ynn/busdiagram/tree/v${version}`
+    : "https://github.com/Ynn/busdiagram";
   return `<!doctype html>
+<!-- Made with BusDiagram${version ? ` v${version}` : ""}, AGPL-3.0-only. Source code: ${source}. The notices of the third-party components are at the top of the first script. -->
 <html lang="${lang.replace(/[^\w-]/g, "")}">
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>${title}</title>
-<style>body{margin:0;padding:16px;background:#fafaf7;font-family:system-ui,sans-serif}</style>
+<style>body{margin:0;padding:16px;background:#fafaf7;font-family:system-ui,sans-serif}.bd-made{margin-top:12px;font-size:11px;color:#8a8d93}.bd-made a{color:inherit}</style>
 <script>${escapeScript(bundleSource)}</script>
 ${extensions.map((x) => `<script>${escapeScript(wrapExtension(x.source, x.name))}</script>\n`).join("")}
 </head>
 <body>
 ${embedSnippet(scenario, options)}
+<p class="bd-made">BusDiagram${version ? ` v${version}` : ""} · AGPL-3.0-only · <a href="${source}">source code</a></p>
 </body>
 </html>
 `;

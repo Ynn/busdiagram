@@ -8,6 +8,7 @@ import {
   defaultUpdate,
   parseClockStart,
 } from "../../src/knx/scenario";
+import { captureRegistry } from "../../src/knx/registry";
 import { t } from "./lang";
 import { SnippetRefusal, freeAddress, freeGa, usedAddresses } from "./snippets";
 
@@ -88,6 +89,7 @@ export interface Doc extends J {
   ipRouter?: J;
   topology?: Topo;
   rooms?: RoomDoc[];
+  groupRanges?: { address: string; name: string }[];
 }
 
 export type IpRole = "areaCouplers" | "lineCouplers";
@@ -217,6 +219,72 @@ export function newGa(doc: Doc, dpt: string, name: string): string {
 }
 
 /**
+ * New group address in a given middle group, as the “Add group addresses” command of
+ * ETS: the first free subgroup; its DPT is set later by the first linked object.
+ */
+export function newGaIn(
+  doc: Doc,
+  main: number,
+  middle: number,
+  name: string,
+  dpt?: string,
+): string {
+  const address = wrap(() => freeGa(doc, main, middle));
+  doc.groupAddresses.push(dpt ? { address, name, dpt } : { address, name });
+  return address;
+}
+
+/** Main (“M”) and middle (“M/m”) groups: those with addresses and those named. */
+export function groupRangesOf(doc: Doc): {
+  mains: number[];
+  middles: string[];
+} {
+  const mains = new Set<number>();
+  const middles = new Set<string>();
+  doc.groupAddresses.forEach((g) => {
+    const [m, mm] = g.address.split("/").map(Number);
+    mains.add(m!);
+    middles.add(`${m}/${mm}`);
+  });
+  (doc.groupRanges ?? []).forEach((r) => {
+    const [m, mm] = r.address.split("/");
+    mains.add(Number(m));
+    if (mm !== undefined) middles.add(r.address);
+  });
+  const byNum = (a: string, b: string) => {
+    const [x, y] = [a, b].map((s) => s.split("/").map(Number));
+    return x![0]! - y![0]! || x![1]! - y![1]!;
+  };
+  return {
+    mains: [...mains].sort((a, b) => a - b),
+    middles: [...middles].sort(byNum),
+  };
+}
+
+/** New main group: the first free number 0–31, with a name. */
+export function addMainGroup(doc: Doc, name: string): string {
+  const { mains } = groupRangesOf(doc);
+  const free = Array.from({ length: 32 }, (_, i) => i).find(
+    (i) => !mains.includes(i),
+  );
+  if (free === undefined) throw new EditRefusal(t`no free main group (0–31)`);
+  setGroupRangeName(doc, String(free), name);
+  return String(free);
+}
+
+/** New middle group in a main group: the first free number 0–7, with a name. */
+export function addMiddleGroup(doc: Doc, main: number, name: string): string {
+  const { middles } = groupRangesOf(doc);
+  const free = Array.from({ length: 8 }, (_, i) => i).find(
+    (i) => !middles.includes(`${main}/${i}`),
+  );
+  if (free === undefined)
+    throw new EditRefusal(t`no free middle group in ${main} (0–7)`);
+  setGroupRangeName(doc, `${main}/${free}`, name);
+  return `${main}/${free}`;
+}
+
+/**
  * Possible DPTs for an address: linked objects require one data size.
  * If no object is linked, all DPTs are available.
  */
@@ -251,6 +319,24 @@ export function setGaField(
 }
 
 /** Rename an address everywhere it is used, in one transaction. */
+/** Name of a main group ("1") or middle group ("1/2"); an empty name removes it. */
+export function setGroupRangeName(doc: Doc, address: string, name: string) {
+  const list = [...(doc.groupRanges ?? [])].filter(
+    (r) => r.address !== address,
+  );
+  const v = name.trim();
+  if (v) list.push({ address, name: v });
+  // Keep the tree order: main groups, then their middle groups.
+  const key = (a: string) =>
+    a
+      .split("/")
+      .map(Number)
+      .reduce((k, n, i) => k + n * (i ? 1 : 100), 0);
+  list.sort((a, b) => key(a.address) - key(b.address));
+  if (list.length) doc.groupRanges = list;
+  else delete doc.groupRanges;
+}
+
 export function renameGa(doc: Doc, from: string, to: string) {
   if (!GA_RE.test(to))
     throw new EditRefusal(t`“${to}” is not a valid group address (e.g. 1/1/1)`);
@@ -881,6 +967,7 @@ export function addKey(doc: Doc, devId: string): string {
   b.press = gestureObject(doc, d, b, "press", "switch", "toggle");
   b.led = b.press.object;
   d.buttons.push(b);
+  sortObjects(d);
   return b.id;
 }
 
@@ -896,6 +983,7 @@ export function removeKey(doc: Doc, devId: string, keyId: string) {
       isActionTarget(d, o.id) ||
       d.buttons!.some((x) => x.led === o.id),
   );
+  sortObjects(d);
 }
 
 export function setKeyLabel(
@@ -938,6 +1026,8 @@ export function setKeyMode(
       (o) => !drop.includes(o.id) || isActionTarget(d, o.id),
     );
   }
+  // The objects of a key keep their place among the keys.
+  sortObjects(d);
 }
 
 /** Change a gesture action; if data size changes, assign a new object address. */
@@ -1119,12 +1209,103 @@ export function setPortGas(
       ...(ch !== undefined ? { channel: ch } : {}),
       flags: { W: opts.W, T: opts.T },
     };
-    // Place the object after others on the same channel to keep the editor readable.
-    const lastSame = d.objects.map((x) => x.channel).lastIndexOf(ch);
-    d.objects.splice(lastSame >= 0 ? lastSame + 1 : d.objects.length, 0, o);
+    d.objects.push(o);
+    sortObjects(d);
   }
   setGas(o, gas);
 }
+
+// ── Object numbers ──────────────────────────────────────────────────────────
+
+/** Numbers reserved for each key: its single or short press, then its long press. */
+export const KEY_BLOCK = 2;
+
+type PortTable = { ports: Record<string, { channel?: string }> };
+
+/**
+ * Number of each group object of a device, as in the object table of an ETS
+ * application: each key, then each channel, has a block of numbers of fixed size, so
+ * that a key or an output keeps its numbers when another one gains or loses objects.
+ * In a key block, the single or short press comes first, then the long press; in a
+ * channel block, the place is the order of the ports declared by the behavior. The
+ * other objects (functions of the whole device) follow, in the order of the ports,
+ * then of the scenario. Numbers start at 1; unused places are gaps, as in ETS.
+ */
+export function objectNumbers(
+  d: Dev,
+  def: PortTable | undefined = captureRegistry().behaviors.get(d.behavior),
+): Map<string, number> {
+  const ports = Object.keys(def?.ports ?? {});
+  const chPorts = ports.filter((p) =>
+    ["required", "optional"].includes(def!.ports[p]!.channel ?? ""),
+  );
+  // Key blocks exist for the keys of a push-button, whose objects use the "input" port;
+  // other devices attach keys to objects of their functions (a thermostat's presence).
+  const isKeyObject = (id: string) => {
+    const o = d.objects.find((x) => x.id === id);
+    return !!o && (!o.port || o.port === "input");
+  };
+  const all = d.buttons ?? [];
+  let last = -1;
+  all.forEach((b, i) => {
+    if ([b.press, b.short, b.long].some((a) => a && isKeyObject(a.object)))
+      last = i;
+  });
+  const keys = all.slice(0, last + 1);
+  const channels = d.channels ?? [];
+  const chBase = 1 + keys.length * KEY_BLOCK;
+  const restBase = chBase + channels.length * chPorts.length;
+  const placeOf = (o: Obj): number | null => {
+    // Objects of the keys of a push-button (other devices use keys on their functions).
+    if (!o.port || o.port === "input")
+      for (const [i, b] of keys.entries()) {
+        if (b.press?.object === o.id || b.short?.object === o.id)
+          return 1 + i * KEY_BLOCK;
+        if (b.long?.object === o.id || b.release?.object === o.id)
+          return 1 + i * KEY_BLOCK + 1;
+      }
+    if (o.channel !== undefined) {
+      const c = channels.findIndex((x) => x.id === o.channel);
+      const p = chPorts.indexOf(o.port);
+      if (c >= 0 && p >= 0) return chBase + c * chPorts.length + p;
+    }
+    return null;
+  };
+  const numbers = new Map<string, number>();
+  const taken = new Set<number>();
+  const rest: Obj[] = [];
+  for (const o of d.objects) {
+    const n = placeOf(o);
+    if (n !== null && !taken.has(n)) {
+      numbers.set(o.id, n);
+      taken.add(n);
+    } else rest.push(o);
+  }
+  const rank = (o: Obj) => {
+    const i = ports.indexOf(o.port);
+    return i < 0 ? ports.length : i;
+  };
+  rest
+    .map((o, i) => [o, i] as const)
+    .sort(([a, i], [b, j]) => rank(a) - rank(b) || i - j)
+    .forEach(([o], k) => numbers.set(o.id, restBase + k));
+  return numbers;
+}
+
+/** Objects of a device in the order of their numbers. */
+export function objectsInOrder(d: Dev): Obj[] {
+  const n = objectNumbers(d);
+  return [...d.objects].sort((a, b) => n.get(a.id)! - n.get(b.id)!);
+}
+
+/** Order the objects of a device by number, so that the scenario and the diagram follow it. */
+export function sortObjects(d: Dev) {
+  d.objects = objectsInOrder(d);
+}
+
+/** Whether the objects of a device are already in the order of their numbers. */
+export const objectsSorted = (d: Dev) =>
+  objectsInOrder(d).every((o, i) => o === d.objects[i]);
 
 export interface SwitchChannelView {
   id: string;
@@ -1317,6 +1498,7 @@ export function addChannel(
   if (equipment && prev?.equipment?.type === equipment.type)
     ch.equipment = copy(prev.equipment);
   d.channels.push(ch);
+  sortObjects(d);
   return `s${n}`;
 }
 
@@ -1325,6 +1507,7 @@ export function removeChannel(doc: Doc, devId: string, ch: string) {
   channel(d, ch);
   d.channels = d.channels!.filter((c) => c.id !== ch);
   d.objects = d.objects.filter((o) => o.channel !== ch);
+  sortObjects(d);
 }
 
 // ── Afficheur ────────────────────────────────────────────────────────────────
@@ -1342,6 +1525,7 @@ export function addDisplay(doc: Doc, devId: string, ga: string) {
     port: "display",
     flags: { W: true, T: false },
   });
+  sortObjects(d);
 }
 
 // ── Objets (mode expert) ─────────────────────────────────────────────────────
@@ -1527,6 +1711,24 @@ export function setGaMembers(
       gas.filter((g) => g !== addr),
     );
   });
+}
+
+/**
+ * Make one of an object's addresses its sending address (the first of its list); the
+ * other addresses keep their order and remain listened to.
+ */
+export function setSendingGa(
+  doc: Doc,
+  devId: string,
+  objectId: string,
+  addr: string,
+) {
+  const o = device(doc, devId).objects.find((x) => x.id === objectId);
+  if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
+  const gas = gasOf(o);
+  if (!gas.includes(addr))
+    throw new EditRefusal(t`${addr} is not linked to ${o.name ?? o.id}`);
+  setGas(o, [addr, ...gas.filter((g) => g !== addr)]);
 }
 
 export interface CopyWhat {

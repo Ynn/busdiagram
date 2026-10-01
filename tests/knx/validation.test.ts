@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ScenarioError, buildScenario } from "../../src/knx/scenario";
+import { toV2 } from "../../src/knx/export";
 import { flags, raw, v2 } from "./helpers";
 
 function problems(data: unknown) {
@@ -475,5 +476,43 @@ describe("DPTs shown but not simulated", () => {
     expect(paths(scenario("passive/v1", "999.001"))).toContain(
       "devices[0].objects[0].dpt [dpt]",
     );
+  });
+});
+
+describe("names of main and middle groups", () => {
+  const withRanges = (groupRanges: unknown) => ({
+    formatVersion: 2,
+    lines: [{ address: "1.1" }],
+    devices: [],
+    groupRanges,
+  });
+
+  it("are kept and exported unchanged", () => {
+    const ranges = [
+      { address: "1", name: "Lighting" },
+      { address: "1/2", name: "Dimming" },
+    ];
+    const s = buildScenario(withRanges(ranges));
+    expect([...s.groupRanges]).toEqual([
+      ["1", "Lighting"],
+      ["1/2", "Dimming"],
+    ]);
+    expect(toV2(s).groupRanges).toEqual(ranges);
+  });
+
+  it("reject invalid and duplicate groups", () => {
+    const p = paths(
+      withRanges([
+        { address: "32", name: "x" },
+        { address: "1/8", name: "x" },
+        { address: "1", name: "a" },
+        { address: "1", name: "b" },
+      ]),
+    );
+    expect(p).toEqual([
+      "groupRanges[0].address [address]",
+      "groupRanges[1].address [address]",
+      "groupRanges[3] [duplicate]",
+    ]);
   });
 });

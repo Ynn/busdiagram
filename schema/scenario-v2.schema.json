@@ -166,6 +166,29 @@
         }
       }
     },
+    "groupRanges": {
+      "type": "array",
+      "description": "Names of main groups (\"1\") and middle groups (\"1/2\"), shown in the group address tree of the designer, as in ETS.",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "address",
+          "name"
+        ],
+        "properties": {
+          "address": {
+            "type": "string",
+            "pattern": "^([0-9]|[12][0-9]|3[01])(/[0-7])?$",
+            "description": "Main group (0–31) or middle group (0–31/0–7)."
+          },
+          "name": {
+            "type": "string",
+            "description": "Name of the group, such as Lighting or Dimming."
+          }
+        }
+      }
+    },
     "groupAddresses": {
       "type": "array",
       "items": {

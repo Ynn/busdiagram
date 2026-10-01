@@ -578,3 +578,38 @@ describe("line power supply in the designer", () => {
     valid(doc);
   });
 });
+
+describe("group objects: linking and sending address", () => {
+  it("adds a listened address, promotes it to sending address, and removes it", () => {
+    const doc = v2("status-feedback.json");
+    const dev = doc.devices.find((d) => d.id === "pushButton")!;
+    const key1 = dev.objects.find((o) => o.id === "key1")!;
+    E.setGaMembers(doc, "1/4/1", [{ dev: "pushButton", obj: "key1" }], []);
+    expect(E.gasOf(key1)).toEqual(["1/1/1", "1/4/1"]);
+    E.setSendingGa(doc, "pushButton", "key1", "1/4/1");
+    expect(E.gasOf(key1)).toEqual(["1/4/1", "1/1/1"]);
+    E.setSendingGa(doc, "pushButton", "key1", "1/1/1");
+    E.setGaMembers(doc, "1/4/1", [], [{ dev: "pushButton", obj: "key1" }]);
+    expect(E.gasOf(key1)).toEqual(["1/1/1"]);
+    expect(() => E.setSendingGa(doc, "pushButton", "key1", "1/9/9")).toThrow(
+      E.EditRefusal,
+    );
+    valid(doc);
+  });
+});
+
+describe("group names in the designer", () => {
+  it("names, orders, and removes main and middle groups", () => {
+    const doc = v2("status-feedback.json");
+    E.setGroupRangeName(doc, "1/4", "Status");
+    E.setGroupRangeName(doc, "1", "Lighting");
+    expect(doc.groupRanges).toEqual([
+      { address: "1", name: "Lighting" },
+      { address: "1/4", name: "Status" },
+    ]);
+    E.setGroupRangeName(doc, "1/4", "  ");
+    E.setGroupRangeName(doc, "1", "");
+    expect(doc.groupRanges).toBeUndefined();
+    valid(doc);
+  });
+});

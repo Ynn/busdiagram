@@ -50,13 +50,66 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-<h1 id="designer"><a class="anchor" href="#designer">#</a>Designer</h1><p>The <a href="../designer/index.html">designer</a> is the main authoring tool for diagrams. It is a standalone web application that works offline. Editing tools appear on the left and a live preview on the right. You can prepare a scenario without writing JSON, edit the JSON directly, and export the result for a page or presentation.</p>
+<h1 id="designer"><a class="anchor" href="#designer">#</a>Designer</h1><p>The <a href="../designer/index.html">designer</a> is the main authoring tool for diagrams. It is a standalone web application that works offline. Editing tools appear on the left and a live preview on the right; drag the separator between them (or focus it and use the arrow keys) to share the width, and <strong>Hide preview</strong> to give the editor the whole window. The layout is remembered by the browser. You can prepare a scenario without writing JSON, edit the JSON directly, and export the result for a page or presentation.</p>
 <p>Both editing modes use the same scenario. Changes made in the guided forms update the JSON; valid JSON edits update the forms. The browser saves the draft locally and restores it when you return.</p>
 <h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Start a scenario</h2><p>Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing <code>.json</code> file. Format 1 scenarios are converted to format 2 when needed.</p>
-<h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Guided editor</h2><p>The guided editor has three levels: installation, device, and group address. Breadcrumbs and the Back button return to the previous view.</p>
-<p>The <strong>installation</strong> view contains the title, description, <a href="topology.html">topology</a>, couplers, heated <a href="hvac.html">rooms</a>, the <a href="time.html#simulated-clock">simulated clock</a>, and group addresses. You can add lines, areas, devices, an IP network, or a supervisor. New devices receive available individual addresses. For each group address, the designer shows its DPT and whether any object transmits or listens on that address.</p>
-<p>Open a <strong>device</strong> from the list or the diagram to edit its name, line, address, parameters, communication objects, and flags. The available controls follow its behavior: buttons for a push button, outputs for an actuator, and forms for other built-in or extension behaviors. Output settings can be copied to compatible outputs without changing their objects or group addresses. Advanced controls expose scenes and other optional parameters. The <strong>Communication objects: names and flags</strong> section lists every object of the device with its port and addresses; rename an object there, or change its W, T, R, and U flags.</p>
-<p>Open a <strong>group address</strong> to inspect its connected objects and their W, T, R, and U flags. The associated-object editor groups objects by device and lets you add or remove an address from several objects at once. Before applying the change, it lists the effects on transmission addresses and object links. The whole operation can be undone in one step.</p>
+<h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Guided editor</h2><p>The guided editor follows the working logic of ETS, so that students find the same gestures as in their KNX course: panels with a tree and a list, a catalog, group addresses linked to group objects by drag and drop. It does not copy ETS itself; the preview on the right shows the result at once.</p>
+<h3 id="panels"><a class="anchor" href="#panels">#</a>Panels</h3><p>Two panels are stacked. The selector in the title bar of each panel chooses its content: <strong>Topology</strong>, <strong>Group addresses</strong>, <strong>Catalog</strong>, or <strong>Installation</strong> (title, description, simulated clock, heated rooms). <strong>+ Panel</strong> opens the second panel, and <strong>×</strong> closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content, as in ETS. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.</p>
+<p>In the Topology tree, a line with a line repeater or a segment coupler shows its two segments, and each device sits in its segment. A line without extension shows its devices directly. Devices are collapsed: open one (▸) to show its group objects in the tree. The <strong>Filter</strong> field above each tree keeps the nodes whose address or name contains the text, with their parents.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Tree selection</th>
+<th>List tabs</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Topology (root)</td>
+<td>Overview: IP network, backbone, main lines, areas and lines with their devices, couplers and filter tables.</td>
+</tr>
+<tr>
+<td>Area</td>
+<td>Lines of the area; name of the area; <strong>Add line</strong>.</td>
+</tr>
+<tr>
+<td>Line</td>
+<td>Devices of the line; name, power supply, and line extension.</td>
+</tr>
+<tr>
+<td>Device</td>
+<td><strong>Group objects</strong> (number, name, object function, group addresses with the sending address marked <strong>S</strong>, length, DPT, C, W, T, R, and U flags) and <strong>Parameters</strong>: as in ETS, a list of pages on the left (General, each key, each output, objects shared by all outputs) and the parameters of the selected page on the right, one per row, label on the left and value on the right.</td>
+</tr>
+<tr>
+<td>Group object</td>
+<td><strong>Associations</strong> (group addresses of the object; <strong>Set as sending</strong>; <strong>Delete</strong>; <strong>Link with…</strong>) and <strong>Properties</strong> (name, flags, DPT).</td>
+</tr>
+<tr>
+<td>Group addresses (root), main group, middle group</td>
+<td>Main groups, middle groups, or addresses, with <strong>Add main group</strong>, <strong>Add middle group</strong>, and <strong>Add group address</strong>; name the groups as in ETS.</td>
+</tr>
+<tr>
+<td>Group address</td>
+<td><strong>Associations</strong> (objects linked to the address, with the sending one; their W, T, R, and U flags can be changed here, as in ETS; <strong>Link with…</strong>) and <strong>Properties</strong> (address, name, DPT, and grouped editing of linked objects).</td>
+</tr>
+<tr>
+<td>Catalog</td>
+<td>The device types that the simulator models, by category, with their application and group objects; <strong>Items</strong> … <strong>in line</strong> … <strong>Add</strong> inserts devices.</td>
+</tr>
+</tbody></table>
+</div><p>Selecting a device in the diagram shows it in the Topology panel.</p>
+<p><strong>Numbers of group objects.</strong> As in the object table of an ETS application, each key of a push-button and each output of an actuator has a block of numbers of fixed size: two per key (single or short press, then long press), and one per function of the output, in the order of the functions of the device (for a switch actuator: switching, status, scene, forcing, power, energy). The objects of the whole device follow the blocks. A key or an output therefore keeps its numbers when another one gains or loses objects, and unused places leave gaps. Adding or deleting a key or an output renumbers the blocks after it. Guided edits keep the objects of the scenario, and the rows of the diagram, in the order of their numbers; for a scenario written by hand, <strong>Order group objects by number</strong> in the context menu of the device does it.</p>
+<p>A right-click on any tree node or list row (or the context-menu key, or Shift+F10 in a tree) opens the commands of that element; the same element has the same commands wherever it appears, and a list row also offers <strong>Open</strong>. A right-click on the empty part of a list opens the commands of the element it shows. The commands include: add an area, a line, or devices from the catalog; add or remove a line extension; open the group objects or parameters of a device; <strong>Link with…</strong>; <strong>Rename</strong>; unlink all addresses of an object; add or delete groups and addresses; delete the element; add a catalog entry on a line.</p>
+<p><strong>Rename</strong> an area, a line, a device, a group object, a group, or a group address by double-clicking its name (in a tree or a list), with <strong>F2</strong> in a tree, or with <strong>Rename</strong> in the context menu. <strong>Enter</strong> confirms, <strong>Escape</strong> cancels.</p>
+<h3 id="programming-gestures"><a class="anchor" href="#programming-gestures">#</a>Programming gestures</h3><ul>
+<li><strong>Add a device:</strong> drag a catalog entry onto a line of the Topology tree or onto the device list of a line, double-click the entry, or use <strong>Add</strong> at the bottom of the Catalog panel. The device receives the first free individual address of the line.</li>
+<li><strong>Link a group address and a group object:</strong> drag the address from the Group addresses panel onto a group object (in the tree, or a row of the Group objects or Associations tab), or drag the group object onto the address. When a panel shows a group address, a group object, a middle group, or a line, the whole list of that panel is a drop target: there is no need to aim at a row. The first address of an object is its sending address; later ones are only listened to. <strong>Set as sending</strong>, in the Associations tab of the object, changes the sending address.</li>
+<li><strong>Activate a group object:</strong> on a key or output page of the parameters, tick the box in front of a function (Forcing, Status feedback, …). The object appears in the tree and in the Group objects tab without any address, ready to be dragged onto a group address; removing its last address keeps it active. Untick the box to remove the object.</li>
+<li><strong>New address for an object:</strong> drag a group object onto a middle group: a group address is created in it and linked to the object.</li>
+<li><strong>Move a device:</strong> drag it onto another line; it receives a free address of that line and keeps its objects and links.</li>
+</ul>
+<p>During a drag, the status bar at the bottom explains the gesture (“Link with 1: Key 1”). As in ETS, only objects and addresses of the same data size can be linked: an incompatible target is shown in red and the drop is refused. Each gesture, and the equivalent button, is one step of the undo history.</p>
+<p>In the <strong>Properties</strong> tab of a group address, the associated-object editor groups objects by device and lets you add or remove an address from several objects at once. Before applying the change, it lists the effects on transmission addresses and object links. The whole operation can be undone in one step.</p>
+<p><strong>About</strong>, in the title bar, gives the version, the license, and the address of the source code. BusDiagram is an independent educational project, not affiliated with KNX Association; KNX and ETS are trademarks of KNX Association.</p>
 <h3 id="validation-and-undo"><a class="anchor" href="#validation-and-undo">#</a>Validation and undo</h3><p>The designer proposes only compatible choices where possible: for example, group addresses and objects must use compatible DPT sizes. Invalid edits are rejected with an explanation, and the scenario keeps its previous valid value. Destructive edits require confirmation. Guided and JSON edits share one undo history.</p>
 <p>Validation errors are listed below the editor. Select an error to open the relevant device or field.</p>
 <h2 id="json-editor"><a class="anchor" href="#json-editor">#</a>JSON editor</h2><p>The JSON tab edits the complete scenario. It offers insertion templates, formatting, and conversion to format 2. Completion suggests fields, behavior ports, DPTs, declared group addresses, and existing objects and channels at the cursor position. Errors are highlighted in place. While the JSON is invalid, the preview continues to show the last valid scenario.</p>
@@ -102,6 +155,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#start-a-scenario">Start a scenario</a></li><li><a href="#guided-editor">Guided editor</a></li><li><a href="#json-editor">JSON editor</a></li><li><a href="#preview-and-export">Preview and export</a></li><li><a href="#extensions">Extensions</a></li><li><a href="#languages">Languages</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>
 </html>

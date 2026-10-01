@@ -342,6 +342,9 @@ export const frMessages: Record<string, string> = {
   "Switch-on brightness threshold": "Seuil de luminosité d'enclenchement",
   "Detection: {0} lx is not below the threshold of {1} lx, no switch-on":
     "Détection : {0} lx n'est pas sous le seuil de {1} lx, pas d'enclenchement",
+  "“{0}” is not a main group (0–31) or a middle group (0–31/0–7)":
+    "« {0} » n'est ni un groupe principal (0–31) ni un groupe médian (0–31/0–7)",
+  "duplicate group range {0}": "groupe {0} en double",
   "Start-up send delay": "Délai d'émission au démarrage",
   "Group addresses assigned to the interface":
     "Adresses de groupe affectées à l'interface",

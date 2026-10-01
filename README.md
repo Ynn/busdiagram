@@ -39,6 +39,10 @@ The documentation is published at <https://ynn.github.io/busdiagram/>. It also w
 
 BusDiagram follows [Semantic Versioning](https://semver.org/). `BusDiagram.version` and the banner of the distributed files give the version in use; changes are listed in [CHANGELOG.md](CHANGELOG.md). Pin a version in CDN URLs. See the guide page “Versions and releases” for what each kind of version can change.
 
+## Independence
+
+BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.
+
 ## License
 
-BusDiagram is distributed under the GNU Affero General Public License, version 3 ([LICENSE](LICENSE), [NOTICE](NOTICE)). Licenses of the third-party components included in the distributed files are in `THIRD_PARTY_NOTICES.txt`.
+BusDiagram is distributed under the GNU Affero General Public License, version 3 ([LICENSE](LICENSE), [NOTICE](NOTICE)). Licenses of the third-party components included in the distributed files are in `THIRD_PARTY_NOTICES.txt` and at the top of `bus-diagram.js` and `bus-diagram.esm.js`; each file gives the address of its source code.

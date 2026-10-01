@@ -116,6 +116,9 @@ export function toV2(
         dpt: g.dpt || undefined,
       }),
     ),
+    groupRanges: s.groupRanges.size
+      ? [...s.groupRanges].map(([address, name]) => ({ address, name }))
+      : undefined,
     devices: s.devices.map((d) => {
       const def = registry.behaviors.get(d.behavior);
       const byId = new Map(d.objects.map((o) => [o.id, o]));

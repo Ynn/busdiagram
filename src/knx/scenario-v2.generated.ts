@@ -281,6 +281,19 @@ address: string
 name?: string
 }
 /**
+ * Names of main groups ("1") and middle groups ("1/2"), shown in the group address tree of the designer, as in ETS.
+ */
+groupRanges?: {
+/**
+ * Main group (0–31) or middle group (0–31/0–7).
+ */
+address: string
+/**
+ * Name of the group, such as Lighting or Dimming.
+ */
+name: string
+}[]
+/**
  * Declared group addresses: names and DPTs displayed in the monitor and inherited by associated objects.
  */
 groupAddresses?: GroupAddress[]

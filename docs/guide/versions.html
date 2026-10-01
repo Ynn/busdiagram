@@ -94,7 +94,7 @@
 <li><p><strong>Self-hosted file:</strong> keep <code>bus-diagram.js</code> next to your pages and replace it deliberately when you update. Check its banner to know which version it is.</p>
 </li>
 <li><p><strong>CDN:</strong> use a URL that contains the full version number. A URL without a version, a version range such as <code>@0</code> or <code>@0.1</code>, or a moving tag such as <code>latest</code> can change the behavior of an existing page when a new version is released. For version 0.3.1:</p>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.3.1/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-A2g4Mcuz7JpWDiSIb1qxDI3SgqRMeL/fofK1AH4kzf7KnMnE+aDJX1e/x7+btxyi"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The <code>integrity</code> attribute holds the SHA-384 hash of the published file (Subresource Integrity). Keep it when copying the tag; when changing the version, take the new tag from the <a href="installation.html">installation page</a> or the designer, since the hash differs for each version.</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.3.1/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-g8gDPXBq6NOkZf5CrTxQF/7ttm36IfZuTn+4Mbb87KxiuLwnD3jenIOkjhV/SPtL"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The <code>integrity</code> attribute holds the SHA-384 hash of the published file (Subresource Integrity). Keep it when copying the tag; when changing the version, take the new tag from the <a href="installation.html">installation page</a> or the designer, since the hash differs for each version.</p>
 </li>
 <li><p><strong>Standalone page:</strong> a page exported by the designer embeds the library. It keeps its version and works offline.</p>
 </li>
@@ -110,6 +110,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#find-the-version">Find the version</a></li><li><a href="#what-the-version-covers">What the version covers</a></li><li><a href="#pin-a-version">Pin a version</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a></footer>
+<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>
 </html>

@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import type { BrowserContext, Page } from "@playwright/test";
+import type { BrowserContext, Locator, Page } from "@playwright/test";
 import { createHash } from "node:crypto";
 import {
   existsSync,
@@ -355,6 +355,29 @@ test.describe("guided designer", () => {
       (window as unknown as { designer: { text(): string } }).designer.text(),
     );
 
+  // ETS-like workspace: panel 0 shows the topology, panel 1 the group addresses.
+  const topoPanel = (page: Page) =>
+    page.locator("bd-guided .w-panel[data-content=topology]");
+  const gaPanel = (page: Page) =>
+    page.locator("bd-guided .w-panel[data-content=addresses]");
+  /** Select a device in the topology tree and show one of its tabs. */
+  const openDevice = async (page: Page, name: string, tab = "Parameters") => {
+    await topoPanel(page)
+      .locator(".w-node[data-key^='dev:']", { hasText: name })
+      .first()
+      .click();
+    await topoPanel(page).getByRole("tab", { name: tab }).click();
+  };
+  /** Back to the topology overview (root of the tree). */
+  const toTopology = (page: Page) =>
+    topoPanel(page).locator(".w-node[data-key=topo]").click();
+  /** Select a group address in the Group addresses panel and show one of its tabs. */
+  const openGa = async (page: Page, address: string, tab = "Properties") => {
+    await gaPanel(page).locator(`.w-node[data-key='ga:${address}']`).click();
+    await gaPanel(page).getByRole("tab", { name: tab }).click();
+  };
+  const selectedNode = (page: Page) => topoPanel(page).locator(".w-node.sel");
+
   const emptyDoc = (page: Page, title: string) =>
     page.evaluate((title) => {
       localStorage.clear();
@@ -381,32 +404,26 @@ test.describe("guided designer", () => {
     await page.selectOption("select.g-add >> nth=0", {
       label: "4-key push button",
     });
-    // The new device editor opens; breadcrumbs lead back to the scenario.
-    await expect(page.locator(".g-crumb b")).toHaveText("4-key push button");
-    await page.click(".g-back");
+    // The new device is selected in the topology; the overview adds the next one.
+    await expect(selectedNode(page)).toContainText("4-key push button");
+    await toTopology(page);
     await page.selectOption("select.g-add >> nth=0", {
       label: "6-output switch actuator",
     });
-    await expect(page.locator(".g-crumb b")).toHaveText(
-      "6-output switch actuator",
-    );
+    await expect(selectedNode(page)).toContainText("6-output switch actuator");
+    await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
 
-    // Collapsed outputs fit on one line; all six listen to the Key 1 address.
-    const cards = page.locator("bd-guided .g-card");
-    await expect(cards).toHaveCount(6);
-    await expect(cards.first().locator(":scope > summary")).toContainText(
-      "Lamp · no address",
-    );
+    // Each output is a page of the parameter menu; all six listen to the Key 1 address.
+    const outputs = topoPanel(page).locator(".w-pitem", { hasText: /^\s*Output / });
+    await expect(outputs).toHaveCount(6);
+    await expect(outputs.first()).toHaveAttribute("title", /Lamp · no address/);
     for (let i = 0; i < 6; i++) {
-      await cards.nth(i).locator(":scope > summary").click();
-      await cards
-        .nth(i)
-        .locator(".g-port", { hasText: "Command" })
+      await outputs.nth(i).click();
+      await topoPanel(page)
+        .locator(".w-ppage .g-port", { hasText: "Command" })
         .locator("select.g-plus")
         .selectOption("1/1/1");
-      await expect(cards.nth(i).locator(":scope > summary")).toContainText(
-        "Command 1/1/1",
-      );
+      await expect(outputs.nth(i)).toHaveAttribute("title", /Command 1\/1\/1/);
     }
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     const doc = JSON.parse(await designerText(page)) as {
@@ -445,7 +462,7 @@ test.describe("guided designer", () => {
     const before = await designerText(page);
 
     // A refusal shows a banner and field path while leaving the JSON unchanged.
-    await page.locator(".g-item", { hasText: "Switching actuator" }).click();
+    await openDevice(page, "Switching actuator");
     const address = page
       .locator("label.g-field", { hasText: "Individual address" })
       .locator("input");
@@ -466,9 +483,8 @@ test.describe("guided designer", () => {
     await expect(page.locator(".g-alert")).toHaveCount(0);
 
     // DPT choices include only sizes compatible with linked objects.
-    await page.click(".g-back");
-    await page.locator(".g-item", { hasText: "1/1/1" }).click();
-    const dpt = page
+    await openGa(page, "1/1/1");
+    const dpt = gaPanel(page)
       .locator("label.g-field", { hasText: "DPT" })
       .locator("select");
     await expect(dpt.locator('option[value="5.001"]')).toHaveJSProperty(
@@ -484,7 +500,7 @@ test.describe("guided designer", () => {
     );
 
     // One line: removal impossible, and says why.
-    await page.click(".g-back");
+    await toTopology(page);
     await expect(
       page.getByRole("button", { name: "Delete line" }),
     ).toBeDisabled();
@@ -516,8 +532,7 @@ test.describe("guided designer", () => {
     });
     await expect(page.locator("#problems li").first()).toContainText("zz");
     await page.locator("#problems li").first().click();
-    await expect(page.locator(".g-crumb b")).not.toHaveText("");
-    await expect(page.locator(".g-back")).toBeVisible();
+    await expect(selectedNode(page)).toHaveAttribute("data-key", /^dev:/);
     expect(w.errors).toEqual([]);
   });
 
@@ -540,9 +555,9 @@ test.describe("guided designer", () => {
       .locator(".g-line", { hasText: "Main line" })
       .locator("select.g-add")
       .selectOption({ label: "2-key push button" });
-    await expect(page.locator(".g-crumb b")).not.toHaveText("");
+    await expect(selectedNode(page)).toHaveAttribute("data-key", /^dev:/);
     expect(await designerText(page)).toContain('"1.0.1"');
-    await page.click(".g-back");
+    await toTopology(page);
 
     // With one area then a second area, the backbone box becomes required.
     await page.getByLabel("Backbone 0.0 and area couplers").check();
@@ -566,7 +581,8 @@ test.describe("guided designer", () => {
     await page
       .getByRole("button", { name: "+ Supervisor on the IP network" })
       .click();
-    await expect(page.locator(".g-crumb b")).toHaveText("Supervisor");
+    await expect(selectedNode(page)).toContainText("Supervisor");
+    await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
     await page
       .getByLabel("Declared in the project (dummy device with its addresses)")
       .uncheck();
@@ -576,7 +592,7 @@ test.describe("guided designer", () => {
     expect(await designerText(page)).toContain('"inFilterTables": false');
 
     // Router settings: transfer everything up.
-    await page.click(".g-back");
+    await toTopology(page);
     await page
       .locator("summary", { hasText: "Couplers and filter tables" })
       .click();
@@ -608,7 +624,11 @@ test.describe("guided designer", () => {
     await page.selectOption("select.g-add >> nth=0", {
       value: "ext:delayedSwitch/v1",
     });
-    await page.locator("bd-guided .g-card > summary").first().click();
+    await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
+    await topoPanel(page)
+      .locator(".w-pitem", { hasText: /^\s*Output / })
+      .first()
+      .click();
     await expect(page.locator("bd-guided")).toContainText("Turn-on delay");
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
 
@@ -740,6 +760,7 @@ test.describe("guided designer", () => {
       .press("Tab");
     await draft.getByRole("button", { name: "Add device" }).click();
     await expect(page.locator(".g-draft")).toHaveCount(0);
+    await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     // empty nullable field written null; display remains empty, not default 5.
     const opt = page
@@ -936,6 +957,7 @@ test.describe("guided designer", () => {
     await seed.press("Tab");
     await draft.getByRole("button", { name: "Add device" }).click();
     await expect(page.locator(".g-draft")).toHaveCount(0);
+    await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     // Nullable boolean offers three choices; null is written explicitly.
     const flag = page
@@ -970,13 +992,16 @@ test.describe("guided designer", () => {
     await page.goto(url("designer/index.html#template=object-flags"));
     await page.click("#tab-guided");
     const guided = page.locator("bd-guided");
-    // from 1/1/1, open the object of channel 1: unfolded map, highlighted line.
-    await guided.locator(".g-item", { hasText: "1/1/1" }).first().click();
-    await guided.locator(".g-item", { hasText: "Channel 1" }).click();
-    await expect(guided.locator(".g-flash")).toHaveCount(1);
-    await expect(guided.locator(".g-flash")).toContainText("Command");
-    await guided.getByRole("button", { name: "← Back" }).click();
-    await expect(guided.locator(".g-crumb b")).toHaveText("1/1/1");
+    // From 1/1/1, open the object of channel 1: it is selected in the topology panel.
+    await openGa(page, "1/1/1");
+    await gaPanel(page).locator(".g-item", { hasText: "Channel 1" }).click();
+    await expect(selectedNode(page)).toHaveAttribute(
+      "data-key",
+      /^obj:switchActuator\//,
+    );
+    await expect(
+      topoPanel(page).getByRole("tab", { name: "Associations" }),
+    ).toHaveAttribute("aria-selected", "true");
 
     // add 1/1/1 to channel 3 and remove it from channel 2, in one operation.
     await guided.getByRole("button", { name: "Edit linked objects…" }).click();
@@ -1034,19 +1059,8 @@ test.describe("guided designer", () => {
     ).toBe("1/1/1");
 
     // copy the L1 timer to L2 and L3 without changing addresses.
-    await guided.getByRole("button", { name: "Installation" }).click();
-    await guided
-      .locator(".g-item", { hasText: "Six-output switching actuator" })
-      .first()
-      .click();
-    // The L1 card stays open after targeted navigation.
-    const l1 = guided
-      .locator("details.g-card", {
-        has: page.locator("summary", { hasText: "L1" }),
-      })
-      .first();
-    if (!(await l1.evaluate((e) => (e as HTMLDetailsElement).open)))
-      await l1.locator("summary").click();
+    await openDevice(page, "Six-output switching actuator");
+    await topoPanel(page).locator(".w-pitem", { hasText: "L1" }).click();
     const timer = guided
       .locator("label.g-field", { hasText: "Timer" })
       .first()
@@ -1404,14 +1418,308 @@ test("guided designer renames a communication object", async ({ page }) => {
   await page.goto(url("designer/index.html#template=lighting-control"));
   await page.click("#tab-guided");
   await page.locator(".g-item", { hasText: "Push-button" }).first().click();
-  await page.locator("summary", { hasText: "Communication objects" }).click();
-  const name = page.getByRole("textbox", { name: "Name of object key1" });
+  // As in ETS: double-click the name, type, and confirm with Enter.
+  const guided = page.locator("bd-guided");
+  await guided.getByRole("tab", { name: "Group objects" }).first().click();
+  await guided.locator("tr[data-obj=key1] .w-name").dblclick();
+  const name = guided.getByRole("textbox", { name: "New name" });
   await name.fill("Ceiling light on");
-  await name.press("Tab");
+  await name.press("Enter");
   const text = () =>
     page.evaluate(() =>
       (window as unknown as { designer: { text(): string } }).designer.text(),
     );
   await expect.poll(text).toContain('"name": "Ceiling light on"');
   expect(w.errors).toEqual([]);
+});
+
+// HTML drag and drop between two elements of a scrolling pane. Playwright's dragTo may
+// scroll during the gesture, which cancels a native drag: both elements must be visible.
+async function drag(page: Page, source: Locator, target: Locator) {
+  await target.scrollIntoViewIfNeeded();
+  await source.scrollIntoViewIfNeeded();
+  const s = (await source.boundingBox())!;
+  const t = (await target.boundingBox())!;
+  await page.mouse.move(s.x + s.width / 2, s.y + s.height / 2);
+  await page.mouse.down();
+  await page.mouse.move(s.x + s.width / 2 + 20, s.y + s.height / 2 + 20, {
+    steps: 5,
+  });
+  await page.mouse.move(t.x + t.width / 2, t.y + Math.min(20, t.height / 2), {
+    steps: 10,
+  });
+  await page.mouse.up();
+}
+
+test.describe("designer workspace as in ETS", () => {
+  const json = (page: Page) =>
+    page.evaluate(() =>
+      JSON.parse(
+        (window as unknown as { designer: { text(): string } }).designer.text(),
+      ),
+    );
+  const top = (page: Page) => page.locator("bd-guided .w-panel").nth(0);
+  const bottom = (page: Page) => page.locator("bd-guided .w-panel").nth(1);
+  const node = (panel: Locator, key: string) =>
+    panel.locator(`.w-node[data-key='${key}']`);
+  /** Devices are collapsed in the tree: open one to show its group objects. */
+  const expand = (panel: Locator, key: string) =>
+    node(panel, key).locator(".w-tog").click();
+  const gasOf = async (page: Page, dev: string, obj: string) =>
+    [
+      (await json(page)).devices
+        .find((d: { id: string }) => d.id === dev)
+        .objects.find((o: { id: string }) => o.id === obj).ga,
+    ].flat();
+
+  test("group ranges, new addresses, catalog, and sending address", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+
+    // Group addresses panel: name a main group, add an address in a middle group.
+    await node(bottom(page), "main:1").click();
+    const name = bottom(page).getByLabel("Name of main group 1");
+    await name.fill("Lighting");
+    await name.press("Tab");
+    await expect
+      .poll(async () => (await json(page)).groupRanges)
+      .toEqual([{ address: "1", name: "Lighting" }]);
+    await node(bottom(page), "mid:1/1").click();
+    await bottom(page)
+      .getByRole("button", { name: "+ Add group address" })
+      .click();
+    await expect(node(bottom(page), "ga:1/1/3")).toHaveClass(/sel/);
+
+    // Catalog: select an entry and add it on line 1.1.
+    await bottom(page).locator(".w-select").selectOption("catalog");
+    await bottom(page).locator("tr", { hasText: "Temperature sensor" }).click();
+    await bottom(page)
+      .getByRole("button", { name: "Add", exact: true })
+      .click();
+    await expect
+      .poll(async () =>
+        (await json(page)).devices
+          .filter(
+            (d: { behavior: string }) => d.behavior === "temperatureSensor/v1",
+          )
+          .map((d: { address: string }) => d.address),
+      )
+      .toEqual([expect.stringMatching(/^1\.1\./)]);
+
+    // Associations of a group object: make its second address the sending one.
+    await expand(top(page), "dev:pushButton");
+    await node(top(page), "obj:pushButton/key3").click();
+    const assoc = top(page).locator(".w-table tbody tr");
+    await expect(assoc.first()).toContainText("1/1/1");
+    await assoc
+      .filter({ hasText: "1/4/1" })
+      .getByRole("button", { name: "Set as sending" })
+      .click();
+    expect(await gasOf(page, "pushButton", "key3")).toEqual(["1/4/1", "1/1/1"]);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("drag and drop links addresses and objects, adds and moves devices", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+
+    // Group address → group object (tree to tree): added after the sending address.
+    await expand(top(page), "dev:pushButton");
+    await drag(
+      page,
+      node(bottom(page), "ga:1/4/2"),
+      node(top(page), "obj:pushButton/key1"),
+    );
+    await expect
+      .poll(() => gasOf(page, "pushButton", "key1"))
+      .toEqual(["1/1/1", "1/4/2"]);
+
+    // Group object (row of the Group objects tab) → group address.
+    await node(top(page), "dev:pushButton").click();
+    await drag(
+      page,
+      top(page).locator("tr[data-obj=key2]"),
+      node(bottom(page), "ga:1/4/1"),
+    );
+    await expect
+      .poll(() => gasOf(page, "pushButton", "key2"))
+      .toEqual(["1/1/2", "1/4/1"]);
+
+    // Group object → middle group: a new address is created there and linked.
+    await drag(
+      page,
+      top(page).locator("tr[data-obj=key1]"),
+      node(bottom(page), "mid:1/1"),
+    );
+    await expect
+      .poll(async () => (await gasOf(page, "pushButton", "key1")).length)
+      .toBe(3);
+
+    // Catalog entry → line of the topology tree.
+    await bottom(page).locator(".w-select").selectOption("catalog");
+    await drag(
+      page,
+      bottom(page).locator("tr", { hasText: "Temperature sensor" }),
+      node(top(page), "line:1.1"),
+    );
+    await expect
+      .poll(async () =>
+        (await json(page)).devices.some(
+          (d: { behavior: string }) => d.behavior === "temperatureSensor/v1",
+        ),
+      )
+      .toBe(true);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("an incompatible size is refused; a device moves to another line", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=dimming"));
+    await page.click("#tab-guided");
+    const before = await json(page);
+    await expand(top(page), "dev:pushButton");
+    // 1/3/1 carries a percentage (1 byte): it cannot link to a switching object (1 bit).
+    await drag(
+      page,
+      node(bottom(page), "ga:1/3/1"),
+      node(top(page), "obj:pushButton/on"),
+    );
+    expect(await json(page)).toEqual(before);
+
+    await page.selectOption("#templates", "full-topology");
+    await drag(page, node(top(page), "dev:p2"), node(top(page), "line:2.1"));
+    await expect(page.locator(".g-notice")).toContainText("moved from 1.2.10");
+    expect(w.errors).toEqual([]);
+  });
+
+  test("parameter pages, an object activated without address, context menus, and segments", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+
+    // Parameters: the menu on the left opens the page of output L2.
+    await node(top(page), "dev:switchActuator").click();
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    await top(page).locator(".w-pitem", { hasText: "L2" }).click();
+    await expect(top(page).locator(".w-ppage h3")).toContainText("Output L2");
+
+    // Activating the forcing object creates it without address; it is then dragged onto a middle group.
+    await top(page).getByRole("checkbox", { name: "Forcing: active" }).check();
+    await expand(top(page), "dev:switchActuator");
+    const forced = top(page).locator(
+      ".w-node[data-key^='obj:switchActuator/f']",
+    );
+    await expect(forced).toHaveCount(1);
+    const id = (await forced.getAttribute("data-key"))!.split("/")[1]!;
+    expect(await gasOf(page, "switchActuator", id)).toEqual([]);
+    await expect(page.locator("#status")).toHaveText(/Valid scenario/);
+    await drag(page, forced, node(bottom(page), "mid:1/1"));
+    await expect
+      .poll(async () => (await gasOf(page, "switchActuator", id)).length)
+      .toBe(1);
+
+    // Context menu of a line: a line repeater shows two segments in the tree.
+    await node(top(page), "line:1.1").click({ button: "right" });
+    const menu = page.getByRole("menu");
+    await expect(menu).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(menu).toHaveCount(0);
+    await node(top(page), "line:1.1").click({ button: "right" });
+    await menu.getByRole("menuitem", { name: "Add a line repeater" }).click();
+    await expect(node(top(page), "seg:1.1/1")).toBeVisible();
+    await expect(node(top(page), "seg:1.1/2")).toBeVisible();
+    await node(top(page), "line:1.1").click({ button: "right" });
+    await menu
+      .getByRole("menuitem", { name: "Remove the line extension" })
+      .click();
+    await expect(node(top(page), "seg:1.1/1")).toHaveCount(0);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("drop anywhere on the list of an address, renaming, flags, and tree filter", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=status-feedback"));
+    await page.click("#tab-guided");
+
+    // Devices are collapsed: their group objects appear once opened.
+    await expect(
+      top(page).locator(".w-node[data-key^='obj:pushButton/']"),
+    ).toHaveCount(0);
+    await expand(top(page), "dev:pushButton");
+    await expect(
+      top(page).locator(".w-node[data-key^='obj:pushButton/']"),
+    ).not.toHaveCount(0);
+
+    // An object dropped on the empty part of the address list is linked to that address.
+    await node(bottom(page), "ga:1/4/2").click();
+    await node(top(page), "dev:pushButton").click();
+    await drag(
+      page,
+      top(page).locator("tr[data-obj=key2]"),
+      bottom(page).locator(".w-list .w-empty, .w-list .w-bar").last(),
+    );
+    await expect
+      .poll(() => gasOf(page, "pushButton", "key2"))
+      .toContain("1/4/2");
+
+    // Flags of a linked object can be changed from the address.
+    const row = bottom(page).locator("tbody tr", { hasText: "Key 2" });
+    await row.getByRole("checkbox", { name: /R$/ }).check();
+    await expect
+      .poll(async () =>
+        (await json(page)).devices
+          .find((d: { id: string }) => d.id === "pushButton")
+          .objects.find((o: { id: string }) => o.id === "key2"),
+      )
+      .toMatchObject({ flags: { R: true } });
+
+    // Renaming: F2 or double-click in the tree, Rename in the context menu of a row.
+    await node(bottom(page), "ga:1/4/2").locator(".w-label").dblclick();
+    let field = bottom(page).getByRole("textbox", { name: "New name" });
+    await field.fill("Kitchen status");
+    await field.press("Enter");
+    await expect(node(bottom(page), "ga:1/4/2")).toContainText(
+      "Kitchen status",
+    );
+    await node(bottom(page), "mid:1/4").click();
+    await bottom(page)
+      .locator("tbody tr", { hasText: "1/4/1" })
+      .click({ button: "right" });
+    await page.getByRole("menuitem", { name: "Rename" }).click();
+    field = bottom(page).getByRole("textbox", { name: "New name" });
+    await field.fill("Hall status");
+    await field.press("Enter");
+    await expect
+      .poll(
+        async () =>
+          (await json(page)).groupAddresses.find(
+            (g: { address: string }) => g.address === "1/4/1",
+          ).name,
+      )
+      .toBe("Hall status");
+
+    // The filter keeps the matching nodes and their ancestors.
+    await bottom(page).getByRole("searchbox").fill("Kitchen");
+    await expect(bottom(page).locator(".w-node[data-key^='ga:']")).toHaveCount(
+      1,
+    );
+    expect(w.errors).toEqual([]);
+  });
 });
