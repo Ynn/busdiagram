@@ -1791,6 +1791,13 @@ test.describe("designer workspace", () => {
     await expect(
       guided.locator(".w-ppage .g-field", { hasText: "Label" }),
     ).toHaveCount(0);
+    // The wired push-button is an installation page, set apart in the tree.
+    await expect(
+      guided.locator('.w-pitem.inst[data-page="ch:in1:#key"]'),
+    ).toHaveText(/Wired push-button/);
+    await expect(
+      guided.locator(".w-pdiv", { hasText: "Installation" }),
+    ).toHaveCount(1);
     await guided.locator('[data-page="ch:in1:#key"]').first().click();
     const text = guided
       .locator(".w-ppage .g-field", { hasText: "Text on the key" })

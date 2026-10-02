@@ -7,6 +7,9 @@
   --panel: #1d6b4f;
   --tg: #2c68e0;
   --red: #b3452f;
+  /* Installation around the devices: the orange of the 230 V wiring of the diagram. */
+  --inst: #c2531f;
+  --inst-soft: #fdeee6;
   --cream: #fff2cc;
   --bg: #f3f2ee;
   --mono:
@@ -1572,6 +1575,52 @@ bd-guided > .g-notice {
 .w-pitem[aria-current="page"] {
   background: var(--panel);
   color: #fff;
+}
+/* Installation simulated around a device (wired push-button, connected loads, values
+   entered in the diagram): the orange of the 230 V wiring and a plug icon. */
+.w-pitem.inst {
+  color: var(--inst);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.w-pitem.inst[aria-current="page"] {
+  background: var(--inst);
+  color: #fff;
+}
+.w-pdiv {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin: 6px 10px 2px 22px;
+  padding-top: 5px;
+  border-top: 1px dashed var(--inst);
+  color: var(--inst);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  cursor: help;
+}
+.w-plug {
+  flex: none;
+}
+.g-sec.inst {
+  border-left: 3px solid var(--inst);
+  padding-left: 10px;
+}
+.w-inst-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-right: 8px;
+  padding: 1px 7px;
+  border-radius: 9px;
+  background: var(--inst-soft);
+  color: var(--inst);
+  font-size: 11px;
+  font-weight: 600;
+  vertical-align: 2px;
 }
 .w-padd {
   color: var(--tg);

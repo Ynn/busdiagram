@@ -6,8 +6,9 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Added
 
+- Designer: the pages that describe the installation simulated around a device (connected loads, wired push-button, inputs in the diagram) are set apart from its parameters: orange of the 230 V wiring, plug icon, and an **Installation** divider in the tree of pages. Example devices of the push-button interface are named “Push-button interface”.
 - Designer: a **Simulation** tab shows the diagram alone over the whole width.
-- Push-button interface: `ledShown` (off by default) gives a key its LED; `keyLabel` is the text written on the push-button wired to an input, drawn on its key, while the input keeps its name (`label`). In the designer, the text of the key is on its own **Key** page.
+- Push-button interface: `ledShown` (off by default) gives a key its LED; `keyLabel` is the text written on the push-button wired to an input, drawn on its key, while the input keeps its name (`label`). In the designer, the text of the key is on its own **Wired push-button** page.
 - Group object flags C (communication: off, the object neither sends nor handles messages) and I (read on initialisation: the object reads its value when its device starts again after a bus voltage failure), editable in the designer; transmission priority of each object (`priority`: low, normal, urgent), written in the control field of the frame.
 - Configuration warning `config-no-power-supply`: a TP line or segment without a bus power supply. The examples declare their supplies, and the lines added in the designer get one.
 - Designer: a link that puts DPTs of the same size but different meaning on one address (5.001 and 5.010) is pointed out at once.

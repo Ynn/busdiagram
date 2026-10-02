@@ -34,7 +34,39 @@ export interface Page {
   children?: Page[];
   /** Commands of its context menu. */
   menu?: () => MenuItem[];
+  /**
+   * The page describes the installation simulated around the device (wired push-button,
+   * connected loads, values entered in the diagram), not a parameter of the device.
+   */
+  installation?: boolean;
 }
+
+/** Plug icon of the pages that describe the installation. */
+const PLUG = html`<svg
+  class="w-plug"
+  viewBox="0 0 16 16"
+  aria-hidden="true"
+  width="13"
+  height="13"
+>
+  <path
+    d="M5 1.5v3.5M11 1.5v3.5M3.5 5h9v2.5a4.5 4.5 0 0 1-9 0V5zM8 12v2.5"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+</svg>`;
+
+/** Divider above the installation pages of a group of pages, in the tree. */
+const installationDivider = () =>
+  html`<div
+    class="w-pdiv"
+    title=${t`Installation simulated around the device: wiring, loads, values entered in the diagram. These are not parameters of the device.`}
+  >
+    ${PLUG} ${t`Installation`}
+  </div>`;
 
 /** General page of a device: identity, place on the bus, device settings. */
 export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
@@ -242,7 +274,7 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
   };
   const item = (p: Page, sub: boolean) =>
     html`<button
-      class="w-pitem ${sub ? "sub" : ""}"
+      class="w-pitem ${sub ? "sub" : ""} ${p.installation ? "inst" : ""}"
       aria-current=${p === cur ? "page" : "false"}
       title=${p.sum ?? p.label}
       data-page=${p.key}
@@ -250,8 +282,14 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
       @contextmenu=${(e: MouseEvent) =>
         p.menu ? openMenu(ed, e, p.menu()) : undefined}
     >
-      ${p.label}
+      ${p.installation ? PLUG : nothing}${p.label}
     </button>`;
+  /** Pages of a list, with the divider before the first installation page. */
+  const items = (list: Page[], sub: boolean) =>
+    list.map(
+      (p, i) =>
+        html`${p.installation && !list[i - 1]?.installation ? installationDivider() : nothing}${item(p, sub)}`,
+    );
   return html`<div class="w-params">
     <nav class="w-pmenu" aria-label=${t`Parameter pages`}>
       ${pages.map((p) =>
@@ -281,16 +319,17 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
                   ${p.label}
                 </button>
               </div>
-              ${isOpen(p) ? p.children.map((c) => item(c, true)) : nothing}`
-          : item(p, false),
+              ${isOpen(p) ? items(p.children, true) : nothing}`
+          : items([p], false),
       )}
     </nav>
     <div class="w-ppage" data-page=${cur.key}>
       ${
         cur.key === "general"
           ? cur.body!()
-          : html`<section class="g-sec">
+          : html`<section class="g-sec ${cur.installation ? "inst" : ""}">
               <h3>
+                ${cur.installation ? html`<span class="w-inst-tag">${PLUG} ${t`Installation`}</span>` : nothing}
                 ${group ? html`${group.label} › ` : nothing}${cur.label}
                 ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
               </h3>
@@ -347,6 +386,7 @@ function inputsPage(
   return {
     key: "inputs",
     label: t`Inputs in the diagram`,
+    installation: true,
     body: () =>
       html`<p class="w-info">
           ${t`Values that the reader types in the diagram (a measured wind speed, the power of a circuit…): the value is written to the object and sent on its group address. This belongs to the simulation, not to the device configuration.`}
@@ -1082,6 +1122,7 @@ export function outputPages(
               {
                 key: `ch:${c.id}:${LOADS}`,
                 label: t`Connected loads`,
+                installation: true,
                 sum: loadsText(ed, def, c),
                 menu,
                 body: () => connectedLoads(ed, doc, d, def, c),
@@ -1092,7 +1133,8 @@ export function outputPages(
           ? [
               {
                 key: `ch:${c.id}:${KEY}`,
-                label: t`Key`,
+                label: t`Wired push-button`,
+                installation: true,
                 menu,
                 body: () => keyPage(ed, d, c),
               },

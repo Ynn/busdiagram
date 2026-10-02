@@ -46,7 +46,7 @@
   "devices": [
     {
       "id": "pushButton",
-      "name": "Blind push-button",
+      "name": "Push-button interface",
       "address": "1.1.1",
       "kind": "buttonInterface",
       "behavior": "buttonInterface/v1",

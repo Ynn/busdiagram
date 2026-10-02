@@ -41,7 +41,7 @@
   "devices": [
     {
       "id": "pushButton",
-      "name": "Push-button",
+      "name": "Push-button interface",
       "address": "1.1.1",
       "kind": "buttonInterface",
       "behavior": "buttonInterface/v1",

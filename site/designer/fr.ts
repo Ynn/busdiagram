@@ -914,4 +914,7 @@ export const designerFr: Record<string, string> = {
     "Le bouton-poussoir raccordé à cette entrée, dessiné comme une touche sur le schéma. Le texte écrit dessus relève de l'installation ; le nom de l'entrée ne change pas.",
   Simulation: "Simulation",
   "Text on the key": "Texte sur la touche",
+  "Wired push-button": "Bouton-poussoir raccordé",
+  "Installation simulated around the device: wiring, loads, values entered in the diagram. These are not parameters of the device.":
+    "Installation simulée autour de l'appareil : câblage, charges, valeurs saisies dans le schéma. Ce ne sont pas des paramètres de l'appareil.",
 };

@@ -122,7 +122,7 @@
     },
     {
       "id": "p1",
-      "name": "Three-key push-button · living room",
+      "name": "Push-button interface · living room",
       "address": "1.1.10",
       "kind": "buttonInterface",
       "behavior": "buttonInterface/v1",
@@ -268,7 +268,7 @@
     },
     {
       "id": "p2",
-      "name": "One-key push-button · entrance",
+      "name": "Push-button interface · entrance",
       "address": "1.2.10",
       "kind": "buttonInterface",
       "behavior": "buttonInterface/v1",
@@ -313,7 +313,7 @@
     },
     {
       "id": "p3",
-      "name": "Push-button · corridor",
+      "name": "Push-button interface · corridor",
       "address": "2.1.5",
       "kind": "buttonInterface",
       "behavior": "buttonInterface/v1",

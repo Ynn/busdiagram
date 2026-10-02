@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -106,7 +106,8 @@
 <li><strong>Group objects enabled by the parameters.</strong> <strong>Enable group object “…”</strong> creates the object, as the corresponding parameter of a product does; unticking it deletes the object. The enabled objects appear in the <strong>Group objects</strong> tab, which is where they are linked to group addresses (or by drag and drop, or from a group address with <strong>Link with…</strong>).</li>
 <li><strong>Loads wired to the outputs</strong>, which belong to the simulation, not to the device configuration. An output is a relay or a channel of the actuator: it has its own settings and group objects, and is controlled on its own. The <strong>Connected loads</strong> page of an output lists the loads wired to it, in parallel: the output switches them all together, and a metering actuator measures the sum of their powers. <strong>Connect a load…</strong> adds one; each load has a type, an optional name shown in the diagram, its parameters, and, for a radiator, its heated room. A shutter output drives one motor.</li>
 </ol>
-<p>A device whose functions belong to channels without driving a load, such as the measured circuits of an energy meter, has the same Configuration page (number of channels) and a group per channel, without connected loads. A push-button interface counts <strong>inputs</strong>: each input has its pages <strong>Function</strong>, <strong>Lock</strong>, <strong>LED</strong>, and <strong>Bus voltage and cyclic sending</strong>, then <strong>Key</strong>, which gives the label of the push-button wired to the input, drawn on the diagram (it belongs to the installation, like the loads of an actuator). The function chosen on the <strong>Function</strong> page creates its group objects, as in a product&#39;s parameter dialog: switching gives a switching object, dimming a switching and a dimming object, a blind an up/down and a stop/step object; choosing another function replaces them, and an object kept from one function to the next keeps its addresses. The lock and LED objects are enabled on their pages.</p>
+<p>A device whose functions belong to channels without driving a load, such as the measured circuits of an energy meter, has the same Configuration page (number of channels) and a group per channel, without connected loads. A push-button interface counts <strong>inputs</strong>: each input has its pages <strong>Function</strong>, <strong>Lock</strong>, <strong>LED</strong>, and <strong>Bus voltage and cyclic sending</strong>, then <strong>Wired push-button</strong>, which gives the text written on the push-button wired to the input, drawn on its key (the input keeps its name).</p>
+<p><strong>Installation pages.</strong> What belongs to the installation simulated around a device, and not to its parameters, is shown in the orange of the 230 V wiring, with a plug icon, under an <strong>Installation</strong> divider in the tree of pages: the <strong>Connected loads</strong> of an output, the <strong>Wired push-button</strong> of an input, the <strong>Inputs in the diagram</strong> of a device. Everything else is set as in the parameter dialog of the product. The function chosen on the <strong>Function</strong> page creates its group objects, as in a product&#39;s parameter dialog: switching gives a switching object, dimming a switching and a dimming object, a blind an up/down and a stop/step object; choosing another function replaces them, and an object kept from one function to the next keeps its addresses. The lock and LED objects are enabled on their pages.</p>
 <p><strong>Inputs in the diagram</strong>, another level of the simulation, lists the objects of the device for which the reader can type a value in the diagram: the measurements of a weather station or an air quality sensor, the power of a metered circuit, a value of a gateway. Tick <strong>Entered</strong>, then give the label, the minimum, the maximum, and the step of the field; the value is written to the object and sent on its group address, so the object needs one.</p>
 <p>A right-click on an output or a key, in the tree of pages or in the Configuration table, opens its commands: settings, connected loads, rename, copy settings to other outputs, add, delete. A right-click on a load moves it up or down, or disconnects it.</p>
 <p><strong>Tables.</strong> Click a column header to sort by that column (again for descending order, a third time for the original order); drag the right edge of a header to resize the column, and double-click the edge to return to automatic widths. The widths are remembered by the browser. The Group objects table shows the channel of each object: the output of an actuator or the key of a push-button.</p>
