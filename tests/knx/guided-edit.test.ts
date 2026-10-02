@@ -200,30 +200,14 @@ describe("guided designer: dimming and DALI", () => {
       devices: [],
     }) as unknown as E.Doc;
 
-  it("dimmer actuator, DALI gateway, and dimming push-button templates are valid", async () => {
+  it("dimmer actuator, DALI gateway, and push-button interface templates are valid", async () => {
     const { SNIPPETS } = await import("../../site/designer/snippets");
-    for (const id of ["dim", "dali", "dimmingPushButton"]) {
+    for (const id of ["dim", "dali", "buttonInterface4"]) {
       const doc = SNIPPETS.find((s) => s.id === id)!.apply(empty()) as E.Doc;
       valid(doc);
     }
   });
 
-  it("releasing after a dimming long press sends stop on the same object", () => {
-    const doc = v2("lighting-control.json");
-    const pushButton = doc.devices.find((d) => d.behavior === "pushButton/v1")!;
-    const key = pushButton.buttons![0]!;
-    E.setKeyMode(doc, pushButton.id, key.id, "shortlong");
-    E.setGestureAction(doc, pushButton.id, key.id, "long", "dim", 9);
-    const b = pushButton.buttons!.find((x) => x.id === key.id)!;
-    expect(b.release).toEqual({ object: b.long!.object, value: 0 });
-    expect(pushButton.objects.find((o) => o.id === b.long!.object)!.dpt).toBe(
-      "3.007",
-    );
-    valid(doc);
-    E.setGestureAction(doc, pushButton.id, key.id, "long", "move", 0);
-    expect(b.release).toBeUndefined();
-    valid(doc);
-  });
 });
 
 describe("guided designer: rooms and heating", () => {
@@ -268,7 +252,9 @@ describe("guided designer: rooms and heating", () => {
 describe("designer settings", () => {
   it("null and empty string are values; only undefined removes property", () => {
     const doc = v2("lighting-control.json");
-    const switchActuator = doc.devices.find((d) => d.channels?.length)!;
+    const switchActuator = doc.devices.find(
+      (d) => d.behavior === "switchActuator/v1",
+    )!;
     const ch = switchActuator.channels![0]!.id;
     E.setParam(doc, switchActuator.id, ch, "timerMs", null);
     expect(switchActuator.channels![0]!.parameters).toHaveProperty(
@@ -404,19 +390,11 @@ describe("ergonomics: grouped operations", () => {
     expect(E.gasOf(c1)).toEqual(["1/1/1", "1/1/3"]);
   });
 
-  it("reject incompatible data size or removing a key's only sending address", () => {
+  it("reject incompatible data size", () => {
     const doc = v2("dali-gateway.json");
     expect(() =>
       E.setGaMembers(doc, "1/3/1", [{ dev: "gw", obj: "g1s" }], []),
     ).toThrow(E.EditRefusal);
-    const pushButton = doc.devices.find((d) => d.id === "pushButton")!;
-    const keyObj =
-      pushButton.buttons![0]!.short?.object ??
-      pushButton.buttons![0]!.press!.object;
-    const ga = E.gasOf(pushButton.objects.find((o) => o.id === keyObj)!)[0]!;
-    expect(() =>
-      E.setGaMembers(doc, ga, [], [{ dev: "pushButton", obj: keyObj }]),
-    ).toThrow(/a key must send/);
   });
 
   it("copy output settings and load without copying objects or addresses", () => {
@@ -488,9 +466,11 @@ describe("guided designer: line extension", () => {
   it("adds a repeater at a conventional address and places a device behind it", () => {
     const doc = v2("lighting-control.json");
     E.setLineExtension(doc, "1.1", "repeater");
+    // The segment behind the extension gets its own power supply.
     expect(doc.lines[0]!.extension).toEqual({
       address: "1.1.64",
       mode: "repeater",
+      powerSupply: { currentMa: 640 },
     });
     E.setDownstream(doc, "switchActuator", true);
     valid(doc);

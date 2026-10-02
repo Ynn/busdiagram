@@ -74,7 +74,7 @@ describe("TP1 frame", () => {
 
   it("the frame uses the same codec as the engine", () => {
     const sim = load("shutter-calibration.json");
-    const [tel] = sim.input("pushButton", "position", "value", 50);
+    const [tel] = sim.input("panel", "position", "value", 50);
     const frame = buildFrame(tel!.sourceAddress, tel!.ga, tel!.value, tel!.dpt);
     expect(frame[4]!.bytes[2]).toBe(tel!.raw);
     expect(tel!.raw).toBe(0x80);

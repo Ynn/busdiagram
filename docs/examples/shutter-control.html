@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Shutter control · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -46,7 +46,7 @@
 <p class="crumb">Examples</p>
 <h1 id="shutter-control"><a class="anchor" href="#shutter-control">#</a>Shutter control</h1><p>A long press sends up/down on 2/1/1; a short press sends stop/step on 2/2/1. Key 1 controls both directions from one key. Key 4 lowers the shutter and turns on L1 with one telegram, because compatible objects using DPT 1.008 and 1.001 share an address. A supervisor on the IP network observes the position feedback through the KNXnet/IP router at 1.1.0.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Control roller shutters","description":"A shutter uses two objects: up/down for a long press and stop/step for a short press. Key 4 lowers the shutter and turns on L1 with one telegram. The supervisor displays the reported position.","lines":[{"address":"1.1","name":"Example line"}],"topology":{"ip":"lineCouplers"},"groupAddresses":[{"address":"2/1/1","name":"Shutter 1 up/down","dpt":"1.008"},{"address":"2/2/1","name":"Shutter 1 stop/step","dpt":"1.007"},{"address":"2/1/2","name":"Shutter 1 down + light","dpt":"1.008"},{"address":"2/4/1","name":"Shutter 1 position","dpt":"5.001"},{"address":"1/1/1","name":"L1 lighting","dpt":"1.001"}],"devices":[{"id":"sup","name":"Supervisor","kind":"supervisor","behavior":"display/v1","description":"The supervisor does not control the actuator; it observes commands and displays position feedback.","objects":[{"id":"md","name":"Shutter 1 direction","ga":"2/1/1","dpt":"1.008","port":"display","flags":{"W":true,"T":false}},{"id":"pos","name":"Shutter 1 position","ga":"2/4/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}}]},{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","description":"Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light.","objects":[{"id":"key1Long","name":"Key 1 long press","ga":"2/1/1","dpt":"1.008","port":"input","flags":{"W":true,"T":true}},{"id":"key1Short","name":"Key 1 short press","ga":"2/2/1","dpt":"1.007","port":"input","flags":{"W":true,"T":true}},{"id":"key2Long","name":"Key 2 long press","ga":"2/1/1","dpt":"1.008","port":"input","flags":{"W":true,"T":true}},{"id":"key2Short","name":"Key 2 short press","ga":"2/2/1","dpt":"1.007","port":"input","flags":{"W":true,"T":true}},{"id":"key3Long","name":"Key 3 long press","ga":"2/1/1","dpt":"1.008","port":"input","flags":{"W":true,"T":true}},{"id":"key3Short","name":"Key 3 short press","ga":"2/2/1","dpt":"1.007","port":"input","flags":{"W":true,"T":true}},{"id":"key4","name":"Key 4","ga":"2/1/2","dpt":"1.008","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"button-0","label":"Key 1","short":{"object":"key1Short","value":0},"long":{"object":"key1Long","value":"toggle"}},{"id":"button-1","label":"Key 2","icon":"up","short":{"object":"key2Short","value":0},"long":{"object":"key2Long","value":0}},{"id":"button-2","label":"Key 3","icon":"down","short":{"object":"key3Short","value":1},"long":{"object":"key3Long","value":1}},{"id":"button-3","label":"Key 4","icon":"down","press":{"object":"key4","value":1}}]},{"id":"shutterActuator","name":"Shutter actuator","address":"1.1.3","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"md","name":"MD 1","ga":["2/1/1","2/1/2"],"dpt":"1.008","port":"move","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"st","name":"Stop 1","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position 1","ga":"2/4/1","dpt":"5.001","port":"positionStatus","channel":"shutter1","flags":{"W":true,"T":true}}],"channels":[{"id":"shutter1","label":"Shutter 1","parameters":{"estimatedTravelTimeMs":10000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":10000}}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Channel 1","ga":["1/1/1","2/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Channel 2","ga":[],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":[],"dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Channel 4","ga":[],"dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Control roller shutters","description":"A shutter uses two objects: up/down for a long press and stop/step for a short press. Key 4 lowers the shutter and turns on L1 with one telegram. The supervisor displays the reported position.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"topology":{"ip":"lineCouplers"},"groupAddresses":[{"address":"2/1/1","name":"Shutter 1 up/down","dpt":"1.008"},{"address":"2/2/1","name":"Shutter 1 stop/step","dpt":"1.007"},{"address":"2/1/2","name":"Shutter 1 down + light","dpt":"1.008"},{"address":"2/4/1","name":"Shutter 1 position","dpt":"5.001"},{"address":"1/1/1","name":"L1 lighting","dpt":"1.001"}],"devices":[{"id":"sup","name":"Supervisor","kind":"supervisor","behavior":"display/v1","description":"The supervisor does not control the actuator; it observes commands and displays position feedback.","objects":[{"id":"md","name":"Shutter 1 direction","ga":"2/1/1","dpt":"1.008","port":"display","flags":{"W":true,"T":false}},{"id":"pos","name":"Shutter 1 position","ga":"2/4/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}}]},{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light.","objects":[{"id":"key1Long","name":"Key 1 long press","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in1","flags":{"W":true,"T":true}},{"id":"key1Short","name":"Key 1 short press","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2Long","name":"Key 2 long press","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in2","flags":{"W":true,"T":true}},{"id":"key2Short","name":"Key 2 short press","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3Long","name":"Key 3 long press","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in3","flags":{"W":true,"T":true}},{"id":"key3Short","name":"Key 3 short press","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in3","flags":{"W":true,"T":true}},{"id":"key4","name":"Key 4","ga":"2/1/2","dpt":"1.008","port":"switch","channel":"in4","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1","keyLabel":"Key 1","parameters":{"function":"blind"},"equipment":null},{"id":"in2","label":"Input 2","keyLabel":"Key 2","parameters":{"function":"blind","blindMode":"up"},"equipment":null},{"id":"in3","label":"Input 3","keyLabel":"Key 3","parameters":{"function":"blind","blindMode":"down"},"equipment":null},{"id":"in4","label":"Input 4","keyLabel":"Key 4","parameters":{"onPress":"on"},"equipment":null}]},{"id":"shutterActuator","name":"Shutter actuator","address":"1.1.3","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"md","name":"MD 1","ga":["2/1/1","2/1/2"],"dpt":"1.008","port":"move","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"st","name":"Stop 1","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position 1","ga":"2/4/1","dpt":"5.001","port":"positionStatus","channel":"shutter1","flags":{"W":true,"T":true}}],"channels":[{"id":"shutter1","label":"Shutter 1","parameters":{"estimatedTravelTimeMs":10000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":10000}}}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Channel 1","ga":["1/1/1","2/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Channel 2","ga":[],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":[],"dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Channel 4","ga":[],"dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=shutter-control" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -54,7 +54,7 @@
   "formatVersion": 2,
   "title": "Control roller shutters",
   "description": "A shutter uses two objects: up/down for a long press and stop/step for a short press. Key 4 lowers the shutter and turns on L1 with one telegram. The supervisor displays the reported position.",
-  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "lines": [{ "address": "1.1", "name": "Example line", "powerSupply": { "currentMa": 640 } }],
   "topology": { "ip": "lineCouplers" },
   "groupAddresses": [
     { "address": "2/1/1", "name": "Shutter 1 up/down", "dpt": "1.008" },
@@ -93,8 +93,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light.",
       "objects": [
         {
@@ -102,7 +102,8 @@
           "name": "Key 1 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in1",
           "flags": { "W": true, "T": true }
         },
         {
@@ -110,7 +111,8 @@
           "name": "Key 1 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in1",
           "flags": { "W": true, "T": true }
         },
         {
@@ -118,7 +120,8 @@
           "name": "Key 2 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in2",
           "flags": { "W": true, "T": true }
         },
         {
@@ -126,7 +129,8 @@
           "name": "Key 2 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in2",
           "flags": { "W": true, "T": true }
         },
         {
@@ -134,7 +138,8 @@
           "name": "Key 3 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in3",
           "flags": { "W": true, "T": true }
         },
         {
@@ -142,7 +147,8 @@
           "name": "Key 3 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in3",
           "flags": { "W": true, "T": true }
         },
         {
@@ -150,36 +156,39 @@
           "name": "Key 4",
           "ga": "2/1/2",
           "dpt": "1.008",
-          "port": "input",
+          "port": "switch",
+          "channel": "in4",
           "flags": { "W": true, "T": true }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "short": { "object": "key1Short", "value": 0 },
-          "long": { "object": "key1Long", "value": "toggle" }
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": { "function": "blind" },
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "icon": "up",
-          "short": { "object": "key2Short", "value": 0 },
-          "long": { "object": "key2Long", "value": 0 }
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": { "function": "blind", "blindMode": "up" },
+          "equipment": null
         },
         {
-          "id": "button-2",
-          "label": "Key 3",
-          "icon": "down",
-          "short": { "object": "key3Short", "value": 1 },
-          "long": { "object": "key3Long", "value": 1 }
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": { "function": "blind", "blindMode": "down" },
+          "equipment": null
         },
         {
-          "id": "button-3",
-          "label": "Key 4",
-          "icon": "down",
-          "press": { "object": "key4", "value": 1 }
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Key 4",
+          "parameters": { "onPress": "on" },
+          "equipment": null
         }
       ]
     },
@@ -286,7 +295,7 @@
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Control roller shutters"</span>,
   <span class="k">"description"</span>: <span class="s">"A shutter uses two objects: up/down for a long press and stop/step for a short press. Key 4 lowers the shutter and turns on L1 with one telegram. The supervisor displays the reported position."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"topology"</span>: { <span class="k">"ip"</span>: <span class="s">"lineCouplers"</span> },
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Shutter 1 up/down"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
@@ -325,8 +334,8 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"description"</span>: <span class="s">"Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light."</span>,
       <span class="k">"objects"</span>: [
         {
@@ -334,7 +343,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 1 long press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -342,7 +352,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 1 short press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -350,7 +361,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 long press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -358,7 +370,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 short press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -366,7 +379,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 3 long press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -374,7 +388,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 3 short press"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -382,36 +397,39 @@
           <span class="k">"name"</span>: <span class="s">"Key 4"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
-          <span class="k">"id"</span>: <span class="s">"button-0"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 1"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"key1Short"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"key1Long"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> }
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
-          <span class="k">"id"</span>: <span class="s">"button-1"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 2"</span>,
-          <span class="k">"icon"</span>: <span class="s">"up"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"key2Short"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"key2Long"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"up"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
-          <span class="k">"id"</span>: <span class="s">"button-2"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 3"</span>,
-          <span class="k">"icon"</span>: <span class="s">"down"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"key3Short"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"key3Long"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 3"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"down"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
-          <span class="k">"id"</span>: <span class="s">"button-3"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 4"</span>,
-          <span class="k">"icon"</span>: <span class="s">"down"</span>,
-          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key4"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 4"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },

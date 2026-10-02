@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>USB interface tool · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -83,13 +83,16 @@
 <p>A USB interface has no communication objects, so its addresses are not in the coupler filter tables unless they are assigned to it, as for a bus interface modeled in a project. List them in the <code>groupAddresses</code> parameter, for example <code>&quot;parameters&quot;: { &quot;groupAddresses&quot;: &quot;1/1/1 1/4/1&quot; }</code>. Without it, a write to an address used only on another line is filtered by the first coupler, and the response to a read cannot come back. See <a href="couplers.html#filter-tables-and-routing-counter">filter tables</a>.</p>
 <p>A read request may use any address associated with the object that should answer; the response is always sent on that object&#39;s sending address, its first address. If the sending address is not the one that was read, the response can act on other devices; the KNX training documentation therefore recommends reading on the sending address.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"USB interface panel: write and read a group address","description":"A USB interface (1.1.255) connects a commissioning computer to line 1.1. Write to 1/1/1 in the USB interface panel: the telegram crosses coupler 1.2.0 to reach the actuator. Read 1/4/1: the status object answers because its R flag is set. Read 1/1/1: no object on that sending address has the R flag, so no one answers.","lines":[{"address":"1.1","name":"Panel"},{"address":"1.2","name":"Floor"}],"groupAddresses":[{"address":"1/1/1","name":"Office lighting","dpt":"1.001"},{"address":"1/4/1","name":"Office lighting status","dpt":"1.001"}],"devices":[{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"key1","name":"Key 1 toggle","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"key1","label":"Key 1","press":{"object":"key1","value":"toggle"},"led":"key1"}]},{"id":"switchActuator","name":"Switching actuator","address":"1.2.1","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Channel 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"e1","name":"Status 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":false,"T":true}}],"channels":[{"id":"s1","label":"Office","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"USB interface panel: write and read a group address","description":"A USB interface (1.1.255) connects a commissioning computer to line 1.1. Write to 1/1/1 in the USB interface panel: the telegram crosses coupler 1.2.0 to reach the actuator. Read 1/4/1: the status object answers because its R flag is set. Read 1/1/1: no object on that sending address has the R flag, so no one answers.","lines":[{"address":"1.1","name":"Panel","powerSupply":{"currentMa":640}},{"address":"1.2","name":"Floor","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"Office lighting","dpt":"1.001"},{"address":"1/4/1","name":"Office lighting status","dpt":"1.001"}],"devices":[{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"key1","name":"Key 1 toggle","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"key1","flags":{"W":true,"T":true}}],"channels":[{"id":"key1","label":"Input 1","keyLabel":"Key 1","parameters":{"ledShown":true},"equipment":null}]},{"id":"switchActuator","name":"Switching actuator","address":"1.2.1","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Channel 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"e1","name":"Status 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":false,"T":true}}],"channels":[{"id":"s1","label":"Office","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=usb-interface" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-json"><code>{
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"USB interface panel: write and read a group address"</span>,
   <span class="k">"description"</span>: <span class="s">"A USB interface (1.1.255) connects a commissioning computer to line 1.1. Write to 1/1/1 in the USB interface panel: the telegram crosses coupler 1.2.0 to reach the actuator. Read 1/4/1: the status object answers because its R flag is set. Read 1/1/1: no object on that sending address has the R flag, so no one answers."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Panel"</span> }, { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"name"</span>: <span class="s">"Floor"</span> }],
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Panel"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } },
+    { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"name"</span>: <span class="s">"Floor"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Office lighting"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Office lighting status"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
@@ -107,24 +110,26 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"objects"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key1"</span>,
           <span class="k">"name"</span>: <span class="s">"Key 1 toggle"</span>,
           <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key1"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 1"</span>,
-          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key1"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> },
-          <span class="k">"led"</span>: <span class="s">"key1"</span>
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },

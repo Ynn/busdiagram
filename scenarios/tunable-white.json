@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Office"
+      "name": "Office",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -40,130 +43,94 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "warm",
           "name": "Warm white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "warm"
         },
         {
           "id": "neutral",
           "name": "Neutral white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "neutral"
         },
         {
           "id": "cold",
           "name": "Cold white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "cold"
         },
         {
           "id": "onoff",
           "name": "Switch",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
-        },
-        {
-          "id": "level",
-          "name": "Level",
-          "ga": "1/3/1",
-          "dpt": "5.001",
-          "port": "input",
-          "flags": {
-            "W": false,
-            "T": true
-          }
-        },
-        {
-          "id": "colour",
-          "name": "Colour temperature",
-          "ga": "1/6/1",
-          "dpt": "7.600",
-          "port": "input",
-          "flags": {
-            "W": false,
-            "T": true
-          }
+          },
+          "channel": "onoff"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "warm",
-          "label": "Key 1 · 2700 K",
-          "press": {
-            "object": "warm",
-            "value": 2700
+          "label": "Input 1",
+          "keyLabel": "Key 1 · 2700 K",
+          "parameters": {
+            "function": "value",
+            "shortValue": 2700
           }
         },
         {
           "id": "neutral",
-          "label": "Key 2 · 4000 K",
-          "press": {
-            "object": "neutral",
-            "value": 4000
+          "label": "Input 2",
+          "keyLabel": "Key 2 · 4000 K",
+          "parameters": {
+            "function": "value",
+            "shortValue": 4000
           }
         },
         {
           "id": "cold",
-          "label": "Key 3 · 6500 K",
-          "press": {
-            "object": "cold",
-            "value": 6500
+          "label": "Input 3",
+          "keyLabel": "Key 3 · 6500 K",
+          "parameters": {
+            "function": "value",
+            "shortValue": 6500
           }
         },
         {
           "id": "onoff",
-          "label": "Key 4 · On/off",
-          "icon": "toggle",
-          "press": {
-            "object": "onoff",
-            "value": "toggle"
-          },
-          "led": "onoff"
-        }
-      ],
-      "inputs": [
-        {
-          "id": "level",
-          "type": "number",
-          "label": "Level (%)",
-          "object": "level",
-          "min": 0,
-          "max": 100,
-          "step": 10
-        },
-        {
-          "id": "colour",
-          "type": "number",
-          "label": "Colour (K)",
-          "object": "colour",
-          "min": 2000,
-          "max": 7000,
-          "step": 100
+          "label": "Input 4",
+          "keyLabel": "Key 4 · On/off",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
@@ -243,14 +210,68 @@
             "valueFadeMs": 1500
           },
           "initialState": {
-            "levelPct": 80,
-            "colourTemperatureK": 4000
+            "levelPct": 80
           },
           "equipment": {
             "type": "dimmableLamp"
           }
         }
       ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "colour",
+          "name": "Colour temperature",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "colour",
+          "type": "number",
+          "label": "Colour (K)",
+          "object": "colour",
+          "min": 2000,
+          "max": 7000,
+          "step": 100
+        }
+      ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

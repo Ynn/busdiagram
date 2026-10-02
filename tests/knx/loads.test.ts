@@ -5,6 +5,7 @@ import { buildScenario } from "../../src/knx/scenario";
 import type { ScenarioError } from "../../src/knx/scenario";
 import { toV2 } from "../../src/knx/export";
 import { layout } from "../../src/knx/layout";
+import { keypad } from "./helpers";
 
 const scenario = (equipment: unknown) => ({
   formatVersion: 2,
@@ -15,22 +16,7 @@ const scenario = (equipment: unknown) => ({
     { address: "1/2/1", name: "Power", dpt: "14.056" },
   ],
   devices: [
-    {
-      id: "pb",
-      address: "1.1.1",
-      kind: "pushButton",
-      behavior: "pushButton/v1",
-      objects: [
-        {
-          id: "k1",
-          ga: "1/1/1",
-          dpt: "1.001",
-          port: "input",
-          flags: { W: true, T: true },
-        },
-      ],
-      buttons: [{ id: "key1", press: { object: "k1", value: "toggle" } }],
-    },
+    keypad("pb", "1.1.1", [{ id: "key1", object: "k1", ga: "1/1/1" }]),
     {
       id: "act",
       address: "1.1.2",

@@ -158,9 +158,7 @@ export function checkBehavior<S>(
         port.direction !== undefined &&
         !["in", "out", "both"].includes(port.direction)
       )
-        out.push(
-          t`ports.${name}.direction: "in", "out" or "both" expected`,
-        );
+        out.push(t`ports.${name}.direction: "in", "out" or "both" expected`);
     }
   if (d.output !== undefined && !["switch", "motor", "dim"].includes(d.output))
     out.push(t`output: "switch", "motor" or "dim" expected`);
@@ -186,6 +184,41 @@ export function checkBehavior<S>(
   checkParamSchema(d.channelInitialState, "channelInitialState", out);
   if (d.parameterLayout !== undefined)
     checkLayout(d as BehaviorDefinition<unknown>, out);
+  if (d.channelObjects !== undefined) {
+    const spec = d.channelObjects as unknown as {
+      parameter?: unknown;
+      values?: Record<string, { port?: unknown; dpt?: unknown }[]>;
+    };
+    if (
+      typeof spec.parameter !== "string" ||
+      !d.channelParameters?.properties[spec.parameter]
+    )
+      out.push(t`channelObjects.parameter: channel parameter expected`);
+    if (!spec.values || typeof spec.values !== "object")
+      out.push(t`channelObjects.values: object expected`);
+    else
+      for (const [v, list] of Object.entries(spec.values)) {
+        if (!Array.isArray(list)) {
+          out.push(t`channelObjects.values.${v}: list expected`);
+          continue;
+        }
+        for (const x of list) {
+          const port =
+            typeof x?.port === "string" ? d.ports?.[x.port] : undefined;
+          if (!port || port.channel !== "required")
+            out.push(
+              t`channelObjects.values.${v}: unknown channel port “${String(x?.port)}”`,
+            );
+          else if (
+            typeof x.dpt !== "string" ||
+            (port.dpts !== "any" && !port.dpts.includes(x.dpt))
+          )
+            out.push(
+              t`channelObjects.values.${v}: DPT “${String(x.dpt)}” not accepted by port “${String(x.port)}”`,
+            );
+        }
+      }
+  }
   if (out.length)
     throw new TypeError(
       t`Invalid behavior “${id}”:` + `\n• ${out.join("\n• ")}`,
@@ -197,6 +230,7 @@ export function checkBehavior<S>(
     channelParameters: deepFreezeClone(d.channelParameters),
     channelInitialState: deepFreezeClone(d.channelInitialState),
     parameterLayout: deepFreezeClone(d.parameterLayout),
+    channelObjects: deepFreezeClone(d.channelObjects),
   });
 }
 

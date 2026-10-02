@@ -490,12 +490,13 @@ export const styles = css`
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 7px;
+    gap: 5px;
     cursor: pointer;
     touch-action: none;
     user-select: none;
     color: ${unsafeCSS(C.ink)};
-    padding: 0;
+    padding: 0 7px;
+    overflow: hidden;
     font-size: 12px;
     transition:
       transform 0.08s,
@@ -518,9 +519,14 @@ export const styles = css`
     transform: translateY(2px);
   }
   .key .ico {
+    flex: none;
+    white-space: nowrap;
     font-size: 13px;
     line-height: 1;
     color: ${unsafeCSS(C.mute)};
+  }
+  .key .led {
+    flex: none;
   }
   .key.down .ico {
     color: #fff;
@@ -529,7 +535,8 @@ export const styles = css`
     font-family: var(--mono);
     font-size: 12px;
     font-weight: 700;
-    max-width: 62px;
+    min-width: 0;
+    flex: 0 1 auto;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -543,14 +550,20 @@ export const styles = css`
   }
   .key:has(.kx) {
     gap: 4px;
-    padding: 0 4px;
+  }
+  .key .kx {
+    flex: 0 1 auto;
+  }
+  .key .kx .kl,
+  .key .kx .ks {
+    max-width: 100%;
   }
   .key .ks {
     font-size: 10px;
     font-weight: 600;
     letter-spacing: -0.1px;
     color: ${unsafeCSS(C.mute)};
-    max-width: 58px;
+    max-width: 100%;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

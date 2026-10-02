@@ -6,7 +6,9 @@
     {
       "address": "1.1",
       "name": "Plant room",
-      "powerSupply": { "currentMa": 640 }
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -15,60 +17,119 @@
       "name": "Hot-water tank temperature",
       "dpt": "9.001"
     },
-    { "address": "3/1/1", "name": "Heating flow temperature", "dpt": "9.001" },
+    {
+      "address": "3/1/1",
+      "name": "Heating flow temperature",
+      "dpt": "9.001"
+    },
     {
       "address": "3/1/2",
       "name": "Heating return temperature",
       "dpt": "9.001"
     },
-    { "address": "3/2/0", "name": "Heating mode", "dpt": "20.102" },
-    { "address": "3/2/1", "name": "Hot-water boost", "dpt": "1.001" },
-    { "address": "9/0/1", "name": "Heat pump power", "dpt": "9.024" },
-    { "address": "9/1/1", "name": "Heat pump energy", "dpt": "13.013" },
-    { "address": "9/0/2", "name": "Water heater power", "dpt": "14.056" },
-    { "address": "9/1/2", "name": "Water heater energy", "dpt": "13.010" }
+    {
+      "address": "3/2/0",
+      "name": "Heating mode",
+      "dpt": "20.102"
+    },
+    {
+      "address": "3/2/1",
+      "name": "Hot-water boost",
+      "dpt": "1.001"
+    },
+    {
+      "address": "9/0/1",
+      "name": "Heat pump power",
+      "dpt": "9.024"
+    },
+    {
+      "address": "9/1/1",
+      "name": "Heat pump energy",
+      "dpt": "13.013"
+    },
+    {
+      "address": "9/0/2",
+      "name": "Water heater power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "9/1/2",
+      "name": "Water heater energy",
+      "dpt": "13.010"
+    }
   ],
   "devices": [
     {
       "id": "keys",
       "name": "Plant room keys",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "mode",
           "name": "Heating mode",
           "ga": "3/2/0",
           "dpt": "20.102",
-          "port": "input",
-          "flags": { "W": false, "T": true }
+          "port": "value",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "comfort"
+        },
+        {
+          "id": "mode_economy",
+          "name": "Heating mode",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "value",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "economy"
         },
         {
           "id": "boost",
           "name": "Hot-water boost",
           "ga": "3/2/1",
           "dpt": "1.001",
-          "port": "input",
-          "flags": { "W": false, "T": true }
+          "port": "switch",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "boostKey"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "comfort",
-          "label": "Comfort",
-          "press": { "object": "mode", "value": 1 }
+          "label": "Input 1",
+          "keyLabel": "Comfort",
+          "parameters": {
+            "function": "value",
+            "shortValue": 1
+          }
         },
         {
           "id": "economy",
-          "label": "Economy",
-          "press": { "object": "mode", "value": 3 }
+          "label": "Input 2",
+          "keyLabel": "Economy",
+          "parameters": {
+            "function": "value",
+            "shortValue": 3
+          }
         },
         {
           "id": "boostKey",
-          "label": "Hot-water boost",
-          "press": { "object": "boost", "value": "toggle" },
-          "led": "boost"
+          "label": "Input 3",
+          "keyLabel": "Hot-water boost",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
@@ -78,7 +139,6 @@
       "address": "1.1.10",
       "kind": "gateway",
       "behavior": "systemGateway/v1",
-      "parameters": { "system": "Modbus" },
       "objects": [
         {
           "id": "tank",
@@ -86,7 +146,10 @@
           "ga": "3/1/0",
           "dpt": "9.001",
           "port": "value",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "flow",
@@ -94,7 +157,10 @@
           "ga": "3/1/1",
           "dpt": "9.001",
           "port": "value",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "return",
@@ -102,7 +168,10 @@
           "ga": "3/1/2",
           "dpt": "9.001",
           "port": "value",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "mode",
@@ -110,7 +179,10 @@
           "ga": "3/2/0",
           "dpt": "20.102",
           "port": "command",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "boost",
@@ -118,7 +190,10 @@
           "ga": "3/2/1",
           "dpt": "1.001",
           "port": "command",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         }
       ],
       "inputs": [
@@ -165,7 +240,10 @@
           "dpt": "9.024",
           "port": "power",
           "channel": "hp",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "hpEnergy",
@@ -174,7 +252,10 @@
           "dpt": "13.013",
           "port": "energy",
           "channel": "hp",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "whPower",
@@ -183,7 +264,10 @@
           "dpt": "14.056",
           "port": "power",
           "channel": "wh",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "whEnergy",
@@ -192,7 +276,10 @@
           "dpt": "13.010",
           "port": "energy",
           "channel": "wh",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         }
       ],
       "inputs": [
@@ -219,9 +306,17 @@
         {
           "id": "hp",
           "label": "Heat pump",
-          "initialState": { "powerW": 1800, "energyWh": 4210000 }
+          "initialState": {
+            "powerW": 1800,
+            "energyWh": 4210000
+          },
+          "equipment": null
         },
-        { "id": "wh", "label": "Water heater", "initialState": { "powerW": 0 } }
+        {
+          "id": "wh",
+          "label": "Water heater",
+          "equipment": null
+        }
       ]
     },
     {
@@ -237,7 +332,10 @@
           "ga": "3/1/0",
           "dpt": "9.001",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "flow",
@@ -245,7 +343,10 @@
           "ga": "3/1/1",
           "dpt": "9.001",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "return",
@@ -253,7 +354,10 @@
           "ga": "3/1/2",
           "dpt": "9.001",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "hpPower",
@@ -261,7 +365,10 @@
           "ga": "9/0/1",
           "dpt": "9.024",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "hpEnergy",
@@ -269,7 +376,10 @@
           "ga": "9/1/1",
           "dpt": "13.013",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "whPower",
@@ -277,9 +387,16 @@
           "ga": "9/0/2",
           "dpt": "14.056",
           "port": "display",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

@@ -94,10 +94,10 @@ describe("weatherStation/v1 and shutter wind alarm", () => {
 describe("dimmerActuator/v1 example", () => {
   it("switches, sets an absolute level, and reports it", () => {
     const sim = load("dimming.json");
-    sim.input("pushButton", "level", "value", 60);
+    sim.input("panel", "level", "value", 60);
     sim.advance(settle + 4000);
     expect(obj(sim, "dimmerActuator", "status")).toBe(1);
-    expect(obj(sim, "pushButton", "levelStatus")).toBeCloseTo(60, 0);
+    expect(obj(sim, "panel", "levelStatus")).toBeCloseTo(60, 0);
   });
 });
 
@@ -156,7 +156,7 @@ describe("tunable white (DPT 7.600)", () => {
     sim.advance(settle);
     expect(sim.equipmentState("dimmer", "d1")!.colourTemperatureK).toBe(2700);
     expect(obj(sim, "dimmer", "colourStatus")).toBe(2700);
-    sim.input("pushButton", "colour", "value", 7000);
+    sim.input("panel", "colour", "value", 7000);
     sim.advance(settle);
     expect(sim.equipmentState("dimmer", "d1")!.colourTemperatureK).toBe(6500);
     expect(obj(sim, "dimmer", "colourStatus")).toBe(6500);
@@ -261,12 +261,12 @@ describe("venetian blind slats", () => {
 
   it("follows a slat angle setpoint without moving the blind", () => {
     const sim = load("venetian-blind.json");
-    sim.input("pushButton", "pos", "value", 50);
+    sim.input("panel", "pos", "value", 50);
     sim.advance(20000);
     const pos = Number(blind(sim).positionPct);
     expect(pos).toBeCloseTo(50, 0);
     expect(Number(blind(sim).slatPct)).toBe(100);
-    sim.input("pushButton", "slat", "value", 30);
+    sim.input("panel", "slat", "value", 30);
     sim.advance(settle);
     expect(Number(blind(sim).slatPct)).toBeCloseTo(30, 0);
     expect(Number(blind(sim).positionPct)).toBeCloseTo(pos, 5);
@@ -434,31 +434,31 @@ describe("dimming actuator: switching by brightness value", () => {
 
   it("by default a value switches on and 0 switches off", () => {
     const sim = dimming({});
-    sim.input("pushButton", "level", "value", 60);
+    sim.input("panel", "level", "value", 60);
     sim.advance(settle);
     expect(level(sim)).toBeCloseTo(60.4, 0);
-    sim.input("pushButton", "level", "value", 0);
+    sim.input("panel", "level", "value", 0);
     sim.advance(settle);
     expect(level(sim)).toBe(0);
   });
 
   it("valueSwitchesOn: false ignores a value while the channel is off", () => {
     const sim = dimming({ valueSwitchesOn: false });
-    sim.input("pushButton", "level", "value", 60);
+    sim.input("panel", "level", "value", 60);
     sim.advance(settle);
     expect(level(sim)).toBe(0);
     sim.input("pushButton", "key1", "short"); // switch on
     sim.advance(settle);
-    sim.input("pushButton", "level", "value", 60);
+    sim.input("panel", "level", "value", 60);
     sim.advance(settle);
     expect(level(sim)).toBeCloseTo(60.4, 0);
   });
 
   it("valueSwitchesOff: false dims to the minimum level instead of switching off", () => {
     const sim = dimming({ valueSwitchesOff: false, minLevelPct: 20 });
-    sim.input("pushButton", "level", "value", 60);
+    sim.input("panel", "level", "value", 60);
     sim.advance(settle);
-    sim.input("pushButton", "level", "value", 0);
+    sim.input("panel", "level", "value", 0);
     sim.advance(settle);
     expect(level(sim)).toBe(20);
   });

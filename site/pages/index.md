@@ -43,27 +43,23 @@ tabs: none
       "devices": [
         {
           "id": "pushButton",
-          "name": "Push button",
+          "name": "Push-button interface",
           "address": "1.1.1",
-          "kind": "pushButton",
-          "behavior": "pushButton/v1",
+          "kind": "buttonInterface",
+          "behavior": "buttonInterface/v1",
           "objects": [
             {
               "id": "b1",
               "name": "Key 1",
               "ga": "1/1/1",
               "dpt": "1.001",
-              "port": "input",
+              "port": "switch",
+              "channel": "key1",
               "flags": { "W": true, "T": true }
             }
           ],
-          "buttons": [
-            {
-              "id": "b1",
-              "label": "Key 1",
-              "press": { "object": "b1", "value": "toggle" },
-              "led": "b1"
-            }
+          "channels": [
+            { "id": "key1", "label": "Input 1", "keyLabel": "Key 1", "parameters": { "function": "switch", "ledShown": true } }
           ]
         },
         {
@@ -93,7 +89,7 @@ tabs: none
 </bus-diagram>
 ```
 
-This example connects a push button, switch actuator, and lamp to line 1.1. The [first diagram](guide/first-diagram.html) guide explains each field.
+This example connects a push-button interface (one key that toggles), a switch actuator, and a lamp to line 1.1. The [first diagram](guide/first-diagram.html) guide explains each field.
 
 <div class="cards">
 <a href="guide/installation.html"><b>Guide</b><span>Install the library, describe an installation, and embed the diagram in a page or slide.</span></a>

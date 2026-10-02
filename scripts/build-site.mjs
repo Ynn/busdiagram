@@ -1,6 +1,6 @@
 // Build the offline documentation site in docs/:
 // bundle, designer, player, reveal.js, guide, examples, and reference.
-import { buildId } from "./build-id.mjs";
+import { assetVersion as assetVersionOf } from "./build-id.mjs";
 import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { build } from "vite";
@@ -119,8 +119,9 @@ await iife(
 const { version } = JSON.parse(
   await readFile(resolve(root, "package.json"), "utf8"),
 );
-// A development build has its own identifier, since its files differ from the release.
-const assetVersion = encodeURIComponent(buildId(version).label);
+// A development build has its own identifier, since its files differ from the release,
+// and a fingerprint of its changes, since two builds of a modified tree differ too.
+const assetVersion = encodeURIComponent(assetVersionOf(version));
 const versioned = (html) =>
   html.replace(
     /((?:src|href)=")((?!https?:|#)[^"?]+\.(?:js|css))"/g,

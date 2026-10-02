@@ -8,7 +8,7 @@ import {
 } from "../../src/core";
 import type { BehaviorDefinition } from "../../src/core";
 import "../../site/samples/extensions/delayed-switch.ts";
-import { flags, lampOn, load, readJson, v2 } from "./helpers";
+import { flags, keypad, lampOn, load, readJson, v2 } from "./helpers";
 
 const example = () =>
   readJson(
@@ -135,24 +135,15 @@ describe("bounded history and event cascades", () => {
     registerBehavior(id, def);
     return createSimulator(
       v2([
-        {
-          id: "pushButton",
-          name: "BP",
-          address: "1.1.1",
-          kind: "pushButton",
-          behavior: "pushButton/v1",
-          objects: [
-            {
-              id: "b",
-              name: "B",
-              ga: "1/1/1",
-              dpt: "1.001",
-              port: "input",
-              flags: flags(false, true),
-            },
-          ],
-          buttons: [{ id: "b1", press: { object: "b", value: 1 } }],
-        },
+        keypad("pushButton", "1.1.1", [
+          {
+            id: "b1",
+            object: "b",
+            ga: "1/1/1",
+            flags: flags(false, true),
+            parameters: { onPress: "on" },
+          },
+        ]),
         {
           id: "x",
           name: "X",

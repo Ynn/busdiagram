@@ -1,3 +1,4 @@
+import { assetVersion } from "./scripts/build-id.mjs";
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { loadData } from "./scripts/site-data.mjs";
@@ -32,6 +33,11 @@ const pkg = JSON.parse(await readFile(resolve(root, "package.json"), "utf8"));
 
 export default function (eleventyConfig) {
   eleventyConfig.addGlobalData("version", pkg.version);
+  // Version in the asset URLs: changes with every development build (see build-id.mjs).
+  eleventyConfig.addGlobalData(
+    "assetVersion",
+    encodeURIComponent(assetVersion(pkg.version)),
+  );
   // Web address of the source repository, from package.json.
   eleventyConfig.addGlobalData(
     "repository",

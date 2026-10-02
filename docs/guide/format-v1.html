@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Format 1 and conversion · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -50,7 +50,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-<h1 id="format-1-and-conversion"><a class="anchor" href="#format-1-and-conversion">#</a>Format 1 and conversion</h1><p>Older scenarios use format 1: they omit <code>formatVersion</code>, use <code>role</code> instead of <code>port</code>, and express some durations in seconds. BusDiagram still accepts them.</p>
+<h1 id="format-1-and-conversion"><a class="anchor" href="#format-1-and-conversion">#</a>Format 1 and conversion</h1><p>Older scenarios use format 1: they omit <code>formatVersion</code>, use <code>role</code> instead of <code>port</code>, and express some durations in seconds. BusDiagram still accepts them, except for their keys (<code>buttons</code>): they used the former push-button behavior, which has been removed, and a file with keys is refused with the error <code>removed</code>. Remove the keys, convert the file, then add a push-button interface (<code>buttonInterface/v1</code>).</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -60,7 +60,7 @@
 </thead>
 <tbody><tr>
 <td><code>kind</code> alone</td>
-<td><code>kind</code> plus a behavior ID, such as <code>pushButton/v1</code> or <code>switchActuator/v1</code>.</td>
+<td><code>kind</code> plus a behavior ID, such as <code>buttonInterface/v1</code> or <code>switchActuator/v1</code>.</td>
 </tr>
 <tr>
 <td><code>role: sensor / display / switch / status</code></td>
@@ -81,10 +81,6 @@
 <tr>
 <td><code>load: lamp / shutter / none</code></td>
 <td><code>equipment: { &quot;type&quot;: &quot;lamp&quot; }</code>, <code>{ &quot;type&quot;: &quot;shutter&quot; }</code>, or <code>null</code>.</td>
-</tr>
-<tr>
-<td>Buttons without IDs</td>
-<td>Generated <code>button-0</code>, <code>button-1</code>, and so on.</td>
 </tr>
 <tr>
 <td>Missing flags</td>

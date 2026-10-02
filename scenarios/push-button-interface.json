@@ -64,7 +64,10 @@
         {
           "id": "sw1",
           "name": "Input 1 switching",
-          "ga": ["1/1/1", "1/4/1"],
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in1",
@@ -76,7 +79,10 @@
         {
           "id": "sw2",
           "name": "Input 2 switching",
-          "ga": ["1/1/2", "1/4/2"],
+          "ga": [
+            "1/1/2",
+            "1/4/2"
+          ],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in2",
@@ -137,14 +143,17 @@
       "channels": [
         {
           "id": "in1",
-          "label": "Input 1 · Light",
+          "label": "Input 1",
+          "keyLabel": "Input 1 · Light",
           "parameters": {
-            "function": "switch"
+            "function": "switch",
+            "ledShown": true
           }
         },
         {
           "id": "in2",
-          "label": "Input 2 · Dimming",
+          "label": "Input 2",
+          "keyLabel": "Input 2 · Dimming",
           "parameters": {
             "function": "dim",
             "dimMode": "single"
@@ -152,7 +161,8 @@
         },
         {
           "id": "in3",
-          "label": "Input 3 · Blind",
+          "label": "Input 3",
+          "keyLabel": "Input 3 · Blind",
           "parameters": {
             "function": "blind",
             "blindMode": "single"
@@ -160,7 +170,8 @@
         },
         {
           "id": "in4",
-          "label": "Input 4 · Scene",
+          "label": "Input 4",
+          "keyLabel": "Input 4 · Scene",
           "parameters": {
             "function": "scene",
             "sceneNumber": 1,

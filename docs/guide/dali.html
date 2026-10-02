@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dimming and DALI · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -103,14 +103,12 @@
   ],
   <span class="k">"channels"</span>: [{ <span class="k">"id"</span>: <span class="s">"s1"</span>, <span class="k">"label"</span>: <span class="s">"Ceiling light"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> } }]
 }</code></pre><h2 id="tunable-white"><a class="anchor" href="#tunable-white">#</a>Tunable white</h2><p>A dimming actuator channel with a <code>colourTemperature</code> object (DPT 7.600, K) also controls the colour temperature of a tunable white light. Requests are limited to the channel range (<code>minColourK</code>, 2700 K, to <code>maxColourK</code>, 6500 K, by default), and <code>colourTemperatureStatus</code> reports the applied value. The initial value is <code>initialState.colourTemperatureK</code> (4000 K). A <code>dimmableLamp</code> load shows the colour of its light. See the <a href="../examples/tunable-white.html">tunable white example</a>.</p>
-<h2 id="push-button-dimming"><a class="anchor" href="#push-button-dimming">#</a>Push-button dimming</h2><p>A two-surface key can use a short press for switching or stepping, a long press for continuous dimming, and release to stop:</p>
+<h2 id="push-button-dimming"><a class="anchor" href="#push-button-dimming">#</a>Push-button dimming</h2><p>An input of a push-button interface with the dimming function uses a short press for switching, a long press for continuous dimming, and release to stop. On a pair of keys, one input dims brighter and the other darker:</p>
 <pre class="code"><code>{
   <span class="k">"id"</span>: <span class="s">"key1"</span>,
   <span class="k">"label"</span>: <span class="s">"Key 1 brighter"</span>,
-  <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"on"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-  <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"up"</span>, <span class="k">"value"</span>: <span class="n">9</span> },
-  <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"up"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
-}</code></pre><p>For DPT 3.007, value 9 requests increasing brightness with the largest step. The actuator dims at its configured rate until a stop value arrives; telegram travel time can therefore affect the final level.</p>
+  <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span>, <span class="k">"dimStep"</span>: <span class="n">1</span> }
+}</code></pre><p>The long press sends DPT 3.007 value 9: increasing brightness with the largest step (100 %). The actuator dims at its configured rate until a stop value arrives; telegram travel time can therefore affect the final level.</p>
 <h2 id="knx-dali-gateway"><a class="anchor" href="#knx-dali-gateway">#</a>KNX/DALI gateway</h2><p>A DALI line has up to 64 individually addressed control gear units, 16 groups, and broadcast commands. In this model, each <code>daliGateway/v1</code> channel represents a DALI group (up to 16 per gateway). Its <code>daliGroup</code> equipment contains the modeled ballasts and their short addresses:</p>
 <pre class="code"><code><span class="k">"channels"</span>: [{
   <span class="k">"id"</span>: <span class="s">"g1"</span>,
@@ -178,13 +176,13 @@
 </div><p>The gateway accepts up to 16 group channels. Configure KNX scene presets 1–16 only; they map directly to DALI command numbers 0–15. Other KNX scene values have no configured DALI preset and leave the output unchanged.</p>
 <p>The gateway polls ballasts every <code>pollMs</code> (2 seconds by default). Click a luminaire to simulate a ballast fault; the lamp goes dark and the gateway sets its group <code>error</code> and <code>generalError</code> objects. Click again to repair it. Status and fault objects can answer reads from the <a href="usb-interface.html">USB interface panel</a>.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"KNX/DALI gateway: groups, dimming, and faults","description":"A short press switches the light on or off; a long press dims it using DPT 3.007 until release. The gateway translates each telegram into a DALI command for its two groups: office (ballasts A0–A3) and corridor (A4–A5). Click a luminaire to simulate a ballast fault; the gateway detects it on its next poll and reports it on 1/7/x. Use the USB interface panel to write group address 1/1/0, which the gateway maps to a DALI broadcast command, or to read statuses and faults.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/0","name":"All lighting (DALI broadcast)","dpt":"1.001"},{"address":"1/1/1","name":"Office switch","dpt":"1.001"},{"address":"1/1/2","name":"Corridor switch","dpt":"1.001"},{"address":"1/2/1","name":"Office dimming","dpt":"3.007"},{"address":"1/2/2","name":"Corridor dimming","dpt":"3.007"},{"address":"1/3/1","name":"Office level","dpt":"5.001"},{"address":"1/3/2","name":"Corridor level","dpt":"5.001"},{"address":"1/4/1","name":"Office status","dpt":"1.001"},{"address":"1/4/2","name":"Corridor status","dpt":"1.001"},{"address":"1/5/1","name":"Office level status","dpt":"5.001"},{"address":"1/5/2","name":"Corridor level status","dpt":"5.001"},{"address":"1/7/0","name":"General DALI fault","dpt":"1.005"},{"address":"1/7/1","name":"Office fault","dpt":"1.005"},{"address":"1/7/2","name":"Corridor fault","dpt":"1.005"}],"devices":[{"id":"pushButton","name":"Four-key push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"s1","name":"Key 1 Office on","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"d1","name":"Key 1 Office brighter","ga":"1/2/1","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"s2","name":"Key 2 Office off","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"d2","name":"Key 2 Office dimmer","ga":"1/2/1","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"s3","name":"Key 3 Corridor on","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"d3","name":"Key 3 Corridor brighter","ga":"1/2/2","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"s4","name":"Key 4 Corridor off","ga":"1/1/2","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"d4","name":"Key 4 Corridor dimmer","ga":"1/2/2","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"v1","name":"Office setpoint","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"key1","label":"Key 1 · Office brighter","short":{"object":"s1","value":1},"long":{"object":"d1","value":9},"release":{"object":"d1","value":0}},{"id":"key2","label":"Key 2 · Office dimmer","short":{"object":"s2","value":0},"long":{"object":"d2","value":1},"release":{"object":"d2","value":0}},{"id":"key3","label":"Key 3 · Corridor brighter","short":{"object":"s3","value":1},"long":{"object":"d3","value":9},"release":{"object":"d3","value":0}},{"id":"key4","label":"Key 4 · Corridor dimmer","short":{"object":"s4","value":0},"long":{"object":"d4","value":1},"release":{"object":"d4","value":0}}],"inputs":[{"id":"setpoint","type":"number","label":"Office %","object":"v1","min":0,"max":100,"step":10}]},{"id":"gw","name":"DALI gateway","address":"1.1.2","kind":"daliGateway","behavior":"daliGateway/v1","objects":[{"id":"g1s","name":"Office switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1d","name":"Office dimming","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1v","name":"Office level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1e","name":"Office status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1ev","name":"Office level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1err","name":"Office fault","ga":"1/7/1","dpt":"1.005","port":"error","channel":"g1","flags":{"W":false,"T":true}},{"id":"g2s","name":"Corridor switch","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2d","name":"Corridor dimming","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2v","name":"Corridor level","ga":"1/3/2","dpt":"5.001","port":"value","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2e","name":"Corridor status","ga":"1/4/2","dpt":"1.001","port":"status","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2ev","name":"Corridor level status","ga":"1/5/2","dpt":"5.001","port":"valueStatus","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2err","name":"Corridor fault","ga":"1/7/2","dpt":"1.005","port":"error","channel":"g2","flags":{"W":false,"T":true}},{"id":"bc","name":"Broadcast switch","ga":"1/1/0","dpt":"1.001","port":"broadcastSwitch","flags":{"W":true,"T":false}},{"id":"gerr","name":"General fault","ga":"1/7/0","dpt":"1.005","port":"generalError","flags":{"W":false,"T":true}}],"channels":[{"id":"g1","label":"Office","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"ballasts":4}}},{"id":"g2","label":"Corridor","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"firstAddress":4}}}]},{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"KNX/DALI gateway: groups, dimming, and faults","description":"A short press switches the light on or off; a long press dims it using DPT 3.007 until release. The gateway translates each telegram into a DALI command for its two groups: office (ballasts A0–A3) and corridor (A4–A5). Click a luminaire to simulate a ballast fault; the gateway detects it on its next poll and reports it on 1/7/x. Use the USB interface panel to write group address 1/1/0, which the gateway maps to a DALI broadcast command, or to read statuses and faults.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/0","name":"All lighting (DALI broadcast)","dpt":"1.001"},{"address":"1/1/1","name":"Office switch","dpt":"1.001"},{"address":"1/1/2","name":"Corridor switch","dpt":"1.001"},{"address":"1/2/1","name":"Office dimming","dpt":"3.007"},{"address":"1/2/2","name":"Corridor dimming","dpt":"3.007"},{"address":"1/3/1","name":"Office level","dpt":"5.001"},{"address":"1/3/2","name":"Corridor level","dpt":"5.001"},{"address":"1/4/1","name":"Office status","dpt":"1.001"},{"address":"1/4/2","name":"Corridor status","dpt":"1.001"},{"address":"1/5/1","name":"Office level status","dpt":"5.001"},{"address":"1/5/2","name":"Corridor level status","dpt":"5.001"},{"address":"1/7/0","name":"General DALI fault","dpt":"1.005"},{"address":"1/7/1","name":"Office fault","dpt":"1.005"},{"address":"1/7/2","name":"Corridor fault","dpt":"1.005"}],"devices":[{"id":"pushButton","name":"Four-key push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"s1","name":"Key 1 Office on","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key1","flags":{"W":true,"T":true}},{"id":"d1","name":"Key 1 Office brighter","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key1","flags":{"W":false,"T":true}},{"id":"s2","name":"Key 2 Office off","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key2","flags":{"W":true,"T":true}},{"id":"d2","name":"Key 2 Office dimmer","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key2","flags":{"W":false,"T":true}},{"id":"s3","name":"Key 3 Corridor on","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"key3","flags":{"W":true,"T":true}},{"id":"d3","name":"Key 3 Corridor brighter","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"key3","flags":{"W":false,"T":true}},{"id":"s4","name":"Key 4 Corridor off","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"key4","flags":{"W":true,"T":true}},{"id":"d4","name":"Key 4 Corridor dimmer","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"key4","flags":{"W":false,"T":true}}],"channels":[{"id":"key1","label":"Input 1","keyLabel":"Key 1 · Office brighter","parameters":{"function":"dim","dimMode":"brighter"},"equipment":null},{"id":"key2","label":"Input 2","keyLabel":"Key 2 · Office dimmer","parameters":{"function":"dim","dimMode":"darker"},"equipment":null},{"id":"key3","label":"Input 3","keyLabel":"Key 3 · Corridor brighter","parameters":{"function":"dim","dimMode":"brighter"},"equipment":null},{"id":"key4","label":"Input 4","keyLabel":"Key 4 · Corridor dimmer","parameters":{"function":"dim","dimMode":"darker"},"equipment":null}]},{"id":"gw","name":"DALI gateway","address":"1.1.2","kind":"daliGateway","behavior":"daliGateway/v1","objects":[{"id":"g1s","name":"Office switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1d","name":"Office dimming","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1v","name":"Office level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1e","name":"Office status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1ev","name":"Office level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1err","name":"Office fault","ga":"1/7/1","dpt":"1.005","port":"error","channel":"g1","flags":{"W":false,"T":true}},{"id":"g2s","name":"Corridor switch","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2d","name":"Corridor dimming","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2v","name":"Corridor level","ga":"1/3/2","dpt":"5.001","port":"value","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2e","name":"Corridor status","ga":"1/4/2","dpt":"1.001","port":"status","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2ev","name":"Corridor level status","ga":"1/5/2","dpt":"5.001","port":"valueStatus","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2err","name":"Corridor fault","ga":"1/7/2","dpt":"1.005","port":"error","channel":"g2","flags":{"W":false,"T":true}},{"id":"bc","name":"Broadcast switch","ga":"1/1/0","dpt":"1.001","port":"broadcastSwitch","flags":{"W":true,"T":false}},{"id":"gerr","name":"General fault","ga":"1/7/0","dpt":"1.005","port":"generalError","flags":{"W":false,"T":true}}],"channels":[{"id":"g1","label":"Office","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"ballasts":4}}},{"id":"g2","label":"Corridor","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"firstAddress":4}}}]},{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"panel","name":"Visualization","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"v1","name":"Office setpoint","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"inputs":[{"id":"setpoint","type":"number","label":"Office %","object":"v1","min":0,"max":100,"step":10}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=dali-gateway" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-json"><code>{
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"KNX/DALI gateway: groups, dimming, and faults"</span>,
   <span class="k">"description"</span>: <span class="s">"A short press switches the light on or off; a long press dims it using DPT 3.007 until release. The gateway translates each telegram into a DALI command for its two groups: office (ballasts A0–A3) and corridor (A4–A5). Click a luminaire to simulate a ballast fault; the gateway detects it on its next poll and reports it on 1/7/x. Use the USB interface panel to write group address 1/1/0, which the gateway maps to a DALI broadcast command, or to read statuses and faults."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"1/1/0"</span>, <span class="k">"name"</span>: <span class="s">"All lighting (DALI broadcast)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Office switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
@@ -206,15 +204,16 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Four-key push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"objects"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"s1"</span>,
           <span class="k">"name"</span>: <span class="s">"Key 1 Office on"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -222,7 +221,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 1 Office brighter"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -230,7 +230,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 Office off"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -238,7 +239,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 Office dimmer"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -246,7 +248,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 3 Corridor on"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -254,7 +257,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 3 Corridor brighter"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -262,7 +266,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 4 Corridor off"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key4"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -270,57 +275,39 @@
           <span class="k">"name"</span>: <span class="s">"Key 4 Corridor dimmer"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
-          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"v1"</span>,
-          <span class="k">"name"</span>: <span class="s">"Office setpoint"</span>,
-          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key4"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key1"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 1 · Office brighter"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"s1"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"d1"</span>, <span class="k">"value"</span>: <span class="n">9</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"d1"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1 · Office brighter"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key2"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 2 · Office dimmer"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"s2"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"d2"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"d2"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 2 · Office dimmer"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"darker"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key3"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 3 · Corridor brighter"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"s3"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"d3"</span>, <span class="k">"value"</span>: <span class="n">9</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"d3"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 3 · Corridor brighter"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key4"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 4 · Corridor dimmer"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"s4"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"d4"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"d4"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
-        }
-      ],
-      <span class="k">"inputs"</span>: [
-        {
-          <span class="k">"id"</span>: <span class="s">"setpoint"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Office %"</span>,
-          <span class="k">"object"</span>: <span class="s">"v1"</span>,
-          <span class="k">"min"</span>: <span class="n">0</span>,
-          <span class="k">"max"</span>: <span class="n">100</span>,
-          <span class="k">"step"</span>: <span class="n">10</span>
+          <span class="k">"label"</span>: <span class="s">"Input 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 4 · Corridor dimmer"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"darker"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },
@@ -478,6 +465,34 @@
       <span class="k">"kind"</span>: <span class="s">"interface"</span>,
       <span class="k">"behavior"</span>: <span class="s">"usbInterface/v1"</span>,
       <span class="k">"objects"</span>: []
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualization"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"v1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Office setpoint"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"setpoint"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Office %"</span>,
+          <span class="k">"object"</span>: <span class="s">"v1"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        }
+      ]
     }
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }

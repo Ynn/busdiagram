@@ -18,12 +18,16 @@
   <h3>One telegram, multiple outputs</h3>
   <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
   <script type="application/json">{
+  "formatVersion": 2,
   "title": "Control multiple outputs",
   "description": "A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.",
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -41,119 +45,199 @@
   "devices": [
     {
       "id": "pushButton",
-      "address": "1.1.1",
       "name": "Push-button",
-      "kind": "pushButton",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "A four-key push-button: one device, one individual address, and one group object per key.",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1",
-          "ga": "1/1/1"
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "key2",
           "name": "Key 2",
-          "ga": "1/1/1"
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         },
         {
           "id": "key3",
           "name": "Key 3",
-          "ga": "1/1/2"
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in3"
         },
         {
           "id": "key4",
           "name": "Key 4",
-          "ga": "1/1/2"
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in4"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": 1
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
           }
         },
         {
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": 0
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "switch",
+            "onPress": "off"
           }
         },
         {
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": 1
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
           }
         },
         {
-          "label": "Key 4",
-          "press": {
-            "object": "key4",
-            "value": 0
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Key 4",
+          "parameters": {
+            "function": "switch",
+            "onPress": "off"
           }
         }
       ]
     },
     {
       "id": "switchActuator",
-      "address": "1.1.2",
       "name": "Four-output switching actuator",
+      "address": "1.1.2",
       "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
       "description": "One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.",
-      "channels": [
-        {
-          "id": "s1",
-          "label": "L1"
-        },
-        {
-          "id": "s2",
-          "label": "L2"
-        },
-        {
-          "id": "s3",
-          "label": "L3"
-        },
-        {
-          "id": "s4",
-          "label": "L4"
-        }
-      ],
       "objects": [
         {
           "id": "c1",
           "name": "Channel 1",
-          "ga": ["1/1/1", "1/1/2"],
-          "role": "switch",
-          "channel": "s1"
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c2",
           "name": "Channel 2",
-          "ga": ["1/1/1", "1/1/2"],
-          "role": "switch",
-          "channel": "s2"
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c3",
           "name": "Channel 3",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s3"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c4",
           "name": "Channel 4",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s4"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "L2",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s3",
+          "label": "L3",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s4",
+          "label": "L4",
+          "equipment": {
+            "type": "lamp"
+          }
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }
 </script>
   </bus-diagram>
@@ -164,12 +248,16 @@
   <h3>Status feedback</h3>
   <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
   <script type="application/json">{
+  "formatVersion": 2,
   "title": "Toggle controls and status feedback",
   "description": "Key 1 and Key 3 toggle L1; Key 2 toggles L1 through L4. Key 1 listens only to 1/1/1, so it can fall out of sync. Key 3 also listens to status feedback on 1/4/1 and stays synchronized. L1 status feedback also turns on L2.",
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -197,124 +285,205 @@
   "devices": [
     {
       "id": "pushButton",
-      "address": "1.1.1",
       "name": "Push-button",
-      "kind": "pushButton",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "A toggle key sends the inverse of its object value. Without status feedback, that value only reflects the last value sent or received on its own addresses.",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1 toggle",
-          "ga": "1/1/1"
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "key2",
           "name": "Key 2 group",
-          "ga": "1/1/2"
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         },
         {
           "id": "key3",
           "name": "Key 3 + status",
-          "ga": ["1/1/1", "1/4/1"]
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in3"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
-          },
-          "led": "key1"
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         },
         {
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": "toggle"
-          },
-          "led": "key2"
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         },
         {
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": "toggle"
-          },
-          "led": "key3"
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
     {
       "id": "switchActuator",
-      "address": "1.1.2",
       "name": "Four-output switching actuator",
+      "address": "1.1.2",
       "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
       "description": "Status objects send the actual output value after each change.",
-      "channels": [
-        {
-          "id": "s1",
-          "label": "L1"
-        },
-        {
-          "id": "s2",
-          "label": "L2"
-        },
-        {
-          "id": "s3",
-          "label": "L3"
-        },
-        {
-          "id": "s4",
-          "label": "L4"
-        }
-      ],
       "objects": [
         {
           "id": "c1",
           "name": "Channel 1",
-          "ga": ["1/1/1", "1/1/2"],
-          "role": "switch",
-          "channel": "s1"
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "e1",
           "name": "Status 1",
           "ga": "1/4/1",
-          "role": "status",
-          "channel": "s1"
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
         },
         {
           "id": "c2",
           "name": "Channel 2",
-          "ga": ["1/1/2", "1/4/1"],
-          "role": "switch",
-          "channel": "s2"
+          "ga": [
+            "1/1/2",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "e2",
           "name": "Status 2",
           "ga": "1/4/2",
-          "role": "status",
-          "channel": "s2"
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": true
+          }
         },
         {
           "id": "c3",
           "name": "Channel 3",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s3"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c4",
           "name": "Channel 4",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s4"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "L2",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s3",
+          "label": "L3",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s4",
+          "label": "L4",
+          "equipment": {
+            "type": "lamp"
+          }
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }
 </script>
   </bus-diagram>
@@ -331,7 +500,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example installation"
+      "name": "Example installation",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -361,99 +533,97 @@
       "id": "pushButton",
       "name": "Three-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "move",
           "name": "Movement",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "key1"
         },
         {
           "id": "stop",
           "name": "Stop / slat step",
           "ga": "2/1/2",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "key1"
+        },
+        {
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "key2"
+        },
+        {
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "key2"
         },
         {
           "id": "target",
           "name": "Setpoint",
           "ga": "2/1/3",
           "dpt": "5.001",
-          "port": "input",
+          "port": "value",
           "flags": {
             "W": false,
             "T": true
-          }
-        },
-        {
-          "id": "feedback",
-          "name": "Received estimated position",
-          "ga": "2/1/4",
-          "dpt": "5.001",
-          "port": "display",
-          "flags": {
-            "W": true,
-            "T": false
-          }
+          },
+          "channel": "key3"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Up",
-          "icon": "up",
-          "short": {
-            "object": "stop",
-            "value": 0
-          },
-          "long": {
-            "object": "move",
-            "value": 0
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           }
         },
         {
           "id": "key2",
-          "label": "Key 2 · Down",
-          "icon": "down",
-          "short": {
-            "object": "stop",
-            "value": 1
-          },
-          "long": {
-            "object": "move",
-            "value": 1
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           }
         },
         {
           "id": "key3",
-          "label": "Key 3 · 50 %",
-          "press": {
-            "object": "target",
-            "value": 50
+          "label": "Input 3",
+          "keyLabel": "Key 3 · 50 %",
+          "parameters": {
+            "function": "value",
+            "shortValue": 50
           }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "position",
-          "type": "number",
-          "label": "Setpoint (%)",
-          "object": "target",
-          "min": 0,
-          "max": 100,
-          "step": 1
         }
       ]
     },
@@ -520,18 +690,54 @@
           "parameters": {
             "estimatedTravelTimeMs": 20000
           },
-          "initialState": {
-            "estimatedPositionPct": 0
-          },
           "equipment": {
             "type": "shutter",
             "parameters": {
               "actualTravelTimeMs": 30000
-            },
-            "initialState": {
-              "positionPct": 0
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.2",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "target",
+          "name": "Setpoint",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "feedback",
+          "name": "Received estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "position",
+          "type": "number",
+          "label": "Setpoint (%)",
+          "object": "target",
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       ]
     }
@@ -550,6 +756,7 @@
   <h3>Topology and filtering</h3>
   <bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:470px">
   <script type="application/json">{
+  "formatVersion": 2,
   "title": "KNX topology: couplers, repeater, and KNXnet/IP routers",
   "description": "Two areas are connected by an IP network. KNXnet/IP routers 1.0.0 and 2.0.0 act as area couplers. The installation has four lines, a line extension, and a supervisor on the IP network. Compare the route of a local command with that of a status telegram.",
   "lines": [
@@ -567,6 +774,9 @@
     },
     {
       "address": "2.1",
+      "powerSupply": {
+        "currentMa": 640
+      },
       "extension": {
         "address": "2.1.64",
         "mode": "repeater",
@@ -574,9 +784,6 @@
         "powerSupply": {
           "currentMa": 320
         }
-      },
-      "powerSupply": {
-        "currentMa": 640
       }
     },
     {
@@ -632,236 +839,376 @@
       "id": "sup",
       "name": "Supervisor",
       "kind": "supervisor",
+      "behavior": "display/v1",
       "description": "The supervisor listens through the KNX/IP router. It sends no commands; it observes shutter commands and displays status feedback.",
       "objects": [
         {
           "id": "pos",
           "name": "Shutter 1 position",
           "ga": "2/4/1",
-          "dpt": "5.001"
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "l1",
           "name": "Living room",
-          "ga": "1/4/1"
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "l2",
           "name": "Corridor",
-          "ga": "1/4/2"
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         }
       ]
     },
     {
       "id": "p1",
-      "address": "1.1.10",
       "name": "Three-key push-button · living room",
-      "kind": "pushButton",
+      "address": "1.1.10",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "One device has a separate object for each key and function. Key 1 raises the shutter and Key 2 lowers it: long presses use 2/1/1; short presses use 2/2/1. Key 3 toggles the light through 1/1/1 and also listens to status feedback on 1/4/1.",
       "objects": [
         {
           "id": "key1Long",
           "name": "Key 1 long press",
-          "ga": "2/1/1"
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "key1Short",
           "name": "Key 1 short press",
-          "ga": "2/2/1"
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "key2Long",
           "name": "Key 2 long press",
-          "ga": "2/1/1"
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         },
         {
           "id": "key2Short",
           "name": "Key 2 short press",
-          "ga": "2/2/1"
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         },
         {
           "id": "key3",
           "name": "Key 3",
-          "ga": ["1/1/1", "1/4/1"]
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in3"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "icon": "up",
-          "long": {
-            "object": "key1Long",
-            "value": 0
-          },
-          "short": {
-            "object": "key1Short",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           }
         },
         {
-          "label": "Key 2",
-          "icon": "down",
-          "long": {
-            "object": "key2Long",
-            "value": 1
-          },
-          "short": {
-            "object": "key2Short",
-            "value": 1
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           }
         },
         {
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": "toggle"
-          },
-          "led": "key3"
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
     {
       "id": "c1",
-      "address": "1.1.20",
       "name": "Switching actuator",
+      "address": "1.1.20",
       "kind": "switchActuator",
-      "channels": [
-        {
-          "id": "a",
-          "label": "Living room"
-        }
-      ],
+      "behavior": "switchActuator/v1",
       "objects": [
         {
           "id": "cmd",
           "name": "Channel 1",
           "ga": "1/1/1",
-          "role": "switch"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "status",
           "name": "Status 1",
           "ga": "1/4/1",
-          "role": "status"
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "Living room",
+          "equipment": {
+            "type": "lamp"
+          }
         }
       ]
     },
     {
       "id": "p2",
-      "address": "1.2.10",
       "name": "One-key push-button · entrance",
-      "kind": "pushButton",
+      "address": "1.2.10",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "One shutter key: a long press reverses direction through 2/1/1; a short press stops through 2/2/1. Its 2/1/1 object listens to the bus. If device 1.1.10 lowers the shutter, the next long press raises it.",
       "objects": [
         {
           "id": "md",
           "name": "Key 1 long press",
-          "ga": "2/1/1"
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "st",
           "name": "Key 1 short press",
-          "ga": "2/2/1"
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "long": {
-            "object": "md",
-            "value": "toggle"
-          },
-          "short": {
-            "object": "st",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "single"
           }
         }
       ]
     },
     {
       "id": "p3",
-      "address": "2.1.5",
       "name": "Push-button · corridor",
-      "kind": "pushButton",
+      "address": "2.1.5",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1",
-          "ga": ["1/3/1", "1/4/2"]
+          "ga": [
+            "1/3/1",
+            "1/4/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
-          },
-          "led": "key1"
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
     {
       "id": "c2",
-      "address": "2.1.6",
       "name": "Switching actuator",
+      "address": "2.1.6",
       "kind": "switchActuator",
-      "channels": [
-        {
-          "id": "a",
-          "label": "Corridor"
-        }
-      ],
+      "behavior": "switchActuator/v1",
       "objects": [
         {
           "id": "cmd",
           "name": "Channel 1",
           "ga": "1/3/1",
-          "role": "switch"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "status",
           "name": "Status 1",
           "ga": "1/4/2",
-          "role": "status"
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "Corridor",
+          "equipment": {
+            "type": "lamp"
+          }
         }
       ]
     },
     {
       "id": "shutterActuator",
-      "address": "2.1.20",
-      "downstream": true,
       "name": "Shutter actuator",
+      "address": "2.1.20",
       "kind": "shutterActuator",
-      "channels": [
-        {
-          "id": "shutter1",
-          "label": "Shutter 1",
-          "travel": 12
-        }
-      ],
+      "behavior": "shutterActuator/v1",
+      "downstream": true,
       "objects": [
         {
           "id": "md",
           "name": "MD 1",
           "ga": "2/1/1",
-          "role": "move"
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "shutter1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "st",
           "name": "Stop 1",
           "ga": "2/2/1",
-          "role": "stop"
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "shutter1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "pos",
           "name": "Position 1",
           "ga": "2/4/1",
-          "role": "position"
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "shutter1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "shutter1",
+          "label": "Shutter 1",
+          "parameters": {
+            "estimatedTravelTimeMs": 12000
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 12000
+            }
+          }
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }
 </script>
   </bus-diagram>

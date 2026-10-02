@@ -201,7 +201,7 @@ describe("normally closed relay", () => {
     });
     expect(sim.equipmentState("switchActuator", "s1")!.on).toBe(true);
     expect(sim.channelState("switchActuator", "s1").on).toBe(false);
-    sim.input("pushButton", "button-0", "press"); // Key 1: on
+    sim.input("pushButton", "in1", "press"); // Key 1: on
     sim.advance(6000);
     expect(sim.channelState("switchActuator", "s1").on).toBe(true);
     expect(sim.equipmentState("switchActuator", "s1")!.on).toBe(false);
@@ -215,15 +215,13 @@ describe("different kinds of data on one group address", () => {
     // Real commissioning error: a panel sends scene numbers on the address of a
     // dimming actuator's brightness object.
     const doc = raw("dimming.json") as Doc;
-    const scene = dev(doc, "pushButton").objects.find(
-      (o: Doc) => o.id === "level",
-    );
+    const panel = dev(doc, "panel");
+    const scene = panel.objects.find((o: Doc) => o.id === "level");
     scene.dpt = "17.001";
-    scene.port = "input";
     doc.groupAddresses = (doc.groupAddresses ?? []).filter(
       (g: Doc) => g.address !== "1/3/1",
     );
-    doc.devices[0].inputs = [];
+    panel.inputs = [];
     const sim = createSimulator(doc);
     expect(codes(sim)).toContain("config-datatype");
   });

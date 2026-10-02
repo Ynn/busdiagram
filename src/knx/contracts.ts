@@ -123,7 +123,14 @@ export interface ObjectFlags {
   R: boolean;
   /** A GroupValueResponse received updates the object, such as writing. */
   U: boolean;
+  /** Communication: off, the object neither sends nor handles any message. */
+  C: boolean;
+  /** Read on initialisation: when the device starts again, it reads the object's value. */
+  I: boolean;
 }
+
+/** Transmission priority of a group object (system priority is kept for management). */
+export type Priority = "urgent" | "normal" | "low";
 
 /** Read-only view of a group object, as seen by a behavior. */
 export interface ObjectInfo {
@@ -134,6 +141,8 @@ export interface ObjectInfo {
   readonly dpt: string;
   readonly gas: readonly string[];
   readonly flags: Readonly<ObjectFlags>;
+  /** Transmission priority of the frames sent by the object. */
+  readonly priority: Priority;
 }
 
 export interface ButtonActionInfo {
@@ -154,9 +163,11 @@ export interface ButtonInfo {
   readonly ledInverted?: boolean;
   /**
    * Contact input of a device with `contactInputs`: the key reports when it is pressed
-   * and released (gestures "down" and "up"); the device measures the press itself.
+   * ("down") and released ("up"), and "hold" when it is held past `longPressMs`.
    */
   readonly contact?: boolean;
+  /** Long-press time of a contact input, or null when its function has no long press. */
+  readonly longPressMs?: number | null;
 }
 
 export interface NumberInputInfo {
@@ -210,10 +221,10 @@ export interface DeviceInfo {
 /**
  * Gesture on a key or an input: the actions of a configured key (press, short, long,
  * release), an entered value, or the edges of a contact input (down when it is pressed,
- * up when it is released).
+ * hold when it is held past its long-press time, up when it is released).
  */
 export type Gesture =
-  "press" | "short" | "long" | "release" | "value" | "down" | "up";
+  "press" | "short" | "long" | "release" | "value" | "down" | "up" | "hold";
 
 export interface InputEvent {
   /** ID of a device key or digital input. */
@@ -306,15 +317,28 @@ export interface BehaviorDefinition<S = unknown> {
   channelInitialState?: ParamSchema;
   /** Pages of parameters in the designer; derived from the schemas when absent. */
   parameterLayout?: ParameterLayout;
+  /**
+   * Group objects of each channel that follow one of its parameters, as a product's
+   * parameter dialog shows the objects of the chosen function: for each value of the
+   * parameter, the ports present and their DPT. The designer creates and removes them.
+   */
+  channelObjects?: {
+    readonly parameter: string;
+    readonly values: Readonly<
+      Record<string, readonly { readonly port: string; readonly dpt: string }[]>
+    >;
+  };
   /** Ports of accepted objects, with their DPTs. */
   ports: Record<string, BehaviorPort>;
   /** Type of output control emitted by this behavior ("switch", "motor"). */
   output?: OutputCommand["type"];
   /** Does this behavior use local keys or inputs? */
   acceptsInputs?: boolean;
+  /** Keys (`buttons`) are refused when false; by default they follow `acceptsInputs`. */
+  acceptsKeys?: boolean;
   /**
    * Each channel is a contact input (a key on the diagram): the device receives the
-   * edges "down" and "up" and measures short and long presses itself, in simulated time.
+   * edges "down" and "up", and "hold" when the key is held past its long-press time.
    */
   contactInputs?: boolean;
   /**
@@ -325,7 +349,13 @@ export interface BehaviorDefinition<S = unknown> {
   contactKey?(
     channel: ChannelInfo,
     objects: readonly ObjectInfo[],
-  ): { icon?: string; led?: string | null; ledInverted?: boolean };
+  ): {
+    icon?: string;
+    led?: string | null;
+    ledInverted?: boolean;
+    /** Long-press time (ms), or null when the input has no long press. */
+    longPressMs?: number | null;
+  };
   createState(device: DeviceInfo): S;
   onInit?(ctx: BehaviorContext<S>): void;
   onInput?(ctx: BehaviorContext<S>, input: InputEvent): void;

@@ -152,7 +152,10 @@ export function toV2(
               T: o.flags.T,
               R: o.flags.R !== defaultRead(o.port) ? o.flags.R : undefined,
               U: o.flags.U !== defaultUpdate(o.port) ? o.flags.U : undefined,
+              C: o.flags.C ? undefined : false,
+              I: o.flags.I ? true : undefined,
             }),
+            priority: o.priority === "low" ? undefined : o.priority,
           }),
         ),
         // Keys of contact inputs come from the channels: they are not written.
@@ -210,6 +213,7 @@ export function toV2(
               return compact({
                 id: c.id,
                 label: c.label !== c.id ? c.label : undefined,
+                keyLabel: c.keyLabel || undefined,
                 parameters: withoutDefaults(
                   c.parameters,
                   def?.channelParameters,

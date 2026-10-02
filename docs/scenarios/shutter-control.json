@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "topology": {
@@ -74,8 +77,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "Each key has its own objects, even when they share a group address. Key 1 controls the shutter with one key (long press reverses direction; short press stops). Key 2 raises and Key 3 lowers it (long press moves; short press stops or steps). Key 4 lowers the shutter and turns on the light.",
       "objects": [
         {
@@ -83,7 +86,8 @@
           "name": "Key 1 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -94,7 +98,8 @@
           "name": "Key 1 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -105,7 +110,8 @@
           "name": "Key 2 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -116,7 +122,8 @@
           "name": "Key 2 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -127,7 +134,8 @@
           "name": "Key 3 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in3",
           "flags": {
             "W": true,
             "T": true
@@ -138,7 +146,8 @@
           "name": "Key 3 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in3",
           "flags": {
             "W": true,
             "T": true
@@ -149,60 +158,52 @@
           "name": "Key 4",
           "ga": "2/1/2",
           "dpt": "1.008",
-          "port": "input",
+          "port": "switch",
+          "channel": "in4",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "short": {
-            "object": "key1Short",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "blind"
           },
-          "long": {
-            "object": "key1Long",
-            "value": "toggle"
-          }
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "icon": "up",
-          "short": {
-            "object": "key2Short",
-            "value": 0
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           },
-          "long": {
-            "object": "key2Long",
-            "value": 0
-          }
+          "equipment": null
         },
         {
-          "id": "button-2",
-          "label": "Key 3",
-          "icon": "down",
-          "short": {
-            "object": "key3Short",
-            "value": 1
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           },
-          "long": {
-            "object": "key3Long",
-            "value": 1
-          }
+          "equipment": null
         },
         {
-          "id": "button-3",
-          "label": "Key 4",
-          "icon": "down",
-          "press": {
-            "object": "key4",
-            "value": 1
-          }
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Key 4",
+          "parameters": {
+            "onPress": "on"
+          },
+          "equipment": null
         }
       ]
     },

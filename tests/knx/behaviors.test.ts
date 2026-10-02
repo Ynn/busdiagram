@@ -2,7 +2,17 @@ import { describe, expect, it } from "vitest";
 import { createSimulator } from "../../src/core";
 import { layout } from "../../src/knx/layout";
 import type { Simulation } from "../../src/knx/sim";
-import { estPos, flags, lampOn, load, obj, raw, realPos, v2 } from "./helpers";
+import {
+  estPos,
+  flags,
+  keypad,
+  lampOn,
+  load,
+  obj,
+  raw,
+  realPos,
+  v2,
+} from "./helpers";
 
 const outputs = (sim: Simulation, dev: string, ch: string) =>
   sim.journal
@@ -54,24 +64,9 @@ describe("T and W flags", () => {
 describe("internal links and flags", () => {
   const scenario = (statusT: boolean, s2W: boolean) =>
     v2([
-      {
-        id: "pushButton",
-        name: "BP",
-        address: "1.1.1",
-        kind: "pushButton",
-        behavior: "pushButton/v1",
-        objects: [
-          {
-            id: "b",
-            name: "B",
-            ga: "1/1/1",
-            dpt: "1.001",
-            port: "input",
-            flags: flags(true, true),
-          },
-        ],
-        buttons: [{ id: "b1", press: { object: "b", value: 1 } }],
-      },
+      keypad("pushButton", "1.1.1", [
+        { id: "b1", object: "b", ga: "1/1/1", parameters: { onPress: "on" } },
+      ]),
       {
         id: "switchActuator",
         name: "TOR",
@@ -124,7 +119,7 @@ describe("internal links and flags", () => {
       },
     ]);
 
-  it("one internal delivery respects each object's W flag", () => {
+  it("one internal delivery updates every value; the W flag decides the reaction", () => {
     const sim = createSimulator(scenario(true, false));
     sim.input("pushButton", "b1", "press");
     sim.advance(5000);
@@ -133,17 +128,17 @@ describe("internal links and flags", () => {
     const internal = st[0]!.receptions.filter((r) => r.internal);
     expect(internal).toHaveLength(1);
     expect(internal[0]!.objects).toEqual([
-      { objectId: "c2", result: "ignored" },
+      { objectId: "c2", result: "accepted" },
       { objectId: "c3", result: "accepted" },
     ]);
+    // c2 has no W flag: its value follows the address, its channel does not react.
     expect(lampOn(sim, "switchActuator", "s2")).toBe(false);
     expect(lampOn(sim, "switchActuator", "s3")).toBe(true);
-    // Each object linked to the same group address retains its own value.
     expect([
       obj(sim, "switchActuator", "e1"),
       obj(sim, "switchActuator", "c2"),
       obj(sim, "switchActuator", "c3"),
-    ]).toEqual([1, 0, 1]);
+    ]).toEqual([1, 1, 1]);
   });
 
   it("T disabled on status: relay and local value change, neither telegram nor internal link", () => {
@@ -159,35 +154,22 @@ describe("internal links and flags", () => {
 
 describe("timer", () => {
   const scenario = v2([
-    {
-      id: "pushButton",
-      name: "BP",
-      address: "1.1.1",
-      kind: "pushButton",
-      behavior: "pushButton/v1",
-      objects: [
-        {
-          id: "m",
-          name: "Switch",
-          ga: "1/1/1",
-          dpt: "1.001",
-          port: "input",
-          flags: flags(false, true),
-        },
-        {
-          id: "a",
-          name: "Stop",
-          ga: "1/1/1",
-          dpt: "1.001",
-          port: "input",
-          flags: flags(false, true),
-        },
-      ],
-      buttons: [
-        { id: "on", press: { object: "m", value: 1 } },
-        { id: "off", press: { object: "a", value: 0 } },
-      ],
-    },
+    keypad("pushButton", "1.1.1", [
+      {
+        id: "on",
+        object: "m",
+        ga: "1/1/1",
+        flags: flags(false, true),
+        parameters: { onPress: "on" },
+      },
+      {
+        id: "off",
+        object: "a",
+        ga: "1/1/1",
+        flags: flags(false, true),
+        parameters: { onPress: "off" },
+      },
+    ]),
     {
       id: "switchActuator",
       name: "TOR",
@@ -265,7 +247,7 @@ describe("timer", () => {
 describe("shutter actuator estimate versus actual travel", () => {
   it("20 s configured and 30 s actual travel: 50% estimated, about one third actual", () => {
     const sim = load("shutter-calibration.json");
-    const [tel] = sim.input("pushButton", "position", "value", 50);
+    const [tel] = sim.input("panel", "position", "value", 50);
     expect(tel!.raw).toBe(0x80);
     sim.advance(1599);
     expect(sim.output("shutterActuator", "s1")).toEqual({
@@ -290,12 +272,12 @@ describe("shutter actuator estimate versus actual travel", () => {
       Math.abs(realPos(sim, "shutterActuator", "s1") - 33.464),
     ).toBeLessThan(0.05);
     // Position feedback publishes the estimate, never the actual position.
-    expect(obj(sim, "pushButton", "feedback")).toBeCloseTo(50.196, 2);
+    expect(obj(sim, "panel", "feedback")).toBeCloseTo(50.196, 2);
   });
 
   it("30 s / 30 s: both positions match", () => {
     const sim = load("shutter-calibrated.json");
-    sim.input("pushButton", "position", "value", 50);
+    sim.input("panel", "position", "value", 50);
     sim.advance(20000);
     expect(estPos(sim, "shutterActuator", "s1")).toBeCloseTo(50.196, 2);
     expect(
@@ -362,7 +344,7 @@ describe("new commands replace old ones without driving both directions", () => 
     const sim = load("shutter-calibration.json");
     sim.input("pushButton", "key2", "long");
     sim.advance(3000);
-    sim.input("pushButton", "position", "value", 50); // received at 4300: estimate 13.5%
+    sim.input("panel", "position", "value", 50); // received at 4300: estimate 13.5%
     sim.advance(20000);
     expect(outputs(sim, "shutterActuator", "s1")).toEqual([
       "1600:down",
@@ -408,14 +390,16 @@ describe("no implicit calibration", () => {
   it("faster actual shutter: position stays within 100% and the motor receives a stop", () => {
     const data = raw("shutter-calibration.json") as {
       devices: {
+        id: string;
         channels?: {
           parameters: Record<string, number>;
           equipment: { parameters: Record<string, number> };
         }[];
       }[];
     };
-    data.devices[1]!.channels![0]!.parameters.estimatedTravelTimeMs = 30000;
-    data.devices[1]!.channels![0]!.equipment.parameters.actualTravelTimeMs = 20000;
+    const actuator = data.devices.find((d) => d.id === "shutterActuator")!;
+    actuator.channels![0]!.parameters.estimatedTravelTimeMs = 30000;
+    actuator.channels![0]!.equipment.parameters.actualTravelTimeMs = 20000;
     const sim = createSimulator(data);
     sim.input("pushButton", "key2", "long");
     sim.advance(25000);
@@ -437,7 +421,7 @@ describe("no implicit calibration", () => {
 
   it("stop/step at rest does not move a shutter without slats by default", () => {
     const sim = load("shutter-calibration.json");
-    sim.input("pushButton", "position", "value", 50);
+    sim.input("panel", "position", "value", 50);
     sim.advance(20000);
     const before = outputs(sim, "shutterActuator", "s1").length;
     sim.input("pushButton", "key1", "short");
@@ -460,7 +444,7 @@ describe("no implicit calibration", () => {
     sim.input("pushButton", "key1", "short"); // step up from 0: clamped, no movement
     sim.advance(5000);
     expect(outputs(sim, "shutterActuator", "s1")).toEqual([]);
-    sim.input("pushButton", "position", "value", 50);
+    sim.input("panel", "position", "value", 50);
     sim.advance(20000);
     sim.input("pushButton", "key1", "short");
     sim.advance(5000);
@@ -474,9 +458,9 @@ describe("no implicit calibration", () => {
 describe("scenes and six-channel actuator", () => {
   it("absent scene: ignored and explained", () => {
     const data = raw("scenes.json") as {
-      devices: { buttons?: { press: { value: number } }[] }[];
+      devices: { channels?: { parameters: Record<string, unknown> }[] }[];
     };
-    data.devices[0]!.buttons![1]!.press.value = 5; // scene 6: no preset
+    data.devices[0]!.channels![1]!.parameters.sceneNumber = 6; // no preset
     const sim = createSimulator(data);
     sim.press("pushButton", 1, "press");
     sim.advance(20000);
@@ -561,10 +545,10 @@ describe("shutter with separate up and down travel times", () => {
     ch.parameters.estimatedTravelTimeUpMs = 45000;
     ch.equipment.parameters.actualTravelTimeUpMs = 45000;
     const sim = createSimulator(data);
-    sim.input("pushButton", "position", "value", 100);
+    sim.input("panel", "position", "value", 100);
     sim.advance(40000);
     expect(realPos(sim, "shutterActuator", "s1")).toBe(100);
-    sim.input("pushButton", "position", "value", 0);
+    sim.input("panel", "position", "value", 0);
     // 30 s after the start the blind is only two thirds of the way up.
     sim.advance(2000 + 30000);
     expect(realPos(sim, "shutterActuator", "s1")).toBeGreaterThan(25);

@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -30,8 +33,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "Key 1 also listens to status feedback on 1/4/1, so its indicator remains synchronized.",
       "objects": [
         {
@@ -42,7 +45,8 @@
             "1/4/1"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key1",
           "flags": {
             "W": true,
             "T": true
@@ -53,31 +57,32 @@
           "name": "Key 2 · T disabled",
           "ga": "1/1/3",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key2",
           "flags": {
             "W": true,
             "T": false
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key1"
+          "equipment": null
         },
         {
           "id": "key2",
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": "toggle"
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key2"
+          "equipment": null
         }
       ]
     },

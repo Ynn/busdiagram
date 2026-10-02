@@ -9,7 +9,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "House"
+      "name": "House",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [

@@ -85,7 +85,9 @@ describe("export v2 and required parameters", () => {
       applyCommand: (s) => s,
     });
     const doc = raw("object-flags.json") as Doc;
-    const switchActuator = doc.devices.find((d: Doc) => d.channels?.length);
+    const switchActuator = doc.devices.find(
+      (d: Doc) => d.behavior === "switchActuator/v1",
+    );
     switchActuator.channels[0].equipment = {
       type: `edge.eq${seq}`,
       parameters: { p: 7 },
@@ -148,7 +150,9 @@ describe("exception in equipment.interact", () => {
       },
     });
     const doc = raw("object-flags.json") as Doc;
-    const switchActuator = doc.devices.find((d: Doc) => d.channels?.length);
+    const switchActuator = doc.devices.find(
+      (d: Doc) => d.behavior === "switchActuator/v1",
+    );
     switchActuator.channels[0].equipment = { type };
     const sim = createSimulator(doc);
     const other = createSimulator(raw("object-flags.json"));

@@ -124,8 +124,8 @@
       "id": "p1",
       "name": "Three-key push-button · living room",
       "address": "1.1.10",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "One device has a separate object for each key and function. Key 1 raises the shutter and Key 2 lowers it: long presses use 2/1/1; short presses use 2/2/1. Key 3 toggles the light through 1/1/1 and also listens to status feedback on 1/4/1.",
       "objects": [
         {
@@ -133,7 +133,8 @@
           "name": "Key 1 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -144,7 +145,8 @@
           "name": "Key 1 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -155,7 +157,8 @@
           "name": "Key 2 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -166,7 +169,8 @@
           "name": "Key 2 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -180,48 +184,43 @@
             "1/4/1"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in3",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "icon": "up",
-          "short": {
-            "object": "key1Short",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           },
-          "long": {
-            "object": "key1Long",
-            "value": 0
-          }
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "icon": "down",
-          "short": {
-            "object": "key2Short",
-            "value": 1
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           },
-          "long": {
-            "object": "key2Long",
-            "value": 1
-          }
+          "equipment": null
         },
         {
-          "id": "button-2",
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": "toggle"
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key3"
+          "equipment": null
         }
       ]
     },
@@ -271,8 +270,8 @@
       "id": "p2",
       "name": "One-key push-button · entrance",
       "address": "1.2.10",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "One shutter key: a long press reverses direction through 2/1/1; a short press stops through 2/2/1. Its 2/1/1 object listens to the bus. If device 1.1.10 lowers the shutter, the next long press raises it.",
       "objects": [
         {
@@ -280,7 +279,8 @@
           "name": "Key 1 long press",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -291,25 +291,23 @@
           "name": "Key 1 short press",
           "ga": "2/2/1",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "short": {
-            "object": "st",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "blind"
           },
-          "long": {
-            "object": "md",
-            "value": "toggle"
-          }
+          "equipment": null
         }
       ]
     },
@@ -317,8 +315,8 @@
       "id": "p3",
       "name": "Push-button · corridor",
       "address": "2.1.5",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
@@ -328,22 +326,23 @@
             "1/4/2"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key1"
+          "equipment": null
         }
       ]
     },

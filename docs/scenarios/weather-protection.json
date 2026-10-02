@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Facade"
+      "name": "Facade",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -128,15 +131,16 @@
       "id": "pushButton",
       "name": "Three-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "move",
           "name": "Movement",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "key1",
           "flags": {
             "W": false,
             "T": true
@@ -147,7 +151,32 @@
           "name": "Stop / slat step",
           "ga": "2/1/2",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "key1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key2",
           "flags": {
             "W": false,
             "T": true
@@ -158,48 +187,43 @@
           "name": "Automatic mode",
           "ga": "2/6/3",
           "dpt": "1.003",
-          "port": "input",
+          "port": "switch",
+          "channel": "key3",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Up",
-          "icon": "up",
-          "short": {
-            "object": "stop",
-            "value": 0
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           },
-          "long": {
-            "object": "move",
-            "value": 0
-          }
+          "equipment": null
         },
         {
           "id": "key2",
-          "label": "Key 2 · Down",
-          "icon": "down",
-          "short": {
-            "object": "stop",
-            "value": 1
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           },
-          "long": {
-            "object": "move",
-            "value": 1
-          }
+          "equipment": null
         },
         {
           "id": "key3",
-          "label": "Key 3 · Automatic",
-          "press": {
-            "object": "auto",
-            "value": "toggle"
+          "label": "Input 3",
+          "keyLabel": "Key 3 · Automatic",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "auto"
+          "equipment": null
         }
       ]
     },

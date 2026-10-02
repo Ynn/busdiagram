@@ -183,7 +183,7 @@ test("copied demo/ directory works offline with its extension", async ({
   page.on("request", (r) => /^https?:/.test(r.url()) && external.push(r.url()));
   await page.goto(pathToFileURL(join(dir, "offline.html")).href);
   const all = page.locator("bus-diagram");
-  await expect(all).toHaveCount(22);
+  await expect(all).toHaveCount(24);
   await expect(page.locator("bus-diagram .err")).toHaveCount(0);
   await expect(all.last().locator(".card")).toHaveCount(2);
   expect(errors).toEqual([]);

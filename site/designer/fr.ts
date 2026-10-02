@@ -9,15 +9,15 @@ export const designerFr: Record<string, string> = {
     "Les horloges maîtresses, programmateurs et plages horaires ont besoin d'une horloge simulée.",
   "Add a simulated clock": "Ajouter une horloge simulée",
   "Clock master": "Horloge maîtresse",
-  "Sends the time (10.001) and the date (11.001) of the simulated clock on two new addresses; adds a clock to the scenario if it has none.":
-    "Émet l'heure (10.001) et la date (11.001) de l'horloge simulée sur deux nouvelles adresses ; ajoute une horloge au scénario s'il n'en a pas.",
+  "Sends the time (10.001) and the date (11.001) of the simulated clock; adds a clock to the scenario if it has none.":
+    "Envoie l'heure (10.001) et la date (11.001) de l'horloge simulée ; ajoute une horloge au scénario s'il n'en a pas.",
   "Weekly time switch": "Programmateur hebdomadaire",
-  "Sends 1 at 07:00 and 0 at 22:00 every day on a new address; edit the program and link the output.":
-    "Émet 1 à 07:00 et 0 à 22:00 chaque jour sur une nouvelle adresse ; modifiez le programme et associez la sortie.",
+  "Sends 1 at 07:00 and 0 at 22:00 every day; edit the program and link the output.":
+    "Envoie 1 à 07:00 et 0 à 22:00 chaque jour ; modifier le programme et lier la sortie.",
   "Programmed output": "Sortie programmée",
   "Air quality sensor": "Capteur de qualité d'air",
-  "Temperature (9.001), humidity (9.007), and CO₂ (9.008) entered on the device; CO₂ alarm (1.005) and ventilation control value (5.001) on new addresses.":
-    "Température (9.001), humidité (9.007) et CO₂ (9.008) saisis sur l'appareil ; alarme CO₂ (1.005) et valeur de commande de ventilation (5.001) sur de nouvelles adresses.",
+  "Temperature (9.001), humidity (9.007), and CO₂ (9.008) entered on the device; CO₂ alarm (1.005) and ventilation control value (5.001).":
+    "Température (9.001), humidité (9.007) et CO₂ (9.008) saisis sur l'appareil ; alarme CO₂ (1.005) et valeur de commande de ventilation (5.001).",
   "Temperature (°C)": "Température (°C)",
   "Humidity (%)": "Humidité (%)",
   "CO₂ (ppm)": "CO₂ (ppm)",
@@ -29,8 +29,8 @@ export const designerFr: Record<string, string> = {
   "not shown": "non représentée",
   "shown, current not given": "représentée, courant non précisé",
   "Energy meter": "Compteur d'énergie",
-  "Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010) on new addresses; the measured power is entered on the device.":
-    "Mesure un circuit qu'il ne commute pas (pompe à chaleur, chauffe-eau, prises) : puissance (14.056) et énergie (13.010) sur de nouvelles adresses ; la puissance mesurée se saisit sur l'appareil.",
+  "Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010); the measured power is entered on the device.":
+    "Mesure un circuit qu'il ne commute pas (pompe à chaleur, chauffe-eau, prises) : puissance (14.056) et énergie (13.010) ; la puissance mesurée est saisie sur l'appareil.",
   "Power (W)": "Puissance (W)",
   "Circuit 1": "Circuit 1",
   "Gateway to another system": "Passerelle vers un autre système",
@@ -183,8 +183,8 @@ export const designerFr: Record<string, string> = {
   "On the segment behind the line extension ({0})":
     "Sur le segment derrière l'extension de ligne ({0})",
   "Weather station": "Station météo",
-  "Wind speed (9.005) and brightness (9.004) entered on the device, wind alarm (1.005) and sun protection (1.001) outputs on four new addresses.":
-    "Vitesse du vent (9.005) et luminosité (9.004) saisies sur l'appareil, sorties alarme vent (1.005) et protection solaire (1.001) sur quatre nouvelles adresses.",
+  "Wind speed (9.005) and brightness (9.004) entered on the device, wind alarm (1.005) and sun protection (1.001) outputs.":
+    "Vitesse du vent (9.005) et luminosité (9.004) saisies sur l'appareil, sorties alarme vent (1.005) et protection solaire (1.001).",
   "Wind (m/s)": "Vent (m/s)",
   "Brightness (lx)": "Luminosité (lx)",
   "Logic module": "Module logique",
@@ -290,15 +290,15 @@ export const designerFr: Record<string, string> = {
     "Un canal et une lampe par sortie ; renseigner les adresses de groupe des objets.",
   "Channel {0}": "Canal {0}",
   "Shutter actuator": "Actionneur de volet",
-  "Up/down, stop/step, setpoint and position feedback on four new addresses.":
-    "Montée/descente, arrêt/pas, consigne et retour de position sur quatre nouvelles adresses.",
+  "Up/down, stop/step, setpoint and position feedback; link them to group addresses.":
+    "Montée/descente, arrêt/pas, consigne et retour de position ; les lier à des adresses de groupe.",
   "Shutter up/down": "Volet montée/descente",
   "Shutter stop/step": "Volet arrêt/pas",
   "Requested position": "Position demandée",
   Shutter: "Volet",
   "Presence detector": "Détecteur de présence",
-  "A “Passage” key: 1 on detection, 0 after the hold time (10 s), on a new address.":
-    "Une touche « Passage » : 1 à la détection, 0 après la temporisation (10 s), sur une nouvelle adresse.",
+  "A “Passage” key: 1 on detection, 0 after the hold time (10 s).":
+    "Une touche « Passage » : 1 à la détection, 0 après la temporisation (10 s).",
   Presence: "Présence",
   Passage: "Passage",
   "IP supervisor": "Superviseur IP",
@@ -655,16 +655,16 @@ export const designerFr: Record<string, string> = {
   "Group objects": "Objets de groupe",
   "Objects by function": "Objets par fonction",
   "Room 1": "Pièce 1",
-  "PI control of its room: temperature (9.001) and heating control value (5.001) on new addresses; mode (20.102), window and presence to be linked.":
-    "Régulation PI de sa pièce : température (9.001) et commande de chauffage (5.001) sur de nouvelles adresses ; mode (20.102), fenêtre et présence à associer.",
+  "PI control of its room: temperature (9.001), heating control value (5.001), mode (20.102), window and presence; link its objects to group addresses.":
+    "Régulation PI de sa pièce : température (9.001), valeur de commande de chauffage (5.001), mode (20.102), fenêtre et présence ; lier ses objets à des adresses de groupe.",
   "Heating actuator, 2 outputs": "Actionneur de chauffage 2 sorties",
   "Electrothermal valves driven by PWM from a 5.001 control value; fill in the group addresses.":
     "Vannes thermoélectriques pilotées en PWM depuis une grandeur de commande 5.001 ; renseigner les adresses de groupe.",
   "Heating actuator": "Actionneur de chauffage",
   "H{0} control value": "H{0} grandeur de commande",
   "H{0} control value status": "H{0} état de la commande",
-  "Sends its room's window opening (1.019) on a new address, to be linked to the thermostat's “Window” object.":
-    "Transmet l'ouverture de la fenêtre de sa pièce (1.019) sur une nouvelle adresse, à associer à l'objet « Fenêtre » du thermostat.",
+  "Sends its room's window opening (1.019); link it to the address of the thermostat's “Window” object.":
+    "Envoie l'ouverture de la fenêtre de sa pièce (1.019) ; la lier à l'adresse de l'objet « Fenêtre » du thermostat.",
   "New device": "Nouveau participant",
   "This behaviour requires settings (*): fill them in, then add the device on line {0}.":
     "Ce comportement exige des réglages (*) : renseignez-les, puis ajoutez le participant sur la ligne {0}.",
@@ -684,8 +684,8 @@ export const designerFr: Record<string, string> = {
   "No extension loaded.": "Aucune extension chargée.",
   "Replace…": "Remplacer…",
   "Extension {0} removed.": "Extension {0} retirée.",
-  "Sends its room's temperature (9.001) on a new address, to link for instance to a thermostat's “External temperature” object.":
-    "Émet la température de sa pièce (9.001) sur une nouvelle adresse, à associer par exemple à l'objet « Température externe » d'un thermostat.",
+  "Sends its room's temperature (9.001); link it for instance to the address of a thermostat's “External temperature” object.":
+    "Envoie la température de sa pièce (9.001) ; la lier par exemple à l'adresse de l'objet « Température externe » d'un thermostat.",
   Extensions: "Extensions",
   "Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.":
     "Scripts qui ajoutent des comportements, équipements ou vues. Ils sont mémorisés dans ce navigateur et embarqués dans la page autonome exportée. Un script qui échoue ne laisse aucune définition chargée.",
@@ -890,8 +890,8 @@ export const designerFr: Record<string, string> = {
   "An input is a contact of the interface, wired to a conventional push-button; on the diagram it is a key. Its function, chosen on its Function page, decides its group objects.":
     "Une entrée est un contact de l'interface, raccordé à un bouton-poussoir conventionnel ; sur le schéma, c'est une touche. Sa fonction, choisie sur sa page Fonction, décide de ses objets de groupe.",
   "Push-button interface": "Interface de boutons-poussoirs",
-  "Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction. The device measures short and long presses.":
-    "Quatre entrées de contact pour boutons-poussoirs conventionnels ; chacune a une fonction (commutation, variation, store, valeur, scène), un verrouillage et une réaction au retour de la tension du bus. L'appareil mesure les appuis courts et longs.",
+  "Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction.":
+    "Quatre entrées de contact pour boutons-poussoirs conventionnels ; chacune a une fonction (commutation, variation, store, valeur, scène), un verrouillage et une réaction au retour de la tension du bus.",
   "Lighting input {0}": "Éclairage entrée {0}",
   "Input {0}": "Entrée {0}",
   "Switching {0}": "Commutation {0}",
@@ -901,4 +901,17 @@ export const designerFr: Record<string, string> = {
     "Interface de boutons-poussoirs · 1 entrée",
   "Push-button interface · {0} inputs":
     "Interface de boutons-poussoirs · {0} entrées",
+  Communication: "Communication",
+  "Read on initialisation": "Lecture à l'initialisation",
+  "C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts again after a bus voltage failure.":
+    "C : communication (désactivé : l'objet n'envoie ni ne traite aucun message) · R : répond aux lectures, sur son adresse d'émission · W : accepte les écritures reçues · T : peut émettre · U : une réponse reçue le met à jour · I : lit sa valeur quand l'appareil redémarre après une coupure de la tension du bus.",
+  Priority: "Priorité",
+  Low: "Basse",
+  Urgent: "Urgente",
+  "{0} now links DPTs {1}: same size, but different meanings; each receiver reads the bytes with its own DPT.":
+    "{0} relie maintenant les DPT {1} : même taille, mais sens différents ; chaque récepteur lit les octets avec son propre DPT.",
+  "The push-button wired to this input, drawn as a key on the diagram. The text written on it belongs to the installation; the name of the input does not change.":
+    "Le bouton-poussoir raccordé à cette entrée, dessiné comme une touche sur le schéma. Le texte écrit dessus relève de l'installation ; le nom de l'entrée ne change pas.",
+  Simulation: "Simulation",
+  "Text on the key": "Texte sur la touche",
 };

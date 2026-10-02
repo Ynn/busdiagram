@@ -13,7 +13,7 @@ import type {
 import { fieldValue } from "./field-value";
 import { dptInfo } from "../../src/knx/dpt";
 import type { Registry } from "../../src/knx/registry";
-import type { Chan, Dev, Doc, Gesture } from "./edit";
+import type { Chan, Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { t } from "./lang";
 import type { GuidedEditor } from "./guided";
@@ -206,10 +206,8 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
       body: () => generalPage(ed, doc, d),
     },
   ];
-  if (def?.ports.display && !def.acceptsInputs)
+  if (def?.ports.display && !(def.acceptsKeys ?? def.acceptsInputs))
     pages.push(displayPage(ed, doc, d));
-  if (def?.acceptsInputs && def.ports.input)
-    pages.push(keysConfigPage(ed, d), ...keyPages(ed, d));
   if (def && hasChannels(def))
     pages.push(
       outputsConfigPage(ed, doc, d, def, layout.channel[0]?.id ?? LOADS),
@@ -484,6 +482,8 @@ function channelWords(def: BehaviorDefinition<unknown>) {
  */
 const AUTO = "#auto";
 const LOADS = "#loads";
+/** Page of the key wired to an input (contact inputs): the label drawn on the diagram. */
+const KEY = "#key";
 
 /** Ports whose objects the generic pages enable (keys and displays have their pages). */
 function enabledPorts(
@@ -510,6 +510,14 @@ const itemsOf = (items: readonly ParameterItem[]): ParameterItem[] =>
  * Pages of a behavior: its declared layout, or one page derived from its schemas; then
  * an automatic page for what no page places, so that every setting stays reachable.
  */
+/** Ports whose objects follow a parameter (channelObjects): they have no box to enable. */
+const managedPorts = (def: BehaviorDefinition<unknown>) =>
+  new Set(
+    Object.values(def.channelObjects?.values ?? {}).flatMap((list) =>
+      list.map((x) => x.port),
+    ),
+  );
+
 export function layoutOf(def: BehaviorDefinition<unknown>): {
   device: ParameterPage[];
   channel: ParameterPage[];
@@ -593,7 +601,9 @@ export function layoutOf(def: BehaviorDefinition<unknown>): {
       Object.keys(def.channelInitialState?.properties ?? {}).filter(
         (k) => !pc.state.has(k),
       ),
-      enabledPorts(def, "channel").filter((k) => !pc.ports.has(k)),
+      enabledPorts(def, "channel").filter(
+        (k) => !pc.ports.has(k) && !managedPorts(def).has(k),
+      ),
       !pc.scenes && !!def.ports.scene,
     );
     if (chItems.length)
@@ -740,219 +750,7 @@ export function portRows(
   return objs.length ? objs.map(row) : [row(undefined)];
 }
 
-// ── Keys ─────────────────────────────────────────────────────────────────────
-
-const gestureLabels = (): Record<Gesture, string> => ({
-  press: t`Press`,
-  short: t`Short press`,
-  long: t`Long press`,
-});
-
-/** Configuration of a push-button: one row per key, as the configuration page of a product. */
-function keysConfigPage(ed: GuidedEditor, d: Dev): Page {
-  const keys = E.keysOf(d);
-  return {
-    key: "config",
-    label: t`Configuration`,
-    menu: () => [
-      {
-        label: t`Add a key`,
-        run: () => ed.run(t`Key`, (x) => void E.addKey(x, d.id)),
-      },
-    ],
-    body: () =>
-      html`<div class="g-row">
-          <label class="g-field narrow"
-            ><span>${t`Number of keys`}</span>
-            <input
-              type="number"
-              min="1"
-              max="32"
-              .value=${fieldValue(String(keys.length))}
-              @change=${(e: Event) =>
-                ed.run(t`Number of keys`, (x) =>
-                  E.setKeyCount(
-                    x,
-                    d.id,
-                    Number((e.target as HTMLInputElement).value),
-                  ),
-                )}
-          /></label>
-        </div>
-        ${dataTable<E.KeyView>(
-          ed,
-          "keys",
-          [
-            {
-              id: "key",
-              label: t`Key`,
-              sort: (k) => keys.indexOf(k),
-              cell: (k) =>
-                html`<button
-                  class="w-link"
-                  @click=${openPage(ed, d, `key:${k.id}`)}
-                >
-                  ${k.label}
-                </button>`,
-            },
-            {
-              id: "gesture",
-              label: t`Gesture`,
-              sort: (k) => k.mode,
-              cell: (k) =>
-                k.mode === "press"
-                  ? t`single press`
-                  : t`short press + long press`,
-            },
-            {
-              id: "led",
-              label: t`LED`,
-              sort: (k) => (k.led ? 0 : 1),
-              cell: (k) => (k.led ? "✓" : ""),
-            },
-          ],
-          keys,
-          (k, cells) =>
-            html`<tr
-              @dblclick=${openPage(ed, d, `key:${k.id}`)}
-              @contextmenu=${(e: MouseEvent) =>
-                openMenu(ed, e, keyMenu(ed, d, k))}
-            >
-              ${cells}
-            </tr>`,
-        )}
-        <div class="g-row g-end">
-          <button
-            class="g-btn"
-            @click=${() => ed.run(t`Key`, (x) => void E.addKey(x, d.id))}
-          >
-            + ${t`Add a key`}
-          </button>
-        </div>`,
-  };
-}
-
-function keyMenu(ed: GuidedEditor, d: Dev, k: E.KeyView): MenuItem[] {
-  return [
-    { label: t`Open`, run: openPage(ed, d, `key:${k.id}`) },
-    {
-      label: t`Rename`,
-      run: () => {
-        openPage(ed, d, `key:${k.id}`)();
-        focusField(".w-ppage .g-field input");
-      },
-    },
-    {
-      label: t`Add a key`,
-      run: () => ed.run(t`Key`, (x) => void E.addKey(x, d.id)),
-    },
-    {
-      label: t`Delete key`,
-      run: () => ed.run(t`Delete key`, (x) => E.removeKey(x, d.id, k.id)),
-    },
-  ];
-}
-
-export function keyPages(ed: GuidedEditor, d: Dev): Page[] {
-  const kinds = E.actionKinds();
-  const gestureLabel = gestureLabels();
-  const summary = (k: E.KeyView) =>
-    (
-      Object.entries(k.gestures) as [
-        Gesture,
-        NonNullable<E.KeyView["gestures"][Gesture]>,
-      ][]
-    )
-      .map(([g, a]) => {
-        const v =
-          kinds[a.kind].values.find(([x]) => x === a.value)?.[1] ??
-          String(a.value);
-        return `${k.mode === "press" ? "" : `${gestureLabel[g]} : `}${v}`;
-      })
-      .join(" · ") + (k.led ? ` · ${t`LED`}` : "");
-  return E.keysOf(d).map((k): Page => ({
-    key: `key:${k.id}`,
-    label: k.label,
-    sum: summary(k),
-    menu: () => keyMenu(ed, d, k),
-    body: () => html`
-      <div class="g-row">
-        ${ed.text(t`Label`, k.label, (v) => ed.run(t`Label`, (x) => E.setKeyLabel(x, d.id, k.id, v)))}
-        ${ed.select(
-          t`Gesture`,
-          [
-            ["press", t`single press`],
-            ["shortlong", t`short press + long press`],
-          ],
-          k.mode,
-          (v) =>
-            ed.run(t`Gesture`, (x) =>
-              E.setKeyMode(x, d.id, k.id, v as "press" | "shortlong"),
-            ),
-        )}
-      </div>
-      ${(
-        Object.entries(k.gestures) as [
-          Gesture,
-          NonNullable<E.KeyView["gestures"][Gesture]>,
-        ][]
-      ).map(([g, a]) => {
-        const kind = kinds[a.kind];
-        return html`<fieldset class="g-gesture" data-obj=${a.objectId}>
-          <legend>${gestureLabel[g]}</legend>
-          <div class="g-row">
-            ${ed.select(
-              t`Function`,
-              Object.entries(kinds).map(([id, x]) => [id, x.label]),
-              a.kind,
-              (v) => {
-                const nk = kinds[v as E.ActionKind];
-                ed.run(t`Function`, (x) =>
-                  E.setGestureAction(
-                    x,
-                    d.id,
-                    k.id,
-                    g,
-                    v as E.ActionKind,
-                    nk.values[0]![0],
-                  ),
-                );
-              },
-            )}
-            ${ed.select(
-              t`Value sent`,
-              kind.values.map(([v, l]) => [String(v), l]),
-              String(a.value),
-              (v) =>
-                ed.run(t`Value sent`, (x) =>
-                  E.setGestureAction(
-                    x,
-                    d.id,
-                    k.id,
-                    g,
-                    a.kind,
-                    v === "toggle" ? "toggle" : Number(v),
-                  ),
-                ),
-            )}
-          </div>
-        </fieldset>`;
-      })}
-      <div class="g-row">
-        <label class="g-check"
-          ><input
-            type="checkbox"
-            .checked=${live(k.led)}
-            @change=${(e: Event) => ed.run(t`LED`, (x) => E.setKeyLed(x, d.id, k.id, (e.target as HTMLInputElement).checked))}
-          />${t`LED`}</label
-        >
-      </div>
-      <p class="w-info">
-        ${t`The LED and a toggle key follow the value of the key's group object. So that they follow the actual state of the load, link the status address to the same object as well: it is then listened to, after the sending address.`}
-      </p>
-    `,
-  }));
-}
+// ── Displays ─────────────────────────────────────────────────────────────────
 
 export function displayPage(ed: GuidedEditor, doc: Doc, d: Dev): Page {
   return {
@@ -1050,13 +848,18 @@ function outputMenu(
           },
         ]
       : []),
-    {
-      label: t`Rename`,
-      run: () => {
-        openPage(ed, d, `ch:${c.id}:${first}`)();
-        focusField(".w-ppage .g-field input");
-      },
-    },
+    // An input keeps its name, as in the configuration; the text of its key is on the Key page.
+    ...(def.contactInputs
+      ? []
+      : [
+          {
+            label: t`Rename`,
+            run: () => {
+              openPage(ed, d, `ch:${c.id}:${first}`)();
+              focusField(".w-ppage .g-field input");
+            },
+          },
+        ]),
     {
       label: t`Copy settings to…`,
       run: () => {
@@ -1236,7 +1039,7 @@ export function outputPages(
           menu,
           body: () =>
             html`${
-              i === 0
+              i === 0 && !def.contactInputs
                 ? html`<div class="g-row">
                     ${ed.text(t`Label`, c.label ?? c.id, (v) => ed.run(t`Label`, (x) => E.setChannelLabel(x, d.id, c.id, v)))}
                   </div>`
@@ -1285,9 +1088,47 @@ export function outputPages(
               },
             ]
           : []),
+        ...(def.contactInputs
+          ? [
+              {
+                key: `ch:${c.id}:${KEY}`,
+                label: t`Key`,
+                menu,
+                body: () => keyPage(ed, d, c),
+              },
+            ]
+          : []),
       ],
     };
   });
+}
+
+/**
+ * The conventional push-button wired to an input, drawn as a key on the diagram: its
+ * label. It belongs to the installation, like the loads of an actuator, not to the
+ * parameters of the device.
+ */
+function keyPage(ed: GuidedEditor, d: Dev, c: Chan) {
+  return html`<p class="w-info">
+      ${t`The push-button wired to this input, drawn as a key on the diagram. The text written on it belongs to the installation; the name of the input does not change.`}
+    </p>
+    <div class="g-row">
+      <label class="g-field"
+        ><span>${t`Text on the key`}</span>
+        <input
+          placeholder=${c.label ?? c.id}
+          .value=${fieldValue(c.keyLabel ?? "")}
+          @change=${(e: Event) =>
+            ed.run(t`Text on the key`, (x) =>
+              E.setKeyLabel(
+                x,
+                d.id,
+                c.id,
+                (e.target as HTMLInputElement).value,
+              ),
+            )}
+      /></label>
+    </div>`;
 }
 
 /**

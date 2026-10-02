@@ -38,7 +38,7 @@ The context `ctx` exposes `t` for translated messages, `timeMs`, `device`, `stat
 
 Equipment models can define `heatOutput(state, parameters)` to heat or cool a room and `checkParameters(parameters, t)` to validate related parameters. A view can define `interact(state, action, parameters, equipment)` to respond to a user action. Use simulation time and `ctx.schedule` for delayed behavior; browser timers such as `setTimeout` do not follow simulation time.
 
-With `contactInputs: true`, each channel of a device is drawn as a key that reports its edges, and the behavior measures presses with `ctx.schedule`; `contactKey(channel, objects)` can choose the key's icon and the object shown by its LED. A port with `direction: "both"` sends and listens, so the designer enables its W and T flags.
+With `contactInputs: true`, each channel of a device is drawn as a key that reports its edges, and the behavior measures presses with `ctx.schedule`; `contactKey(channel, objects)` can choose the key's icon and the object shown by its LED. A port with `direction: "both"` sends and listens, so the designer enables its W and T flags. `channelObjects: { parameter, values }` lists, for each value of a channel parameter, the ports (and DPTs) of the objects that the channel has: the designer creates and removes them when the parameter changes, as a product's parameter dialog does for a function.
 
 An exception in a behavior pauses only that diagram and reports an `extension-error`. An exception in a view replaces that view with an error frame and reports `view-error` in `getState()`.
 

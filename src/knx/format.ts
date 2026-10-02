@@ -1,10 +1,17 @@
 // Construction of the actual TP1 frame, from the same codec as the engine.
 import type { Translate } from "../i18n";
+import type { Priority } from "./contracts";
 import { en } from "../i18n";
 import { dptBits, encode } from "./dpt";
 import { parseGA, parseIA } from "./address";
 
 export { dptName, formatValue } from "./dpt";
+
+const PRIORITY_BITS: Record<Priority, number> = {
+  urgent: 2,
+  normal: 1,
+  low: 3,
+};
 
 export interface FrameField {
   label: string;
@@ -24,6 +31,7 @@ export function buildFrame(
     | "GroupValueWrite"
     | "GroupValueRead"
     | "GroupValueResponse" = "GroupValueWrite",
+  priority: Priority = "low",
 ): FrameField[] {
   const read = service === "GroupValueRead";
   const raw = read ? 0 : encode(dpt, value);
@@ -56,9 +64,15 @@ export function buildFrame(
     : [0x00, apciCode, ...data];
   const fields: FrameField[] = [
     {
+      // Standard frame, not repeated; bits 3–2 carry the priority (11 low, 01 normal, 10 urgent).
       label: t`Control`,
-      bytes: [0xbc],
-      hint: t`standard frame, low priority`,
+      bytes: [0xb0 | (PRIORITY_BITS[priority] << 2)],
+      hint:
+        priority === "normal"
+          ? t`standard frame, normal priority`
+          : priority === "urgent"
+            ? t`standard frame, urgent priority`
+            : t`standard frame, low priority`,
     },
     { label: t`Source`, bytes: [srcWord >> 8, srcWord & 0xff], hint: src },
     { label: t`Destination`, bytes: [dstWord >> 8, dstWord & 0xff], hint: ga },

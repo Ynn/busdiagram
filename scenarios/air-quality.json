@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Meeting room"
+      "name": "Meeting room",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [

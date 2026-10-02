@@ -57,11 +57,23 @@ function sent(sim: ReturnType<typeof bench>) {
 }
 
 describe("buttonInterface/v1", () => {
-  it("draws one contact key per channel, with its LED on the switching object", () => {
+  it("draws no LED by default", () => {
     const sim = bench({}, [obj("sw", "switch", "1/1/1", "1.001", true)]);
+    expect(sim.scenario.devicesById.get("bi")!.buttons[0]!.led).toBeNull();
+  });
+
+  it("draws one contact key per channel, with its LED on the switching object", () => {
+    const sim = bench({ ledShown: true }, [
+      obj("sw", "switch", "1/1/1", "1.001", true),
+    ]);
     const b = sim.scenario.devicesById.get("bi")!.buttons;
     expect(b).toHaveLength(1);
-    expect(b[0]).toMatchObject({ id: "in1", contact: true, led: "sw" });
+    expect(b[0]).toMatchObject({
+      id: "in1",
+      contact: true,
+      led: "sw",
+      longPressMs: null,
+    });
   });
 
   it("switching on edges: toggle on press, nothing on release", () => {
@@ -77,19 +89,45 @@ describe("buttonInterface/v1", () => {
     ]);
   });
 
-  it("ignores the gestures of a configured key", () => {
+  it("a hold edge is ignored by a function without long press", () => {
     const sim = bench({}, [obj("sw", "switch", "1/1/1", "1.001", true)]);
-    expect(sim.input("bi", "in1", "short")).toEqual([]);
+    const out = sent(sim);
+    sim.input("bi", "in1", "down");
+    sim.input("bi", "in1", "hold");
+    sim.input("bi", "in1", "up");
+    sim.advance(2000);
+    expect(out).toEqual([["1/1/1", 1]]);
+  });
+
+  it("gives the long-press time of an input to its key", () => {
+    const sim = bench({ function: "dim", longPressMs: 800 }, []);
+    expect(sim.scenario.devicesById.get("bi")!.buttons[0]!.longPressMs).toBe(
+      800,
+    );
+  });
+
+  it("plays the gestures of a configured key as edges", () => {
+    const sim = bench({ function: "dim" }, [
+      obj("sw", "switch", "1/1/1", "1.001", true),
+      obj("dim", "dim", "1/1/2", "3.007"),
+    ]);
+    const out = sent(sim);
+    sim.input("bi", "in1", "short");
+    sim.input("bi", "in1", "long");
+    sim.input("bi", "in1", "release");
+    sim.advance(3000);
+    expect(out.map(([ga]) => ga)).toEqual(["1/1/1", "1/1/2", "1/1/2"]);
   });
 
   it("one-key dimming: short toggles, long dims in turn, release stops", () => {
-    const sim = bench({ function: "dim", longPressMs: 400 }, [
+    const sim = bench({ function: "dim" }, [
       obj("sw", "switch", "1/1/1", "1.001", true),
       obj("dim", "dim", "1/1/2", "3.007"),
     ]);
     const out = sent(sim);
     // Long press with the light off: brighter (8 | 1), then stop (8).
     sim.input("bi", "in1", "down");
+    sim.input("bi", "in1", "hold");
     sim.advance(500);
     sim.input("bi", "in1", "up");
     sim.advance(2000);
@@ -98,6 +136,7 @@ describe("buttonInterface/v1", () => {
     sim.groupWrite("usb", "1/1/1", 1);
     sim.advance(2000);
     sim.input("bi", "in1", "down");
+    sim.input("bi", "in1", "hold");
     sim.advance(500);
     sim.input("bi", "in1", "up");
     // Short press toggles off.
@@ -121,9 +160,10 @@ describe("buttonInterface/v1", () => {
       obj("st", "stopStep", "1/1/4", "1.007"),
     ]);
     const out = sent(sim);
-    for (const holdMs of [800, 100, 800]) {
+    for (const long of [true, false, true]) {
       sim.input("bi", "in1", "down");
-      sim.advance(holdMs);
+      if (long) sim.input("bi", "in1", "hold");
+      sim.advance(500);
       sim.input("bi", "in1", "up");
       sim.advance(2000);
     }
@@ -144,6 +184,7 @@ describe("buttonInterface/v1", () => {
     );
     const out = sent(sim);
     sim.input("bi", "in1", "down");
+    sim.input("bi", "in1", "hold");
     sim.advance(800);
     sim.input("bi", "in1", "up");
     sim.advance(2000);
@@ -163,6 +204,7 @@ describe("buttonInterface/v1", () => {
     sim.input("bi", "in1", "up");
     sim.advance(2000);
     sim.input("bi", "in1", "down");
+    sim.input("bi", "in1", "hold");
     sim.advance(800);
     sim.input("bi", "in1", "up");
     sim.advance(2000);
@@ -253,6 +295,7 @@ describe("examples of the push-button interface and the bus voltage", () => {
     expect(lampOn(sim, "switchActuator", "a")).toBe(true);
     // Long press on input 4 stores scene 1 with L1 on; then switch L1 off and recall it.
     sim.input("buttonInterface", "in4", "down");
+    sim.input("buttonInterface", "in4", "hold");
     sim.advance(800);
     sim.input("buttonInterface", "in4", "up");
     sim.advance(3000);

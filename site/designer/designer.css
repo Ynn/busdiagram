@@ -118,6 +118,22 @@ summary:hover {
 .split.no-preview {
   grid-template-columns: minmax(0, 1fr);
 }
+/* Simulation tab: the tab bar on top, the diagram alone over the whole width. */
+.split.sim {
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-rows: auto minmax(0, 1fr);
+}
+.split.sim .left {
+  min-height: 0;
+}
+.split.sim .left > :not(.tabs),
+.split.sim .gutter,
+.split.sim #toggle-preview {
+  display: none;
+}
+.split.sim .right {
+  display: block;
+}
 .split.no-preview .right,
 .gutter[hidden] {
   display: none;

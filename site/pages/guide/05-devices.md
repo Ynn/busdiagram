@@ -8,43 +8,11 @@ order: 5
 
 The built-in behaviors cover the examples in this site. See the [behavior reference](../reference/behaviors.html) for their parameters. The modeled settings follow common KNX product manuals from ABB, Hager, Schneider Electric, and Theben.
 
-## Push-button: `pushButton/v1`
-
-Each key can define actions for these gestures:
-
-| Action | When | Typical use |
-| --- | --- | --- |
-| `press` | On activation. | Switch, toggle, or recall a scene. |
-| `short` | Released before the long-press threshold. | Stop a shutter or turn its slats. |
-| `long` | Held past the threshold. | Raise/lower a shutter or start dimming. |
-| `release` | Released after a long press. | Stop dimming. |
-
-The default long-press threshold is 0.5 s; set `"parameters": { "longPressMs": 800 }` on a device to change it. `press` cannot be combined with `short` or `long`. A button value can be a number or `"toggle"`: for one-bit objects, toggle inverts the **local object value**, which may differ from the lamp's actual state. The [status feedback example](../examples/status-feedback.html) shows why that matters.
-
-```knx
-scenario: status-feedback
-```
-
-`led` links a button indicator to an object value: the indicator is lit while that value is not zero. Product manuals describe two ways of making the indicator show the actual state of the load, and both can be modeled:
-
-- **One object that also listens to the status.** The key's switching object sends on the command address and has the actuator's status address as an additional, receive-only address, with its W flag set. The indicator and the toggle then follow the load. In JSON: `"ga": ["1/1/1", "1/4/1"]` and `"led"` pointing to that object, as Key 3 of the [status feedback example](../examples/status-feedback.html).
-- **A separate status object.** The key sends on an object without the W flag, and a second object (for example a `display` port with W and U) receives the status; `"led"` points to that second object.
-
-A `"toggle"` value inverts the object that sends. With a separate status object, the model toggles from the last value sent, not from the status received; use the first form when the toggle must follow the load.
-
-A numeric input can send a setpoint:
-
-```json
-"inputs": [{ "id": "position", "type": "number", "label": "Setpoint (%)", "object": "target", "min": 0, "max": 100, "step": 1 }]
-```
-
-Keyboard controls: Tab focuses a key; Enter or Space activates a short press, and Shift+Enter activates a long press.
-
 ## Push-button interface: `buttonInterface/v1`
 
-A push-button interface (binary input) sits behind conventional push-buttons, as the interfaces used in training kits. Each **channel is a contact input**, drawn as a key on the diagram. Unlike `pushButton/v1`, the diagram does not decide short or long presses: the key reports when it is pressed and released, and the **device measures the press itself**, in simulated time, against `longPressMs` (0.5 s by default). Hold a key and release it as on a real push-button; with the keyboard, the key stays pressed while Enter or Space is held.
+Push-buttons are modeled as a push-button interface (binary input), placed behind conventional push-buttons as the interfaces used in training kits. Each **channel is a contact input**, drawn as a key on the diagram; the key shows `keyLabel`, the text written on the push-button, or else the label of the input. The key reports when it is pressed and released, as a contact; when it is held past the long-press time of its input (`longPressMs`, 0.5 s by default), a bar under the keys fills up and the input receives the long press. Click for a short press, hold for a long press; with the keyboard, Tab focuses a key, which stays pressed while Enter or Space is held.
 
-The `function` parameter of each input decides its behavior and its group objects:
+The `function` parameter of each input decides its behavior and its group objects; in the designer, choosing a function creates its objects:
 
 | Function | Behavior | Ports |
 | --- | --- | --- |
@@ -54,14 +22,18 @@ The `function` parameter of each input decides its behavior and its group object
 | `value` | Sends `shortValue`, or `longValue` after a long press; without `longValue`, the value is sent at once. | `value` (5.001, 5.004, 5.010, 7.600, 9.001, 20.102) |
 | `scene` | A short press recalls `sceneNumber`; with `sceneStore`, a long press stores it (DPT 18.001 with the learn bit). | `value` (17.001 or 18.001) |
 
-The `switch` and `move` objects have the W flag by default: when they also listen to the status of the load (`"ga": ["1/1/1", "1/4/1"]`), toggling and one-key dimming or blind start from the real state.
+`toggle` inverts the **value of the switching object**, which may differ from the lamp's actual state. The `switch` and `move` objects have the W flag by default: when they also listen to the status of the load, as an additional receive-only address (`"ga": ["1/1/1", "1/4/1"]`), toggling and one-key dimming or blind start from the real state, and the LED of the key shows it. The [status feedback example](../examples/status-feedback.html) shows why that matters.
+
+```knx
+scenario: status-feedback
+```
 
 Each input also has:
 
 - **Lock:** a `lock` object (1 = locked). While locked, presses are ignored; `lockStart` and `lockEnd` (or `blindLockStart` and `blindLockEnd`) send a reaction when the lock starts and ends, `lockEnd: "update"` sends the current value again.
 - **Bus voltage recovery:** `busRecovery` (or `blindBusRecovery`) sends a reaction when the bus voltage returns, after `busRecoveryDelayMs`. See [bus voltage](#bus-voltage-failure-and-recovery).
 - **Cyclic sending:** `cyclicMs` sends the switching object again at an interval; `cyclicWhen` limits it to 1 or 0.
-- **LED:** a `led` object shows a state on the key; without it, the LED of a switching or dimming input shows its switching object. `ledInverted` lights it for 0.
+- **LED:** a key has an LED only with `ledShown: true`. The LED shows the `led` object when it is enabled, otherwise the switching object of a switching or dimming input; `ledInverted` lights it for 0.
 
 The objects of each input form a fixed block of seven numbers (switching, dimming, up/down, stop/step, value, lock, LED), whatever its function, as in the product dialogs. The input count is set on the Configuration page of the designer.
 
@@ -113,7 +85,7 @@ The measured power of a circuit is given at start by `initialState.powerW` and c
 
 ## Presence detector: `presenceDetector/v1`
 
-A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, use `pushButton/v1` as in the [timer example](../examples/timers.html). The presence object may use DPT 1.001 or 1.018 (occupancy).
+A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, set `sendOnEnd: false` with a short hold time, as in the [timer example](../examples/timers.html). The presence object may use DPT 1.001 or 1.018 (occupancy).
 
 A `brightness` object (DPT 9.004) sends the brightness measured by the detector, entered by the reader on a numeric input. With `brightnessThresholdLux`, a detection switches on only while that brightness is below the threshold; a presence already active is still extended. There is no light model: the brightness does not depend on the lamps or on daylight, and constant light regulation is not modeled.
 
@@ -172,9 +144,15 @@ A display receives and shows values through its `display` port without issuing c
 
 This virtual device connects the [USB interface panel](usb-interface.html) to a line for group-address reads and writes.
 
-## Passive device: `passive/v1`
+## Passive device and visualization panel: `passive/v1`
 
 A passive device stores communication-object values without additional behavior. Use it to represent a KNX device whose internal logic is outside the simulation.
+
+Values typed in the diagram make it a visualization panel: each numeric input writes its `input` object and sends it, for example a dimming level or a shutter position, and `display` objects show the values received.
+
+```json
+"inputs": [{ "id": "position", "type": "number", "label": "Setpoint (%)", "object": "target", "min": 0, "max": 100, "step": 1 }]
+```
 
 A passive or display device may also use a standard DPT that BusDiagram does not simulate, such as 12.001 (counter), 229.001 (metering value), or 235.001 (tariff), to draw a real installation faithfully. Its size comes from the KNX format of the main number, so group address consistency is still checked. Its value stays unknown until a telegram is received and is then shown as raw bytes. Such objects cannot be written from the USB interface panel.
 
@@ -182,7 +160,7 @@ A passive or display device may also use a standard DPT that BusDiagram does not
 
 Heat pumps, hot-water tanks, boilers, and floor heating are often controlled by their own system (Modbus, BACnet, M-Bus) and linked to KNX by a gateway. A `systemGateway/v1` device represents that boundary; only its KNX side is modeled.
 
-- `value` objects carry values read in the other system, such as a tank temperature. Enter them with numeric `inputs`, as on a push-button; they are sent on KNX.
+- `value` objects carry values read in the other system, such as a tank temperature. Enter them with numeric `inputs`, as on a visualization panel; they are sent on KNX.
 - `command` objects receive KNX commands for the other system, such as an operating mode or a hot-water boost. The event log shows that they are forwarded; the other system's reaction is not simulated.
 - The `system` parameter names the other system (`"Modbus"` by default); the device card shows it next to the address.
 

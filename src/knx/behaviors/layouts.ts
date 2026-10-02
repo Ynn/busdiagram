@@ -425,9 +425,11 @@ export const buttonInterfaceLayout: ParameterLayout = {
       items: [
         { parameter: "function" },
         {
+          note: "The group objects of the function are created with it; link them in the Group objects tab.",
+        },
+        {
           when: { parameter: "function", is: ["switch"] },
           items: [
-            { groupObject: "switch" },
             { parameter: "switchLongPress" },
             {
               when: { parameter: "switchLongPress", not: [true] },
@@ -446,8 +448,6 @@ export const buttonInterfaceLayout: ParameterLayout = {
         {
           when: { parameter: "function", is: ["dim"] },
           items: [
-            { groupObject: "switch" },
-            { groupObject: "dim" },
             { parameter: "dimMode" },
             { parameter: "dimStep" },
             { parameter: "longPressMs" },
@@ -456,8 +456,6 @@ export const buttonInterfaceLayout: ParameterLayout = {
         {
           when: { parameter: "function", is: ["blind"] },
           items: [
-            { groupObject: "move" },
-            { groupObject: "stopStep" },
             { parameter: "blindMode" },
             { parameter: "stopOnRelease" },
             { parameter: "longPressMs" },
@@ -466,7 +464,6 @@ export const buttonInterfaceLayout: ParameterLayout = {
         {
           when: { parameter: "function", is: ["value"] },
           items: [
-            { groupObject: "value" },
             { parameter: "shortValue" },
             { parameter: "longValue" },
             {
@@ -478,7 +475,6 @@ export const buttonInterfaceLayout: ParameterLayout = {
         {
           when: { parameter: "function", is: ["scene"] },
           items: [
-            { groupObject: "value" },
             { parameter: "sceneNumber" },
             { parameter: "sceneStore" },
             {
@@ -522,10 +518,16 @@ export const buttonInterfaceLayout: ParameterLayout = {
       id: "led",
       title: "LED",
       items: [
-        { groupObject: "led" },
-        { parameter: "ledInverted" },
+        { parameter: "ledShown" },
         {
-          note: "Without an LED object, the LED of a switching or dimming input shows its switching object.",
+          when: { parameter: "ledShown", is: [true] },
+          items: [
+            { groupObject: "led" },
+            { parameter: "ledInverted" },
+            {
+              note: "Without an LED object, the LED of a switching or dimming input shows its switching object.",
+            },
+          ],
         },
       ],
     },

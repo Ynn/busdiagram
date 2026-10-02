@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Dimming · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -44,16 +44,16 @@
 </aside>
 <main>
 <p class="crumb">Examples</p>
-<h1 id="dimming-actuator"><a class="anchor" href="#dimming-actuator">#</a>Dimming actuator</h1><p>A two-key push-button controls one dimmable lamp through three group addresses, each with its own DPT:</p>
+<h1 id="dimming-actuator"><a class="anchor" href="#dimming-actuator">#</a>Dimming actuator</h1><p>A push-button interface with two keys and a visualization panel control one dimmable lamp through three group addresses, each with its own DPT:</p>
 <ul>
 <li>A short press on Key 1 or Key 2 sends on or off (DPT 1.001) on 1/1/1.</li>
 <li>Holding a key sends a relative dimming step (DPT 3.007) on 1/2/1; releasing it sends the stop value 0.</li>
-<li>The numeric field sends an absolute level (DPT 5.001) on 1/3/1.</li>
+<li>The numeric field of the visualization panel sends an absolute level (DPT 5.001) on 1/3/1.</li>
 </ul>
-<p>The actuator reports its switching state on 1/4/1 and its level on 1/5/1 after each transition. The push-button receives the level status and shows it on its object.</p>
+<p>The actuator reports its switching state on 1/4/1 and its level on 1/5/1 after each transition. The panel receives the level status and shows it on its object.</p>
 <p>The three command objects are independent inputs. A level of 100 % on 1/3/1 switches the lamp on and sets the switching status 1/4/1 to 1, but the switching command object on 1/1/1 keeps its last received value, 0. Dimming actuator manuals describe the same separation: the switching object receives commands (flags C, W, T), and the switching status object reports &quot;on&quot; whenever the brightness is not zero (flags C, R, T). The state of the lamp is therefore read or monitored on 1/4/1; the command object has no R flag, so a read of 1/1/1 receives no response from the actuator. See <a href="../guide/usb-interface.html#r-and-u-flags">R and U flags</a>.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Dimming actuator: switching, relative, and absolute dimming","description":"A short press switches the lamp on or off; a long press dims it with DPT 3.007 until the key is released. The numeric field sends an absolute level with DPT 5.001. The actuator reports its switching state and its level after each change.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/1","name":"L1 switch","dpt":"1.001"},{"address":"1/2/1","name":"L1 relative dimming","dpt":"3.007"},{"address":"1/3/1","name":"L1 level","dpt":"5.001"},{"address":"1/4/1","name":"L1 switch status","dpt":"1.001"},{"address":"1/5/1","name":"L1 level status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Two-key push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"on","name":"Key 1 on","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"up","name":"Key 1 brighter","ga":"1/2/1","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"off","name":"Key 2 off","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"down","name":"Key 2 darker","ga":"1/2/1","dpt":"3.007","port":"input","flags":{"W":false,"T":true}},{"id":"level","name":"Level","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"levelStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}}],"buttons":[{"id":"key1","label":"Key 1 · Brighter","short":{"object":"on","value":1},"long":{"object":"up","value":9},"release":{"object":"up","value":0}},{"id":"key2","label":"Key 2 · Darker","short":{"object":"off","value":0},"long":{"object":"down","value":1},"release":{"object":"down","value":0}}],"inputs":[{"id":"level","type":"number","label":"Level (%)","object":"level","min":0,"max":100,"step":10}]},{"id":"dimmerActuator","name":"Dimming actuator","address":"1.1.2","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"switch","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"dim","name":"Relative dimming","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"d1","flags":{"W":true,"T":false}},{"id":"value","name":"Level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"d1","flags":{"W":true,"T":false}},{"id":"status","name":"Switch status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"d1","flags":{"W":false,"T":true}},{"id":"valueStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"d1","flags":{"W":false,"T":true}}],"channels":[{"id":"d1","label":"L1","parameters":{"dimTimeMs":4000},"equipment":{"type":"dimmableLamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Dimming actuator: switching, relative, and absolute dimming","description":"A short press switches the lamp on or off; a long press dims it with DPT 3.007 until the key is released. The numeric field sends an absolute level with DPT 5.001. The actuator reports its switching state and its level after each change.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"L1 switch","dpt":"1.001"},{"address":"1/2/1","name":"L1 relative dimming","dpt":"3.007"},{"address":"1/3/1","name":"L1 level","dpt":"5.001"},{"address":"1/4/1","name":"L1 switch status","dpt":"1.001"},{"address":"1/5/1","name":"L1 level status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Two-key push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"on","name":"Key 1 on","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key1","flags":{"W":true,"T":true}},{"id":"up","name":"Key 1 brighter","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key1","flags":{"W":false,"T":true}},{"id":"off","name":"Key 2 off","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key2","flags":{"W":true,"T":true}},{"id":"down","name":"Key 2 darker","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key2","flags":{"W":false,"T":true}}],"channels":[{"id":"key1","label":"Input 1","keyLabel":"Key 1 · Brighter","parameters":{"function":"dim","dimMode":"brighter"},"equipment":null},{"id":"key2","label":"Input 2","keyLabel":"Key 2 · Darker","parameters":{"function":"dim","dimMode":"darker"},"equipment":null}]},{"id":"dimmerActuator","name":"Dimming actuator","address":"1.1.2","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"switch","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"dim","name":"Relative dimming","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"d1","flags":{"W":true,"T":false}},{"id":"value","name":"Level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"d1","flags":{"W":true,"T":false}},{"id":"status","name":"Switch status","ga":"1/4/1","dpt":"1.001","port":"status","channel":"d1","flags":{"W":false,"T":true}},{"id":"valueStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"d1","flags":{"W":false,"T":true}}],"channels":[{"id":"d1","label":"L1","parameters":{"dimTimeMs":4000},"equipment":{"type":"dimmableLamp"}}]},{"id":"panel","name":"Visualization","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"level","name":"Level","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"levelStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}}],"inputs":[{"id":"level","type":"number","label":"Level (%)","object":"level","min":0,"max":100,"step":10}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=dimming" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -61,7 +61,7 @@
   "formatVersion": 2,
   "title": "Dimming actuator: switching, relative, and absolute dimming",
   "description": "A short press switches the lamp on or off; a long press dims it with DPT 3.007 until the key is released. The numeric field sends an absolute level with DPT 5.001. The actuator reports its switching state and its level after each change.",
-  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "lines": [{ "address": "1.1", "name": "Example line", "powerSupply": { "currentMa": 640 } }],
   "groupAddresses": [
     { "address": "1/1/1", "name": "L1 switch", "dpt": "1.001" },
     { "address": "1/2/1", "name": "L1 relative dimming", "dpt": "3.007" },
@@ -74,15 +74,16 @@
       "id": "pushButton",
       "name": "Two-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "on",
           "name": "Key 1 on",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key1",
           "flags": { "W": true, "T": true }
         },
         {
@@ -90,7 +91,8 @@
           "name": "Key 1 brighter",
           "ga": "1/2/1",
           "dpt": "3.007",
-          "port": "input",
+          "port": "dim",
+          "channel": "key1",
           "flags": { "W": false, "T": true }
         },
         {
@@ -98,7 +100,8 @@
           "name": "Key 2 off",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key2",
           "flags": { "W": true, "T": true }
         },
         {
@@ -106,51 +109,25 @@
           "name": "Key 2 darker",
           "ga": "1/2/1",
           "dpt": "3.007",
-          "port": "input",
+          "port": "dim",
+          "channel": "key2",
           "flags": { "W": false, "T": true }
-        },
-        {
-          "id": "level",
-          "name": "Level",
-          "ga": "1/3/1",
-          "dpt": "5.001",
-          "port": "input",
-          "flags": { "W": false, "T": true }
-        },
-        {
-          "id": "levelStatus",
-          "name": "Level status",
-          "ga": "1/5/1",
-          "dpt": "5.001",
-          "port": "display",
-          "flags": { "W": true, "T": false }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Brighter",
-          "short": { "object": "on", "value": 1 },
-          "long": { "object": "up", "value": 9 },
-          "release": { "object": "up", "value": 0 }
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Brighter",
+          "parameters": { "function": "dim", "dimMode": "brighter" },
+          "equipment": null
         },
         {
           "id": "key2",
-          "label": "Key 2 · Darker",
-          "short": { "object": "off", "value": 0 },
-          "long": { "object": "down", "value": 1 },
-          "release": { "object": "down", "value": 0 }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "level",
-          "type": "number",
-          "label": "Level (%)",
-          "object": "level",
-          "min": 0,
-          "max": 100,
-          "step": 10
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Darker",
+          "parameters": { "function": "dim", "dimMode": "darker" },
+          "equipment": null
         }
       ]
     },
@@ -215,6 +192,42 @@
           "equipment": { "type": "dimmableLamp" }
         }
       ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "levelStatus",
+          "name": "Level status",
+          "ga": "1/5/1",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
     }
   ],
   "options": { "speed": 1, "filterTables": false }
@@ -224,7 +237,7 @@
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Dimming actuator: switching, relative, and absolute dimming"</span>,
   <span class="k">"description"</span>: <span class="s">"A short press switches the lamp on or off; a long press dims it with DPT 3.007 until the key is released. The numeric field sends an absolute level with DPT 5.001. The actuator reports its switching state and its level after each change."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"1/2/1"</span>, <span class="k">"name"</span>: <span class="s">"L1 relative dimming"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span> },
@@ -237,15 +250,16 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Two-key push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"objects"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"on"</span>,
           <span class="k">"name"</span>: <span class="s">"Key 1 on"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -253,7 +267,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 1 brighter"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -261,7 +276,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 off"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -269,51 +285,25 @@
           <span class="k">"name"</span>: <span class="s">"Key 2 darker"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"level"</span>,
-          <span class="k">"name"</span>: <span class="s">"Level"</span>,
-          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
-          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"levelStatus"</span>,
-          <span class="k">"name"</span>: <span class="s">"Level status"</span>,
-          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"display"</span>,
-          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key1"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 1 · Brighter"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"on"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"up"</span>, <span class="k">"value"</span>: <span class="n">9</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"up"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1 · Brighter"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key2"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 2 · Darker"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"off"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"down"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"release"</span>: { <span class="k">"object"</span>: <span class="s">"down"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
-        }
-      ],
-      <span class="k">"inputs"</span>: [
-        {
-          <span class="k">"id"</span>: <span class="s">"level"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Level (%)"</span>,
-          <span class="k">"object"</span>: <span class="s">"level"</span>,
-          <span class="k">"min"</span>: <span class="n">0</span>,
-          <span class="k">"max"</span>: <span class="n">100</span>,
-          <span class="k">"step"</span>: <span class="n">10</span>
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 2 · Darker"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"darker"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },
@@ -376,6 +366,42 @@
           <span class="k">"label"</span>: <span class="s">"L1"</span>,
           <span class="k">"parameters"</span>: { <span class="k">"dimTimeMs"</span>: <span class="n">4000</span> },
           <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualization"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"level"</span>,
+          <span class="k">"name"</span>: <span class="s">"Level"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"levelStatus"</span>,
+          <span class="k">"name"</span>: <span class="s">"Level status"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"level"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Level (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"level"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
         }
       ]
     }

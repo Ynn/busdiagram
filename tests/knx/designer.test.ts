@@ -16,8 +16,10 @@ const doc = raw("shutter-calibration.json");
 
 describe("designer: navigation in the diagram", () => {
   it("available ports depend on device behavior", () => {
-    const pushButton = nav.at(["devices", 0, "objects", 0, "port"], doc)!;
-    expect(nav.values(pushButton)).toEqual(["input", "display"]);
+    const keys = nav.at(["devices", 0, "objects", 0, "port"], doc)!;
+    expect(nav.values(keys)).toEqual(
+      expect.arrayContaining(["switch", "move", "stopStep", "lock", "led"]),
+    );
     const shutterActuator = nav.at(["devices", 1, "objects", 0, "port"], doc)!;
     expect(nav.values(shutterActuator)).toEqual(
       expect.arrayContaining(["move", "stopStep", "positionCommand"]),
@@ -49,7 +51,7 @@ describe("designer: navigation in the diagram", () => {
 });
 
 describe("safe insertions", () => {
-  const pushButton4 = SNIPPETS.find((s) => s.id === "pushButton4")!;
+  const pushButton4 = SNIPPETS.find((s) => s.id === "buttonInterface4")!;
   const switchActuator4 = SNIPPETS.find((s) => s.id === "switchActuator4")!;
   const empty = (lines: Record<string, unknown>[]) => ({
     formatVersion: 2,

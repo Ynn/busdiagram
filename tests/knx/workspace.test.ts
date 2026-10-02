@@ -136,7 +136,7 @@ describe("guided workspace: context menus", () => {
     expect(none[0]!.disabled).toBeTruthy();
   });
 
-  it("a menu command runs the same edit, with the same refusals, as the equivalent button", () => {
+  it("a menu command runs the same edit as the equivalent button", () => {
     const h = host(v2("dimming.json"));
     const unlink = (key: string) =>
       menuFor(h, h.ws.panels[0]!, key)
@@ -148,10 +148,10 @@ describe("guided workspace: context menus", () => {
           .doc!.devices.find((d) => d.id === dev)!
           .objects.find((o) => o.id === obj)!,
       );
-    // A key must keep the address it sends on.
+    // A key object can lose its addresses, as any other object.
     unlink("obj:pushButton/on");
-    expect(h.refused).toHaveLength(1);
-    expect(gas("pushButton", "on")).toEqual(["1/1/1"]);
+    expect(h.refused).toHaveLength(0);
+    expect(gas("pushButton", "on")).toEqual([]);
     // An actuator object can lose all its addresses.
     const sw = h.doc!.devices.find((d) => d.id === "dimmerActuator")!
       .objects[0]!;

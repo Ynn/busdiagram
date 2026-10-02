@@ -92,6 +92,7 @@ const pageTexts = (): Record<string, string> => ({
   "Source code": t`Source code`,
   "Third-party notices": t`Third-party notices`,
   Guided: t`Guided`,
+  Simulation: t`Simulation`,
   "JSON scenario": t`JSON scenario`,
   "Ctrl+Space: suggestions (fields, ports, DPTs, declared group addresses, objects and channels of the device).": t`Ctrl+Space: suggestions (fields, ports, DPTs, declared group addresses, objects and channels of the device).`,
   Toolbar: t`Toolbar`,
@@ -240,7 +241,9 @@ const templates = Object.entries(files)
 const empty = () => ({
   formatVersion: 2,
   title: t`New installation`,
-  lines: [{ address: "1.1", name: t`Lab kit` }],
+  lines: [
+    { address: "1.1", name: t`Lab kit`, powerSupply: { currentMa: 640 } },
+  ],
   groupAddresses: [],
   devices: [],
 });
@@ -458,11 +461,14 @@ function commit(label: string, mutate: (doc: Doc) => void): boolean {
 }
 
 // ── Onglets ──────────────────────────────────────────────────────────────────
-function showTab(tab: "guided" | "json") {
+type Tab = "guided" | "json" | "sim";
+/** Guided editor, JSON editor, or the simulation alone, over the whole width. */
+function showTab(tab: Tab) {
   $("#pane-guided").hidden = tab !== "guided";
   $("#pane-json").hidden = tab !== "json";
-  $("#tab-guided").setAttribute("aria-selected", String(tab === "guided"));
-  $("#tab-json").setAttribute("aria-selected", String(tab === "json"));
+  $(".split").classList.toggle("sim", tab === "sim");
+  for (const t of ["guided", "json", "sim"] as const)
+    $(`#tab-${t}`).setAttribute("aria-selected", String(tab === t));
   try {
     localStorage.setItem(TAB, tab);
   } catch {
@@ -472,6 +478,7 @@ function showTab(tab: "guided" | "json") {
 }
 $("#tab-guided").addEventListener("click", () => showTab("guided"));
 $("#tab-json").addEventListener("click", () => showTab("json"));
+$("#tab-sim").addEventListener("click", () => showTab("sim"));
 
 guided.registry = registry;
 guided.commit = tryCommit;
@@ -960,9 +967,10 @@ function toast(msg: string) {
   },
 };
 
-let startTab: "guided" | "json" = "guided";
+let startTab: Tab = "guided";
 try {
-  if (localStorage.getItem(TAB) === "json") startTab = "json";
+  const saved = localStorage.getItem(TAB);
+  if (saved === "json" || saved === "sim") startTab = saved;
 } catch {
   // Ignored.
 }

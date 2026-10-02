@@ -14,6 +14,7 @@ import type {
   JsonObject,
   JsonValue,
   OutputCommand,
+  Priority,
   RoomInfo,
   SimSnapshot,
 } from "./contracts";
@@ -68,6 +69,8 @@ export interface Telegram {
   kind: "cmd" | "state";
   /** Group service: writing, reading (no value) or replying to a reading. */
   service: GroupService;
+  /** Transmission priority, from the sending object (low for the USB interface). */
+  priority: Priority;
   /** Journal event that triggered transmission (input, timer expiry, reception, etc.). */
   causeId: number | null;
   /** Related "telegram-mitted" event. */
@@ -823,6 +826,8 @@ export class Simulation {
       });
     if (this.initializing) return;
     if (rt.down) return void ignore(this.t`no bus voltage: no telegram`);
+    if (!o.flags.C)
+      return void ignore(this.t`C flag off: no communication, no telegram`);
     if (!o.flags.T)
       return void ignore(
         this.t`T flag disabled: value changed locally, no telegram`,
@@ -885,6 +890,8 @@ export class Simulation {
       raw,
       kind: spec.kind,
       service: spec.service,
+      priority:
+        d.objects.find((x) => x.id === spec.objectId)?.priority ?? "low",
       causeId: this.cause,
       eventId: ev.id,
       plan,
@@ -1052,6 +1059,41 @@ export class Simulation {
     const response = tel.service === "GroupValueResponse";
     for (const o of assoc) {
       if (this.fault) break;
+      // Another object of the sending device on the same address: the Application Layer
+      // updates its value whatever its flags; W (or U) only governs the reaction.
+      if (!o.flags.C) {
+        this.log("object-write-ignored", rec.id, {
+          deviceId,
+          objectId: o.id,
+          telegramId,
+          ga: tel.ga,
+          value: tel.value,
+          message: this.t`C flag off: the message is not handled`,
+        });
+        reception.objects.push({ objectId: o.id, result: "ignored" });
+        continue;
+      }
+      const allowed = response ? o.flags.U : o.flags.W;
+      if (internal && !allowed) {
+        const cur = this.objects.get(o.key)!;
+        cur.value = decode(o.dpt, tel.raw);
+        cur.updatedAtMs = this.timeMs;
+        this.log("object-write-accepted", rec.id, {
+          deviceId,
+          objectId: o.id,
+          telegramId,
+          ga: tel.ga,
+          value: cur.value,
+          message: response
+            ? this
+                .t`same address in the device: value updated; U flag off, no reaction`
+            : this
+                .t`same address in the device: value updated; W flag off, no reaction`,
+          data: { internal },
+        });
+        reception.objects.push({ objectId: o.id, result: "accepted" });
+        continue;
+      }
       if (response && !o.flags.U) {
         this.log("object-write-ignored", rec.id, {
           deviceId,
@@ -1127,13 +1169,15 @@ export class Simulation {
       .filter((o) => o.gas.includes(tel.ga))
       .forEach((o) => {
         const cur = this.objects.get(o.key)!;
-        const why = !o.flags.R
-          ? this.t`R flag off: no response`
-          : cur.value === null
-            ? this.t`unknown value: no response`
-            : answered
-              ? this.t`the device has already answered this read`
-              : null;
+        const why = !o.flags.C
+          ? this.t`C flag off: the message is not handled`
+          : !o.flags.R
+            ? this.t`R flag off: no response`
+            : cur.value === null
+              ? this.t`unknown value: no response`
+              : answered
+                ? this.t`the device has already answered this read`
+                : null;
         reception.objects.push({
           objectId: o.id,
           result: why ? "ignored" : "accepted",
@@ -1202,8 +1246,28 @@ export class Simulation {
       value = Math.min(inp.max, Math.max(inp.min, value));
     } else {
       const b = d.buttons.find((x) => x.id === inputId);
-      const contact = gesture === "down" || gesture === "up";
-      if (!b || (contact ? !b.contact : b.contact || !b[gesture])) return [];
+      if (!b) return [];
+      // On a contact key, the gestures of a configured key are played as edges: a press
+      // or short press is a press and a release, a long press is a press held past the
+      // long-press time, and release ends it.
+      if (b.contact) {
+        const edges: Partial<Record<Gesture, Gesture[]>> = {
+          press: ["down", "up"],
+          short: ["down", "up"],
+          long: ["down", "hold"],
+          release: ["up"],
+        };
+        const play = edges[gesture];
+        if (play)
+          return play.flatMap((g) => this.input(deviceId, inputId, g, value));
+        if (!["down", "up", "hold"].includes(gesture)) return [];
+      } else if (
+        gesture === "down" ||
+        gesture === "up" ||
+        gesture === "hold" ||
+        !b[gesture]
+      )
+        return [];
     }
     const first = this.nextTelegramId;
     const before = this.nextEventId;
@@ -1418,6 +1482,7 @@ export class Simulation {
         if (on) {
           rt.down = false;
           this.hook(rt, "onBusRecovery", () => rt.def.onBusRecovery?.(rt.ctx));
+          this.readOnInit(rt);
           return;
         }
         rt.down = true;
@@ -1431,6 +1496,25 @@ export class Simulation {
     );
     if (events.length) this.lastStop = { timeMs: this.timeMs, events };
     return this.history.filter((t) => t.id >= first);
+  }
+
+  /**
+   * Read on initialisation: when a device starts again, each object with the I flag (and
+   * C) reads its value on its sending address; the response updates it if U is set.
+   */
+  private readOnInit(rt: DeviceRuntime) {
+    rt.device.objects
+      .filter((o) => o.flags.I && o.flags.C && o.gas[0])
+      .forEach((o) =>
+        this.emit(rt.device, {
+          objectId: o.id,
+          ga: o.gas[0]!,
+          dpt: o.dpt,
+          value: 0,
+          service: "GroupValueRead",
+          kind: "cmd",
+        }),
+      );
   }
 
   /** Does the segment (`L1.1`, `L1.1b`…) have bus voltage? */

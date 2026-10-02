@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example installation"
+      "name": "Example installation",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -35,99 +38,97 @@
       "id": "pushButton",
       "name": "Three-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "move",
           "name": "Movement",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "key1"
         },
         {
           "id": "stop",
           "name": "Stop / slat step",
           "ga": "2/1/2",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "key1"
+        },
+        {
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "key2"
+        },
+        {
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "flags": {
+            "W": false,
+            "T": true
+          },
+          "channel": "key2"
         },
         {
           "id": "target",
           "name": "Setpoint",
           "ga": "2/1/3",
           "dpt": "5.001",
-          "port": "input",
+          "port": "value",
           "flags": {
             "W": false,
             "T": true
-          }
-        },
-        {
-          "id": "feedback",
-          "name": "Received estimated position",
-          "ga": "2/1/4",
-          "dpt": "5.001",
-          "port": "display",
-          "flags": {
-            "W": true,
-            "T": false
-          }
+          },
+          "channel": "key3"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Up",
-          "icon": "up",
-          "short": {
-            "object": "stop",
-            "value": 0
-          },
-          "long": {
-            "object": "move",
-            "value": 0
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           }
         },
         {
           "id": "key2",
-          "label": "Key 2 · Down",
-          "icon": "down",
-          "short": {
-            "object": "stop",
-            "value": 1
-          },
-          "long": {
-            "object": "move",
-            "value": 1
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           }
         },
         {
           "id": "key3",
-          "label": "Key 3 · 50 %",
-          "press": {
-            "object": "target",
-            "value": 50
+          "label": "Input 3",
+          "keyLabel": "Key 3 · 50 %",
+          "parameters": {
+            "function": "value",
+            "shortValue": 50
           }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "position",
-          "type": "number",
-          "label": "Setpoint (%)",
-          "object": "target",
-          "min": 0,
-          "max": 100,
-          "step": 1
         }
       ]
     },
@@ -194,18 +195,54 @@
           "parameters": {
             "estimatedTravelTimeMs": 20000
           },
-          "initialState": {
-            "estimatedPositionPct": 0
-          },
           "equipment": {
             "type": "shutter",
             "parameters": {
               "actualTravelTimeMs": 30000
-            },
-            "initialState": {
-              "positionPct": 0
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.2",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "target",
+          "name": "Setpoint",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "feedback",
+          "name": "Received estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "position",
+          "type": "number",
+          "label": "Setpoint (%)",
+          "object": "target",
+          "min": 0,
+          "max": 100,
+          "step": 1
         }
       ]
     }

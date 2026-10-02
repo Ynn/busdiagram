@@ -6,8 +6,14 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Added
 
+- Designer: a **Simulation** tab shows the diagram alone over the whole width.
+- Push-button interface: `ledShown` (off by default) gives a key its LED; `keyLabel` is the text written on the push-button wired to an input, drawn on its key, while the input keeps its name (`label`). In the designer, the text of the key is on its own **Key** page.
+- Group object flags C (communication: off, the object neither sends nor handles messages) and I (read on initialisation: the object reads its value when its device starts again after a bus voltage failure), editable in the designer; transmission priority of each object (`priority`: low, normal, urgent), written in the control field of the frame.
+- Configuration warning `config-no-power-supply`: a TP line or segment without a bus power supply. The examples declare their supplies, and the lines added in the designer get one.
+- Designer: a link that puts DPTs of the same size but different meaning on one address (5.001 and 5.010) is pointed out at once.
+- Configuration warning `config-value-range`: a value of a push-button interface input outside the range of its object's DPT.
 - Diagram: a countdown on the load of an output shows a running staircase timer or a switch-on or switch-off delay: a clock, the state that will be reached (I or O), and the time left; the inspector shows the delay too.
-- Push-button interface `buttonInterface/v1`: each channel is a contact input with a function (switching on edges or on short and long presses, one-key or two-key dimming, one-key or two-key blind, value, scene recall and storing); the device measures short and long presses itself. Lock, bus voltage recovery reaction, cyclic sending, and LED per input. In the designer catalog, with pages per input; see the example “Push-button interface”.
+- Push-button interface `buttonInterface/v1`: each channel is a contact input with a function (switching on edges or on short and long presses, one-key or two-key dimming, one-key or two-key blind, value, scene recall and storing); the diagram measures the long press against the long-press time of each input. Lock, bus voltage recovery reaction, cyclic sending, and LED per input. In the designer catalog, with pages per input; see the example “Push-button interface”.
 - Bus voltage failure and recovery: a click on the power supply of a line or segment cuts or restores its bus voltage (`setBusVoltage()` in the API, `unpoweredSegments` in `getState()`). Devices run their failure and recovery behavior, then neither receive nor send; couplers do not forward telegrams to the segment. Behaviors can define `onBusFailure` and `onBusRecovery`.
 - Switch actuator: lock object (`lockStart`, `afterLock`; forcing keeps priority), switch-on and switch-off delays (`onDelayMs`, `offDelayMs`), logic link (`logic` object, AND or OR), behavior on bus voltage failure and recovery (`busFailure`, `busRecovery`). See the example “Bus voltage failure”.
 - DPT 18.001 (scene control): the switch, dimming, DALI and shutter actuators store their current state as a scene when they receive the learn bit (`sceneLearning`).
@@ -42,6 +48,13 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Changed
 
+- Push-button interface in the designer: the function of an input creates its group objects (switching; switching and dimming; up/down and stop/step; value or scene) and replaces them when another function is chosen; no box enables them any more. The operation is chosen as one key or two keys. Behavior definitions can declare such objects with `channelObjects`.
+- When a device sends, its other objects on the same group address take the value whatever their W flag, as the KNX Application Layer specifies; W (U for a response) only decides whether the device reacts.
+- DPTs shown without simulation must be identifiers of the standard catalog (KNX Datapoint Types of KNX Standard v3.0.0), with sub-numbers of up to five digits (`1.1200`); their size now counts in the check of objects of different sizes on one address.
+- **Breaking:** the push-button behavior `pushButton/v1` is removed; push-buttons are modeled by the push-button interface `buttonInterface/v1`. A scenario that uses it is refused, and so are the keys of a format-1 file (error `removed`). All the examples, the guide, and the designer catalog use the push-button interface; the numeric fields of the examples (level, position, colour temperature) are on a visualization panel.
+- Push-button interface: the diagram measures the long press, as for the other keys, against the long-press time of each input, and shows the hold bar; the input receives the edges `down`, `hold`, and `up`. The gestures `press`, `short`, `long`, and `release` sent by the API to an input are played as edges. Shift+Enter is a long press.
+- Device without logic (`passive/v1`): values typed in the diagram are sent, as from a visualization panel; it takes no keys.
+- Designer: device templates no longer create group addresses: their objects are linked to addresses in the group address view, as in a project. A key or a numeric input can exist without a group address, and a key object can lose its last address.
 - Switch actuator: the `lock` and `logic` ports join each output's block of group objects, so the object numbers of the following outputs move by two. The end-of-forcing choices read On and Off.
 - Group reads: a device sends a single response, from its first object that has the R flag and a known value, as the KNX Application Layer specifies; previously each such object of the device answered.
 
@@ -53,6 +66,9 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Fixed
 
+- Diagram: on a narrow key, the icon (I/O) wrapped onto several lines and touched the edge; keys keep a margin, the icon stays on one line and the label is shortened with an ellipsis. The key plate is a little wider.
+- Site: the asset URLs of a development build now change with each modification (`?v=…` with a fingerprint of the local changes), so that a browser does not keep running an older designer or library; documentation pages used the package version only.
+- Designer: changing the function of a push-button interface input left the objects of the former function in place.
 - Designer: a parameter set back to its default value by typing it or choosing it is stored as absent, so that the ↺ button disappears as after a click on it.
 - Diagram: the timer of an output was given as a note under the load name, cut off for lack of room.
 - KNX/DALI gateway: the faults of every DALI load of a group are reported, not only those of the first one.

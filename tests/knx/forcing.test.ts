@@ -3,13 +3,15 @@ import { createSimulator } from "../../src/core";
 import { buildFrame } from "../../src/knx/format";
 import type { ScenarioError } from "../../src/knx/scenario";
 import { buildScenario } from "../../src/knx/scenario";
+import { configWarnings } from "../../src/knx/consistency";
+import { en } from "../../src/i18n";
 import { lampOn, load, obj, raw } from "./helpers";
 
 type Data = {
   devices: {
     objects: Record<string, unknown>[];
     buttons?: Record<string, unknown>[];
-    channels?: { parameters?: Record<string, unknown> }[];
+    channels?: { parameters: Record<string, unknown> }[];
   }[];
 };
 const variant = (afterForcing: string) => {
@@ -81,7 +83,8 @@ describe("Priority override (DPT 2.001 and timers)", () => {
 
   it("forced on (value 3) prevents the timer from switching off", () => {
     const d = raw("priority-control.json") as unknown as Data;
-    d.devices[0]!.buttons![0]!.short = { object: "key3", value: 3 };
+    // Key 3 forces on with a short press.
+    d.devices[0]!.channels![0]!.parameters.shortValue = 3;
     d.devices[1]!.channels![3]!.parameters = { timerMs: 2000 };
     const sim = createSimulator(d);
     sim.input("pushButton", "key4", "press"); // on command with a 2 s timer
@@ -107,7 +110,6 @@ describe("Priority override (DPT 2.001 and timers)", () => {
   it("validation: port DPT and value range", () => {
     const d = raw("priority-control.json") as unknown as Data;
     d.devices[1]!.objects[1]!.dpt = "1.001";
-    d.devices[0]!.buttons![0]!.short = { object: "key3", value: 4 };
     try {
       buildScenario(d);
       expect.unreachable();
@@ -115,12 +117,13 @@ describe("Priority override (DPT 2.001 and timers)", () => {
       const paths = (e as ScenarioError).details.map(
         (p) => `${p.path} [${p.code}]`,
       );
-      expect(paths).toEqual(
-        expect.arrayContaining([
-          "devices[1].objects[1].dpt [dpt]",
-          "devices[0].buttons[0].short.value [range]",
-        ]),
-      );
+      expect(paths).toContain("devices[1].objects[1].dpt [dpt]");
     }
+    // A key value outside the DPT of its object: configuration warning.
+    const v = raw("priority-control.json") as unknown as Data;
+    v.devices[0]!.channels![0]!.parameters.shortValue = 4;
+    expect(configWarnings(buildScenario(v), en).map((w) => w.code)).toContain(
+      "config-value-range",
+    );
   });
 });

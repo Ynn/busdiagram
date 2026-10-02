@@ -17,13 +17,13 @@ name?: string
  */
 address?: string
 /**
- * Device grouping and rendering: pushButton, switchActuator, shutterActuator, sensor, supervisor, generic…
+ * Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…
  */
 kind: string
 /**
  * Versioned ID of the device's registered behavior.
  */
-behavior: (("pushButton/v1" | "switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1" | "systemGateway/v1" | "energyMeter/v1" | "buttonInterface/v1") | string)
+behavior: (("switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1" | "systemGateway/v1" | "energyMeter/v1" | "buttonInterface/v1") | string)
 /**
  * Device parameters defined by its behavior.
  */
@@ -456,7 +456,7 @@ channel?: string
  */
 value?: (number | null)
 /**
- * Modeled flags: W write, T transmit, R read, U update. C communication is always enabled.
+ * Flags: C communication, R read, W write, T transmit, U update, I read on initialisation.
  */
 flags: {
 /**
@@ -475,7 +475,19 @@ R?: boolean
  * Apply a received GroupValueResponse as an update; enabled by default for display ports.
  */
 U?: boolean
+/**
+ * Communication (enabled by default): when false, the object neither sends nor handles any message.
+ */
+C?: boolean
+/**
+ * Read on initialisation: when the device starts again after a bus voltage failure, it reads the object's value on its sending address.
+ */
+I?: boolean
 }
+/**
+ * Transmission priority of the frames the object sends (low by default); system priority is reserved for management.
+ */
+priority?: ("low" | "normal" | "urgent")
 }
 /**
  * Numeric input drawn on the device card.
@@ -519,9 +531,13 @@ export interface Channel {
  */
 id: string
 /**
- * Load label, such as L1; use “unused” for an unconnected output.
+ * Label of the channel: a load label such as L1 (“unused” for an unconnected output), or the name of an input.
  */
 label?: string
+/**
+ * Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label.
+ */
+keyLabel?: string
 /**
  * Behavior-specific channel parameters, such as timer or travel time.
  */

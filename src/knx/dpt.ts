@@ -1,5 +1,6 @@
 import type { Translate } from "../i18n";
 import { en } from "../i18n";
+import { STANDARD_DPT_IDS } from "./dpt-catalog";
 // Codecs of data point types (DPTs) actually supported.
 // The "canonical" value of an object is the decoded value of its useful byte:
 // Both sending and receiving use encode → decode.
@@ -330,18 +331,24 @@ const MAIN_BITS: Record<number, number> = {
   255: 64,
 };
 
+/** Main number of a DPT identifier ("1.1200" → 1); sub-numbers have 3 to 5 digits. */
 const mainOf = (dpt: string) => {
-  const m = /^(\d{1,3})\.(\d{3})$/.exec(dpt);
+  const m = /^(\d{1,3})\.(\d{3,5})$/.exec(dpt);
   return m ? Number(m[1]) : null;
 };
 
 /**
- * A DPT that a passive or display object may use without simulation: a standard
- * main number whose size is known. Its values are shown as raw bytes.
+ * A DPT that a passive or display object may use without simulation: an identifier of
+ * the standard catalog whose size is known. Its values are shown as raw bytes.
  */
 export function isRepresentableDpt(dpt: string): boolean {
   const main = mainOf(dpt);
-  return BY_ID.has(dpt) || (main !== null && MAIN_BITS[main] !== undefined);
+  return (
+    BY_ID.has(dpt) ||
+    (STANDARD_DPT_IDS.has(dpt) &&
+      main !== null &&
+      MAIN_BITS[main] !== undefined)
+  );
 }
 
 /** Raw value of a DPT that is not simulated, in hexadecimal. */

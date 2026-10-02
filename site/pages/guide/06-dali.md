@@ -43,19 +43,17 @@ A dimming actuator channel with a `colourTemperature` object (DPT 7.600, K) also
 
 ## Push-button dimming
 
-A two-surface key can use a short press for switching or stepping, a long press for continuous dimming, and release to stop:
+An input of a push-button interface with the dimming function uses a short press for switching, a long press for continuous dimming, and release to stop. On a pair of keys, one input dims brighter and the other darker:
 
 ```json
 {
   "id": "key1",
   "label": "Key 1 brighter",
-  "short": { "object": "on", "value": 1 },
-  "long": { "object": "up", "value": 9 },
-  "release": { "object": "up", "value": 0 }
+  "parameters": { "function": "dim", "dimMode": "brighter", "dimStep": 1 }
 }
 ```
 
-For DPT 3.007, value 9 requests increasing brightness with the largest step. The actuator dims at its configured rate until a stop value arrives; telegram travel time can therefore affect the final level.
+The long press sends DPT 3.007 value 9: increasing brightness with the largest step (100 %). The actuator dims at its configured rate until a stop value arrives; telegram travel time can therefore affect the final level.
 
 ## KNX/DALI gateway
 

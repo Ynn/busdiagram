@@ -6,7 +6,7 @@ order: 2
 
 # First diagram
 
-This example has one four-key push-button and one four-output switching actuator. Key 1 and Key 2 turn L1 and L2 on and off; Key 3 and Key 4 do the same for L1 through L4.
+This example has one push-button interface with four keys and one four-output switching actuator. Key 1 and Key 2 turn L1 and L2 on and off; Key 3 and Key 4 do the same for L1 through L4.
 
 ```knx
 scenario: lighting-control
@@ -43,27 +43,27 @@ Place the installation JSON inside a `<script type="application/json">` element 
 
 `lines` declares twisted-pair lines. Each device's individual address belongs to a declared line. `groupAddresses` supplies names and DPTs shown in the bus monitor. The complete example adds devices to this skeleton.
 
-## 3. Add the push-button
+## 3. Add the push-button interface
 
 ```json
 {
   "id": "pushButton",
-  "name": "Push-button",
+  "name": "Push-button interface",
   "address": "1.1.1",
-  "kind": "pushButton",
-  "behavior": "pushButton/v1",
+  "kind": "buttonInterface",
+  "behavior": "buttonInterface/v1",
   "objects": [
-    { "id": "key1", "name": "Key 1", "ga": "1/1/1", "dpt": "1.001", "port": "input", "flags": { "W": true, "T": true } },
-    { "id": "key2", "name": "Key 2", "ga": "1/1/1", "dpt": "1.001", "port": "input", "flags": { "W": true, "T": true } }
+    { "id": "key1", "name": "Key 1", "ga": "1/1/1", "dpt": "1.001", "port": "switch", "channel": "in1", "flags": { "W": true, "T": true } },
+    { "id": "key2", "name": "Key 2", "ga": "1/1/1", "dpt": "1.001", "port": "switch", "channel": "in2", "flags": { "W": true, "T": true } }
   ],
-  "buttons": [
-    { "id": "key1", "label": "Key 1", "press": { "object": "key1", "value": 1 } },
-    { "id": "key2", "label": "Key 2", "press": { "object": "key2", "value": 0 } }
+  "channels": [
+    { "id": "in1", "label": "Input 1", "keyLabel": "Key 1", "parameters": { "function": "switch", "onPress": "on" } },
+    { "id": "in2", "label": "Input 2", "keyLabel": "Key 2", "parameters": { "function": "switch", "onPress": "off" } }
   ]
 }
 ```
 
-The device has one individual address regardless of its number of keys. Each communication object has a group address (`ga`), a DPT, a behavior port, and flags. A button's `press` action writes a value to its object; the object transmits it when its T flag is set.
+The device has one individual address regardless of its number of inputs. Each input is wired to a key and drawn as a key on the diagram, which shows `keyLabel`, the text written on the push-button (the input keeps its `label`); its `function` decides what a press does, here switching on or off. Each communication object has a group address (`ga`), a DPT, a behavior port, the input it belongs to (`channel`), and flags; the object transmits when its T flag is set.
 
 ## 4. Add the switching actuator
 
@@ -85,4 +85,4 @@ The first address in `ga` is the object's sending address; it also listens to su
 
 ## 5. Operate the diagram
 
-The diagram is drawn from these declarations. To follow its behavior, press Key 1. A telegram travels from the push-button to the actuator on 1/1/1. Channels 1 and 2 accept it, turning on L1 and L2. The bus monitor shows the telegram; select its row to inspect the frame. Open the [designer](../designer/index.html) to modify the scenario.
+The diagram is drawn from these declarations. To follow its behavior, press Key 1. A telegram travels from the push-button interface to the actuator on 1/1/1. Channels 1 and 2 accept it, turning on L1 and L2. The bus monitor shows the telegram; select its row to inspect the frame. Open the [designer](../designer/index.html) to modify the scenario.

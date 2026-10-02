@@ -143,12 +143,17 @@
       "channels": [
         {
           "id": "in1",
-          "label": "Input 1 · Light",
+          "label": "Input 1",
+          "keyLabel": "Input 1 · Light",
+          "parameters": {
+            "ledShown": true
+          },
           "equipment": null
         },
         {
           "id": "in2",
-          "label": "Input 2 · Dimming",
+          "label": "Input 2",
+          "keyLabel": "Input 2 · Dimming",
           "parameters": {
             "function": "dim"
           },
@@ -156,7 +161,8 @@
         },
         {
           "id": "in3",
-          "label": "Input 3 · Blind",
+          "label": "Input 3",
+          "keyLabel": "Input 3 · Blind",
           "parameters": {
             "function": "blind"
           },
@@ -164,7 +170,8 @@
         },
         {
           "id": "in4",
-          "label": "Input 4 · Scene",
+          "label": "Input 4",
+          "keyLabel": "Input 4 · Scene",
           "parameters": {
             "function": "scene",
             "sceneStore": true

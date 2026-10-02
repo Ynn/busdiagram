@@ -22,7 +22,15 @@ export interface Obj extends J {
   dpt?: string;
   port: string;
   channel?: string;
-  flags: { W: boolean; T: boolean; R?: boolean; U?: boolean };
+  flags: {
+    W: boolean;
+    T: boolean;
+    R?: boolean;
+    U?: boolean;
+    C?: boolean;
+    I?: boolean;
+  };
+  priority?: "low" | "normal" | "urgent";
 }
 export interface Action {
   object: string;
@@ -41,6 +49,8 @@ export interface Btn extends J {
 export interface Chan extends J {
   id: string;
   label?: string;
+  /** Text on the push-button wired to a contact input; the label of the input stays. */
+  keyLabel?: string;
   parameters?: J;
   initialState?: J;
   /** One load, several loads wired in parallel, or null for a free output. */
@@ -440,7 +450,7 @@ export function setLineExtension(
   const address =
     [64, 128, 192].map((n) => `${line}.${n}`).find((a) => !used.has(a)) ??
     wrap(() => freeAddress(doc, line));
-  l.extension = { address, mode };
+  l.extension = { address, mode, powerSupply: { currentMa: 640 } };
 }
 
 /**
@@ -663,7 +673,7 @@ export function addArea(doc: Doc): number {
   const used = new Set(areasOf(doc));
   for (let a = 1; a <= 15; a++)
     if (!used.has(a)) {
-      doc.lines.push({ address: `${a}.1` });
+      doc.lines.push({ address: `${a}.1`, powerSupply: { currentMa: 640 } });
       doc.lines.sort((x, y) =>
         String(x.address).localeCompare(String(y.address), "en", {
           numeric: true,
@@ -679,7 +689,10 @@ export function addLine(doc: Doc, area: number): string {
   const used = new Set(doc.lines.map((l) => String(l.address)));
   for (let n = 1; n <= 15; n++)
     if (!used.has(`${area}.${n}`)) {
-      doc.lines.push({ address: `${area}.${n}` });
+      doc.lines.push({
+        address: `${area}.${n}`,
+        powerSupply: { currentMa: 640 },
+      });
       doc.lines.sort((x, y) =>
         String(x.address).localeCompare(String(y.address), "en", {
           numeric: true,
@@ -806,343 +819,6 @@ function isActionTarget(d: Dev, objectId: string) {
   return (d.buttons ?? []).some((b) =>
     [b.press, b.short, b.long, b.release].some((a) => a?.object === objectId),
   );
-}
-
-// ── Push button: keys and gestures ─────────────────────────────────────────────
-
-export type ActionKind =
-  "switch" | "move" | "step" | "dim" | "scene" | "percent" | "forced";
-
-export const actionKinds = (): Record<
-  ActionKind,
-  { label: string; dpt: string; values: [number | "toggle", string][] }
-> => ({
-  switch: {
-    label: t`Lighting`,
-    dpt: "1.001",
-    values: [
-      [1, t`on`],
-      [0, t`off`],
-      ["toggle", t`toggle`],
-    ],
-  },
-  move: {
-    label: t`Shutter: up/down`,
-    dpt: "1.008",
-    values: [
-      [0, t`up`],
-      [1, t`down`],
-      ["toggle", t`reverse direction`],
-    ],
-  },
-  step: {
-    label: t`Shutter: stop/step`,
-    dpt: "1.007",
-    values: [
-      [0, t`stop / step ▲`],
-      [1, t`stop / step ▼`],
-    ],
-  },
-  scene: {
-    label: t`Scene`,
-    dpt: "17.001",
-    values: Array.from(
-      { length: 8 },
-      (_, i) => [i, t`scene ${i + 1}`] as [number, string],
-    ),
-  },
-  percent: {
-    label: t`Percentage`,
-    dpt: "5.001",
-    values: [
-      [0, t`0 %`],
-      [25, t`25 %`],
-      [50, t`50 %`],
-      [75, t`75 %`],
-      [100, t`100 %`],
-    ],
-  },
-  dim: {
-    label: t`Dimming (stops on release)`,
-    dpt: "3.007",
-    values: [
-      [9, t`brighter`],
-      [1, t`darker`],
-      [11, t`brighter by 25 %`],
-      [3, t`darker by 25 %`],
-    ],
-  },
-  forced: {
-    label: t`Forcing`,
-    dpt: "2.001",
-    values: [
-      [2, t`force off`],
-      [3, t`force on`],
-      [0, t`end of forcing`],
-    ],
-  },
-});
-
-export const kindOfDpt = (dpt: string | undefined): ActionKind =>
-  (Object.entries(actionKinds()).find(([, k]) => k.dpt === dpt)?.[0] as
-    ActionKind | undefined) ?? "switch";
-
-export type Gesture = "press" | "short" | "long";
-
-export interface KeyView {
-  id: string;
-  label: string;
-  mode: "press" | "shortlong";
-  gestures: Partial<
-    Record<
-      Gesture,
-      {
-        objectId: string;
-        kind: ActionKind;
-        value: number | "toggle";
-        ga: string | null;
-      }
-    >
-  >;
-  feedback: string | null;
-  led: boolean;
-}
-
-export function keysOf(d: Dev): KeyView[] {
-  return (d.buttons ?? []).map((b) => {
-    const gestures: KeyView["gestures"] = {};
-    (["press", "short", "long"] as Gesture[]).forEach((g) => {
-      const a = b[g];
-      if (!a) return;
-      const o = d.objects.find((x) => x.id === a.object);
-      gestures[g] = {
-        objectId: a.object,
-        kind: kindOfDpt(o?.dpt),
-        value: a.value,
-        ga: o ? (gasOf(o)[0] ?? null) : null,
-      };
-    });
-    const first = d.objects.find(
-      (x) => x.id === (b.press ?? b.short ?? b.long)?.object,
-    );
-    return {
-      id: b.id,
-      label: b.label ?? b.id,
-      mode: b.press ? "press" : "shortlong",
-      gestures,
-      feedback: first ? (gasOf(first)[1] ?? null) : null,
-      led: !!b.led,
-    };
-  });
-}
-
-function button(d: Dev, keyId: string): Btn {
-  const b = (d.buttons ?? []).find((x) => x.id === keyId);
-  if (!b) throw new EditRefusal(t`key “${keyId}” not found`);
-  return b;
-}
-
-function gestureObject(
-  doc: Doc,
-  d: Dev,
-  b: Btn,
-  g: Gesture,
-  kind: ActionKind,
-  value: number | "toggle",
-): Action {
-  const k = actionKinds()[kind];
-  const label = b.label ?? b.id;
-  const suffix = g === "press" ? "" : g === "short" ? t` short` : t` long`;
-  const id = freeObjectId(
-    d,
-    `${b.id}${g === "press" ? "" : g === "short" ? "_court" : "_long"}`,
-  );
-  const ga = newGa(doc, k.dpt, `${d.name ?? d.id} ${label}${suffix}`);
-  d.objects.push({
-    id,
-    name: `${label}${suffix}`,
-    ga,
-    dpt: k.dpt,
-    port: "input",
-    flags: { W: true, T: true },
-  });
-  return { object: id, value };
-}
-
-export function addKey(doc: Doc, devId: string): string {
-  const d = device(doc, devId);
-  d.buttons ??= [];
-  const used = new Set([
-    ...d.buttons.map((b) => b.id),
-    ...d.objects.map((o) => o.id),
-  ]);
-  let n = d.buttons.length + 1;
-  while (used.has(`key${n}`)) n++;
-  const b: Btn = { id: `key${n}`, label: `Key ${n}` };
-  b.press = gestureObject(doc, d, b, "press", "switch", "toggle");
-  b.led = b.press.object;
-  d.buttons.push(b);
-  sortObjects(d);
-  return b.id;
-}
-
-/** Remove a key and gesture objects that serve no other purpose. */
-export function removeKey(doc: Doc, devId: string, keyId: string) {
-  const d = device(doc, devId);
-  const b = button(d, keyId);
-  d.buttons = (d.buttons ?? []).filter((x) => x !== b);
-  const ids = [b.press, b.short, b.long].flatMap((a) => (a ? [a.object] : []));
-  d.objects = d.objects.filter(
-    (o) =>
-      !ids.includes(o.id) ||
-      isActionTarget(d, o.id) ||
-      d.buttons!.some((x) => x.led === o.id),
-  );
-  sortObjects(d);
-}
-
-export function setKeyLabel(
-  doc: Doc,
-  devId: string,
-  keyId: string,
-  label: string,
-) {
-  button(device(doc, devId), keyId).label = label;
-}
-
-/** Single press versus short/long press: long moves a shutter; short stops or steps it. */
-export function setKeyMode(
-  doc: Doc,
-  devId: string,
-  keyId: string,
-  mode: "press" | "shortlong",
-) {
-  const d = device(doc, devId);
-  const b = button(d, keyId);
-  if (mode === "shortlong" && b.press) {
-    b.long = gestureObject(doc, d, b, "long", "move", "toggle");
-    b.short = gestureObject(doc, d, b, "short", "step", 0);
-    delete b.icon;
-    const old = b.press.object;
-    delete b.press;
-    if (b.led === old) delete b.led;
-    if (!isActionTarget(d, old))
-      d.objects = d.objects.filter((o) => o.id !== old);
-  } else if (mode === "press" && !b.press) {
-    const keep = b.short ?? b.long!;
-    delete b.release;
-    const drop = [b.short, b.long]
-      .filter((a) => a && a !== keep)
-      .map((a) => a!.object);
-    b.press = keep;
-    delete b.short;
-    delete b.long;
-    d.objects = d.objects.filter(
-      (o) => !drop.includes(o.id) || isActionTarget(d, o.id),
-    );
-  }
-  // The objects of a key keep their place among the keys.
-  sortObjects(d);
-}
-
-/** Change a gesture action; if data size changes, assign a new object address. */
-export function setGestureAction(
-  doc: Doc,
-  devId: string,
-  keyId: string,
-  g: Gesture,
-  kind: ActionKind,
-  value: number | "toggle",
-) {
-  const d = device(doc, devId);
-  const b = button(d, keyId);
-  const a = b[g];
-  if (!a) throw new EditRefusal(t`the key has no “${g}” gesture`);
-  const k = actionKinds()[kind];
-  if (value === "toggle" && dptBits(k.dpt) !== 1)
-    throw new EditRefusal(t`“toggle” only exists for 1-bit data`);
-  const o = d.objects.find((x) => x.id === a.object)!;
-  if (o.dpt !== k.dpt) {
-    const current = gasOf(o)[0];
-    const compatible =
-      current &&
-      gaDpt(doc, current) &&
-      dptBits(gaDpt(doc, current)!) === dptBits(k.dpt);
-    o.dpt = k.dpt;
-    if (!compatible)
-      setGas(o, [newGa(doc, k.dpt, `${d.name ?? d.id} ${b.label ?? b.id}`)]);
-    else if (current) {
-      const decl = doc.groupAddresses.find((x) => x.address === current);
-      if (
-        decl &&
-        decl.dpt &&
-        decl.dpt !== k.dpt &&
-        gaUsage(doc, current).senders.length +
-          gaUsage(doc, current).receivers.length <=
-          1
-      )
-        decl.dpt = k.dpt;
-    }
-  }
-  a.value = value;
-  delete b.icon;
-  // Long-press dimming: release sends stop (3.007 = 0) on the same object.
-  if (g === "long" && kind === "dim")
-    b.release = { object: a.object, value: 0 };
-  else if (g === "long") delete b.release;
-}
-
-/** Gesture sending address; keep other listened-to addresses. */
-export function setGestureGa(
-  doc: Doc,
-  devId: string,
-  keyId: string,
-  g: Gesture,
-  ga: string,
-) {
-  const d = device(doc, devId);
-  const a = button(d, keyId)[g];
-  if (!a) throw new EditRefusal(t`the key has no “${g}” gesture`);
-  const o = d.objects.find((x) => x.id === a.object)!;
-  const dpt = gaDpt(doc, ga);
-  if (dpt && o.dpt && dptBits(dpt) !== dptBits(o.dpt))
-    throw new EditRefusal(
-      t`${ga} carries a ${dpt}, incompatible with the action (${o.dpt})`,
-    );
-  const rest = gasOf(o)
-    .slice(1)
-    .filter((x) => x !== ga);
-  setGas(o, [ga, ...rest]);
-}
-
-/** Status feedback address listened to by the key object; resynchronizes toggle state. */
-export function setKeyFeedback(
-  doc: Doc,
-  devId: string,
-  keyId: string,
-  ga: string | null,
-) {
-  const d = device(doc, devId);
-  const b = button(d, keyId);
-  [b.press, b.short, b.long].forEach((a) => {
-    if (!a) return;
-    const o = d.objects.find((x) => x.id === a.object)!;
-    if (dptBits(o.dpt ?? "1.001") !== 1) return;
-    const [emit, ...rest] = gasOf(o);
-    const others = rest.filter((x) => !isFeedbackCandidate(doc, x));
-    setGas(o, [emit!, ...(ga ? [ga] : []), ...others]);
-    o.flags = { ...o.flags, W: true };
-  });
-}
-
-const isFeedbackCandidate = (doc: Doc, ga: string) =>
-  gaUsage(doc, ga).senders.some(() => true);
-
-export function setKeyLed(doc: Doc, devId: string, keyId: string, on: boolean) {
-  const d = device(doc, devId);
-  const b = button(d, keyId);
-  if (on) b.led = (b.press ?? b.short ?? b.long)!.object;
-  else delete b.led;
 }
 
 // ── Actuators: channels ─────────────────────────────────────────────────────
@@ -1430,6 +1106,13 @@ export function setChannelLabel(
   channel(device(doc, devId), ch).label = label;
 }
 
+/** Text written on the key of a contact input; empty: the key shows the input's label. */
+export function setKeyLabel(doc: Doc, devId: string, ch: string, text: string) {
+  const c = channel(device(doc, devId), ch);
+  if (text.trim()) c.keyLabel = text.trim();
+  else delete c.keyLabel;
+}
+
 export function setChannelLoad(
   doc: Doc,
   devId: string,
@@ -1626,6 +1309,13 @@ export function setParam(
   // and must not silently be replaced by the schema default.
   if (value === undefined) delete target[key];
   else target[key] = value;
+  const def = captureRegistry().behaviors.get(d.behavior);
+  if (
+    ch !== null &&
+    scope === "behavior" &&
+    def?.channelObjects?.parameter === key
+  )
+    syncChannelObjects(doc, devId, ch);
   if (ch === null && d.parameters && !Object.keys(d.parameters).length)
     delete d.parameters;
 }
@@ -1675,6 +1365,8 @@ export function addChannel(
   if (equipment && prev && loadsOf(prev)[0]?.type === equipment.type)
     ch.equipment = copy(prev.equipment);
   d.channels.push(ch);
+  // The objects of the function of a new input (behaviors with channelObjects).
+  syncChannelObjects(doc, devId, ch.id);
   sortObjects(d);
   return `s${n}`;
 }
@@ -1695,16 +1387,6 @@ export function setOutputCount(
   while ((d.channels?.length ?? 0) < count) addChannel(doc, devId, load);
   while ((d.channels?.length ?? 0) > count)
     removeChannel(doc, devId, d.channels!.at(-1)!.id);
-}
-
-/** Number of keys of a push-button: keys are added after the last one or removed from the end. */
-export function setKeyCount(doc: Doc, devId: string, count: number) {
-  const d = device(doc, devId);
-  if (!Number.isInteger(count) || count < 1 || count > 32)
-    throw new EditRefusal(t`number of keys from 1 to 32 expected`);
-  while ((d.buttons?.length ?? 0) < count) addKey(doc, devId);
-  while ((d.buttons?.length ?? 0) > count)
-    removeKey(doc, devId, d.buttons!.at(-1)!.id);
 }
 
 export function removeChannel(doc: Doc, devId: string, ch: string) {
@@ -1736,19 +1418,36 @@ export function addDisplay(doc: Doc, devId: string, ga: string) {
 
 // ── Objets (mode expert) ─────────────────────────────────────────────────────
 
+export type Flag = "C" | "R" | "W" | "T" | "U" | "I";
+
 export function setObjectFlag(
   doc: Doc,
   devId: string,
   objectId: string,
-  flag: "W" | "T" | "R" | "U",
+  flag: Flag,
   on: boolean,
 ) {
   const o = device(doc, devId).objects.find((x) => x.id === objectId);
   if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
   o.flags = { ...o.flags, [flag]: on };
-  // Write R and U flags only if they differ from the port defaults.
+  // Write R, U, C, and I only if they differ from their defaults.
   if (flag === "R" && on === defaultRead(o.port)) delete o.flags.R;
   if (flag === "U" && on === defaultUpdate(o.port)) delete o.flags.U;
+  if (flag === "C" && on) delete o.flags.C;
+  if (flag === "I" && !on) delete o.flags.I;
+}
+
+/** Transmission priority of an object; low is the default and is not written. */
+export function setObjectPriority(
+  doc: Doc,
+  devId: string,
+  objectId: string,
+  priority: "low" | "normal" | "urgent",
+) {
+  const o = device(doc, devId).objects.find((x) => x.id === objectId);
+  if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
+  if (priority === "low") delete o.priority;
+  else o.priority = priority;
 }
 
 /** Rename a communication object; an empty name falls back to its ID. */
@@ -1766,10 +1465,11 @@ export function setObjectName(
 }
 
 /** Effective flag value; R and U have port-specific defaults. */
-export function flagOf(o: Obj, f: "W" | "T" | "R" | "U"): boolean {
+export function flagOf(o: Obj, f: Flag): boolean {
   const fl = (o.flags ?? {}) as Partial<Obj["flags"]>;
   if (f === "R") return fl.R ?? defaultRead(o.port);
   if (f === "U") return fl.U ?? defaultUpdate(o.port);
+  if (f === "C") return fl.C !== false;
   return !!fl[f];
 }
 
@@ -1907,12 +1607,8 @@ export function setGaMembers(
     if (!gas.includes(addr)) setGas(o, [...gas, addr]);
   });
   remove.forEach((r) => {
-    const { d, o } = find(r);
+    const { o } = find(r);
     const gas = gasOf(o);
-    if (gas[0] === addr && gas.length === 1 && isActionTarget(d, o.id))
-      throw new EditRefusal(
-        t`${addr} is the only address of the key using ${o.name ?? o.id} (${d.name ?? d.id}): a key must send on an address`,
-      );
     setGas(
       o,
       gas.filter((g) => g !== addr),
@@ -2001,4 +1697,75 @@ export function copyChannelSettings(
     if (what.load) put("equipment");
     if (what.scenes) put("scenes");
   });
+}
+
+/**
+ * Group addresses that link DPTs of the same size but different meaning (a percentage
+ * and a counter, a scene number and a percentage): address → the DPTs. One-bit DPTs are
+ * left out, as in the configuration warnings of the simulation.
+ */
+export function dptMixes(doc: Doc): Map<string, string[]> {
+  const byGa = new Map<string, Set<string>>();
+  const add = (ga: string, dpt: string | undefined) => {
+    if (!dpt || dpt.startsWith("1.")) return;
+    if (!byGa.has(ga)) byGa.set(ga, new Set());
+    byGa.get(ga)!.add(dpt);
+  };
+  doc.devices.forEach((d) =>
+    d.objects.forEach((o) => gasOf(o).forEach((ga) => add(ga, o.dpt))),
+  );
+  doc.groupAddresses.forEach(
+    (g) => byGa.has(String(g.address)) && add(String(g.address), g.dpt),
+  );
+  return new Map(
+    [...byGa].filter(([, s]) => s.size > 1).map(([ga, s]) => [ga, [...s]]),
+  );
+}
+
+/**
+ * Group objects of a channel that follow one of its parameters (`channelObjects` of the
+ * behavior), as the objects of the function chosen for an input: the objects of the other
+ * values are removed, the missing ones are created without group address, and a kept
+ * object takes the DPT of the new value (its addresses stay if the size is the same).
+ */
+export function syncChannelObjects(doc: Doc, devId: string, ch: string) {
+  const d = device(doc, devId);
+  const def = captureRegistry().behaviors.get(d.behavior);
+  const spec = def?.channelObjects;
+  if (!def || !spec) return;
+  const c = channel(d, ch);
+  const value =
+    c.parameters?.[spec.parameter] ??
+    def.channelParameters?.properties[spec.parameter]?.default;
+  const wanted = spec.values[String(value)] ?? [];
+  const managed = new Set(
+    Object.values(spec.values).flatMap((list) => list.map((x) => x.port)),
+  );
+  d.objects = d.objects.filter(
+    (o) =>
+      o.channel !== ch ||
+      !managed.has(o.port) ||
+      wanted.some((w) => w.port === o.port),
+  );
+  for (const w of wanted) {
+    const o = objectFor(d, w.port, ch);
+    if (o) {
+      if (o.dpt !== w.dpt) {
+        if (o.dpt && dptBits(o.dpt) !== dptBits(w.dpt)) setGas(o, []);
+        o.dpt = w.dpt;
+      }
+      continue;
+    }
+    const p = def.ports[w.port];
+    const title = p?.title ? (t.s ? t.s(p.title) : p.title) : w.port;
+    setPortGas(doc, devId, w.port, ch, [], {
+      dpt: w.dpt,
+      W: p?.direction !== "out",
+      T: p?.direction === "out" || p?.direction === "both",
+      name: `${title} ${c.label ?? c.id}`,
+      keepEmpty: true,
+    });
+  }
+  pruneInputs(d);
+  sortObjects(d);
 }

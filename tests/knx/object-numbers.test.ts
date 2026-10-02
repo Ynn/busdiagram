@@ -1,5 +1,5 @@
-// Numbers of group objects in the designer: a fixed block per key and per output, as in the
-// object table of a product, so that a key keeps its numbers when another changes.
+// Numbers of group objects in the designer: a fixed block per input and per output, as in
+// the object table of a product, so that an input keeps its numbers when another changes.
 import { describe, expect, it } from "vitest";
 import * as E from "../../site/designer/edit";
 import { SNIPPETS } from "../../site/designer/snippets";
@@ -30,34 +30,45 @@ const table = (d: E.Dev) => {
 };
 
 describe("designer: numbers of group objects", () => {
-  it("a key keeps its numbers when another key changes its gestures", () => {
-    const { doc, d } = withDevice("pushButton2");
-    expect(table(d())).toEqual(["1 Key 1", "3 Key 2"]);
-    const [k1, k2] = d().buttons!;
-    const key2 = d().objects.find((o) => o.id === k2!.press!.object)!.id;
-
-    // Key 1 becomes short/long press: its two objects stay before Key 2.
-    E.setKeyMode(doc, d().id, k1!.id, "shortlong");
-    expect(table(d())).toEqual(["1 Key 1 short", "2 Key 1 long", "3 Key 2"]);
-    expect(E.objectNumbers(d()).get(key2)).toBe(3);
-
-    // Back to a single press: same numbers as at the start.
-    E.setKeyMode(doc, d().id, k1!.id, "press");
-    expect(E.objectNumbers(d()).get(key2)).toBe(3);
-    expect(
-      d()
-        .objects.map((o) => o.id)
-        .at(-1),
-    ).toBe(key2);
+  it("an input keeps its numbers when another input enables an object", () => {
+    const { doc, d } = withDevice("buttonInterface4");
+    // Blocks of seven: switching is the first port of each input.
+    expect(table(d())).toEqual([
+      "1 Switching 1",
+      "8 Switching 2",
+      "15 Switching 3",
+      "22 Switching 4",
+    ]);
+    const [in1] = d().channels!;
+    // Input 1 also dims: its dimming object stays in its block, before input 2.
+    E.setPortGas(doc, d().id, "dim", in1!.id, [], {
+      dpt: "3.007",
+      W: false,
+      T: true,
+      name: "Dimming 1",
+      keepEmpty: true,
+    });
+    expect(table(d()).slice(0, 3)).toEqual([
+      "1 Switching 1",
+      "2 Dimming 1",
+      "8 Switching 2",
+    ]);
     expect(buildScenario(doc)).toBeTruthy();
   });
 
-  it("a new key takes the next block, after the existing keys", () => {
-    const { doc, d } = withDevice("pushButton2");
-    const id = E.addKey(doc, d().id);
-    const b = d().buttons!.find((x) => x.id === id)!;
-    expect(E.objectNumbers(d()).get(b.press!.object)).toBe(5);
-    expect(d().objects.at(-1)!.id).toBe(b.press!.object);
+  it("a new input takes the next block, after the existing inputs", () => {
+    const { doc, d } = withDevice("buttonInterface4");
+    const id = E.addChannel(doc, d().id, null);
+    E.setPortGas(doc, d().id, "switch", id, [], {
+      dpt: "1.001",
+      W: true,
+      T: true,
+      name: "Switching 5",
+      keepEmpty: true,
+    });
+    const o = d().objects.find((x) => x.channel === id)!;
+    expect(E.objectNumbers(d()).get(o.id)).toBe(29);
+    expect(d().objects.at(-1)!.id).toBe(o.id);
   });
 
   it("an output keeps its numbers when another output gains an object", () => {
@@ -105,7 +116,7 @@ describe("designer: numbers of group objects", () => {
   });
 
   it("numbers do not depend on the order written in the scenario; sorting follows them", () => {
-    const { d } = withDevice("pushButton2");
+    const { d } = withDevice("buttonInterface4");
     const dev = d();
     const before = E.objectNumbers(dev);
     dev.objects.reverse();
@@ -113,7 +124,12 @@ describe("designer: numbers of group objects", () => {
     expect(E.objectsSorted(dev)).toBe(false);
     E.sortObjects(dev);
     expect(E.objectsSorted(dev)).toBe(true);
-    expect(table(dev)).toEqual(["1 Key 1", "3 Key 2"]);
+    expect(table(dev)).toEqual([
+      "1 Switching 1",
+      "8 Switching 2",
+      "15 Switching 3",
+      "22 Switching 4",
+    ]);
   });
 
   it("objects of a device without keys or outputs follow the order of its ports", () => {

@@ -1,10 +1,14 @@
 {
+  "formatVersion": 2,
   "title": "Control multiple outputs",
   "description": "A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.",
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -22,117 +26,197 @@
   "devices": [
     {
       "id": "pushButton",
-      "address": "1.1.1",
       "name": "Push-button",
-      "kind": "pushButton",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "A four-key push-button: one device, one individual address, and one group object per key.",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1",
-          "ga": "1/1/1"
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "key2",
           "name": "Key 2",
-          "ga": "1/1/1"
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         },
         {
           "id": "key3",
           "name": "Key 3",
-          "ga": "1/1/2"
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in3"
         },
         {
           "id": "key4",
           "name": "Key 4",
-          "ga": "1/1/2"
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in4"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": 1
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
           }
         },
         {
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": 0
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "switch",
+            "onPress": "off"
           }
         },
         {
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": 1
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
           }
         },
         {
-          "label": "Key 4",
-          "press": {
-            "object": "key4",
-            "value": 0
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Key 4",
+          "parameters": {
+            "function": "switch",
+            "onPress": "off"
           }
         }
       ]
     },
     {
       "id": "switchActuator",
-      "address": "1.1.2",
       "name": "Four-output switching actuator",
+      "address": "1.1.2",
       "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
       "description": "One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.",
-      "channels": [
-        {
-          "id": "s1",
-          "label": "L1"
-        },
-        {
-          "id": "s2",
-          "label": "L2"
-        },
-        {
-          "id": "s3",
-          "label": "L3"
-        },
-        {
-          "id": "s4",
-          "label": "L4"
-        }
-      ],
       "objects": [
         {
           "id": "c1",
           "name": "Channel 1",
-          "ga": ["1/1/1", "1/1/2"],
-          "role": "switch",
-          "channel": "s1"
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c2",
           "name": "Channel 2",
-          "ga": ["1/1/1", "1/1/2"],
-          "role": "switch",
-          "channel": "s2"
+          "ga": [
+            "1/1/1",
+            "1/1/2"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c3",
           "name": "Channel 3",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s3"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "c4",
           "name": "Channel 4",
           "ga": "1/1/2",
-          "role": "switch",
-          "channel": "s4"
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s2",
+          "label": "L2",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s3",
+          "label": "L3",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "s4",
+          "label": "L4",
+          "equipment": {
+            "type": "lamp"
+          }
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

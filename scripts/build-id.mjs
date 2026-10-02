@@ -3,6 +3,8 @@
 // the tag that holds its source code; any other build is marked as a development build,
 // so that it never claims the source code of a released version.
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 const root = resolve(import.meta.dirname, "..");
@@ -62,4 +64,32 @@ export function buildId(version) {
       ? `Development build, not a released version (commit ${short} with local changes); source code`
       : `Development build, not a released version (commit ${short}); source code`,
   };
+}
+
+/**
+ * Version written in the asset URLs (?v=…): browsers keep scripts for a while, so the
+ * URL must change whenever the files may change. A release uses its version; a
+ * development build adds a fingerprint of its local changes (diff and new files), so
+ * that each modified build is loaded again, and an unchanged one stays cached.
+ */
+export function assetVersion(version) {
+  const id = buildId(version);
+  if (id.release || !id.label.endsWith(".modified")) return id.label;
+  const exclude = GENERATED.map((p) => `:(exclude)${p}`);
+  const hash = createHash("sha1");
+  hash.update(git("diff", "HEAD", "--", ".", ...exclude) ?? "");
+  for (const f of (
+    git("ls-files", "--others", "--exclude-standard", "--", ".", ...exclude) ??
+    ""
+  )
+    .split("\n")
+    .filter(Boolean)) {
+    hash.update(f);
+    try {
+      hash.update(readFileSync(resolve(root, f)));
+    } catch {
+      // A file removed meanwhile.
+    }
+  }
+  return `${id.label}.${hash.digest("hex").slice(0, 8)}`;
 }

@@ -1,10 +1,14 @@
 {
+  "formatVersion": 2,
   "title": "Scenes",
   "description": "One one-byte group address (DPT 17.001) carries the scene number. Each actuator stores the state to apply for each channel. The transmitted bus value is the scene number minus one.",
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -17,52 +21,84 @@
   "devices": [
     {
       "id": "pushButton",
-      "address": "1.1.1",
       "name": "Push-button",
-      "kind": "pushButton",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "arrival",
           "name": "Key 1 Arrival",
           "ga": "3/1/1",
-          "dpt": "17.001"
+          "dpt": "17.001",
+          "port": "value",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in1"
         },
         {
           "id": "departure",
           "name": "Key 2 Departure",
           "ga": "3/1/1",
-          "dpt": "17.001"
+          "dpt": "17.001",
+          "port": "value",
+          "flags": {
+            "W": true,
+            "T": true
+          },
+          "channel": "in2"
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "label": "Key 1",
-          "icon": "scene",
-          "press": {
-            "object": "arrival",
-            "value": 0
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "scene",
+            "sceneNumber": 1
           }
         },
         {
-          "label": "Key 2",
-          "icon": "scene",
-          "press": {
-            "object": "departure",
-            "value": 1
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "scene",
+            "sceneNumber": 2
           }
         }
       ]
     },
     {
       "id": "switchActuator",
-      "address": "1.1.2",
       "name": "Four-output switching actuator",
+      "address": "1.1.2",
       "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
       "description": "Scene 1 (Arrival) turns on L1 and L2. Scene 2 (Departure) turns everything off.",
+      "objects": [
+        {
+          "id": "sc",
+          "name": "Scene",
+          "ga": "3/1/1",
+          "dpt": "17.001",
+          "port": "scene",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
       "channels": [
         {
           "id": "s1",
           "label": "L1",
+          "equipment": {
+            "type": "lamp"
+          },
           "scenes": {
             "1": 1,
             "2": 0
@@ -71,6 +107,9 @@
         {
           "id": "s2",
           "label": "L2",
+          "equipment": {
+            "type": "lamp"
+          },
           "scenes": {
             "1": 1,
             "2": 0
@@ -79,6 +118,9 @@
         {
           "id": "s3",
           "label": "L3",
+          "equipment": {
+            "type": "lamp"
+          },
           "scenes": {
             "1": 0,
             "2": 0
@@ -87,48 +129,60 @@
         {
           "id": "s4",
           "label": "L4",
+          "equipment": {
+            "type": "lamp"
+          },
           "scenes": {
             "1": 0,
             "2": 0
           }
         }
-      ],
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "description": "Scene 1 (Arrival) opens the shutter. Scene 2 (Departure) closes it.",
       "objects": [
         {
           "id": "sc",
           "name": "Scene",
           "ga": "3/1/1",
-          "role": "scene",
-          "dpt": "17.001"
+          "dpt": "17.001",
+          "port": "scene",
+          "channel": "shutter1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         }
-      ]
-    },
-    {
-      "id": "shutterActuator",
-      "address": "1.1.3",
-      "name": "Shutter actuator",
-      "kind": "shutterActuator",
-      "description": "Scene 1 (Arrival) opens the shutter. Scene 2 (Departure) closes it.",
+      ],
       "channels": [
         {
           "id": "shutter1",
           "label": "Shutter 1",
-          "travel": 10,
+          "parameters": {
+            "estimatedTravelTimeMs": 10000
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 10000
+            }
+          },
           "scenes": {
             "1": 0,
             "2": 100
           }
         }
-      ],
-      "objects": [
-        {
-          "id": "sc",
-          "name": "Scene",
-          "ga": "3/1/1",
-          "role": "scene",
-          "dpt": "17.001"
-        }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

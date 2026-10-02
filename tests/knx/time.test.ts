@@ -41,7 +41,7 @@ function scripted(chunks: number[]) {
     sim.advance(c);
     t6.advance(c);
     total += c;
-    if (total === 7000) sim.input("pushButton", "position", "value", 30);
+    if (total === 7000) sim.input("panel", "position", "value", 30);
   }
   return [fingerprint(sim), fingerprint(t6)];
 }
@@ -100,7 +100,7 @@ describe("pause, step by step, reset", () => {
   it("a paused simulator accepts an input now and holds its telegram until resumed", () => {
     const sim = load("lighting-control.json");
     sim.pause();
-    const [tel] = sim.input("pushButton", "button-0", "press");
+    const [tel] = sim.input("pushButton", "in1", "press");
     expect(tel!.timeMs).toBe(0);
     expect(sim.paused).toBe(true);
     expect(lampOn(sim, "switchActuator", "s1")).toBe(false);

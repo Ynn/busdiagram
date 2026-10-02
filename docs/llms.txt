@@ -12,7 +12,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 - Individual addresses: `area.line.device` with device 1–255 on a declared line. `A.L.0` is reserved for the line coupler. Each address is used once.
 - Group addresses: three levels, `main/middle/sub` with main 0–31, middle 0–7, sub 0–255. `0/0/0` is refused.
 - Identifiers (`id`) use letters, digits, `_`, `.`, and `-`, and are unique within their list.
-- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free classification used for display (for example `pushButton`, `switchActuator`, `supervisor`); `behavior` must be one of the identifiers listed below.
+- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free classification used for display (for example `buttonInterface`, `switchActuator`, `supervisor`); `behavior` must be one of the identifiers listed below.
 - Each object has `id`, `ga`, `port`, and `flags`, usually `dpt` and `name`. `ga` is a string or an array; the first address is the sending address, the others are receive-only; `[]` leaves the object unassociated. `port` must belong to the device behavior, and `dpt` must be accepted by that port.
 - Flags: `W` (a received write updates the object), `T` (the object may transmit), optional `R` (answers a read on any of its addresses, on its sending address) and `U` (a response updates it). Inputs of an actuator use `W: true, T: false`; commands and status feedback use `W: false, T: true`.
 - Objects linked to the same group address must have the same payload size (all one-bit, all one-byte, and so on).
@@ -35,7 +35,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 
 ## Minimal complete example
 
-A push-button toggles a lamp through a switching actuator; the actuator status feedback keeps the key synchronized.
+A push-button interface toggles a lamp through a switching actuator; the actuator status feedback keeps the key synchronized.
 
 ```json
 {
@@ -62,10 +62,10 @@ A push-button toggles a lamp through a switching actuator; the actuator status f
   "devices": [
     {
       "id": "pushButton",
-      "name": "Push-button",
+      "name": "Push-button interface",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
@@ -75,22 +75,23 @@ A push-button toggles a lamp through a switching actuator; the actuator status f
             "1/4/1"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key1",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
-          },
-          "led": "key1"
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
@@ -141,20 +142,6 @@ A push-button toggles a lamp through a switching actuator; the actuator status f
 ```
 
 ## Behaviors
-
-### `pushButton/v1`
-
-Push button or sensor: each gesture writes a value into a local object, then transmits it.
-
-Accepts `buttons` and numeric `inputs`.
-
-| Port | DPTs | Channel | Direction | Description |
-| --- | --- | --- | --- | --- |
-| `input` | any | none | out | object sent by a key or input |
-| `display` | any | none | in | object receiving a value (indicator or feedback) |
-
-Device `parameters`:
-- `longPressMs` (integer, default 500; ≥ 100 ; ≤ 10000): Press duration that counts as a long press (ms), for keys with short and long actions.
 
 ### `switchActuator/v1`
 
@@ -244,7 +231,9 @@ Display / supervisor: receives and shows values, with no output or retransmissio
 
 ### `passive/v1`
 
-Device without logic: it only keeps the values of its objects.
+Device without logic: it keeps the values of its objects, and sends the values typed in the diagram, as a visualization panel.
+
+Accepts `buttons` and numeric `inputs`.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
@@ -575,29 +564,29 @@ Channel `initialState`:
 
 ### `buttonInterface/v1`
 
-Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.
+Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene), with short and long presses; lock, bus voltage recovery and cyclic sending.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `switch` | 1.001 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
+| `switch` | 1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.017, 1.018, 1.019, 1.100 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
 | `dim` | 3.007 | required | out |  |
 | `move` | 1.008 | required | both | blind movement; with W set, a one-key input takes the direction of the last movement received |
 | `stopStep` | 1.007 | required | out |  |
-| `value` | 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102 | required | out | value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function |
+| `value` | 2.001, 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102 | required | out | value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function |
 | `lock` | 1.001 | required | in | 1 locks the input (presses are ignored), 0 unlocks it |
 | `led` | 1.001 | required | in | state shown by the LED of the key |
 
 Channel `parameters`:
 - `function` (string, default "switch"; "switch" (Switching), "dim" (Dimming), "blind" (Blind), "value" (Value), "scene" (Scene)): What the input controls; the group objects and settings depend on it.
-- `longPressMs` (integer, default 500; ≥ 100 ; ≤ 10000): A press held at least this long is a long press; the device measures it in simulated time.
+- `longPressMs` (integer, default 500; ≥ 100 ; ≤ 10000): A press held at least this long is a long press.
 - `switchLongPress` (boolean, default false): Tell short and long presses apart, with an action for each; otherwise one action when the key is pressed and one when it is released.
 - `onPress` (string, default "toggle"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the contact closes.
 - `onRelease` (string, default "none"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the contact opens.
 - `onShort` (string, default "toggle"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram after a short press, when the key is released.
 - `onLong` (string, default "none"; "on" (On), "off" (Off), "toggle" (Toggle), "none" (No action)): Switching telegram when the long-press time is reached.
-- `dimMode` (string, default "single"; "single" (One key: short toggles, long dims in turn), "brighter" (Brighter: short on, long brighter), "darker" (Darker: short off, long darker)): One key switches with a short press and dims with a long press, brighter when the light is off and otherwise the other way than last time; two keys share the work, one brighter and one darker. Releasing the key stops dimming.
+- `dimMode` (string, default "single"; "single" (One key: on/off, brighter and darker in turn), "brighter" (Two keys: this key switches on and brightens), "darker" (Two keys: this key switches off and darkens)): One key switches with a short press and dims with a long press, brighter when the light is off and otherwise the other way than last time; two keys share the work, one brighter and one darker. Releasing the key stops dimming.
 - `dimStep` (integer, default 1; 1 (100 %), 2 (50 %), 3 (25 %), 4 (12.5 %), 5 (6 %), 6 (3 %), 7 (1.5 %)): Step code of the relative dimming telegram (DPT 3.007); 100 % dims until the key is released.
-- `blindMode` (string, default "single"; "single" (One key: direction alternates), "up" (Up key), "down" (Down key)): A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.
+- `blindMode` (string, default "single"; "single" (One key: up and down in turn), "up" (Two keys: this key raises), "down" (Two keys: this key lowers)): A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.
 - `stopOnRelease` (boolean, default false): Releasing the key after a long press stops the blind (hold to move); otherwise the blind runs to its end position unless a short press stops it.
 - `shortValue` (number, default 0): Value sent by a short press (by any press when there is no long-press value), in the unit of the object's DPT.
 - `longValue` (number | null, default null): Value sent by a long press; null sends the short-press value at once.
@@ -612,6 +601,7 @@ Channel `parameters`:
 - `busRecoveryDelayMs` (integer, default 0; ≥ 0): Delay before the bus recovery reaction, so that the devices of a line do not all send at once.
 - `cyclicMs` (integer | null, default null; > 0): Send the switching object again at this interval, for example for a device that monitors it.
 - `cyclicWhen` (string, default "always"; "always" (Both values), "on" (Only 1 (on)), "off" (Only 0 (off))): Which value of the switching object is sent cyclically.
+- `ledShown` (boolean, default false): The key has an LED: it shows the LED object when it is enabled, otherwise the switching object of a switching or dimming input.
 - `ledInverted` (boolean, default false): The LED is lit while its object is 0 and off while it is 1.
 
 ## Equipment types

@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Heating example"
+      "name": "Heating example",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "rooms": [

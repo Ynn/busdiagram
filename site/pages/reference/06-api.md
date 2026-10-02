@@ -63,7 +63,7 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
   "paused": false,
   "faulted": false,
   "objects": {
-    "pushButton/feedback": {
+    "panel/feedback": {
       "value": 50.19607843137255,
       "updatedAtMs": 11939,
       "flags": { "W": true, "T": false, "R": false, "U": true }

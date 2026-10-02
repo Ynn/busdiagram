@@ -291,7 +291,7 @@ test.describe("designer", () => {
           };
         }
       ).designer.editor;
-      const i = v.state.doc.toString().indexOf('"port": "switch"') + 9;
+      const i = v.state.doc.toString().lastIndexOf('"port": "switch"') + 9;
       v.dispatch({ selection: { anchor: i, head: i + 6 } });
       v.focus();
     });
@@ -405,20 +405,27 @@ test.describe("guided designer", () => {
   };
   const selectedNode = (page: Page) => topoPanel(page).locator(".w-node.sel");
 
-  const emptyDoc = (page: Page, title: string) =>
-    page.evaluate((title) => {
-      localStorage.clear();
-      const empty = {
-        formatVersion: 2,
-        title,
-        lines: [{ address: "1.1" }],
-        groupAddresses: [],
-        devices: [],
-      };
-      (
-        window as unknown as { designer: { setText(t: string): void } }
-      ).designer.setText(JSON.stringify(empty));
-    }, title);
+  const emptyDoc = (
+    page: Page,
+    title: string,
+    groupAddresses: { address: string; name: string; dpt: string }[] = [],
+  ) =>
+    page.evaluate(
+      ({ title, groupAddresses }) => {
+        localStorage.clear();
+        const empty = {
+          formatVersion: 2,
+          title,
+          lines: [{ address: "1.1" }],
+          groupAddresses,
+          devices: [],
+        };
+        (
+          window as unknown as { designer: { setText(t: string): void } }
+        ).designer.setText(JSON.stringify(empty));
+      },
+      { title, groupAddresses },
+    );
 
   test("guided editor builds an undoable group command without editing JSON", async ({
     page,
@@ -426,14 +433,16 @@ test.describe("guided designer", () => {
     const w = watch(page);
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(url("designer/index.html"));
-    await emptyDoc(page, "Essai");
+    await emptyDoc(page, "Essai", [
+      { address: "1/1/1", name: "Lighting", dpt: "1.001" },
+    ]);
     await page.click("#tab-guided");
     await page.selectOption("select.g-add >> nth=0", {
-      label: "4-key push button",
+      label: "Push-button interface",
     });
     // The new device is selected in the topology; the overview adds the next one.
-    // The type names the device; its number of keys is a setting.
-    await expect(selectedNode(page)).toContainText("Push-button");
+    // The type names the device; its number of inputs is a setting.
+    await expect(selectedNode(page)).toContainText("Push-button interface");
     await toTopology(page);
     await page.selectOption("select.g-add >> nth=0", {
       label: "6-output switch actuator",
@@ -441,7 +450,7 @@ test.describe("guided designer", () => {
     await expect(selectedNode(page)).toContainText("Switch actuator");
     await topoPanel(page).getByRole("tab", { name: "Parameters" }).click();
 
-    // Each output is a page of the parameter menu; all six listen to the Key 1 address.
+    // Each output is a page of the parameter menu; Input 1 and the six outputs share 1/1/1.
     const outputs = topoPanel(page).locator(".w-pitem", {
       hasText: /^\s*Output /,
     });
@@ -449,15 +458,19 @@ test.describe("guided designer", () => {
     // The page tree names the loads of an output; addresses only appear on group objects.
     await expect(outputs.first()).toHaveAttribute("title", "Lamp");
     // the parameters show the objects; links are made from the group address.
-    const actuator = JSON.parse(await designerText(page)).devices[1] as {
+    const [keys, actuator] = JSON.parse(await designerText(page)).devices as {
       id: string;
       objects: { id: string }[];
-    };
+    }[];
     await openGa(page, "1/1/1", "Associations");
-    for (const o of actuator.objects)
+    // Templates create objects without addresses: the links are made here.
+    await gaPanel(page)
+      .locator(".w-link-with")
+      .selectOption(`${keys!.id}/${keys!.objects[0]!.id}`);
+    for (const o of actuator!.objects)
       await gaPanel(page)
         .locator(".w-link-with")
-        .selectOption(`${actuator.id}/${o.id}`);
+        .selectOption(`${actuator!.id}/${o.id}`);
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     const doc = JSON.parse(await designerText(page)) as {
       devices: { objects: { ga: string | string[] }[] }[];
@@ -466,7 +479,7 @@ test.describe("guided designer", () => {
       Array(6).fill(["1/1/1"]),
     );
 
-    await page.locator("#preview button.key", { hasText: "Key 1" }).click();
+    await page.locator("#preview button.key", { hasText: "Input 1" }).click();
     await expect(page.locator("#preview .lamp.on")).toHaveCount(6, {
       timeout: 10000,
     });
@@ -587,7 +600,7 @@ test.describe("guided designer", () => {
     await page
       .locator(".g-line", { hasText: "Main line" })
       .locator("select.g-add")
-      .selectOption({ label: "2-key push button" });
+      .selectOption({ label: "Push-button interface" });
     await expect(selectedNode(page)).toHaveAttribute("data-key", /^dev:/);
     expect(await designerText(page)).toContain('"1.0.1"');
     await toTopology(page);
@@ -1219,7 +1232,7 @@ test("malformed drafts reject insertion without losing content", async ({
       text,
     );
     for (const id of [
-      "pushButton4",
+      "buttonInterface4",
       "switchActuator6",
       "shutterActuator",
       "sup",
@@ -1270,23 +1283,26 @@ test("failing extension view is isolated and diagnosed", async ({ page }) => {
     document.body.prepend(zone);
     const el = K.create!(zone, {
       formatVersion: 2,
-      lines: [{ address: "1.1" }],
+      lines: [{ address: "1.1", powerSupply: { currentMa: 640 } }],
       devices: [
         {
           id: "pushButton",
-          kind: "pushButton",
-          behavior: "pushButton/v1",
+          kind: "buttonInterface",
+          behavior: "buttonInterface/v1",
           address: "1.1.1",
           objects: [
             {
               id: "b",
               ga: "1/1/1",
               dpt: "1.001",
-              port: "input",
+              port: "switch",
+              channel: "b",
               flags: { W: true, T: true },
             },
           ],
-          buttons: [{ id: "b", press: { object: "b", value: 1 } }],
+          channels: [
+            { id: "b", parameters: { function: "switch", onPress: "on" } },
+          ],
         },
         {
           id: "switchActuator",
@@ -1393,7 +1409,7 @@ test("generation aids: llms.txt, published schema, and #json= links", async ({
   page,
 }) => {
   const reference = readFileSync(join(DOCS, "llms.txt"), "utf8");
-  for (const id of ["pushButton/v1", "weatherStation/v1", "logicGate/v1"])
+  for (const id of ["buttonInterface/v1", "weatherStation/v1", "logicGate/v1"])
     expect(reference).toContain(`\`${id}\``);
   expect(existsSync(join(DOCS, "schema/scenario-v2.schema.json"))).toBe(true);
   const scenario = JSON.parse(
@@ -1651,6 +1667,161 @@ test.describe("designer workspace", () => {
         ),
       )
       .toBe(true);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("push-button interface: the function sets the objects, which link by drag and drop", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1500, height: 950 });
+    await page.goto(url("designer/index.html"));
+    // A document built in the designer: addresses without DPT, an input set to blind.
+    const doc = readFileSync(
+      resolve("tests/knx/fixtures/button-interface-designer.json"),
+      "utf8",
+    );
+    await page.evaluate((t) => {
+      localStorage.clear();
+      (
+        window as unknown as { designer: { setText(t: string): void } }
+      ).designer.setText(t);
+    }, doc);
+    await page.click("#tab-guided");
+    await node(top(page), "dev:buttonInterface").click();
+    const guided = page.locator("bd-guided");
+    await guided.getByRole("tab", { name: "Parameters" }).first().click();
+    const group = guided.locator('.w-pgroup[data-page="ch:in2"]');
+    if (
+      (await group.locator(".w-ptog").getAttribute("aria-expanded")) !== "true"
+    )
+      await group.locator(".w-ptog").click();
+    await guided.locator('[data-page="ch:in2:function"]').first().click();
+    const fn = guided
+      .locator(".g-field", { hasText: /^\s*Function/ })
+      .locator("select")
+      .first();
+    const ports = async () =>
+      (await json(page)).devices[0].objects
+        .filter((o: { channel?: string }) => o.channel === "in2")
+        .map((o: { port: string }) => o.port)
+        .sort();
+    await fn.selectOption({ label: "Switching" });
+    await expect.poll(ports).toEqual(["switch"]);
+    await fn.selectOption({ label: "Blind" });
+    await expect.poll(ports).toEqual(["move", "stopStep"]);
+    // No box to enable the objects of the function; no page of leftover settings.
+    await expect(
+      guided.locator(".w-ppage", { hasText: "Enable group object" }),
+    ).toHaveCount(0);
+    await expect(
+      guided.locator(".w-pitem", { hasText: "Other settings" }),
+    ).toHaveCount(0);
+    await expect(
+      guided
+        .locator(".g-field", { hasText: "Operation (blind)" })
+        .locator("option"),
+    ).toHaveText([
+      "One key: up and down in turn",
+      "Two keys: this key raises",
+      "Two keys: this key lowers",
+    ]);
+
+    // The up/down object links to an address without DPT by drag and drop.
+    await guided.getByRole("tab", { name: "Group objects" }).first().click();
+    for (const k of ["main:1", "mid:1/0"]) {
+      const n = node(bottom(page), k);
+      if ((await n.getAttribute("aria-expanded")) === "false")
+        await n.locator("button.w-tog").click();
+    }
+    const move = (await json(page)).devices[0].objects.find(
+      (o: { channel?: string; port: string }) =>
+        o.channel === "in2" && o.port === "move",
+    ).id as string;
+    await drag(
+      page,
+      top(page).locator(`tr[data-obj=${move}]`),
+      node(bottom(page), "ga:1/0/1"),
+    );
+    await expect
+      .poll(() => gasOf(page, "buttonInterface", move))
+      .toEqual(["1/0/1"]);
+
+    // A long press on the key of input 2 sends the movement on 1/0/1.
+    const key = page.locator("#preview button.key").nth(1);
+    await key.dispatchEvent("pointerdown", { pointerId: 1, button: 0 });
+    await page.waitForTimeout(800);
+    await key.dispatchEvent("pointerup", { pointerId: 1, button: 0 });
+    await expect(page.locator("#preview .mon tbody tr").first()).toContainText(
+      "1/0/1",
+      { timeout: 5000 },
+    );
+    expect(w.errors).toEqual([]);
+  });
+
+  test("push-button interface: key page, LED on demand, Simulation tab", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1500, height: 950 });
+    await page.goto(url("designer/index.html"));
+    const doc = readFileSync(
+      resolve("tests/knx/fixtures/button-interface-designer.json"),
+      "utf8",
+    );
+    await page.evaluate((t) => {
+      localStorage.clear();
+      (
+        window as unknown as { designer: { setText(t: string): void } }
+      ).designer.setText(t);
+    }, doc);
+    await page.click("#tab-guided");
+    // No LED on a key unless it is asked for.
+    await expect(page.locator("#preview button.key .led")).toHaveCount(0);
+    await node(top(page), "dev:buttonInterface").click();
+    const guided = page.locator("bd-guided");
+    await guided.getByRole("tab", { name: "Parameters" }).first().click();
+    const group = guided.locator('.w-pgroup[data-page="ch:in1"]');
+    if (
+      (await group.locator(".w-ptog").getAttribute("aria-expanded")) !== "true"
+    )
+      await group.locator(".w-ptog").click();
+    // The label is on the Key page, not on the Function page.
+    await guided.locator('[data-page="ch:in1:function"]').first().click();
+    await expect(
+      guided.locator(".w-ppage .g-field", { hasText: "Label" }),
+    ).toHaveCount(0);
+    await guided.locator('[data-page="ch:in1:#key"]').first().click();
+    const text = guided
+      .locator(".w-ppage .g-field", { hasText: "Text on the key" })
+      .locator("input");
+    await text.fill("Ceiling");
+    await text.press("Enter");
+    await expect(page.locator("#preview button.key").first()).toContainText(
+      "Ceiling",
+    );
+    // The input keeps its name in the parameters.
+    await expect(
+      guided.locator(".w-pitem", { hasText: "Input 1" }).first(),
+    ).toBeVisible();
+    await expect(
+      guided.locator(".w-pitem", { hasText: "Ceiling" }),
+    ).toHaveCount(0);
+    // The LED page turns the LED on.
+    await guided.locator('[data-page="ch:in1:led"]').first().click();
+    await guided
+      .locator(".g-check", { hasText: "LED on the key" })
+      .locator("input")
+      .check();
+    await expect(page.locator("#preview button.key .led")).toHaveCount(1);
+    // Simulation tab: the diagram alone.
+    await page.click("#tab-sim");
+    await expect(page.locator("#pane-guided")).toBeHidden();
+    await expect(page.locator("#preview")).toBeVisible();
+    const box = (await page.locator("#preview").boundingBox())!;
+    expect(box.width).toBeGreaterThan(1300);
+    await page.click("#tab-guided");
+    await expect(page.locator("#pane-guided")).toBeVisible();
     expect(w.errors).toEqual([]);
   });
 

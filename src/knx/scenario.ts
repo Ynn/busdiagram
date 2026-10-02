@@ -15,6 +15,7 @@ import type {
   JsonObject,
   NumberInputInfo,
   ObjectFlags,
+  Priority,
   ObjectInfo,
 } from "./contracts";
 import {
@@ -71,9 +72,15 @@ export interface EquipmentConfig {
 export interface Channel extends ChannelInfo {
   /** Loads connected to the output, in order; they all receive its commands. */
   equipmentConfigs: EquipmentConfig[];
+  /**
+   * Text written on the push-button wired to a contact input, drawn on its key; the
+   * label of the channel (the input) stays as it is. Null: the key shows the label.
+   */
+  keyLabel: string | null;
 }
 
 export interface KnxObject extends ObjectInfo {
+  priority: Priority;
   /** Key `deviceId/objectId`. */
   key: string;
   deviceId: string;
@@ -345,6 +352,7 @@ const OBJECT_V2 = [
   "channel",
   "value",
   "flags",
+  "priority",
 ];
 const BUTTON_V2 = [
   "id",
@@ -361,6 +369,7 @@ const INPUT_V2 = ["id", "type", "label", "object", "min", "max", "step"];
 const CHANNEL_V2 = [
   "id",
   "label",
+  "keyLabel",
   "parameters",
   "initialState",
   "equipment",
@@ -376,12 +385,12 @@ const own = <T>(o: Readonly<Record<string, T>>, k: string): T | undefined =>
 const isRecord = (v: unknown): v is Rec =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-/** Standard behaviour corresponding to a device v1. */
-function v1Behavior(kind: string, hasButtons: boolean): string {
+/**
+ * Standard behaviour corresponding to a device v1. Keys of format 1 were handled by the
+ * former push-button behavior, which has been removed: a device with keys is refused.
+ */
+function v1Behavior(kind: string): string {
   switch (kind) {
-    case "pushButton":
-    case "sensor":
-      return "pushButton/v1";
     case "switchActuator":
       return "switchActuator/v1";
     case "shutterActuator":
@@ -389,7 +398,7 @@ function v1Behavior(kind: string, hasButtons: boolean): string {
     case "supervisor":
       return "display/v1";
     default:
-      return hasButtons ? "pushButton/v1" : "passive/v1";
+      return "passive/v1";
   }
 }
 
@@ -987,7 +996,15 @@ export function buildScenario(
     // Comportement
     let behaviorId: string;
     if (v2) behaviorId = nonEmpty(d, "behavior", p) ?? "";
-    else behaviorId = v1Behavior(kind, rawButtons.length > 0);
+    else {
+      behaviorId = v1Behavior(kind);
+      if (rawButtons.length)
+        err(
+          `${p}.buttons`,
+          "removed",
+          t`keys of format 1 are no longer supported; convert the file to format 2 and use a push-button interface (buttonInterface/v1)`,
+        );
+    }
     const behavior: BehaviorDefinition<unknown> | undefined =
       registry.behaviors.get(behaviorId);
     if (behaviorId && !behavior)
@@ -1128,6 +1145,7 @@ export function buildScenario(
       if (channels.some((x) => x.id === cid))
         return err(`${cp}.id`, "duplicate", t`duplicate channel “${cid}”`);
       const label = str(c, "label", cp) ?? cid;
+      const keyLabel = str(c, "keyLabel", cp) ?? null;
 
       let rawParams: unknown = c.parameters;
       let rawInit: unknown = c.initialState;
@@ -1307,6 +1325,7 @@ export function buildScenario(
       channels.push({
         id: cid,
         label,
+        keyLabel,
         parameters: chParams,
         initialState: chInit,
         scenes,
@@ -1501,8 +1520,23 @@ export function buildScenario(
         channel,
         dpt,
         initial,
-        flags: { W: true, T: false, R: false, U: false },
+        flags: { W: true, T: false, R: false, U: false, C: true, I: false },
+        priority: "low",
       };
+      if (o.priority !== undefined) {
+        if (
+          o.priority === "low" ||
+          o.priority === "normal" ||
+          o.priority === "urgent"
+        )
+          obj.priority = o.priority;
+        else
+          err(
+            `${op}.priority`,
+            "enum",
+            t`“low”, “normal” or “urgent” expected (system priority is reserved for management)`,
+          );
+      }
       objects.push(obj);
       objectFlagsRaw.set(obj, o.flags);
     });
@@ -1522,7 +1556,11 @@ export function buildScenario(
 
     // Touches
     const buttons: Button[] = [];
-    if (rawButtons.length && behavior && !behavior.acceptsInputs)
+    if (
+      rawButtons.length &&
+      behavior &&
+      !(behavior.acceptsKeys ?? behavior.acceptsInputs)
+    )
       err(
         `${p}.buttons`,
         "incompatible",
@@ -1580,12 +1618,6 @@ export function buildScenario(
           return null;
         }
         if (!o) return null;
-        if (o.gas.length === 0)
-          err(
-            `${ap}.object`,
-            "no-ga",
-            t`object “${o.id}” has no group address`,
-          );
         if (a.value === "toggle" && dptBits(o.dpt) !== 1)
           err(
             `${ap}.value`,
@@ -1655,7 +1687,7 @@ export function buildScenario(
         buttons.push({
           id: c.id,
           index: ci,
-          label: c.label,
+          label: c.keyLabel || c.label,
           icon: ICONS.includes(key.icon as ButtonIcon)
             ? (key.icon as ButtonIcon)
             : "toggle",
@@ -1669,6 +1701,10 @@ export function buildScenario(
               : (own.find((o) => o.port === "led")?.id ?? null),
           ledInverted: key.ledInverted === true,
           contact: true,
+          longPressMs:
+            typeof key.longPressMs === "number" && key.longPressMs > 0
+              ? key.longPressMs
+              : null,
         });
       });
     }
@@ -1707,12 +1743,6 @@ export function buildScenario(
             `${np}.object`,
             "port",
             t`object “${o.id}” must have port “input”`,
-          );
-        if (o.gas.length === 0)
-          err(
-            `${np}.object`,
-            "no-ga",
-            t`object “${o.id}” has no group address`,
           );
         actionTargets.add(o);
       }
@@ -1768,18 +1798,18 @@ export function buildScenario(
           return;
         }
         Object.keys(f).forEach((k) => {
-          if (!["W", "T", "R", "U"].includes(k))
+          if (!["W", "T", "R", "U", "C", "I"].includes(k))
             err(
               `${fp}.${k}`,
               "unknown-field",
-              t`flag “${k}” not simulated (W, T, R and U are; C is always active)`,
+              t`unknown flag “${k}” (C, R, W, T, U and I are simulated)`,
             );
         });
         if (typeof f.W !== "boolean")
           err(`${fp}.W`, "type", t`boolean expected`);
         if (typeof f.T !== "boolean")
           err(`${fp}.T`, "type", t`boolean expected`);
-        for (const k of ["R", "U"] as const)
+        for (const k of ["R", "U", "C", "I"] as const)
           if (f[k] !== undefined && typeof f[k] !== "boolean")
             err(`${fp}.${k}`, "type", t`boolean expected`);
         o.flags = {
@@ -1787,6 +1817,8 @@ export function buildScenario(
           T: f.T === true,
           R: typeof f.R === "boolean" ? f.R : defaultRead(o.port),
           U: typeof f.U === "boolean" ? f.U : defaultUpdate(o.port),
+          C: f.C !== false,
+          I: f.I === true,
         };
       } else {
         o.flags = {
@@ -1797,6 +1829,8 @@ export function buildScenario(
             o.port === "positionStatus",
           R: defaultRead(o.port),
           U: defaultUpdate(o.port),
+          C: true,
+          I: false,
         };
       }
       void oi;
@@ -1835,15 +1869,16 @@ export function buildScenario(
   groupAddresses.forEach(
     (g) =>
       g.dpt &&
-      isSupportedDpt(g.dpt) &&
+      isRepresentableDpt(g.dpt) &&
       sizes.set(g.address, {
         bits: dptBits(g.dpt),
         where: `groupAddresses (${g.dpt})`,
       }),
   );
   devices.forEach((d, di) =>
+    // Every DPT whose size is known counts, including those shown without simulation.
     d.objects.forEach((o, oi) => {
-      if (!isSupportedDpt(o.dpt)) return;
+      if (!isRepresentableDpt(o.dpt)) return;
       o.gas.forEach((ga) => {
         const s = sizes.get(ga);
         const bits = dptBits(o.dpt);

@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -20,15 +23,16 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "arrival",
           "name": "Key 1 Arrival",
           "ga": "3/1/1",
           "dpt": "17.001",
-          "port": "input",
+          "port": "value",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -39,30 +43,33 @@
           "name": "Key 2 Departure",
           "ga": "3/1/1",
           "dpt": "17.001",
-          "port": "input",
+          "port": "value",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "icon": "scene",
-          "press": {
-            "object": "arrival",
-            "value": 0
-          }
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "scene"
+          },
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "press": {
-            "object": "departure",
-            "value": 1
-          }
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "scene",
+            "sceneNumber": 2
+          },
+          "equipment": null
         }
       ]
     },

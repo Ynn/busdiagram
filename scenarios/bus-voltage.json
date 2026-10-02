@@ -56,7 +56,10 @@
         {
           "id": "sw1",
           "name": "Input 1 switching",
-          "ga": ["1/1/1", "1/4/1"],
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in1",
@@ -68,7 +71,9 @@
         {
           "id": "lk2",
           "name": "Input 2 lock",
-          "ga": ["1/6/1"],
+          "ga": [
+            "1/6/1"
+          ],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in2",
@@ -80,7 +85,10 @@
         {
           "id": "sw3",
           "name": "Input 3 switching",
-          "ga": ["1/1/2", "1/4/2"],
+          "ga": [
+            "1/1/2",
+            "1/4/2"
+          ],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in3",
@@ -93,25 +101,31 @@
       "channels": [
         {
           "id": "in1",
-          "label": "Input 1 · L1",
+          "label": "Input 1",
+          "keyLabel": "Input 1 · L1",
           "parameters": {
             "function": "switch",
             "busRecovery": "update",
-            "busRecoveryDelayMs": 2000
+            "busRecoveryDelayMs": 2000,
+            "ledShown": true
           }
         },
         {
           "id": "in2",
-          "label": "Input 2 · Lock L1",
+          "label": "Input 2",
+          "keyLabel": "Input 2 · Lock L1",
           "parameters": {
-            "function": "switch"
+            "function": "switch",
+            "ledShown": true
           }
         },
         {
           "id": "in3",
-          "label": "Input 3 · L2",
+          "label": "Input 3",
+          "keyLabel": "Input 3 · L2",
           "parameters": {
-            "function": "switch"
+            "function": "switch",
+            "ledShown": true
           }
         }
       ]

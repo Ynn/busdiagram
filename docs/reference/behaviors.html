@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -36,50 +36,7 @@
 <main>
 <p class="crumb">Reference</p>
 <h1 id="behaviors-and-equipment"><a class="anchor" href="#behaviors-and-equipment">#</a>Behaviors and equipment</h1><p>These tables are generated from registered definitions. An extension can register additional behaviors or equipment; see the <a href="../guide/extensions.html">extension guide</a>.</p>
-<h2 id="behaviors"><a class="anchor" href="#behaviors">#</a>Behaviors</h2><h3 id="pushbutton-v1"><a class="anchor" href="#pushbutton-v1">#</a>pushButton/v1</h3><p>Push button or sensor: each gesture writes a value into a local object, then transmits it. Uses buttons and inputs.</p>
-<p><strong>Ports</strong></p>
-<div class="table"><table>
-<thead>
-<tr>
-<th>Port</th>
-<th>DPT</th>
-<th>Channel</th>
-<th>Role</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>input</code></td>
-<td>any</td>
-<td>none</td>
-<td>object sent by a key or input</td>
-</tr>
-<tr>
-<td><code>display</code></td>
-<td>any</td>
-<td>none</td>
-<td>object receiving a value (indicator or feedback)</td>
-</tr>
-</tbody></table>
-</div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
-<div class="table"><table>
-<thead>
-<tr>
-<th>Parameter</th>
-<th>Type</th>
-<th>Default</th>
-<th>Constraints</th>
-<th>Description</th>
-</tr>
-</thead>
-<tbody><tr>
-<td><code>longPressMs</code></td>
-<td>integer</td>
-<td><code>500</code></td>
-<td>≥ 100 ; ≤ 10000</td>
-<td>Press duration that counts as a long press (ms), for keys with short and long actions.</td>
-</tr>
-</tbody></table>
-</div><h3 id="switchactuator-v1"><a class="anchor" href="#switchactuator-v1">#</a>switchActuator/v1</h3><p>Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering. Output command: <code>switch</code>.</p>
+<h2 id="behaviors"><a class="anchor" href="#behaviors">#</a>Behaviors</h2><h3 id="switchactuator-v1"><a class="anchor" href="#switchactuator-v1">#</a>switchActuator/v1</h3><p>Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering. Output command: <code>switch</code>.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>
@@ -535,7 +492,7 @@
 </tr>
 </tbody></table>
 </div><p><em>No parameters.</em></p>
-<h3 id="passive-v1"><a class="anchor" href="#passive-v1">#</a>passive/v1</h3><p>Device without logic: it only keeps the values of its objects.</p>
+<h3 id="passive-v1"><a class="anchor" href="#passive-v1">#</a>passive/v1</h3><p>Device without logic: it keeps the values of its objects, and sends the values typed in the diagram, as a visualization panel. Uses buttons and inputs.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>
@@ -2066,7 +2023,7 @@
 <td>Energy (Wh) already counted when the simulation starts.</td>
 </tr>
 </tbody></table>
-</div><h3 id="buttoninterface-v1"><a class="anchor" href="#buttoninterface-v1">#</a>buttonInterface/v1</h3><p>Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.</p>
+</div><h3 id="buttoninterface-v1"><a class="anchor" href="#buttoninterface-v1">#</a>buttonInterface/v1</h3><p>Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene), with short and long presses; lock, bus voltage recovery and cyclic sending.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>
@@ -2079,7 +2036,7 @@
 </thead>
 <tbody><tr>
 <td><code>switch</code></td>
-<td>1.001</td>
+<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.017, 1.018, 1.019, 1.100</td>
 <td>required</td>
 <td>switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state</td>
 </tr>
@@ -2103,7 +2060,7 @@
 </tr>
 <tr>
 <td><code>value</code></td>
-<td>5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102</td>
+<td>2.001, 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102</td>
 <td>required</td>
 <td>value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function</td>
 </tr>
@@ -2143,7 +2100,7 @@
 <td>integer</td>
 <td><code>500</code></td>
 <td>≥ 100 ; ≤ 10000</td>
-<td>A press held at least this long is a long press; the device measures it in simulated time.</td>
+<td>A press held at least this long is a long press.</td>
 </tr>
 <tr>
 <td><code>switchLongPress</code></td>
@@ -2184,7 +2141,7 @@
 <td><code>dimMode</code></td>
 <td>string</td>
 <td><code>&quot;single&quot;</code></td>
-<td>&quot;single&quot; (One key: short toggles, long dims in turn), &quot;brighter&quot; (Brighter: short on, long brighter), &quot;darker&quot; (Darker: short off, long darker)</td>
+<td>&quot;single&quot; (One key: on/off, brighter and darker in turn), &quot;brighter&quot; (Two keys: this key switches on and brightens), &quot;darker&quot; (Two keys: this key switches off and darkens)</td>
 <td>One key switches with a short press and dims with a long press, brighter when the light is off and otherwise the other way than last time; two keys share the work, one brighter and one darker. Releasing the key stops dimming.</td>
 </tr>
 <tr>
@@ -2198,7 +2155,7 @@
 <td><code>blindMode</code></td>
 <td>string</td>
 <td><code>&quot;single&quot;</code></td>
-<td>&quot;single&quot; (One key: direction alternates), &quot;up&quot; (Up key), &quot;down&quot; (Down key)</td>
+<td>&quot;single&quot; (One key: up and down in turn), &quot;up&quot; (Two keys: this key raises), &quot;down&quot; (Two keys: this key lowers)</td>
 <td>A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.</td>
 </tr>
 <tr>
@@ -2298,6 +2255,13 @@
 <td><code>&quot;always&quot;</code></td>
 <td>&quot;always&quot; (Both values), &quot;on&quot; (Only 1 (on)), &quot;off&quot; (Only 0 (off))</td>
 <td>Which value of the switching object is sent cyclically.</td>
+</tr>
+<tr>
+<td><code>ledShown</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>The key has an LED: it shows the LED object when it is enabled, otherwise the switching object of a switching or dimming input.</td>
 </tr>
 <tr>
 <td><code>ledInverted</code></td>

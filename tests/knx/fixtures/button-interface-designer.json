@@ -1,0 +1,57 @@
+{
+  "formatVersion": 2,
+  "title": "New installation",
+  "lines": [{ "address": "1.1", "name": "Lab kit", "powerSupply": { "currentMa": 640 } }],
+  "groupAddresses": [
+    { "address": "0/0/1", "name": "L1" },
+    { "address": "1/0/1", "name": "New group address" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "channels": [
+        { "id": "in1", "label": "Input 1", "parameters": { "function": "switch" } },
+        { "id": "in2", "label": "Input 2", "parameters": { "function": "blind" } },
+        { "id": "in3", "label": "Input 3", "parameters": { "function": "switch" } },
+        { "id": "in4", "label": "Input 4", "parameters": { "function": "switch" } }
+      ],
+      "objects": [
+        { "id": "sw1", "name": "Switching 1", "ga": "0/0/1", "dpt": "1.001", "port": "switch", "channel": "in1", "flags": { "W": true, "T": true } },
+        { "id": "sw2", "name": "Switching 2", "ga": [], "dpt": "1.001", "port": "switch", "channel": "in2", "flags": { "W": true, "T": true } },
+        { "id": "move2", "name": "Up/down Input 2", "ga": [], "dpt": "1.008", "port": "move", "channel": "in2", "flags": { "W": true, "T": true } },
+        { "id": "stop2", "name": "Stop/step Input 2", "ga": [], "dpt": "1.007", "port": "stopStep", "channel": "in2", "flags": { "W": false, "T": true } },
+        { "id": "sw3", "name": "Switching 3", "ga": [], "dpt": "1.001", "port": "switch", "channel": "in3", "flags": { "W": true, "T": true } },
+        { "id": "sw4", "name": "Switching 4", "ga": [], "dpt": "1.001", "port": "switch", "channel": "in4", "flags": { "W": true, "T": true } }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switch actuator",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        { "id": "c1", "name": "Command L1", "ga": "0/0/1", "dpt": "1.001", "port": "switch", "channel": "s1", "flags": { "W": true, "T": false } },
+        { "id": "c2", "name": "Command L2", "ga": [], "dpt": "1.001", "port": "switch", "channel": "s2", "flags": { "W": true, "T": false } },
+        { "id": "c3", "name": "Command L3", "ga": [], "dpt": "1.001", "port": "switch", "channel": "s3", "flags": { "W": true, "T": false } },
+        { "id": "c4", "name": "Command L4", "ga": [], "dpt": "1.001", "port": "switch", "channel": "s4", "flags": { "W": true, "T": false } }
+      ],
+      "channels": [
+        { "id": "s1", "label": "L1", "equipment": { "type": "lamp" } },
+        { "id": "s2", "label": "L2", "equipment": { "type": "lamp" } },
+        { "id": "s3", "label": "L3", "equipment": { "type": "lamp" } },
+        { "id": "s4", "label": "L4", "equipment": { "type": "lamp" } }
+      ]
+    }
+  ],
+  "groupRanges": [
+    { "address": "0", "name": "Eclairage" },
+    { "address": "0/0", "name": "On/Off" },
+    { "address": "1", "name": "VR" },
+    { "address": "1/0", "name": "UP/DOWN" }
+  ]
+}

@@ -1,8 +1,9 @@
 // buttonInterface/v1: push-button interface (binary inputs), as the interfaces fitted
 // behind conventional push-buttons. Each channel is a contact input with one function;
-// the device receives the contact edges and tells short and long presses apart itself,
-// in simulated time.
+// the device receives the contact edges, and "hold" when the key is held past the
+// long-press time of the input.
 import { buttonInterfaceLayout } from "./layouts";
+import { SUPPORTED_DPTS } from "../dpt";
 import type {
   BehaviorContext,
   BehaviorDefinition,
@@ -32,6 +33,9 @@ export interface ButtonInterfaceState {
 }
 
 type Ctx = BehaviorContext<ButtonInterfaceState>;
+
+/** One-bit DPTs: the switching object can send any of them (lock, presence, up/down…). */
+const ONE_BIT = SUPPORTED_DPTS.filter((d) => d.startsWith("1."));
 
 const params = (ctx: Ctx, ch: string) =>
   ctx.device.channels.find((c) => c.id === ch)?.parameters ?? {};
@@ -98,7 +102,6 @@ function press(ctx: Ctx, ch: string) {
   const st = ctx.state.inputs[ch]!;
   st.pressed = true;
   st.long = false;
-  if (waitsForLong(p)) ctx.schedule(`${ch}:long`, Number(p.longPressMs ?? 500));
   switch (fnOf(p)) {
     case "switch":
       if (p.switchLongPress !== true)
@@ -120,7 +123,7 @@ function press(ctx: Ctx, ch: string) {
 function longPress(ctx: Ctx, ch: string) {
   const p = params(ctx, ch);
   const st = ctx.state.inputs[ch]!;
-  if (!st.pressed) return;
+  if (!st.pressed || st.long || !waitsForLong(p)) return;
   st.long = true;
   switch (fnOf(p)) {
     case "switch":
@@ -162,7 +165,6 @@ function release(ctx: Ctx, ch: string) {
   const st = ctx.state.inputs[ch]!;
   if (!st.pressed) return;
   st.pressed = false;
-  ctx.cancel(`${ch}:long`);
   const short = !st.long;
   st.long = false;
   switch (fnOf(p)) {
@@ -232,7 +234,6 @@ function lock(ctx: Ctx, ch: string, locked: boolean) {
     // A press in progress ends without effect.
     st.pressed = false;
     st.long = false;
-    ctx.cancel(`${ch}:long`);
     ctx.note(ctx.t`${ch}: input locked`);
   } else ctx.note(ctx.t`${ch}: input unlocked`);
   if (locked) react(ctx, ch, isBlind(p) ? p.blindLockStart : p.lockStart);
@@ -278,8 +279,25 @@ function keyIcon(p: Readonly<JsonObject>): string {
 
 export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
   description:
-    "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.",
+    "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene), with short and long presses; lock, bus voltage recovery and cyclic sending.",
   parameterLayout: buttonInterfaceLayout,
+  // The objects of an input follow its function.
+  channelObjects: {
+    parameter: "function",
+    values: {
+      switch: [{ port: "switch", dpt: "1.001" }],
+      dim: [
+        { port: "switch", dpt: "1.001" },
+        { port: "dim", dpt: "3.007" },
+      ],
+      blind: [
+        { port: "move", dpt: "1.008" },
+        { port: "stopStep", dpt: "1.007" },
+      ],
+      value: [{ port: "value", dpt: "5.001" }],
+      scene: [{ port: "value", dpt: "18.001" }],
+    },
+  },
   contactInputs: true,
   channelParameters: {
     type: "object",
@@ -301,8 +319,7 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         minimum: 100,
         maximum: 10000,
         default: 500,
-        description:
-          "A press held at least this long is a long press; the device measures it in simulated time.",
+        description: "A press held at least this long is a long press.",
       },
       switchLongPress: {
         title: "Short and long presses",
@@ -345,13 +362,13 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         description: "Switching telegram when the long-press time is reached.",
       },
       dimMode: {
-        title: "Dimming operation",
+        title: "Operation (dimming)",
         type: "string",
         enum: ["single", "brighter", "darker"],
         enumTitles: [
-          "One key: short toggles, long dims in turn",
-          "Brighter: short on, long brighter",
-          "Darker: short off, long darker",
+          "One key: on/off, brighter and darker in turn",
+          "Two keys: this key switches on and brightens",
+          "Two keys: this key switches off and darkens",
         ],
         default: "single",
         description:
@@ -367,10 +384,14 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
           "Step code of the relative dimming telegram (DPT 3.007); 100 % dims until the key is released.",
       },
       blindMode: {
-        title: "Blind operation",
+        title: "Operation (blind)",
         type: "string",
         enum: ["single", "up", "down"],
-        enumTitles: ["One key: direction alternates", "Up key", "Down key"],
+        enumTitles: [
+          "One key: up and down in turn",
+          "Two keys: this key raises",
+          "Two keys: this key lowers",
+        ],
         default: "single",
         description:
           "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.",
@@ -489,6 +510,13 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         default: "always",
         description: "Which value of the switching object is sent cyclically.",
       },
+      ledShown: {
+        title: "LED on the key",
+        type: "boolean",
+        default: false,
+        description:
+          "The key has an LED: it shows the LED object when it is enabled, otherwise the switching object of a switching or dimming input.",
+      },
       ledInverted: {
         title: "LED lit for 0",
         type: "boolean",
@@ -500,7 +528,7 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
   },
   ports: {
     switch: {
-      dpts: ["1.001"],
+      dpts: ONE_BIT,
       channel: "required",
       title: "Switching",
       direction: "both",
@@ -529,6 +557,7 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
     },
     value: {
       dpts: [
+        "2.001",
         "5.001",
         "5.004",
         "5.010",
@@ -568,7 +597,10 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         : undefined);
     return {
       icon: keyIcon(c.parameters),
-      led: led?.id ?? null,
+      longPressMs: waitsForLong(c.parameters)
+        ? Number(c.parameters.longPressMs ?? 500)
+        : null,
+      led: c.parameters.ledShown === true ? (led?.id ?? null) : null,
       ledInverted: c.parameters.ledInverted === true,
     };
   },
@@ -593,12 +625,13 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
   onInput(ctx, input) {
     const ch = input.inputId;
     const st = ctx.state.inputs[ch];
-    if (!st || (input.gesture !== "down" && input.gesture !== "up")) return;
+    if (!st || !["down", "up", "hold"].includes(input.gesture)) return;
     if (st.locked) {
       ctx.note(ctx.t`${ch}: input locked, press ignored`);
       return;
     }
     if (input.gesture === "down") press(ctx, ch);
+    else if (input.gesture === "hold") longPress(ctx, ch);
     else release(ctx, ch);
   },
   onObjectWrite(ctx, e) {
@@ -614,8 +647,7 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
   onTimer(ctx, key) {
     const [ch, what] = key.split(":");
     if (!ch || !ctx.state.inputs[ch]) return;
-    if (what === "long") longPress(ctx, ch);
-    else if (what === "recovery") {
+    if (what === "recovery") {
       const p = params(ctx, ch);
       react(ctx, ch, isBlind(p) ? p.blindBusRecovery : p.busRecovery);
     } else if (what === "cyclic") {

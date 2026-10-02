@@ -99,21 +99,31 @@
       "channels": [
         {
           "id": "in1",
-          "label": "Input 1 · L1",
+          "label": "Input 1",
+          "keyLabel": "Input 1 · L1",
           "parameters": {
             "busRecovery": "update",
-            "busRecoveryDelayMs": 2000
+            "busRecoveryDelayMs": 2000,
+            "ledShown": true
           },
           "equipment": null
         },
         {
           "id": "in2",
-          "label": "Input 2 · Lock L1",
+          "label": "Input 2",
+          "keyLabel": "Input 2 · Lock L1",
+          "parameters": {
+            "ledShown": true
+          },
           "equipment": null
         },
         {
           "id": "in3",
-          "label": "Input 3 · L2",
+          "label": "Input 3",
+          "keyLabel": "Input 3 · L2",
+          "parameters": {
+            "ledShown": true
+          },
           "equipment": null
         }
       ]

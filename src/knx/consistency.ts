@@ -2,12 +2,13 @@
 // property of its load must agree with that property. A mismatch is a valid scenario
 // (it can illustrate a commissioning error) and is reported as a non-blocking warning.
 import type { Translate } from "../i18n";
-import { dptTitle } from "./dpt";
+import { checkValue, dptTitle } from "./dpt";
 import type { Scenario } from "./scenario";
 
 export interface ConfigWarning {
   code: string;
-  deviceId: string;
+  /** Device concerned; absent for a warning about a line. */
+  deviceId?: string;
   channelId?: string;
   message: string;
 }
@@ -60,6 +61,38 @@ export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
         });
     }
   }
+  // Values of a push-button interface input: within the range of their object's DPT.
+  for (const d of s.devices) {
+    if (d.behavior !== "buttonInterface/v1") continue;
+    for (const c of d.channels) {
+      const o = d.objects.find((x) => x.port === "value" && x.channel === c.id);
+      if (!o || c.parameters.function !== "value") continue;
+      for (const k of ["shortValue", "longValue"]) {
+        const v = c.parameters[k];
+        const bad = typeof v === "number" ? checkValue(o.dpt, v, t) : null;
+        if (bad)
+          out.push({
+            code: "config-value-range",
+            deviceId: d.id,
+            message: t`${d.name || d.id}, ${c.label}: ${bad}`,
+          });
+      }
+    }
+  }
+
+  // Each TP segment needs its own bus power supply (KNX TP1 specification).
+  for (const l of s.lines) {
+    const segs: [string, boolean][] = [[l.address, !!l.powerSupply]];
+    if (l.extension)
+      segs.push([`${l.address} · 2`, !!l.extension.powerSupply]);
+    for (const [seg, powered] of segs)
+      if (!powered)
+        out.push({
+          code: "config-no-power-supply",
+          message: t`segment ${seg} has no bus power supply: each TP segment needs its own, with its choke`,
+        });
+  }
+
   // A TP1 segment takes up to 64 devices (KNX TP1 specification, TP1-64 devices); more
   // need TP1-256 devices or a line extension (repeater or segment coupler).
   const perSegment = new Map<string, number>();

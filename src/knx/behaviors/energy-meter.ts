@@ -9,7 +9,7 @@ import type {
   JsonObject,
 } from "../contracts";
 import { fromObjectUnit, toObjectUnit } from "../units";
-import { pushButton } from "./push-button";
+import { sendTypedValue } from "./simple-devices";
 
 interface CircuitState {
   powerW: number;
@@ -201,7 +201,7 @@ export const energyMeter: BehaviorDefinition<MeterState> = {
       report(ctx, false);
       return;
     }
-    pushButton.onInput?.(ctx as never, input);
+    sendTypedValue(ctx as never, input);
   },
   onTimer(ctx, key) {
     if (key !== "meterSoon" && key !== "meter") return;

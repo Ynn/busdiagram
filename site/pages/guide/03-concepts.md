@@ -26,13 +26,16 @@ Each object has a value, a DPT that determines how to interpret it, one or more 
 
 | Flag | Enabled | Disabled |
 | --- | --- | --- |
-| `C` communication | Always enabled in this model. | — |
+| `C` communication | The object communicates, according to its other flags (enabled by default). | The object neither sends nor handles any message. |
 | `W` write | A received write updates the value and invokes the behavior. | The telegram remains visible, but the value and behavior do not change. |
 | `T` transmit | The object can send its value. | The value may change locally, but no telegram is sent. |
 | `R` read | The object responds to a read on any of its addresses, on its sending address. | No response is sent. |
 | `U` update | A received response updates the object. | Responses are ignored. |
+| `I` read on initialisation | When the device starts again after a bus voltage failure, the object reads its value on its sending address. | No read at start. |
 
-`R` and `U` are optional in JSON; see their defaults in the [USB interface guide](usb-interface.html#r-and-u-flags). The object's **port** (`switch`, `status`, `move`, and so on) gives it a role in its behavior; see the [port reference](../reference/ports.html).
+When a device sends, its other objects on the same address take the value at once, as the KNX Application Layer specifies; their `W` flag only decides whether the device reacts, so that a status object does not act as a command.
+
+`R`, `U`, `C`, and `I` are optional in JSON; see the defaults of `R` and `U` in the [USB interface guide](usb-interface.html#r-and-u-flags). Each object also has a transmission priority, `"priority": "low"` (default), `"normal"`, or `"urgent"`, written in the control field of its frames. The object's **port** (`switch`, `status`, `move`, and so on) gives it a role in its behavior; see the [port reference](../reference/ports.html).
 
 ## Group address and telegram
 

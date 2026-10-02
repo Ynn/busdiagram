@@ -9,10 +9,7 @@ import { SNIPPETS } from "./snippets";
 
 /** Catalog groups: label and template identifiers. */
 const CATALOG_GROUPS: [() => string, string[]][] = [
-  [
-    () => t`Controls`,
-    ["pushButton4", "buttonInterface4", "dimmingPushButton", "roomThermostat"],
-  ],
+  [() => t`Controls`, ["buttonInterface4", "roomThermostat"]],
   [
     () => t`Actuators`,
     ["switchActuator4", "dim", "dali", "shutterActuator", "heatingActuator"],
@@ -48,10 +45,6 @@ export interface CatalogEntry {
  * the device, so the catalog names the type and gives the count it starts with.
  */
 const CATALOG_NAMES: Record<string, () => [string, string]> = {
-  pushButton4: () => [
-    t`Push-button`,
-    t`Four keys to start with; set the number of keys on the Configuration page of its parameters.`,
-  ],
   buttonInterface4: () => [
     t`Push-button interface`,
     t`Four inputs to start with; set the number of inputs on the Configuration page, and the function of each input on its pages.`,
@@ -110,7 +103,7 @@ export function catalogGroups(reg: Registry): [string, CatalogEntry[]][] {
     (s) =>
       !listed.has(s.id) &&
       // Variants of a listed type (another number of keys or outputs).
-      !["ga", "line", "pushButton2", "switchActuator6"].includes(s.id),
+      !["ga", "line", "switchActuator6"].includes(s.id),
   )
     .map((s) => templateEntry(s.id))
     .filter((e): e is CatalogEntry => !!e);

@@ -379,9 +379,9 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
           },
           {
             type: "string",
-            pattern: "^\\d{1,3}\\.\\d{3}$",
+            pattern: "^\\d{1,3}\\.\\d{3,5}$",
             description:
-              "DPT shown but not simulated (passive/v1 and display/v1 objects only): its value stays unknown or raw.",
+              "Standard DPT shown but not simulated (passive/v1 and display/v1 objects only): its value stays unknown or raw.",
           },
         ],
       },
@@ -515,7 +515,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
           flags: {
             type: "object",
             description:
-              "Modeled flags: W write, T transmit, R read, U update. C communication is always enabled.",
+              "Flags: C communication, R read, W write, T transmit, U update, I read on initialisation.",
             additionalProperties: false,
             required: ["W", "T"],
             properties: {
@@ -539,7 +539,22 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
                 description:
                   "Apply a received GroupValueResponse as an update; enabled by default for display ports.",
               },
+              C: {
+                type: "boolean",
+                description:
+                  "Communication (enabled by default): when false, the object neither sends nor handles any message.",
+              },
+              I: {
+                type: "boolean",
+                description:
+                  "Read on initialisation: when the device starts again after a bus voltage failure, it reads the object's value on its sending address.",
+              },
             },
+          },
+          priority: {
+            enum: ["low", "normal", "urgent"],
+            description:
+              "Transmission priority of the frames the object sends (low by default); system priority is reserved for management.",
           },
         },
       },
@@ -720,7 +735,10 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               "ID unique within the device and referenced by its communication objects.",
           },
           label: text(
-            "Load label, such as L1; use “unused” for an unconnected output.",
+            "Label of the channel: a load label such as L1 (“unused” for an unconnected output), or the name of an input.",
+          ),
+          keyLabel: text(
+            "Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label.",
           ),
           parameters: {
             type: "object",
@@ -774,7 +792,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               "Individual address in area.line.device form; its line must be declared.",
           },
           kind: text(
-            "Device grouping and rendering: pushButton, switchActuator, shutterActuator, sensor, supervisor, generic…",
+            "Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…",
           ),
           behavior: {
             anyOf: [

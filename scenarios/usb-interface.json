@@ -5,11 +5,17 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Panel"
+      "name": "Panel",
+      "powerSupply": {
+        "currentMa": 640
+      }
     },
     {
       "address": "1.2",
-      "name": "Floor"
+      "name": "Floor",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -37,30 +43,34 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1 toggle",
-          "ga": ["1/1/1", "1/4/1"],
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key1"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
-          },
-          "led": "key1"
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
@@ -92,8 +102,7 @@
           "channel": "s1",
           "flags": {
             "W": false,
-            "T": true,
-            "R": true
+            "T": true
           }
         }
       ],
@@ -107,5 +116,9 @@
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

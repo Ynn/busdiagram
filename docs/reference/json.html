@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JSON scenario · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -292,11 +292,11 @@
 <td><code>kind</code></td>
 <td>string</td>
 <td>yes</td>
-<td>Device grouping and rendering: pushButton, switchActuator, shutterActuator, sensor, supervisor, generic…</td>
+<td>Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…</td>
 </tr>
 <tr>
 <td><code>behavior</code></td>
-<td><code>&quot;pushButton/v1&quot;</code>, <code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code>, <code>&quot;buttonInterface/v1&quot;</code> or string (validated format)</td>
+<td><code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code>, <code>&quot;buttonInterface/v1&quot;</code> or string (validated format)</td>
 <td>yes</td>
 <td>Versioned ID of the device&#39;s registered behavior.</td>
 </tr>
@@ -418,7 +418,13 @@
 <td><code>flags</code></td>
 <td>object</td>
 <td>yes</td>
-<td>Modeled flags: W write, T transmit, R read, U update. C communication is always enabled.</td>
+<td>Flags: C communication, R read, W write, T transmit, U update, I read on initialisation.</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td><code>&quot;low&quot;</code>, <code>&quot;normal&quot;</code>, <code>&quot;urgent&quot;</code></td>
+<td></td>
+<td>Transmission priority of the frames the object sends (low by default); system priority is reserved for management.</td>
 </tr>
 </tbody></table>
 </div><h2 id="button"><a class="anchor" href="#button">#</a>Button</h2><p>Button drawn on the device card; use press or a short/long pair.</p>
@@ -554,7 +560,13 @@
 <td><code>label</code></td>
 <td>string</td>
 <td></td>
-<td>Load label, such as L1; use “unused” for an unconnected output.</td>
+<td>Label of the channel: a load label such as L1 (“unused” for an unconnected output), or the name of an input.</td>
+</tr>
+<tr>
+<td><code>keyLabel</code></td>
+<td>string</td>
+<td></td>
+<td>Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label.</td>
 </tr>
 <tr>
 <td><code>parameters</code></td>

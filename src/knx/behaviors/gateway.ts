@@ -5,7 +5,7 @@
 // simulated.
 import type { BehaviorDefinition } from "../contracts";
 import { formatValue } from "../dpt";
-import { pushButton } from "./push-button";
+import { sendTypedValue } from "./simple-devices";
 
 interface GatewayState {
   system: string;
@@ -53,7 +53,7 @@ export const systemGateway: BehaviorDefinition<GatewayState> = {
   acceptsInputs: true,
   createState: (device) => ({ system: systemOf(device.parameters) }),
   // Entered values and keys behave as on a push-button: write the object, then send it.
-  onInput: pushButton.onInput as BehaviorDefinition<GatewayState>["onInput"],
+  onInput: sendTypedValue as BehaviorDefinition<GatewayState>["onInput"],
   onObjectWrite(ctx, e) {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
     if (o?.port !== "command") return;

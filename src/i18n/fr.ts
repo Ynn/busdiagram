@@ -233,8 +233,8 @@ export const frMessages: Record<string, string> = {
     "Actionneur de volet sans capteur : estimation de position par le temps de course paramétré.",
   "Display / supervisor: receives and shows values, with no output or retransmission.":
     "Afficheur / superviseur : reçoit et affiche les valeurs, sans sortie ni retransmission.",
-  "Device without logic: it only keeps the values of its objects.":
-    "Participant sans logique : il conserve seulement les valeurs de ses objets.",
+  "Device without logic: it keeps the values of its objects, and sends the values typed in the diagram, as a visualization panel.":
+    "Appareil sans logique : il garde les valeurs de ses objets et envoie les valeurs saisies dans le schéma, comme un écran de visualisation.",
   "Roller shutter": "Volet roulant",
   "Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling.":
     "Thermostat d'ambiance : modes confort / veille / économie / protection (20.102), fenêtre et présence, régulation PI (5.001 ou PWM) ou deux points, chauffage et refroidissement.",
@@ -1118,8 +1118,8 @@ export const frMessages: Record<string, string> = {
   "Forcing has priority over the lock; while either is active, commands are stored.":
     "Le forçage est prioritaire sur le verrouillage ; tant que l'un des deux est actif, les commandes sont mémorisées.",
   "Bus voltage": "Tension du bus",
-  "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene); short and long presses are measured by the device; lock, bus voltage recovery and cyclic sending.":
-    "Interface de boutons-poussoirs : chaque canal est une entrée de contact avec une fonction (commutation, variation, store, valeur, scène) ; l'appareil mesure lui-même les appuis courts et longs ; verrouillage, retour de la tension du bus et émission cyclique.",
+  "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene), with short and long presses; lock, bus voltage recovery and cyclic sending.":
+    "Interface de boutons-poussoirs : chaque canal est une entrée de contact avec une fonction (commutation, variation, store, valeur, scène), avec appuis courts et longs ; verrouillage, retour de la tension du bus et émission cyclique.",
   "Value or scene": "Valeur ou scène",
   LED: "LED",
   Blind: "Store",
@@ -1183,8 +1183,8 @@ export const frMessages: Record<string, string> = {
   "click to cut the bus voltage": "cliquer pour couper la tension du bus",
   "no bus voltage: click to restore it":
     "pas de tension de bus : cliquer pour la rétablir",
-  "contact input: the device measures short and long presses":
-    "entrée de contact : l'appareil mesure les appuis courts et longs",
+  "contact input: click for a short press, hold for a long press":
+    "entrée de contact : cliquer pour un appui court, maintenir pour un appui long",
   "{0}: DALI scenes go from 1 to 16, scene {1} not stored":
     "{0} : les scènes DALI vont de 1 à 16, scène {1} non mémorisée",
   "{0}: scene {1} stored ({2} %)": "{0} : scène {1} mémorisée ({2} %)",
@@ -1195,4 +1195,48 @@ export const frMessages: Record<string, string> = {
   "timer: off in {0} s": "minuterie : arrêt dans {0} s",
   Delay: "Retard",
   "switching on in {0} s": "allumage dans {0} s",
+  "{0}, {1}: {2}": "{0}, {1} : {2}",
+  "keys of format 1 are no longer supported; convert the file to format 2 and use a push-button interface (buttonInterface/v1)":
+    "les touches du format 1 ne sont plus prises en charge ; convertir le fichier au format 2 et utiliser une interface de boutons-poussoirs (buttonInterface/v1)",
+  "same address in the device: value updated; W flag off, no reaction":
+    "même adresse dans l'appareil : valeur mise à jour ; indicateur W désactivé, aucune réaction",
+  "same address in the device: value updated; U flag off, no reaction":
+    "même adresse dans l'appareil : valeur mise à jour ; indicateur U désactivé, aucune réaction",
+  "standard frame, normal priority": "trame standard, priorité normale",
+  "standard frame, urgent priority": "trame standard, priorité urgente",
+  "C flag off: no communication, no telegram":
+    "indicateur C désactivé : pas de communication, aucun télégramme",
+  "C flag off: the message is not handled":
+    "indicateur C désactivé : le message n'est pas traité",
+  "unknown flag “{0}” (C, R, W, T, U and I are simulated)":
+    "indicateur « {0} » inconnu (C, R, W, T, U et I sont simulés)",
+  "“low”, “normal” or “urgent” expected (system priority is reserved for management)":
+    "« low », « normal » ou « urgent » attendu (la priorité système est réservée à la gestion)",
+  "segment {0} has no bus power supply: each TP segment needs its own, with its choke":
+    "le segment {0} n'a pas d'alimentation de bus : chaque segment TP a besoin de la sienne, avec sa self",
+  "channelObjects.parameter: channel parameter expected":
+    "channelObjects.parameter : paramètre de canal attendu",
+  "channelObjects.values: object expected":
+    "channelObjects.values : objet attendu",
+  "channelObjects.values.{0}: list expected":
+    "channelObjects.values.{0} : liste attendue",
+  "channelObjects.values.{0}: unknown channel port “{1}”":
+    "channelObjects.values.{0} : port de canal « {1} » inconnu",
+  "channelObjects.values.{0}: DPT “{1}” not accepted by port “{2}”":
+    "channelObjects.values.{0} : DPT « {1} » non accepté par le port « {2} »",
+  "Operation (blind)": "Fonctionnement (store)",
+  "One key: on/off, brighter and darker in turn":
+    "Une touche : marche/arrêt, plus clair et plus sombre en alternance",
+  "Two keys: this key switches on and brightens":
+    "Deux touches : cette touche allume et éclaircit",
+  "Two keys: this key switches off and darkens":
+    "Deux touches : cette touche éteint et assombrit",
+  "One key: up and down in turn":
+    "Une touche : montée et descente en alternance",
+  "Two keys: this key raises": "Deux touches : cette touche fait monter",
+  "Two keys: this key lowers": "Deux touches : cette touche fait descendre",
+  "The group objects of the function are created with it; link them in the Group objects tab.":
+    "Les objets de groupe de la fonction sont créés avec elle ; les lier dans l'onglet Objets de groupe.",
+  "Operation (dimming)": "Fonctionnement (variation)",
+  "LED on the key": "LED sur la touche",
 };

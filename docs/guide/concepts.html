@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Concepts · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -67,8 +67,8 @@
 </thead>
 <tbody><tr>
 <td><code>C</code> communication</td>
-<td>Always enabled in this model.</td>
-<td>—</td>
+<td>The object communicates, according to its other flags (enabled by default).</td>
+<td>The object neither sends nor handles any message.</td>
 </tr>
 <tr>
 <td><code>W</code> write</td>
@@ -90,8 +90,14 @@
 <td>A received response updates the object.</td>
 <td>Responses are ignored.</td>
 </tr>
+<tr>
+<td><code>I</code> read on initialisation</td>
+<td>When the device starts again after a bus voltage failure, the object reads its value on its sending address.</td>
+<td>No read at start.</td>
+</tr>
 </tbody></table>
-</div><p><code>R</code> and <code>U</code> are optional in JSON; see their defaults in the <a href="usb-interface.html#r-and-u-flags">USB interface guide</a>. The object&#39;s <strong>port</strong> (<code>switch</code>, <code>status</code>, <code>move</code>, and so on) gives it a role in its behavior; see the <a href="../reference/ports.html">port reference</a>.</p>
+</div><p>When a device sends, its other objects on the same address take the value at once, as the KNX Application Layer specifies; their <code>W</code> flag only decides whether the device reacts, so that a status object does not act as a command.</p>
+<p><code>R</code>, <code>U</code>, <code>C</code>, and <code>I</code> are optional in JSON; see the defaults of <code>R</code> and <code>U</code> in the <a href="usb-interface.html#r-and-u-flags">USB interface guide</a>. Each object also has a transmission priority, <code>&quot;priority&quot;: &quot;low&quot;</code> (default), <code>&quot;normal&quot;</code>, or <code>&quot;urgent&quot;</code>, written in the control field of its frames. The object&#39;s <strong>port</strong> (<code>switch</code>, <code>status</code>, <code>move</code>, and so on) gives it a role in its behavior; see the <a href="../reference/ports.html">port reference</a>.</p>
 <h2 id="group-address-and-telegram"><a class="anchor" href="#group-address-and-telegram">#</a>Group address and telegram</h2><p>A group telegram has a source individual address, a destination group address, a service, and—on a write or response—payload data. The DPT is not transmitted: each device interprets the payload using its own object DPT. Every device on the line can receive the telegram, but only objects associated with its destination address process it.</p>
 <div class="table"><table>
 <thead>

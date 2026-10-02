@@ -20,26 +20,27 @@ order: 14
     devices: [
       {
         id: "pushButton",
-        name: "Push-button",
+        name: "Push-button interface",
         address: "1.1.1",
-        kind: "pushButton",
-        behavior: "pushButton/v1",
+        kind: "buttonInterface",
+        behavior: "buttonInterface/v1",
         objects: [
           {
             id: "b1",
             name: "Key 1",
             ga: "1/1/1",
             dpt: "1.001",
-            port: "input",
+            port: "switch",
+            channel: "key1",
             flags: { W: true, T: true },
           },
         ],
-        buttons: [
+        channels: [
           {
-            id: "b1",
-            label: "Key 1",
-            press: { object: "b1", value: "toggle" },
-            led: "b1",
+            id: "key1",
+            label: "Input 1",
+            keyLabel: "Key 1",
+            parameters: { function: "switch", ledShown: true },
           },
         ],
       },

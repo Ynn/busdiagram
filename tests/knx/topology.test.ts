@@ -6,18 +6,11 @@ import { toV2 } from "../../src/knx/export";
 import { layout, segPos } from "../../src/knx/layout";
 import type { ScenarioError } from "../../src/knx/scenario";
 import { buildScenario } from "../../src/knx/scenario";
+import { keypad } from "./helpers";
 
 type J = Record<string, unknown>;
-const pushButton = (id: string, address: string, ga = "1/1/1"): J => ({
-  id,
-  address,
-  kind: "pushButton",
-  behavior: "pushButton/v1",
-  objects: [
-    { id: "o", ga, dpt: "1.001", port: "input", flags: { W: true, T: true } },
-  ],
-  buttons: [{ id: "b", press: { object: "o", value: "toggle" } }],
-});
+const pushButton = (id: string, address: string, ga = "1/1/1"): J =>
+  keypad(id, address, [{ id: "b", object: "o", ga }]);
 const act = (id: string, address: string, ga = "1/1/1"): J => ({
   id,
   address,

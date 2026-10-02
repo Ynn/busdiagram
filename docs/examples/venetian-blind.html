@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Venetian blind · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -48,11 +48,11 @@
 <ul>
 <li>A long press on Key 1 or Key 2 moves the blind (DPT 1.008 on 2/1/1).</li>
 <li>A short press at rest turns the slats by one step (DPT 1.007 on 2/1/2); during a movement it stops the blind.</li>
-<li>The numeric fields send a position (2/1/3) and a slat angle (2/1/4), both in DPT 5.001: 0 % is open or at the top, 100 % is closed or at the bottom.</li>
+<li>The numeric fields of the visualization panel send a position (2/1/3) and a slat angle (2/1/4), both in DPT 5.001: 0 % is open or at the top, 100 % is closed or at the bottom.</li>
 </ul>
 <p>The actuator has no sensor: it estimates the position and the slat angle from its configured travel and slat rotation times, and reports them on 2/1/5 and 2/1/6 after each stop. Select the actuator to compare the estimate with the actual blind.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Venetian blind: travel and slat angle","description":"A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop.","lines":[{"address":"1.1","name":"Office"}],"groupAddresses":[{"address":"2/1/1","name":"Blind movement","dpt":"1.008"},{"address":"2/1/2","name":"Blind stop / slat step","dpt":"1.007"},{"address":"2/1/3","name":"Blind position","dpt":"5.001"},{"address":"2/1/4","name":"Slat angle","dpt":"5.001"},{"address":"2/1/5","name":"Blind position status","dpt":"5.001"},{"address":"2/1/6","name":"Slat angle status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Blind push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"input","flags":{"W":false,"T":true}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"input","flags":{"W":false,"T":true}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"key1","label":"Key 1 · Up","icon":"up","short":{"object":"stop","value":0},"long":{"object":"move","value":0}},{"id":"key2","label":"Key 2 · Down","icon":"down","short":{"object":"stop","value":1},"long":{"object":"move","value":1}}],"inputs":[{"id":"pos","type":"number","label":"Position (%)","object":"pos","min":0,"max":100,"step":10},{"id":"slat","type":"number","label":"Slats (%)","object":"slat","min":0,"max":100,"step":10}]},{"id":"blindActuator","name":"Blind actuator","address":"1.1.2","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"b1","flags":{"W":true,"T":false}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"b1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"positionCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"slatCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"posStatus","name":"Position status","ga":"2/1/5","dpt":"5.001","port":"positionStatus","channel":"b1","flags":{"W":false,"T":true}},{"id":"slatStatus","name":"Slat angle status","ga":"2/1/6","dpt":"5.001","port":"slatStatus","channel":"b1","flags":{"W":false,"T":true}}],"channels":[{"id":"b1","label":"Blind B1","parameters":{"estimatedTravelTimeMs":20000,"slatTravelMs":2000},"equipment":{"type":"shutter","view":"venetianBlind","parameters":{"actualTravelTimeMs":20000,"slatTravelMs":2000}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Venetian blind: travel and slat angle","description":"A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop.","lines":[{"address":"1.1","name":"Office","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"2/1/1","name":"Blind movement","dpt":"1.008"},{"address":"2/1/2","name":"Blind stop / slat step","dpt":"1.007"},{"address":"2/1/3","name":"Blind position","dpt":"5.001"},{"address":"2/1/4","name":"Slat angle","dpt":"5.001"},{"address":"2/1/5","name":"Blind position status","dpt":"5.001"},{"address":"2/1/6","name":"Slat angle status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Blind push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"key1","flags":{"W":false,"T":true}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"key1","flags":{"W":false,"T":true}},{"id":"move_key2","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"key2","flags":{"W":false,"T":true}},{"id":"stop_key2","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"key2","flags":{"W":false,"T":true}}],"channels":[{"id":"key1","label":"Input 1","keyLabel":"Key 1 · Up","parameters":{"function":"blind","blindMode":"up"},"equipment":null},{"id":"key2","label":"Input 2","keyLabel":"Key 2 · Down","parameters":{"function":"blind","blindMode":"down"},"equipment":null}]},{"id":"blindActuator","name":"Blind actuator","address":"1.1.2","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"move","name":"Movement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"b1","flags":{"W":true,"T":false}},{"id":"stop","name":"Stop / slat step","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"b1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"positionCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"slatCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"posStatus","name":"Position status","ga":"2/1/5","dpt":"5.001","port":"positionStatus","channel":"b1","flags":{"W":false,"T":true}},{"id":"slatStatus","name":"Slat angle status","ga":"2/1/6","dpt":"5.001","port":"slatStatus","channel":"b1","flags":{"W":false,"T":true}}],"channels":[{"id":"b1","label":"Blind B1","parameters":{"estimatedTravelTimeMs":20000,"slatTravelMs":2000},"equipment":{"type":"shutter","view":"venetianBlind","parameters":{"actualTravelTimeMs":20000,"slatTravelMs":2000}}}]},{"id":"panel","name":"Visualization","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"slat","name":"Slat angle","ga":"2/1/4","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"inputs":[{"id":"pos","type":"number","label":"Position (%)","object":"pos","min":0,"max":100,"step":10},{"id":"slat","type":"number","label":"Slats (%)","object":"slat","min":0,"max":100,"step":10}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=venetian-blind" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -60,7 +60,7 @@
   "formatVersion": 2,
   "title": "Venetian blind: travel and slat angle",
   "description": "A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop.",
-  "lines": [{ "address": "1.1", "name": "Office" }],
+  "lines": [{ "address": "1.1", "name": "Office", "powerSupply": { "currentMa": 640 } }],
   "groupAddresses": [
     { "address": "2/1/1", "name": "Blind movement", "dpt": "1.008" },
     { "address": "2/1/2", "name": "Blind stop / slat step", "dpt": "1.007" },
@@ -74,15 +74,16 @@
       "id": "pushButton",
       "name": "Blind push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "move",
           "name": "Movement",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "key1",
           "flags": { "W": false, "T": true }
         },
         {
@@ -90,60 +91,43 @@
           "name": "Stop / slat step",
           "ga": "2/1/2",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "key1",
           "flags": { "W": false, "T": true }
         },
         {
-          "id": "pos",
-          "name": "Position",
-          "ga": "2/1/3",
-          "dpt": "5.001",
-          "port": "input",
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key2",
           "flags": { "W": false, "T": true }
         },
         {
-          "id": "slat",
-          "name": "Slat angle",
-          "ga": "2/1/4",
-          "dpt": "5.001",
-          "port": "input",
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key2",
           "flags": { "W": false, "T": true }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Up",
-          "icon": "up",
-          "short": { "object": "stop", "value": 0 },
-          "long": { "object": "move", "value": 0 }
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": { "function": "blind", "blindMode": "up" },
+          "equipment": null
         },
         {
           "id": "key2",
-          "label": "Key 2 · Down",
-          "icon": "down",
-          "short": { "object": "stop", "value": 1 },
-          "long": { "object": "move", "value": 1 }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "pos",
-          "type": "number",
-          "label": "Position (%)",
-          "object": "pos",
-          "min": 0,
-          "max": 100,
-          "step": 10
-        },
-        {
-          "id": "slat",
-          "type": "number",
-          "label": "Slats (%)",
-          "object": "slat",
-          "min": 0,
-          "max": 100,
-          "step": 10
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": { "function": "blind", "blindMode": "down" },
+          "equipment": null
         }
       ]
     },
@@ -221,6 +205,51 @@
           }
         }
       ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "slat",
+          "name": "Slat angle",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "pos",
+          "type": "number",
+          "label": "Position (%)",
+          "object": "pos",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "slat",
+          "type": "number",
+          "label": "Slats (%)",
+          "object": "slat",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
     }
   ],
   "options": { "speed": 1, "filterTables": false }
@@ -230,7 +259,7 @@
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Venetian blind: travel and slat angle"</span>,
   <span class="k">"description"</span>: <span class="s">"A long press moves the blind; the motor first turns the slats (closed when going down, open when going up), then moves the blind. A short press at rest turns the slats by one step, and a short press during a movement stops it. The numeric fields send a position and a slat angle (DPT 5.001: 0 % open, 100 % closed). The actuator estimates both from its configured times and reports them after each stop."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Office"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Office"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Blind movement"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
     { <span class="k">"address"</span>: <span class="s">"2/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Blind stop / slat step"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
@@ -244,15 +273,16 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Blind push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"objects"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"move"</span>,
           <span class="k">"name"</span>: <span class="s">"Movement"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -260,60 +290,43 @@
           <span class="k">"name"</span>: <span class="s">"Stop / slat step"</span>,
           <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
-          <span class="k">"id"</span>: <span class="s">"pos"</span>,
-          <span class="k">"name"</span>: <span class="s">"Position"</span>,
-          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"id"</span>: <span class="s">"move_key2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Movement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
-          <span class="k">"id"</span>: <span class="s">"slat"</span>,
-          <span class="k">"name"</span>: <span class="s">"Slat angle"</span>,
-          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"id"</span>: <span class="s">"stop_key2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Stop / slat step"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key1"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 1 · Up"</span>,
-          <span class="k">"icon"</span>: <span class="s">"up"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"stop"</span>, <span class="k">"value"</span>: <span class="n">0</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"move"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1 · Up"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"up"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key2"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 2 · Down"</span>,
-          <span class="k">"icon"</span>: <span class="s">"down"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"stop"</span>, <span class="k">"value"</span>: <span class="n">1</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"move"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
-        }
-      ],
-      <span class="k">"inputs"</span>: [
-        {
-          <span class="k">"id"</span>: <span class="s">"pos"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Position (%)"</span>,
-          <span class="k">"object"</span>: <span class="s">"pos"</span>,
-          <span class="k">"min"</span>: <span class="n">0</span>,
-          <span class="k">"max"</span>: <span class="n">100</span>,
-          <span class="k">"step"</span>: <span class="n">10</span>
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"slat"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Slats (%)"</span>,
-          <span class="k">"object"</span>: <span class="s">"slat"</span>,
-          <span class="k">"min"</span>: <span class="n">0</span>,
-          <span class="k">"max"</span>: <span class="n">100</span>,
-          <span class="k">"step"</span>: <span class="n">10</span>
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 2 · Down"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"down"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },
@@ -389,6 +402,51 @@
             <span class="k">"view"</span>: <span class="s">"venetianBlind"</span>,
             <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">20000</span>, <span class="k">"slatTravelMs"</span>: <span class="n">2000</span> }
           }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualization"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"name"</span>: <span class="s">"Slat angle"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Position (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"pos"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Slats (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"slat"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
         }
       ]
     }

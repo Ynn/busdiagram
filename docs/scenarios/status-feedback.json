@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -35,8 +38,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "A toggle key sends the inverse of its object value. Without status feedback, that value only reflects the last value sent or received on its own addresses.",
       "objects": [
         {
@@ -44,7 +47,8 @@
           "name": "Key 1 toggle",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -55,7 +59,8 @@
           "name": "Key 2 group",
           "ga": "1/1/2",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -69,40 +74,41 @@
             "1/4/1"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in3",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": "toggle"
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key1"
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": "toggle"
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key2"
+          "equipment": null
         },
         {
-          "id": "button-2",
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": "toggle"
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key3"
+          "equipment": null
         }
       ]
     },

@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -30,8 +33,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "Key 3 sends a two-bit priority override. Key 4 is a toggle key whose object also listens to status feedback.",
       "objects": [
         {
@@ -39,7 +42,8 @@
           "name": "Key 3 override",
           "ga": "1/5/4",
           "dpt": "2.001",
-          "port": "input",
+          "port": "value",
+          "channel": "key3",
           "flags": {
             "W": false,
             "T": true
@@ -53,35 +57,34 @@
             "1/4/4"
           ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key4",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key3",
-          "label": "Key 3 · Force off",
-          "icon": "off",
-          "short": {
-            "object": "key3",
-            "value": 2
+          "label": "Input 1",
+          "keyLabel": "Key 3 · Force off",
+          "parameters": {
+            "function": "value",
+            "shortValue": 2,
+            "longValue": 0
           },
-          "long": {
-            "object": "key3",
-            "value": 0
-          }
+          "equipment": null
         },
         {
           "id": "key4",
-          "label": "Key 4",
-          "press": {
-            "object": "key4",
-            "value": "toggle"
+          "label": "Input 2",
+          "keyLabel": "Key 4",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "key4"
+          "equipment": null
         }
       ]
     },

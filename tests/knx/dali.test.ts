@@ -136,7 +136,7 @@ describe("DALI gateway", () => {
 
   it("absolute 5.001 value and broadcast", () => {
     const sim = load("dali-gateway.json");
-    sim.input("pushButton", "setpoint", "value", 30);
+    sim.input("panel", "setpoint", "value", 30);
     sim.advance(5000);
     expect(level(sim, "g1")).toBeCloseTo(30, 0);
     expect(sim.journal.some((e) => e.message?.includes("DAPC"))).toBe(true);

@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -40,121 +43,76 @@
       "id": "pushButton",
       "name": "Two-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "on",
           "name": "Key 1 on",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key1"
         },
         {
           "id": "up",
           "name": "Key 1 brighter",
           "ga": "1/2/1",
           "dpt": "3.007",
-          "port": "input",
+          "port": "dim",
           "flags": {
             "W": false,
             "T": true
-          }
+          },
+          "channel": "key1"
         },
         {
           "id": "off",
           "name": "Key 2 off",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key2"
         },
         {
           "id": "down",
           "name": "Key 2 darker",
           "ga": "1/2/1",
           "dpt": "3.007",
-          "port": "input",
+          "port": "dim",
           "flags": {
             "W": false,
             "T": true
-          }
-        },
-        {
-          "id": "level",
-          "name": "Level",
-          "ga": "1/3/1",
-          "dpt": "5.001",
-          "port": "input",
-          "flags": {
-            "W": false,
-            "T": true
-          }
-        },
-        {
-          "id": "levelStatus",
-          "name": "Level status",
-          "ga": "1/5/1",
-          "dpt": "5.001",
-          "port": "display",
-          "flags": {
-            "W": true,
-            "T": false
-          }
+          },
+          "channel": "key2"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Brighter",
-          "icon": "dimUp",
-          "short": {
-            "object": "on",
-            "value": 1
-          },
-          "long": {
-            "object": "up",
-            "value": 9
-          },
-          "release": {
-            "object": "up",
-            "value": 0
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Brighter",
+          "parameters": {
+            "function": "dim",
+            "dimMode": "brighter"
           }
         },
         {
           "id": "key2",
-          "label": "Key 2 · Darker",
-          "icon": "dimDown",
-          "short": {
-            "object": "off",
-            "value": 0
-          },
-          "long": {
-            "object": "down",
-            "value": 1
-          },
-          "release": {
-            "object": "down",
-            "value": 0
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Darker",
+          "parameters": {
+            "function": "dim",
+            "dimMode": "darker"
           }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "level",
-          "type": "number",
-          "label": "Level (%)",
-          "object": "level",
-          "min": 0,
-          "max": 100,
-          "step": 10
         }
       ]
     },
@@ -238,6 +196,52 @@
           }
         }
       ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "levelStatus",
+          "name": "Level status",
+          "ga": "1/5/1",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

@@ -12,7 +12,7 @@ export type Pt = [number, number];
 export const ROW = 38;
 export const CARD_W = 224;
 export const DROP = 42;
-export const PLATE_W = 104;
+export const PLATE_W = 120;
 /** Vertical space between two loads of the same device. */
 const LOAD_STACK_GAP = 6;
 export const KEY_GAP = 12;

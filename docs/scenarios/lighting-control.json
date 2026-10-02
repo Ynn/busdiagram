@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -25,8 +28,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "A four-key push-button: one device, one individual address, and one group object per key.",
       "objects": [
         {
@@ -34,7 +37,8 @@
           "name": "Key 1",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
@@ -45,7 +49,8 @@
           "name": "Key 2",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in2",
           "flags": {
             "W": true,
             "T": true
@@ -56,7 +61,8 @@
           "name": "Key 3",
           "ga": "1/1/2",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in3",
           "flags": {
             "W": true,
             "T": true
@@ -67,45 +73,50 @@
           "name": "Key 4",
           "ga": "1/1/2",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in4",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": 1
-          }
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "onPress": "on"
+          },
+          "equipment": null
         },
         {
-          "id": "button-1",
-          "label": "Key 2",
-          "press": {
-            "object": "key2",
-            "value": 0
-          }
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "onPress": "off"
+          },
+          "equipment": null
         },
         {
-          "id": "button-2",
-          "label": "Key 3",
-          "press": {
-            "object": "key3",
-            "value": 1
-          }
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Key 3",
+          "parameters": {
+            "onPress": "on"
+          },
+          "equipment": null
         },
         {
-          "id": "button-3",
-          "label": "Key 4",
-          "press": {
-            "object": "key4",
-            "value": 0
-          }
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Key 4",
+          "parameters": {
+            "onPress": "off"
+          },
+          "equipment": null
         }
       ]
     },

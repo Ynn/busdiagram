@@ -1,65 +1,22 @@
-// pushButton/v1: keys (press / short / long) and digital inputs of a pusher or sensor.
-// The gesture modifies the local object and then requests its transmission. The toggle reverses the value
-// local object — never the remote state of a lamp.
-import type { BehaviorDefinition } from "../contracts";
+// Simple devices: a display, a device without logic (or visualization panel), and a
+// presence detector. Values typed in the diagram are written to their object and sent.
+import type {
+  BehaviorContext,
+  BehaviorDefinition,
+  InputEvent,
+} from "../contracts";
 
-export const pushButton: BehaviorDefinition<Record<string, never>> = {
-  description:
-    "Push button or sensor: each gesture writes a value into a local object, then transmits it.",
-  parameters: {
-    type: "object",
-    additionalProperties: false,
-    properties: {
-      longPressMs: {
-        title: "Long press duration",
-        unit: "ms",
-        expert: true,
-        type: "integer",
-        minimum: 100,
-        maximum: 10000,
-        default: 500,
-        description:
-          "Press duration that counts as a long press (ms), for keys with short and long actions.",
-      },
-    },
-  },
-  ports: {
-    input: {
-      dpts: "any",
-      channel: "none",
-      title: "Transmission",
-      direction: "out",
-      description: "object sent by a key or input",
-    },
-    display: {
-      dpts: "any",
-      channel: "none",
-      title: "Display",
-      direction: "in",
-      description: "object receiving a value (indicator or feedback)",
-    },
-  },
-  acceptsInputs: true,
-  createState: () => ({}),
-  onInput(ctx, input) {
-    const d = ctx.device;
-    if (input.gesture === "value") {
-      const inp = d.inputs.find((x) => x.id === input.inputId);
-      if (!inp || input.value === undefined) return;
-      ctx.setObject(inp.object, input.value);
-      ctx.transmit(inp.object);
-      return;
-    }
-    if (input.gesture === "down" || input.gesture === "up") return;
-    const b = d.buttons.find((x) => x.id === input.inputId);
-    const action = b?.[input.gesture];
-    if (!action) return;
-    const current = ctx.getObject(action.object);
-    const value = action.value === "toggle" ? (current ? 0 : 1) : action.value;
-    ctx.setObject(action.object, value);
-    ctx.transmit(action.object);
-  },
-};
+/** A value typed in the diagram (numeric input): written to its object, then sent. */
+export function sendTypedValue(
+  ctx: BehaviorContext<unknown>,
+  input: InputEvent,
+) {
+  if (input.gesture !== "value" || input.value === undefined) return;
+  const inp = ctx.device.inputs.find((x) => x.id === input.inputId);
+  if (!inp) return;
+  ctx.setObject(inp.object, input.value);
+  ctx.transmit(inp.object);
+}
 
 export const display: BehaviorDefinition<Record<string, never>> = {
   description:
@@ -75,8 +32,16 @@ export const display: BehaviorDefinition<Record<string, never>> = {
   createState: () => ({}),
 };
 
+/**
+ * Device without logic: it keeps the values of its objects. Values typed in the diagram
+ * (`inputs`) are written to their object and sent, as from a visualization panel.
+ */
 export const passive: BehaviorDefinition<Record<string, never>> = {
-  description: "Device without logic: it only keeps the values of its objects.",
+  description:
+    "Device without logic: it keeps the values of its objects, and sends the values typed in the diagram, as a visualization panel.",
+  acceptsInputs: true,
+  acceptsKeys: false,
+  onInput: sendTypedValue,
   ports: {
     input: {
       dpts: "any",

@@ -2,18 +2,25 @@
 // Staircase timer, end of override, shutter stop/step, and end-stop travel margin.
 import { describe, expect, it } from "vitest";
 import { createSimulator } from "../../src/core";
+import { flags, keypad } from "./helpers";
 
 type J = Record<string, unknown>;
-const key = (id: string, object: string, value: number): J => ({
-  id,
-  press: { object, value },
-});
-const out = (id: string, ga: string, dpt = "1.001"): J => ({
+/** A key that sends a one-bit value when pressed. */
+const sw = (id: string, ga: string, value: number, dpt = "1.001") => ({
   id,
   ga,
   dpt,
-  port: "input",
-  flags: { W: false, T: true },
+  flags: flags(false, true),
+  parameters: { onPress: value ? "on" : "off" },
+});
+/** A key that sends a value when pressed. */
+const val = (id: string, ga: string, value: number, dpt: string) => ({
+  id,
+  ga,
+  dpt,
+  port: "value",
+  flags: flags(false, true),
+  parameters: { function: "value", shortValue: value },
 });
 const lamp = (params: J = {}) =>
   createSimulator({
@@ -21,24 +28,13 @@ const lamp = (params: J = {}) =>
     lines: [{ address: "1.1" }],
     groupAddresses: [],
     devices: [
-      {
-        id: "pushButton",
-        address: "1.1.1",
-        kind: "pushButton",
-        behavior: "pushButton/v1",
-        objects: [
-          out("on", "1/1/1"),
-          out("off", "1/1/2"),
-          out("f", "1/5/1", "2.001"),
-        ],
-        buttons: [
-          key("on", "on", 1),
-          key("off", "off", 0),
-          key("fon", "f", 3),
-          key("foff", "f", 2),
-          key("fend", "f", 0),
-        ],
-      },
+      keypad("pushButton", "1.1.1", [
+        sw("on", "1/1/1", 1),
+        sw("off", "1/1/2", 0),
+        val("fon", "1/5/1", 3, "2.001"),
+        val("foff", "1/5/1", 2, "2.001"),
+        val("fend", "1/5/1", 0, "2.001"),
+      ]),
       {
         id: "a",
         address: "1.1.2",
@@ -160,14 +156,11 @@ const shutter = (params: J) =>
     lines: [{ address: "1.1" }],
     groupAddresses: [],
     devices: [
-      {
-        id: "pushButton",
-        address: "1.1.1",
-        kind: "pushButton",
-        behavior: "pushButton/v1",
-        objects: [out("m", "2/1/1", "1.008"), out("s", "2/2/1", "1.007")],
-        buttons: [key("up", "m", 0), key("down", "m", 1), key("step", "s", 1)],
-      },
+      keypad("pushButton", "1.1.1", [
+        sw("up", "2/1/1", 0, "1.008"),
+        sw("down", "2/1/1", 1, "1.008"),
+        sw("step", "2/2/1", 1, "1.007"),
+      ]),
       {
         id: "shutterActuator",
         address: "1.1.2",
@@ -352,8 +345,8 @@ describe("USB interface tool: writing and reading through the USB interface", ()
         {
           id: "pushButton",
           address: "1.1.1",
-          kind: "pushButton",
-          behavior: "pushButton/v1",
+          kind: "display",
+          behavior: "passive/v1",
           objects: [
             {
               id: "led",

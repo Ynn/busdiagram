@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ScenarioError, buildScenario } from "../../src/knx/scenario";
 import { toV2 } from "../../src/knx/export";
-import { flags, raw, v2 } from "./helpers";
+import { flags, keypad, legacy, raw, v2 } from "./helpers";
 
 function problems(data: unknown) {
   try {
@@ -16,25 +16,21 @@ function problems(data: unknown) {
 const paths = (data: unknown) =>
   problems(data).map((p) => `${p.path} [${p.code}]`);
 
-const pushButton = (extra: Record<string, unknown> = {}) => ({
-  id: "pushButton",
-  name: "BP",
-  address: "1.1.1",
-  kind: "pushButton",
-  behavior: "pushButton/v1",
-  objects: [
-    {
-      id: "b",
-      name: "B",
-      ga: "1/1/1",
-      dpt: "1.001",
-      port: "input",
-      flags: flags(false, true),
-    },
-  ],
-  buttons: [{ id: "b1", press: { object: "b", value: 1 } }],
-  ...extra,
-});
+const pushButton = (extra: Record<string, unknown> = {}) =>
+  keypad(
+    "pushButton",
+    "1.1.1",
+    [
+      {
+        id: "b1",
+        object: "b",
+        ga: "1/1/1",
+        flags: flags(false, true),
+        parameters: { onPress: "on" },
+      },
+    ],
+    extra,
+  );
 
 describe("structured errors instead of uncaught TypeError", () => {
   it("wrong JSON field types", () => {
@@ -142,9 +138,10 @@ describe("structured errors instead of uncaught TypeError", () => {
     expect(
       paths(shutterActuator({ estimatedTravelTimeMs: 1000, bogus: 1 })),
     ).toEqual(["devices[0].channels[0].parameters.bogus [unknown-field]"]);
-    const v1 = raw("timers.json") as {
-      devices: { channels?: { timer?: number }[] }[];
+    const v1 = structuredClone(legacy("timers.json")) as {
+      devices: { buttons?: unknown[]; channels?: { timer?: number }[] }[];
     };
+    v1.devices.forEach((d) => delete d.buttons);
     v1.devices[3]!.channels![0]!.timer = 0;
     expect(paths(v1)).toEqual(["devices[3].channels[0].timer [range]"]);
   });
@@ -205,41 +202,49 @@ describe("structured errors instead of uncaught TypeError", () => {
     ]);
   });
 
-  it("v2 : unknown fields, required flags, press + shorts, toggle on an object 1 byte, input without GA", () => {
-    const d = v2([
-      pushButton({
-        colour: "red",
-        objects: [
-          { id: "b", name: "B", ga: "1/1/1", dpt: "1.001", port: "input" },
-          {
-            id: "p",
-            name: "P",
-            ga: [],
-            dpt: "5.001",
-            port: "input",
-            flags: flags(false, true),
-          },
-        ],
-        buttons: [
-          {
-            id: "b1",
-            press: { object: "b", value: 1 },
-            short: { object: "b", value: 0 },
-          },
-          { id: "b2", press: { object: "p", value: "toggle" } },
-        ],
-        inputs: [
-          { id: "n", type: "number", object: "p", min: 0, max: 100, step: 1 },
-        ],
-      }),
-    ]);
-    expect(paths(d)).toEqual(
+  it("v2: unknown fields, required flags, press + short, toggle on a 2-byte object, keys on a device without keys", () => {
+    const detector = {
+      id: "pir",
+      name: "PIR",
+      address: "1.1.1",
+      kind: "sensor",
+      behavior: "presenceDetector/v1",
+      colour: "red",
+      objects: [
+        { id: "b", name: "B", ga: "1/1/1", dpt: "1.001", port: "input" },
+        {
+          id: "p",
+          name: "P",
+          ga: [],
+          dpt: "9.004",
+          port: "brightness",
+          flags: flags(false, true),
+        },
+      ],
+      buttons: [
+        {
+          id: "b1",
+          press: { object: "b", value: 1 },
+          short: { object: "b", value: 0 },
+        },
+        { id: "b2", press: { object: "p", value: "toggle" } },
+      ],
+    };
+    const panel = {
+      id: "panel",
+      address: "1.1.2",
+      kind: "visualization",
+      behavior: "passive/v1",
+      objects: [],
+      buttons: [{ id: "k", press: { object: "x", value: 1 } }],
+    };
+    expect(paths(v2([detector, panel]))).toEqual(
       expect.arrayContaining([
         "devices[0].colour [unknown-field]",
         "devices[0].objects[0].flags [required]",
         "devices[0].buttons[0] [conflict]",
         "devices[0].buttons[1].press.value [toggle]",
-        "devices[0].inputs[0].object [no-ga]",
+        "devices[1].buttons [incompatible]",
       ]),
     );
   });

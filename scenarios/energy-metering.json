@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Kitchen"
+      "name": "Kitchen",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -85,73 +88,82 @@
       "id": "pushButton",
       "name": "Three-key push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "k1",
           "name": "Oven",
-          "ga": ["5/0/1", "5/1/1"],
+          "ga": [
+            "5/0/1",
+            "5/1/1"
+          ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key1"
         },
         {
           "id": "k2",
           "name": "Water heater",
-          "ga": ["5/0/2", "5/1/2"],
+          "ga": [
+            "5/0/2",
+            "5/1/2"
+          ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key2"
         },
         {
           "id": "k3",
           "name": "Lighting",
-          "ga": ["5/0/3", "5/1/3"],
+          "ga": [
+            "5/0/3",
+            "5/1/3"
+          ],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
           "flags": {
             "W": true,
             "T": true
-          }
+          },
+          "channel": "key3"
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Oven",
-          "icon": "toggle",
-          "press": {
-            "object": "k1",
-            "value": "toggle"
-          },
-          "led": "k1"
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Oven",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         },
         {
           "id": "key2",
-          "label": "Key 2 · Water heater",
-          "icon": "toggle",
-          "press": {
-            "object": "k2",
-            "value": "toggle"
-          },
-          "led": "k2"
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Water heater",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         },
         {
           "id": "key3",
-          "label": "Key 3 · Lighting",
-          "icon": "toggle",
-          "press": {
-            "object": "k3",
-            "value": "toggle"
-          },
-          "led": "k3"
+          "label": "Input 3",
+          "keyLabel": "Key 3 · Lighting",
+          "parameters": {
+            "function": "switch",
+            "ledShown": true
+          }
         }
       ]
     },
@@ -162,8 +174,7 @@
       "kind": "switchActuator",
       "behavior": "switchActuator/v1",
       "parameters": {
-        "powerLimitW": 3500,
-        "meterIntervalMs": 5000
+        "powerLimitW": 3500
       },
       "objects": [
         {
@@ -411,5 +422,9 @@
         }
       ]
     }
-  ]
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

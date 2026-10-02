@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Priority control · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -46,7 +46,7 @@
 <p class="crumb">Examples</p>
 <h1 id="priority-control"><a class="anchor" href="#priority-control">#</a>Priority control</h1><p>A short press on Key 3 forces L4 off with DPT 2.001 value 2; a long press releases the override with value 0. Key 4 continues to send toggle telegrams while the override is active. The actuator stores those commands, but L4 stays off until the override ends. It then applies the last received command according to its <code>afterForcing</code> setting.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Force an output","description":"A short press on Key 3 forces L4 off (DPT 2.001 value 2); a long press releases the override (value 0). While the override is active, Key 4 still sends toggle commands. The actuator stores them, but L4 stays off. When the override ends, L4 applies the last command received.","lines":[{"address":"1.1","name":"Example line"}],"groupAddresses":[{"address":"1/1/4","name":"L4 lighting","dpt":"1.001"},{"address":"1/4/4","name":"L4 status feedback","dpt":"1.001"},{"address":"1/5/4","name":"L4 override","dpt":"2.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","description":"Key 3 sends a two-bit priority override. Key 4 is a toggle key whose object also listens to status feedback.","objects":[{"id":"key3","name":"Key 3 override","ga":"1/5/4","dpt":"2.001","port":"input","flags":{"W":false,"T":true}},{"id":"key4","name":"Key 4 toggle","ga":["1/1/4","1/4/4"],"dpt":"1.001","port":"input","flags":{"W":true,"T":true}}],"buttons":[{"id":"key3","label":"Key 3 · Force off","icon":"off","short":{"object":"key3","value":2},"long":{"object":"key3","value":0}},{"id":"key4","label":"Key 4","press":{"object":"key4","value":"toggle"},"led":"key4"}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"Channel 4 has switching, override, and status objects. Channels 1–3 are unused here.","objects":[{"id":"c4","name":"Channel 4","ga":"1/1/4","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}},{"id":"f4","name":"Override 4","ga":"1/5/4","dpt":"2.001","port":"forced","channel":"s4","flags":{"W":true,"T":false}},{"id":"e4","name":"Status 4","ga":"1/4/4","dpt":"1.001","port":"status","channel":"s4","flags":{"W":false,"T":true}}],"channels":[{"id":"s1","label":"unused","equipment":null},{"id":"s2","label":"unused","equipment":null},{"id":"s3","label":"unused","equipment":null},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Force an output","description":"A short press on Key 3 forces L4 off (DPT 2.001 value 2); a long press releases the override (value 0). While the override is active, Key 4 still sends toggle commands. The actuator stores them, but L4 stays off. When the override ends, L4 applies the last command received.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/4","name":"L4 lighting","dpt":"1.001"},{"address":"1/4/4","name":"L4 status feedback","dpt":"1.001"},{"address":"1/5/4","name":"L4 override","dpt":"2.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Key 3 sends a two-bit priority override. Key 4 is a toggle key whose object also listens to status feedback.","objects":[{"id":"key3","name":"Key 3 override","ga":"1/5/4","dpt":"2.001","port":"value","channel":"key3","flags":{"W":false,"T":true}},{"id":"key4","name":"Key 4 toggle","ga":["1/1/4","1/4/4"],"dpt":"1.001","port":"switch","channel":"key4","flags":{"W":true,"T":true}}],"channels":[{"id":"key3","label":"Input 1","keyLabel":"Key 3 · Force off","parameters":{"function":"value","shortValue":2,"longValue":0},"equipment":null},{"id":"key4","label":"Input 2","keyLabel":"Key 4","parameters":{"ledShown":true},"equipment":null}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"Channel 4 has switching, override, and status objects. Channels 1–3 are unused here.","objects":[{"id":"c4","name":"Channel 4","ga":"1/1/4","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}},{"id":"f4","name":"Override 4","ga":"1/5/4","dpt":"2.001","port":"forced","channel":"s4","flags":{"W":true,"T":false}},{"id":"e4","name":"Status 4","ga":"1/4/4","dpt":"1.001","port":"status","channel":"s4","flags":{"W":false,"T":true}}],"channels":[{"id":"s1","label":"unused","equipment":null},{"id":"s2","label":"unused","equipment":null},{"id":"s3","label":"unused","equipment":null},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=priority-control" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -54,7 +54,7 @@
   "formatVersion": 2,
   "title": "Force an output",
   "description": "A short press on Key 3 forces L4 off (DPT 2.001 value 2); a long press releases the override (value 0). While the override is active, Key 4 still sends toggle commands. The actuator stores them, but L4 stays off. When the override ends, L4 applies the last command received.",
-  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "lines": [{ "address": "1.1", "name": "Example line", "powerSupply": { "currentMa": 640 } }],
   "groupAddresses": [
     { "address": "1/1/4", "name": "L4 lighting", "dpt": "1.001" },
     { "address": "1/4/4", "name": "L4 status feedback", "dpt": "1.001" },
@@ -65,8 +65,8 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "description": "Key 3 sends a two-bit priority override. Key 4 is a toggle key whose object also listens to status feedback.",
       "objects": [
         {
@@ -74,7 +74,8 @@
           "name": "Key 3 override",
           "ga": "1/5/4",
           "dpt": "2.001",
-          "port": "input",
+          "port": "value",
+          "channel": "key3",
           "flags": { "W": false, "T": true }
         },
         {
@@ -82,23 +83,25 @@
           "name": "Key 4 toggle",
           "ga": ["1/1/4", "1/4/4"],
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "key4",
           "flags": { "W": true, "T": true }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key3",
-          "label": "Key 3 · Force off",
-          "icon": "off",
-          "short": { "object": "key3", "value": 2 },
-          "long": { "object": "key3", "value": 0 }
+          "label": "Input 1",
+          "keyLabel": "Key 3 · Force off",
+          "parameters": { "function": "value", "shortValue": 2, "longValue": 0 },
+          "equipment": null
         },
         {
           "id": "key4",
-          "label": "Key 4",
-          "press": { "object": "key4", "value": "toggle" },
-          "led": "key4"
+          "label": "Input 2",
+          "keyLabel": "Key 4",
+          "parameters": { "ledShown": true },
+          "equipment": null
         }
       ]
     },
@@ -153,7 +156,7 @@
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Force an output"</span>,
   <span class="k">"description"</span>: <span class="s">"A short press on Key 3 forces L4 off (DPT 2.001 value 2); a long press releases the override (value 0). While the override is active, Key 4 still sends toggle commands. The actuator stores them, but L4 stays off. When the override ends, L4 applies the last command received."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Example line"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"1/1/4"</span>, <span class="k">"name"</span>: <span class="s">"L4 lighting"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"1/4/4"</span>, <span class="k">"name"</span>: <span class="s">"L4 status feedback"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
@@ -164,8 +167,8 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"description"</span>: <span class="s">"Key 3 sends a two-bit priority override. Key 4 is a toggle key whose object also listens to status feedback."</span>,
       <span class="k">"objects"</span>: [
         {
@@ -173,7 +176,8 @@
           <span class="k">"name"</span>: <span class="s">"Key 3 override"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/5/4"</span>,
           <span class="k">"dpt"</span>: <span class="s">"2.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -181,23 +185,25 @@
           <span class="k">"name"</span>: <span class="s">"Key 4 toggle"</span>,
           <span class="k">"ga"</span>: [<span class="s">"1/1/4"</span>, <span class="s">"1/4/4"</span>],
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key4"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
+      <span class="k">"channels"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"key3"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 3 · Force off"</span>,
-          <span class="k">"icon"</span>: <span class="s">"off"</span>,
-          <span class="k">"short"</span>: { <span class="k">"object"</span>: <span class="s">"key3"</span>, <span class="k">"value"</span>: <span class="n">2</span> },
-          <span class="k">"long"</span>: { <span class="k">"object"</span>: <span class="s">"key3"</span>, <span class="k">"value"</span>: <span class="n">0</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 3 · Force off"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">2</span>, <span class="k">"longValue"</span>: <span class="n">0</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
         {
           <span class="k">"id"</span>: <span class="s">"key4"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 4"</span>,
-          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"key4"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> },
-          <span class="k">"led"</span>: <span class="s">"key4"</span>
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 4"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },

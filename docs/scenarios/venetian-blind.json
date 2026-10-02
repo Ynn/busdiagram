@@ -5,7 +5,10 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Office"
+      "name": "Office",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
   "groupAddresses": [
@@ -45,15 +48,16 @@
       "id": "pushButton",
       "name": "Blind push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "move",
           "name": "Movement",
           "ga": "2/1/1",
           "dpt": "1.008",
-          "port": "input",
+          "port": "move",
+          "channel": "key1",
           "flags": {
             "W": false,
             "T": true
@@ -64,81 +68,58 @@
           "name": "Stop / slat step",
           "ga": "2/1/2",
           "dpt": "1.007",
-          "port": "input",
+          "port": "stopStep",
+          "channel": "key1",
           "flags": {
             "W": false,
             "T": true
           }
         },
         {
-          "id": "pos",
-          "name": "Position",
-          "ga": "2/1/3",
-          "dpt": "5.001",
-          "port": "input",
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key2",
           "flags": {
             "W": false,
             "T": true
           }
         },
         {
-          "id": "slat",
-          "name": "Slat angle",
-          "ga": "2/1/4",
-          "dpt": "5.001",
-          "port": "input",
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key2",
           "flags": {
             "W": false,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "key1",
-          "label": "Key 1 · Up",
-          "icon": "up",
-          "short": {
-            "object": "stop",
-            "value": 0
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
           },
-          "long": {
-            "object": "move",
-            "value": 0
-          }
+          "equipment": null
         },
         {
           "id": "key2",
-          "label": "Key 2 · Down",
-          "icon": "down",
-          "short": {
-            "object": "stop",
-            "value": 1
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
           },
-          "long": {
-            "object": "move",
-            "value": 1
-          }
-        }
-      ],
-      "inputs": [
-        {
-          "id": "pos",
-          "type": "number",
-          "label": "Position (%)",
-          "object": "pos",
-          "min": 0,
-          "max": 100,
-          "step": 10
-        },
-        {
-          "id": "slat",
-          "type": "number",
-          "label": "Slats (%)",
-          "object": "slat",
-          "min": 0,
-          "max": 100,
-          "step": 10
+          "equipment": null
         }
       ]
     },
@@ -238,6 +219,57 @@
               "slatTravelMs": 2000
             }
           }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "slat",
+          "name": "Slat angle",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "pos",
+          "type": "number",
+          "label": "Position (%)",
+          "object": "pos",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "slat",
+          "type": "number",
+          "label": "Slats (%)",
+          "object": "slat",
+          "min": 0,
+          "max": 100,
+          "step": 10
         }
       ]
     }

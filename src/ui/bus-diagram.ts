@@ -547,10 +547,15 @@ export class BusDiagram extends LitElement {
       const real = Math.min(MAX_FRAME_MS, Math.max(0, now - this.last));
       this.last = now;
       const h = this.hold;
-      if (h && h.hasLong && !h.fired && now - h.start >= this.longMs(h.dev)) {
+      if (
+        h &&
+        h.hasLong &&
+        !(h.contact ? h.longFired : h.fired) &&
+        now - h.start >= this.holdMs(h)
+      ) {
         h.fired = true;
         h.longFired = true;
-        this.gesture(h.dev, h.button, "long");
+        this.gesture(h.dev, h.button, h.contact ? "hold" : "long");
       }
       if (!sim.paused) {
         this.acc += real * this.speed;
@@ -582,7 +587,8 @@ export class BusDiagram extends LitElement {
   private gesture(
     dev: string,
     id: string,
-    g: "press" | "short" | "long" | "release" | "value" | "down" | "up",
+    g:
+      "press" | "short" | "long" | "release" | "value" | "down" | "up" | "hold",
     value?: number,
   ) {
     const sim = this.sim;
@@ -614,7 +620,7 @@ export class BusDiagram extends LitElement {
       button: b.id,
       start: performance.now(),
       fired: false,
-      hasLong: !!b.long,
+      hasLong: b.contact ? typeof b.longPressMs === "number" : !!b.long,
       contact: !!b.contact,
       pointerId: e.pointerId,
     };
@@ -651,8 +657,9 @@ export class BusDiagram extends LitElement {
     const h = this.hold;
     if (!h || (h.pointerId !== null && e.pointerId !== h.pointerId)) return;
     this.hold = null;
-    if (h.contact) this.gesture(h.dev, h.button, "up");
-    else if (h.longFired && this.hasRelease(h.dev, h.button))
+    // A contact key releases only after a long press, to stop a dimming or a movement.
+    if (h.contact && h.longFired) this.gesture(h.dev, h.button, "up");
+    else if (!h.contact && h.longFired && this.hasRelease(h.dev, h.button))
       this.gesture(h.dev, h.button, "release");
     else this.requestUpdate();
   }
@@ -699,11 +706,16 @@ export class BusDiagram extends LitElement {
         button: b.id,
         start: performance.now(),
         fired: true,
-        hasLong: false,
+        hasLong: typeof b.longPressMs === "number",
         contact: true,
         pointerId: null,
       };
       this.gesture(d.id, b.id, "down");
+      // Shift+Enter: a long press at once, held until the key is released.
+      if (e.shiftKey && this.hold?.hasLong) {
+        this.hold.longFired = true;
+        this.gesture(d.id, b.id, "hold");
+      }
       return;
     }
     const g = b.press
@@ -1318,7 +1330,7 @@ export class BusDiagram extends LitElement {
     const title = [
       b.label,
       b.contact
-        ? this.tr`contact input: the device measures short and long presses`
+        ? this.tr`contact input: click for a short press, hold for a long press`
         : "",
       act(this.tr`press`, b.press),
       act(this.tr`short press`, b.short),
@@ -1693,14 +1705,27 @@ export class BusDiagram extends LitElement {
     return typeof v === "number" ? v : LONG_MS;
   }
 
+  /** Long-press threshold of a held key: its contact input's own time, or the device's. */
+  private holdMs(h: Hold): number {
+    if (h.contact) {
+      const v = this.model?.devicesById
+        .get(h.dev)
+        ?.buttons.find((b) => b.id === h.button)?.longPressMs;
+      if (typeof v === "number") return v;
+    }
+    return this.longMs(h.dev);
+  }
+
   private renderHold(s: Scenario, g: Geometry) {
     const h = this.hold;
     if (!h || !h.hasLong) return nothing;
     const d = s.devicesById.get(h.dev)!;
     const p = g.devices.get(h.dev)!.plate!;
-    const lp = Math.min(1, (performance.now() - h.start) / this.longMs(h.dev));
+    const lp = Math.min(1, (performance.now() - h.start) / this.holdMs(h));
     const b = d.buttons.find((x) => x.id === h.button)!;
     const ga = d.objects.find((o) => o.id === b.long?.object)?.gas[0];
+    // A contact key is "fired" from its press on; its long press comes later.
+    const long = h.contact ? !!h.longFired : h.fired;
     const x = p.x;
     const y = p.top + p.h + 8;
     return html`<div
@@ -1713,9 +1738,9 @@ export class BusDiagram extends LitElement {
       </div>
       <div
         class="holdtxt"
-        style="left:${x}px;top:${y + 10}px;color:${h.fired ? C.tg : "#9a6a00"}"
+        style="left:${x}px;top:${y + 10}px;color:${long ? C.tg : "#9a6a00"}"
       >
-        ${h.fired ? this.tr`Long press → ${ga}` : this.tr`Hold for a long press…`}
+        ${long ? (ga ? this.tr`Long press → ${ga}` : this.tr`Long press`) : this.tr`Hold for a long press…`}
       </div>`;
   }
 
@@ -2509,6 +2534,7 @@ export class BusDiagram extends LitElement {
       6,
       this.tr,
       tel.service,
+      tel.priority,
     );
     const read = tel.service === "GroupValueRead";
     const fcol = [C.mute, C.bus, C.tg, C.cpl, C.amber, C.mute];

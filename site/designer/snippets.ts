@@ -107,7 +107,7 @@ function ensureBase(input: Doc): Doc {
     ...doc,
     lines: doc.lines?.length
       ? doc.lines
-      : [{ address: "1.1", name: t`Lab kit` }],
+      : [{ address: "1.1", name: t`Lab kit`, powerSupply: { currentMa: 640 } }],
     groupAddresses: doc.groupAddresses ?? [],
     devices: doc.devices ?? [],
   };
@@ -120,64 +120,6 @@ export interface Snippet {
   apply(doc: Doc, ctx?: SnippetContext): Doc;
 }
 
-function pushButton(keys: number): Snippet {
-  return {
-    id: `pushButton${keys}`,
-    get label() {
-      return t`${keys}-key push button`;
-    },
-    get hint() {
-      return t`One object and one group address per key, toggle with LED.`;
-    },
-    apply(input, ctx = {}) {
-      const doc = ensureBase(input);
-      const taken: string[] = [];
-      const gas = Array.from({ length: keys }, () => {
-        const g = freeGa(doc, 1, 1, taken);
-        taken.push(g);
-        return g;
-      });
-      const id = freeId(doc, "pushButton");
-      return {
-        ...doc,
-        groupAddresses: [
-          ...doc.groupAddresses!,
-          ...gas.map((g, i) => ({
-            address: g,
-            name: t`Lighting key ${i + 1}`,
-            dpt: "1.001",
-          })),
-        ],
-        devices: [
-          ...doc.devices!,
-          {
-            id,
-            // The number of keys is a setting (Configuration page), not part of the name.
-            name: t`Push-button`,
-            address: freeAddress(doc, ctx.line),
-            kind: "pushButton",
-            behavior: "pushButton/v1",
-            objects: gas.map((g, i) => ({
-              id: `key${i + 1}`,
-              name: `Key ${i + 1}`,
-              ga: g,
-              dpt: "1.001",
-              port: "input",
-              flags: flags(true, true),
-            })),
-            buttons: gas.map((_, i) => ({
-              id: `key${i + 1}`,
-              label: `Key ${i + 1}`,
-              press: { object: `key${i + 1}`, value: "toggle" },
-              led: `key${i + 1}`,
-            })),
-          },
-        ],
-      };
-    },
-  };
-}
-
 /**
  * Push-button interface: four contact inputs, each switching a new group address by
  * toggling; the function of each input is set on its pages.
@@ -188,26 +130,13 @@ const buttonInterface: Snippet = {
     return t`Push-button interface`;
   },
   get hint() {
-    return t`Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction. The device measures short and long presses.`;
+    return t`Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction.`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const taken: string[] = [];
-    const gas = Array.from({ length: 4 }, () => {
-      const g = freeGa(doc, 1, 1, taken);
-      taken.push(g);
-      return g;
-    });
+    const inputs = [1, 2, 3, 4];
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        ...gas.map((g, i) => ({
-          address: g,
-          name: t`Lighting input ${i + 1}`,
-          dpt: "1.001",
-        })),
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -216,18 +145,18 @@ const buttonInterface: Snippet = {
           address: freeAddress(doc, ctx.line),
           kind: "buttonInterface",
           behavior: "buttonInterface/v1",
-          channels: gas.map((_, i) => ({
-            id: `in${i + 1}`,
-            label: t`Input ${i + 1}`,
+          channels: inputs.map((i) => ({
+            id: `in${i}`,
+            label: t`Input ${i}`,
             parameters: { function: "switch" },
           })),
-          objects: gas.map((g, i) => ({
-            id: `sw${i + 1}`,
-            name: t`Switching ${i + 1}`,
-            ga: g,
+          objects: inputs.map((i) => ({
+            id: `sw${i}`,
+            name: t`Switching ${i}`,
+            ga: [],
             dpt: "1.001",
             port: "switch",
-            channel: `in${i + 1}`,
+            channel: `in${i}`,
             flags: flags(true, true),
           })),
         },
@@ -354,70 +283,6 @@ function dimmer(dali: boolean): Snippet {
   };
 }
 
-/** Two-surface push button: short press switches, long press dims, release stops. */
-const dimPushButton: Snippet = {
-  id: "dimmingPushButton",
-  get label() {
-    return t`Dimming push-button, 2 keys`;
-  },
-  get hint() {
-    return t`Short press: on/off; long press: brighter/darker (3.007), stop on release; two new addresses.`;
-  },
-  apply(input, ctx = {}) {
-    const doc = ensureBase(input);
-    const sw = freeGa(doc, 1, 1);
-    const dim = freeGa(doc, 1, 2);
-    const obj = (id: string, name: string, ga: string, dpt: string) => ({
-      id,
-      name,
-      ga,
-      dpt,
-      port: "input",
-      flags: flags(dpt === "1.001", true),
-    });
-    return {
-      ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: sw, name: t`Lighting switching`, dpt: "1.001" },
-        { address: dim, name: t`Lighting dimming`, dpt: "3.007" },
-      ],
-      devices: [
-        ...doc.devices!,
-        {
-          id: freeId(doc, "dimmingPushButton"),
-          name: t`Dimming push-button`,
-          address: freeAddress(doc, ctx.line),
-          kind: "pushButton",
-          behavior: "pushButton/v1",
-          objects: [
-            obj("on", t`Key 1 on`, sw, "1.001"),
-            obj("up", t`Key 1 brighter`, dim, "3.007"),
-            obj("off", t`Key 2 off`, sw, "1.001"),
-            obj("down", t`Key 2 darker`, dim, "3.007"),
-          ],
-          buttons: [
-            {
-              id: "key1",
-              label: "Key 1 +",
-              short: { object: "on", value: 1 },
-              long: { object: "up", value: 9 },
-              release: { object: "up", value: 0 },
-            },
-            {
-              id: "key2",
-              label: "Key 2 −",
-              short: { object: "off", value: 0 },
-              long: { object: "down", value: 1 },
-              release: { object: "down", value: 0 },
-            },
-          ],
-        },
-      ],
-    };
-  },
-};
-
 /** First room, created on demand ("Room 1") for a sensor or radiator. */
 function withRoom(doc: Doc): { doc: Doc; room: string } {
   const rooms = (Array.isArray(doc.rooms) ? doc.rooms : []) as Json[];
@@ -435,13 +300,10 @@ const thermostat: Snippet = {
     return t`Room thermostat`;
   },
   get hint() {
-    return t`PI control of its room: temperature (9.001) and heating control value (5.001) on new addresses; mode (20.102), window and presence to be linked.`;
+    return t`PI control of its room: temperature (9.001), heating control value (5.001), mode (20.102), window and presence; link its objects to group addresses.`;
   },
   apply(input, ctx = {}) {
     const { doc, room } = withRoom(ensureBase(input));
-    const temp = freeGa(doc, 3, 4);
-    const val = freeGa(doc, 3, 0);
-    const presence = freeGa(doc, 3, 2);
     const o = (
       id: string,
       name: string,
@@ -452,12 +314,6 @@ const thermostat: Snippet = {
     ) => ({ id, name, ga, dpt, port, flags: flags(!out, out) });
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: temp, name: t`Measured temperature`, dpt: "9.001" },
-        { address: val, name: t`Heating control value`, dpt: "5.001" },
-        { address: presence, name: t`Presence`, dpt: "1.018" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -468,32 +324,18 @@ const thermostat: Snippet = {
           behavior: "roomThermostat/v1",
           room,
           objects: [
-            o(
-              "temp",
-              t`Measured temperature`,
-              temp,
-              "9.001",
-              "actualTemp",
-              true,
-            ),
+            o("temp", t`Measured temperature`, [], "9.001", "actualTemp", true),
             o("base", t`Base setpoint`, [], "9.001", "baseSetpoint", false),
             o("mode", t`Mode (preset)`, [], "20.102", "hvacMode", false),
             {
-              ...o(
-                "presence",
-                t`Presence`,
-                presence,
-                "1.018",
-                "presence",
-                false,
-              ),
+              ...o("presence", t`Presence`, [], "1.018", "presence", false),
               flags: flags(true, true),
             },
             o("win", t`Window`, [], "1.019", "window", false),
             o(
               "val",
               t`Heating control value`,
-              val,
+              [],
               "5.001",
               "heatingValue",
               true,
@@ -574,17 +416,12 @@ const windowContact: Snippet = {
     return t`Window contact`;
   },
   get hint() {
-    return t`Sends its room's window opening (1.019) on a new address, to be linked to the thermostat's “Window” object.`;
+    return t`Sends its room's window opening (1.019); link it to the address of the thermostat's “Window” object.`;
   },
   apply(input, ctx = {}) {
     const { doc, room } = withRoom(ensureBase(input));
-    const g = freeGa(doc, 3, 3);
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: g, name: t`Window`, dpt: "1.019" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -598,7 +435,7 @@ const windowContact: Snippet = {
             {
               id: "c",
               name: t`Window`,
-              ga: g,
+              ga: [],
               dpt: "1.019",
               port: "contact",
               flags: flags(false, true),
@@ -617,17 +454,12 @@ const temperatureSensor: Snippet = {
     return t`Temperature sensor`;
   },
   get hint() {
-    return t`Sends its room's temperature (9.001) on a new address, to link for instance to a thermostat's “External temperature” object.`;
+    return t`Sends its room's temperature (9.001); link it for instance to the address of a thermostat's “External temperature” object.`;
   },
   apply(input, ctx = {}) {
     const { doc, room } = withRoom(ensureBase(input));
-    const g = freeGa(doc, 3, 4);
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: g, name: t`Temperature`, dpt: "9.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -641,7 +473,7 @@ const temperatureSensor: Snippet = {
             {
               id: "t",
               name: t`Temperature`,
-              ga: g,
+              ga: [],
               dpt: "9.001",
               port: "temperature",
               flags: flags(false, true),
@@ -660,25 +492,12 @@ const energyMeter: Snippet = {
     return t`Energy meter`;
   },
   get hint() {
-    return t`Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010) on new addresses; the measured power is entered on the device.`;
+    return t`Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010); the measured power is entered on the device.`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const gp = freeGa(doc, 9, 0);
-    const withPower = {
-      ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: gp, name: t`Power`, dpt: "14.056" },
-      ],
-    };
-    const ge = freeGa(withPower, 9, 1);
     return {
-      ...withPower,
-      groupAddresses: [
-        ...withPower.groupAddresses,
-        { address: ge, name: t`Energy`, dpt: "13.010" },
-      ],
+      ...doc,
       devices: [
         ...doc.devices!,
         {
@@ -691,7 +510,7 @@ const energyMeter: Snippet = {
             {
               id: "p1",
               name: t`Power`,
-              ga: gp,
+              ga: [],
               dpt: "14.056",
               port: "power",
               channel: "c1",
@@ -700,7 +519,7 @@ const energyMeter: Snippet = {
             {
               id: "e1",
               name: t`Energy`,
-              ga: ge,
+              ga: [],
               dpt: "13.010",
               port: "energy",
               channel: "c1",
@@ -738,21 +557,8 @@ const systemGateway: Snippet = {
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const gv = freeGa(doc, 3, 1);
-    const withValue = {
-      ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: gv, name: t`Value from the other system`, dpt: "9.001" },
-      ],
-    };
-    const gc = freeGa(withValue, 3, 2);
     return {
-      ...withValue,
-      groupAddresses: [
-        ...withValue.groupAddresses,
-        { address: gc, name: t`Command to the other system`, dpt: "1.001" },
-      ],
+      ...doc,
       devices: [
         ...doc.devices!,
         {
@@ -766,7 +572,7 @@ const systemGateway: Snippet = {
             {
               id: "v1",
               name: t`Value from the other system`,
-              ga: gv,
+              ga: [],
               dpt: "9.001",
               port: "value",
               flags: flags(false, true),
@@ -774,7 +580,7 @@ const systemGateway: Snippet = {
             {
               id: "c1",
               name: t`Command to the other system`,
-              ga: gc,
+              ga: [],
               dpt: "1.001",
               port: "command",
               flags: flags(true, false),
@@ -804,26 +610,12 @@ const weatherStation: Snippet = {
     return t`Weather station`;
   },
   get hint() {
-    return t`Wind speed (9.005) and brightness (9.004) entered on the device, wind alarm (1.005) and sun protection (1.001) outputs on four new addresses.`;
+    return t`Wind speed (9.005) and brightness (9.004) entered on the device, wind alarm (1.005) and sun protection (1.001) outputs.`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const taken: string[] = [];
-    const ga = () => {
-      const g = freeGa(doc, 4, 1, taken);
-      taken.push(g);
-      return g;
-    };
-    const [wind, lux, alarm, sun] = [ga(), ga(), ga(), ga()];
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: wind, name: t`Wind speed`, dpt: "9.005" },
-        { address: lux, name: t`Brightness`, dpt: "9.004" },
-        { address: alarm, name: t`Wind alarm`, dpt: "1.005" },
-        { address: sun, name: t`Sun protection`, dpt: "1.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -836,7 +628,7 @@ const weatherStation: Snippet = {
             {
               id: "wind",
               name: t`Wind speed`,
-              ga: wind,
+              ga: [],
               dpt: "9.005",
               port: "wind",
               flags: flags(false, true),
@@ -844,7 +636,7 @@ const weatherStation: Snippet = {
             {
               id: "brightness",
               name: t`Brightness`,
-              ga: lux,
+              ga: [],
               dpt: "9.004",
               port: "brightness",
               flags: flags(false, true),
@@ -852,7 +644,7 @@ const weatherStation: Snippet = {
             {
               id: "windAlarm",
               name: t`Wind alarm`,
-              ga: alarm,
+              ga: [],
               dpt: "1.005",
               port: "windAlarm",
               flags: flags(false, true),
@@ -860,7 +652,7 @@ const weatherStation: Snippet = {
             {
               id: "sun",
               name: t`Sun protection`,
-              ga: sun,
+              ga: [],
               dpt: "1.001",
               port: "sunProtection",
               flags: flags(false, true),
@@ -899,41 +691,20 @@ const airQualitySensor: Snippet = {
     return t`Air quality sensor`;
   },
   get hint() {
-    return t`Temperature (9.001), humidity (9.007), and CO₂ (9.008) entered on the device; CO₂ alarm (1.005) and ventilation control value (5.001) on new addresses.`;
+    return t`Temperature (9.001), humidity (9.007), and CO₂ (9.008) entered on the device; CO₂ alarm (1.005) and ventilation control value (5.001).`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const taken: string[] = [];
-    const ga = () => {
-      const g = freeGa(doc, 4, 3, taken);
-      taken.push(g);
-      return g;
-    };
-    const [temp, hum, co2, alarm, vent] = [ga(), ga(), ga(), ga(), ga()];
-    const obj = (
-      id: string,
-      name: string,
-      g: string,
-      dpt: string,
-      port: string,
-    ) => ({
+    const obj = (id: string, name: string, dpt: string, port: string) => ({
       id,
       name,
-      ga: g,
+      ga: [],
       dpt,
       port,
       flags: flags(false, true),
     });
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: temp, name: t`Temperature`, dpt: "9.001" },
-        { address: hum, name: t`Relative humidity`, dpt: "9.007" },
-        { address: co2, name: t`CO₂`, dpt: "9.008" },
-        { address: alarm, name: t`CO₂ alarm`, dpt: "1.005" },
-        { address: vent, name: t`Ventilation control value`, dpt: "5.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -943,17 +714,11 @@ const airQualitySensor: Snippet = {
           kind: "sensor",
           behavior: "airQualitySensor/v1",
           objects: [
-            obj("temp", t`Temperature`, temp, "9.001", "temperature"),
-            obj("hum", t`Relative humidity`, hum, "9.007", "humidity"),
-            obj("co2", t`CO₂`, co2, "9.008", "co2"),
-            obj("co2Alarm", t`CO₂ alarm`, alarm, "1.005", "co2Alarm"),
-            obj(
-              "vent",
-              t`Ventilation control value`,
-              vent,
-              "5.001",
-              "ventilation",
-            ),
+            obj("temp", t`Temperature`, "9.001", "temperature"),
+            obj("hum", t`Relative humidity`, "9.007", "humidity"),
+            obj("co2", t`CO₂`, "9.008", "co2"),
+            obj("co2Alarm", t`CO₂ alarm`, "1.005", "co2Alarm"),
+            obj("vent", t`Ventilation control value`, "5.001", "ventilation"),
           ],
           inputs: [
             {
@@ -1000,21 +765,14 @@ const clockMaster: Snippet = {
     return t`Clock master`;
   },
   get hint() {
-    return t`Sends the time (10.001) and the date (11.001) of the simulated clock on two new addresses; adds a clock to the scenario if it has none.`;
+    return t`Sends the time (10.001) and the date (11.001) of the simulated clock; adds a clock to the scenario if it has none.`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const time = freeGa(doc, 6, 0);
-    const date = freeGa(doc, 6, 0, [time]);
     const flagsR = { W: false, T: true, R: true };
     return {
       ...doc,
       clock: doc.clock ?? { ...DEFAULT_CLOCK },
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: time, name: t`Time of day`, dpt: "10.001" },
-        { address: date, name: t`Date`, dpt: "11.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -1027,7 +785,7 @@ const clockMaster: Snippet = {
             {
               id: "time",
               name: t`Time of day`,
-              ga: time,
+              ga: [],
               dpt: "10.001",
               port: "time",
               flags: flagsR,
@@ -1035,7 +793,7 @@ const clockMaster: Snippet = {
             {
               id: "date",
               name: t`Date`,
-              ga: date,
+              ga: [],
               dpt: "11.001",
               port: "date",
               flags: flagsR,
@@ -1054,18 +812,13 @@ const timeSwitchSnippet: Snippet = {
     return t`Weekly time switch`;
   },
   get hint() {
-    return t`Sends 1 at 07:00 and 0 at 22:00 every day on a new address; edit the program and link the output.`;
+    return t`Sends 1 at 07:00 and 0 at 22:00 every day; edit the program and link the output.`;
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const out = freeGa(doc, 6, 1);
     return {
       ...doc,
       clock: doc.clock ?? { ...DEFAULT_CLOCK },
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: out, name: t`Programmed output`, dpt: "1.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -1079,7 +832,7 @@ const timeSwitchSnippet: Snippet = {
             {
               id: "out",
               name: t`Programmed output`,
-              ga: out,
+              ga: [],
               dpt: "1.001",
               port: "output",
               flags: flags(false, true),
@@ -1102,21 +855,8 @@ const logicModule: Snippet = {
   },
   apply(input, ctx = {}) {
     const doc = ensureBase(input);
-    const taken: string[] = [];
-    const ga = () => {
-      const g = freeGa(doc, 5, 1, taken);
-      taken.push(g);
-      return g;
-    };
-    const [a, b, out] = [ga(), ga(), ga()];
     return {
       ...doc,
-      groupAddresses: [
-        ...doc.groupAddresses!,
-        { address: a, name: t`Logic input 1`, dpt: "1.001" },
-        { address: b, name: t`Logic input 2`, dpt: "1.001" },
-        { address: out, name: t`Logic output`, dpt: "1.001" },
-      ],
       devices: [
         ...doc.devices!,
         {
@@ -1130,7 +870,7 @@ const logicModule: Snippet = {
             {
               id: "in1",
               name: t`Logic input 1`,
-              ga: a,
+              ga: [],
               dpt: "1.001",
               port: "logicIn",
               flags: flags(true, false),
@@ -1138,7 +878,7 @@ const logicModule: Snippet = {
             {
               id: "in2",
               name: t`Logic input 2`,
-              ga: b,
+              ga: [],
               dpt: "1.001",
               port: "logicIn",
               flags: flags(true, false),
@@ -1146,7 +886,7 @@ const logicModule: Snippet = {
             {
               id: "out",
               name: t`Logic output`,
-              ga: out,
+              ga: [],
               dpt: "1.001",
               port: "logicOut",
               flags: flags(false, true),
@@ -1159,10 +899,7 @@ const logicModule: Snippet = {
 };
 
 export const SNIPPETS: Snippet[] = [
-  pushButton(2),
-  pushButton(4),
   buttonInterface,
-  dimPushButton,
   switchActuator(4),
   switchActuator(6),
   dimmer(false),
@@ -1184,26 +921,12 @@ export const SNIPPETS: Snippet[] = [
       return t`Shutter actuator`;
     },
     get hint() {
-      return t`Up/down, stop/step, setpoint and position feedback on four new addresses.`;
+      return t`Up/down, stop/step, setpoint and position feedback; link them to group addresses.`;
     },
     apply(input, ctx = {}) {
       const doc = ensureBase(input);
-      const taken: string[] = [];
-      const ga = () => {
-        const g = freeGa(doc, 2, 1, taken);
-        taken.push(g);
-        return g;
-      };
-      const [move, stop, target, status] = [ga(), ga(), ga(), ga()];
       return {
         ...doc,
-        groupAddresses: [
-          ...doc.groupAddresses!,
-          { address: move, name: t`Shutter up/down`, dpt: "1.008" },
-          { address: stop, name: t`Shutter stop/step`, dpt: "1.007" },
-          { address: target, name: "Shutter setpoint", dpt: "5.001" },
-          { address: status, name: "Shutter position", dpt: "5.001" },
-        ],
         devices: [
           ...doc.devices!,
           {
@@ -1216,7 +939,7 @@ export const SNIPPETS: Snippet[] = [
               {
                 id: "move",
                 name: t`Up/down`,
-                ga: move,
+                ga: [],
                 dpt: "1.008",
                 port: "move",
                 channel: "s1",
@@ -1225,7 +948,7 @@ export const SNIPPETS: Snippet[] = [
               {
                 id: "stop",
                 name: t`Stop/step`,
-                ga: stop,
+                ga: [],
                 dpt: "1.007",
                 port: "stopStep",
                 channel: "s1",
@@ -1234,7 +957,7 @@ export const SNIPPETS: Snippet[] = [
               {
                 id: "target",
                 name: t`Requested position`,
-                ga: target,
+                ga: [],
                 dpt: "5.001",
                 port: "positionCommand",
                 channel: "s1",
@@ -1243,7 +966,7 @@ export const SNIPPETS: Snippet[] = [
               {
                 id: "status",
                 name: t`Estimated position`,
-                ga: status,
+                ga: [],
                 dpt: "5.001",
                 port: "positionStatus",
                 channel: "s1",
@@ -1272,17 +995,12 @@ export const SNIPPETS: Snippet[] = [
       return t`Presence detector`;
     },
     get hint() {
-      return t`A “Passage” key: 1 on detection, 0 after the hold time (10 s), on a new address.`;
+      return t`A “Passage” key: 1 on detection, 0 after the hold time (10 s).`;
     },
     apply(input, ctx = {}) {
       const doc = ensureBase(input);
-      const g = freeGa(doc);
       return {
         ...doc,
-        groupAddresses: [
-          ...doc.groupAddresses!,
-          { address: g, name: t`Presence`, dpt: "1.001" },
-        ],
         devices: [
           ...doc.devices!,
           {
@@ -1295,7 +1013,7 @@ export const SNIPPETS: Snippet[] = [
               {
                 id: "p",
                 name: t`Presence`,
-                ga: g,
+                ga: [],
                 dpt: "1.001",
                 port: "input",
                 flags: flags(false, true),
@@ -1399,10 +1117,6 @@ export const SNIPPETS: Snippet[] = [
       const doc = ensureBase(input);
       return {
         ...doc,
-        groupAddresses: [
-          ...doc.groupAddresses!,
-          { address: freeGa(doc), name: t`New function`, dpt: "1.001" },
-        ],
       };
     },
   },
@@ -1426,7 +1140,11 @@ export const SNIPPETS: Snippet[] = [
         ...doc,
         lines: [
           ...doc.lines!,
-          { address: `${area}.${n}`, name: t`Line ${area}.${n}` },
+          {
+            address: `${area}.${n}`,
+            name: t`Line ${area}.${n}`,
+            powerSupply: { currentMa: 640 },
+          },
         ],
       };
     },

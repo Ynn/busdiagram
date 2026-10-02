@@ -124,13 +124,11 @@ function listTarget(host: Host, doc: Doc, p: Panel) {
   return null;
 }
 
-/** One flag of an object, as a check box (W, T, R, U); C is always active. */
-const flagCell = (
-  host: Host,
-  d: Dev,
-  o: Dev["objects"][number],
-  f: "W" | "T" | "R" | "U",
-) =>
+/** Flags of a group object, in the usual order of the object tables. */
+const FLAGS: readonly E.Flag[] = ["C", "R", "W", "T", "U", "I"];
+
+/** One flag of an object, as a check box. */
+const flagCell = (host: Host, d: Dev, o: Dev["objects"][number], f: E.Flag) =>
   html`<td class="w-flag">
     <input
       type="checkbox"
@@ -149,28 +147,21 @@ const flagCell = (
     />
   </td>`;
 
-/** Columns of the five flags; W, T, R, and U can be changed. */
+/** Columns of the six flags, in the usual order. */
 function flagColumns<R>(
   host: Host,
   of: (r: R) => [Dev, Dev["objects"][number]],
 ): Column<R>[] {
   const titles = {
+    C: t`Communication`,
+    R: t`Read`,
     W: t`Write`,
     T: t`Transmit`,
-    R: t`Read`,
     U: t`Update`,
+    I: t`Read on initialisation`,
   };
   return [
-    {
-      id: "C",
-      label: "C",
-      title: t`Communication (always active)`,
-      td: () =>
-        html`<td class="w-flag">
-          <input type="checkbox" checked disabled aria-label="C" />
-        </td>`,
-    },
-    ...(["W", "T", "R", "U"] as const).map((f): Column<R> => ({
+    ...FLAGS.map((f): Column<R> => ({
       id: f,
       label: f,
       title: titles[f],
@@ -408,22 +399,44 @@ function objectProperties(host: Host, d: Dev, o: Dev["objects"][number]) {
     </p>
     <table class="w-table w-flags">
       <tr>
-        <th>C</th>
-        <th>W</th>
-        <th>T</th>
-        <th>R</th>
-        <th>U</th>
+        ${FLAGS.map((f) => html`<th>${f}</th>`)}
       </tr>
       <tr>
-        <td class="w-flag">
-          <input type="checkbox" checked disabled aria-label="C" />
-        </td>
-        ${(["W", "T", "R", "U"] as const).map((f) => flagCell(host, d, o, f))}
+        ${FLAGS.map((f) => flagCell(host, d, o, f))}
       </tr>
     </table>
     <p class="g-hint">
-      ${t`W: accepts received writes · T: can send · R: answers reads, on its sending address · U: a received response updates it. C (communication) is always active.`}
+      ${t`C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts again after a bus voltage failure.`}
     </p>
+    <label class="g-field narrow"
+      ><span>${t`Priority`}</span>
+      <select
+        aria-label=${t`Priority`}
+        @change=${(e: Event) =>
+          host.run(t`Priority`, (x) =>
+            E.setObjectPriority(
+              x,
+              d.id,
+              o.id,
+              (e.target as HTMLSelectElement).value as
+                "low" | "normal" | "urgent",
+            ),
+          )}
+      >
+        ${(
+          [
+            ["low", t`Low`],
+            ["normal", t`Normal`],
+            ["urgent", t`Urgent`],
+          ] as const
+        ).map(
+          ([v, l]) =>
+            html`<option value=${v} ?selected=${(o.priority ?? "low") === v}>
+              ${l}
+            </option>`,
+        )}
+      </select></label
+    >
   </div>`;
 }
 

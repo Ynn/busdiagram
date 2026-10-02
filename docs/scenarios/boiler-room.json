@@ -63,15 +63,28 @@
       "id": "keys",
       "name": "Plant room keys",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "mode",
           "name": "Heating mode",
           "ga": "3/2/0",
           "dpt": "20.102",
-          "port": "input",
+          "port": "value",
+          "channel": "comfort",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "mode_economy",
+          "name": "Heating mode",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "value",
+          "channel": "economy",
           "flags": {
             "W": false,
             "T": true
@@ -82,38 +95,43 @@
           "name": "Hot-water boost",
           "ga": "3/2/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "boostKey",
           "flags": {
             "W": false,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
           "id": "comfort",
-          "label": "Comfort",
-          "press": {
-            "object": "mode",
-            "value": 1
-          }
+          "label": "Input 1",
+          "keyLabel": "Comfort",
+          "parameters": {
+            "function": "value",
+            "shortValue": 1
+          },
+          "equipment": null
         },
         {
           "id": "economy",
-          "label": "Economy",
-          "press": {
-            "object": "mode",
-            "value": 3
-          }
+          "label": "Input 2",
+          "keyLabel": "Economy",
+          "parameters": {
+            "function": "value",
+            "shortValue": 3
+          },
+          "equipment": null
         },
         {
           "id": "boostKey",
-          "label": "Hot-water boost",
-          "press": {
-            "object": "boost",
-            "value": "toggle"
+          "label": "Input 3",
+          "keyLabel": "Hot-water boost",
+          "parameters": {
+            "ledShown": true
           },
-          "led": "boost"
+          "equipment": null
         }
       ]
     },

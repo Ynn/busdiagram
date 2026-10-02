@@ -135,8 +135,24 @@ export class GuidedEditor extends LitElement implements Host {
   }
 
   run(label: string, mutate: Mutate): boolean {
-    const refusal = this.commit(label, mutate);
+    // A link that mixes DPTs of the same size but different meaning is accepted (a
+    // parameterization error can be an exercise) and pointed out at once.
+    let mixed: [string, string[]][] = [];
+    const refusal = this.commit(label, (d) => {
+      const before = E.dptMixes(d);
+      const out = mutate(d);
+      mixed = [...E.dptMixes(d)].filter(
+        ([ga, dpts]) => (before.get(ga)?.length ?? 0) < dpts.length,
+      );
+      return out;
+    });
     this.alert = refusal;
+    if (!refusal && mixed.length) {
+      const [ga, dpts] = mixed[0]!;
+      this.announce(
+        t`${ga} now links DPTs ${dpts.join(", ")}: same size, but different meanings; each receiver reads the bytes with its own DPT.`,
+      );
+    }
     return !refusal;
   }
 
@@ -1091,10 +1107,7 @@ export class GuidedEditor extends LitElement implements Host {
 
   typeLabel(d: Dev): string {
     const n = (d.channels ?? []).length;
-    const k = (d.buttons ?? []).length;
     switch (d.behavior) {
-      case "pushButton/v1":
-        return k === 1 ? t`Push-button · 1 key` : t`Push-button · ${k} keys`;
       case "switchActuator/v1":
         return n === 1
           ? t`Switch actuator · 1 output`

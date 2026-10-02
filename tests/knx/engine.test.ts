@@ -3,8 +3,10 @@ import { describe, expect, it } from "vitest";
 import { cardHeight, layout } from "../../src/knx/layout";
 import { buildTopology } from "../../src/knx/network";
 import { buildScenario } from "../../src/knx/scenario";
+import type { ScenarioError } from "../../src/knx/scenario";
 import {
   LEGACY,
+  legacy,
   activeScenarios,
   estPos,
   lampOn,
@@ -44,25 +46,32 @@ describe("scenarios provided", () => {
   );
 });
 
-describe("compatibility of the six unchanged v1 scenarios", () => {
+describe("compatibility of the six v1 scenarios", () => {
+  type V1 = {
+    devices: {
+      address?: string;
+      objects: { ga: string | string[] }[];
+      buttons?: unknown[];
+      channels?: unknown[];
+    }[];
+  };
+  // Keys of format 1 used the former push-button behavior: without them, the files load.
+  const withoutKeys = (f: string) => {
+    const json = structuredClone(legacy(f)) as V1;
+    json.devices.forEach((d) => delete d.buttons);
+    return json;
+  };
+
   it.each(LEGACY)(
-    "%s: same devices, gestures, and associations; one address per device",
+    "%s: same devices and associations without keys; one address per device",
     (f) => {
-      const json = raw(f) as {
-        devices: {
-          address?: string;
-          objects: { ga: string | string[] }[];
-          buttons?: unknown[];
-          channels?: unknown[];
-        }[];
-      };
+      const json = withoutKeys(f);
       const s = buildScenario(json);
       expect(s.formatVersion).toBe(1);
       expect(s.devices).toHaveLength(json.devices.length);
       json.devices.forEach((d, i) => {
         const m = s.devices[i]!;
         expect(m.address).toBe(d.address ?? "");
-        expect(m.buttons).toHaveLength(d.buttons?.length ?? 0);
         expect(m.channels).toHaveLength(d.channels?.length ?? 0);
         expect(m.objects.map((o) => o.gas)).toEqual(
           d.objects.map((o) =>
@@ -78,16 +87,16 @@ describe("compatibility of the six unchanged v1 scenarios", () => {
     },
   );
 
-  it("v1 key identifiers are deterministic and index call is retained", () => {
-    const sim = load("lighting-control.json");
-    const d = sim.scenario.devicesById.get("pushButton")!;
-    expect(d.buttons.map((b) => b.id)).toEqual([
-      "button-0",
-      "button-1",
-      "button-2",
-      "button-3",
-    ]);
-    expect(sim.press("pushButton", 2, "press")?.ga).toBe("1/1/2");
+  it("keys of format 1 are refused with a conversion hint", () => {
+    try {
+      buildScenario(legacy("lighting-control.json"));
+      expect.unreachable();
+    } catch (e) {
+      expect((e as ScenarioError).details.map((d) => d.code)).toContain(
+        "removed",
+      );
+      expect(String((e as Error).message)).toContain("buttonInterface/v1");
+    }
   });
 
   it("v1: travel and timer are converted to milliseconds, roles to ports", () => {

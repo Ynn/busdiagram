@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tunable white · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1">
-<script src="../assets/bus-diagram.js?v=0.3.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.57dacd6.modified.930b2395">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1"></script>
-<script defer src="../assets/docs.js?v=0.3.1" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.57dacd6.modified.930b2395" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -44,10 +44,10 @@
 </aside>
 <main>
 <p class="crumb">Examples</p>
-<h1 id="tunable-white"><a class="anchor" href="#tunable-white">#</a>Tunable white</h1><p>A tunable white light has two settings: its level (DPT 5.001) and its colour temperature in kelvin (DPT 7.600). Keys 1 to 3 send 2700 K (warm), 4000 K (neutral), and 6500 K (cold) on 1/6/1; the numeric fields send any level or colour temperature.</p>
+<h1 id="tunable-white"><a class="anchor" href="#tunable-white">#</a>Tunable white</h1><p>A tunable white light has two settings: its level (DPT 5.001) and its colour temperature in kelvin (DPT 7.600). Keys 1 to 3 send 2700 K (warm), 4000 K (neutral), and 6500 K (cold) on 1/6/1; the numeric fields of the visualization panel send any level or colour temperature.</p>
 <p>The actuator limits the colour temperature to the range of its channel, here 2700–6500 K, and reports the applied value on 1/6/2. Enter 7000 K to see the limitation in the event log. The lamp shows the level and the colour temperature.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Tunable white: level and colour temperature","description":"A dimming actuator drives a tunable white light. Keys 1 to 3 send a colour temperature with DPT 7.600 (2700 K warm, 4000 K neutral, 6500 K cold); the numeric fields send a level (DPT 5.001) and any colour temperature. Requests outside the 2700–6500 K range of the channel are limited to it, and the actuator reports the applied value.","lines":[{"address":"1.1","name":"Office"}],"groupAddresses":[{"address":"1/1/1","name":"Ceiling light switch","dpt":"1.001"},{"address":"1/3/1","name":"Ceiling light level","dpt":"5.001"},{"address":"1/6/1","name":"Ceiling light colour temperature","dpt":"7.600"},{"address":"1/6/2","name":"Colour temperature status","dpt":"7.600"},{"address":"1/5/1","name":"Level status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"pushButton","behavior":"pushButton/v1","objects":[{"id":"warm","name":"Warm white","ga":"1/6/1","dpt":"7.600","port":"input","flags":{"W":false,"T":true}},{"id":"neutral","name":"Neutral white","ga":"1/6/1","dpt":"7.600","port":"input","flags":{"W":false,"T":true}},{"id":"cold","name":"Cold white","ga":"1/6/1","dpt":"7.600","port":"input","flags":{"W":false,"T":true}},{"id":"onoff","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"input","flags":{"W":true,"T":true}},{"id":"level","name":"Level","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"colour","name":"Colour temperature","ga":"1/6/1","dpt":"7.600","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"warm","label":"Key 1 · 2700 K","press":{"object":"warm","value":2700}},{"id":"neutral","label":"Key 2 · 4000 K","press":{"object":"neutral","value":4000}},{"id":"cold","label":"Key 3 · 6500 K","press":{"object":"cold","value":6500}},{"id":"onoff","label":"Key 4 · On/off","press":{"object":"onoff","value":"toggle"},"led":"onoff"}],"inputs":[{"id":"level","type":"number","label":"Level (%)","object":"level","min":0,"max":100,"step":10},{"id":"colour","type":"number","label":"Colour (K)","object":"colour","min":2000,"max":7000,"step":100}]},{"id":"dimmer","name":"Tunable white actuator","address":"1.1.2","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"switch","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"value","name":"Level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"d1","flags":{"W":true,"T":false}},{"id":"colour","name":"Colour temperature","ga":"1/6/1","dpt":"7.600","port":"colourTemperature","channel":"d1","flags":{"W":true,"T":false}},{"id":"colourStatus","name":"Colour temperature status","ga":"1/6/2","dpt":"7.600","port":"colourTemperatureStatus","channel":"d1","flags":{"W":false,"T":true}},{"id":"valueStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"d1","flags":{"W":false,"T":true}}],"channels":[{"id":"d1","label":"Ceiling","parameters":{"valueFadeMs":1500},"initialState":{"levelPct":80},"equipment":{"type":"dimmableLamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Tunable white: level and colour temperature","description":"A dimming actuator drives a tunable white light. Keys 1 to 3 send a colour temperature with DPT 7.600 (2700 K warm, 4000 K neutral, 6500 K cold); the numeric fields send a level (DPT 5.001) and any colour temperature. Requests outside the 2700–6500 K range of the channel are limited to it, and the actuator reports the applied value.","lines":[{"address":"1.1","name":"Office","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"Ceiling light switch","dpt":"1.001"},{"address":"1/3/1","name":"Ceiling light level","dpt":"5.001"},{"address":"1/6/1","name":"Ceiling light colour temperature","dpt":"7.600"},{"address":"1/6/2","name":"Colour temperature status","dpt":"7.600"},{"address":"1/5/1","name":"Level status","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Push-button","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"warm","name":"Warm white","ga":"1/6/1","dpt":"7.600","port":"value","channel":"warm","flags":{"W":false,"T":true}},{"id":"neutral","name":"Neutral white","ga":"1/6/1","dpt":"7.600","port":"value","channel":"neutral","flags":{"W":false,"T":true}},{"id":"cold","name":"Cold white","ga":"1/6/1","dpt":"7.600","port":"value","channel":"cold","flags":{"W":false,"T":true}},{"id":"onoff","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"onoff","flags":{"W":true,"T":true}}],"channels":[{"id":"warm","label":"Input 1","keyLabel":"Key 1 · 2700 K","parameters":{"function":"value","shortValue":2700},"equipment":null},{"id":"neutral","label":"Input 2","keyLabel":"Key 2 · 4000 K","parameters":{"function":"value","shortValue":4000},"equipment":null},{"id":"cold","label":"Input 3","keyLabel":"Key 3 · 6500 K","parameters":{"function":"value","shortValue":6500},"equipment":null},{"id":"onoff","label":"Input 4","keyLabel":"Key 4 · On/off","parameters":{"ledShown":true},"equipment":null}]},{"id":"dimmer","name":"Tunable white actuator","address":"1.1.2","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"switch","name":"Switch","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"value","name":"Level","ga":"1/3/1","dpt":"5.001","port":"value","channel":"d1","flags":{"W":true,"T":false}},{"id":"colour","name":"Colour temperature","ga":"1/6/1","dpt":"7.600","port":"colourTemperature","channel":"d1","flags":{"W":true,"T":false}},{"id":"colourStatus","name":"Colour temperature status","ga":"1/6/2","dpt":"7.600","port":"colourTemperatureStatus","channel":"d1","flags":{"W":false,"T":true}},{"id":"valueStatus","name":"Level status","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"d1","flags":{"W":false,"T":true}}],"channels":[{"id":"d1","label":"Ceiling","parameters":{"valueFadeMs":1500},"initialState":{"levelPct":80},"equipment":{"type":"dimmableLamp"}}]},{"id":"panel","name":"Visualization","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"level","name":"Level","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"colour","name":"Colour temperature","ga":"1/6/1","dpt":"7.600","port":"input","flags":{"W":false,"T":true}}],"inputs":[{"id":"level","type":"number","label":"Level (%)","object":"level","min":0,"max":100,"step":10},{"id":"colour","type":"number","label":"Colour (K)","object":"colour","min":2000,"max":7000,"step":100}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=tunable-white" title="Open in designer">Edit in designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -55,7 +55,7 @@
   "formatVersion": 2,
   "title": "Tunable white: level and colour temperature",
   "description": "A dimming actuator drives a tunable white light. Keys 1 to 3 send a colour temperature with DPT 7.600 (2700 K warm, 4000 K neutral, 6500 K cold); the numeric fields send a level (DPT 5.001) and any colour temperature. Requests outside the 2700–6500 K range of the channel are limited to it, and the actuator reports the applied value.",
-  "lines": [{ "address": "1.1", "name": "Office" }],
+  "lines": [{ "address": "1.1", "name": "Office", "powerSupply": { "currentMa": 640 } }],
   "groupAddresses": [
     { "address": "1/1/1", "name": "Ceiling light switch", "dpt": "1.001" },
     { "address": "1/3/1", "name": "Ceiling light level", "dpt": "5.001" },
@@ -68,15 +68,16 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "warm",
           "name": "Warm white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
+          "channel": "warm",
           "flags": { "W": false, "T": true }
         },
         {
@@ -84,7 +85,8 @@
           "name": "Neutral white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
+          "channel": "neutral",
           "flags": { "W": false, "T": true }
         },
         {
@@ -92,7 +94,8 @@
           "name": "Cold white",
           "ga": "1/6/1",
           "dpt": "7.600",
-          "port": "input",
+          "port": "value",
+          "channel": "cold",
           "flags": { "W": false, "T": true }
         },
         {
@@ -100,59 +103,39 @@
           "name": "Switch",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "onoff",
           "flags": { "W": true, "T": true }
-        },
-        {
-          "id": "level",
-          "name": "Level",
-          "ga": "1/3/1",
-          "dpt": "5.001",
-          "port": "input",
-          "flags": { "W": false, "T": true }
-        },
-        {
-          "id": "colour",
-          "name": "Colour temperature",
-          "ga": "1/6/1",
-          "dpt": "7.600",
-          "port": "input",
-          "flags": { "W": false, "T": true }
         }
       ],
-      "buttons": [
-        { "id": "warm", "label": "Key 1 · 2700 K", "press": { "object": "warm", "value": 2700 } },
+      "channels": [
+        {
+          "id": "warm",
+          "label": "Input 1",
+          "keyLabel": "Key 1 · 2700 K",
+          "parameters": { "function": "value", "shortValue": 2700 },
+          "equipment": null
+        },
         {
           "id": "neutral",
-          "label": "Key 2 · 4000 K",
-          "press": { "object": "neutral", "value": 4000 }
+          "label": "Input 2",
+          "keyLabel": "Key 2 · 4000 K",
+          "parameters": { "function": "value", "shortValue": 4000 },
+          "equipment": null
         },
-        { "id": "cold", "label": "Key 3 · 6500 K", "press": { "object": "cold", "value": 6500 } },
+        {
+          "id": "cold",
+          "label": "Input 3",
+          "keyLabel": "Key 3 · 6500 K",
+          "parameters": { "function": "value", "shortValue": 6500 },
+          "equipment": null
+        },
         {
           "id": "onoff",
-          "label": "Key 4 · On/off",
-          "press": { "object": "onoff", "value": "toggle" },
-          "led": "onoff"
-        }
-      ],
-      "inputs": [
-        {
-          "id": "level",
-          "type": "number",
-          "label": "Level (%)",
-          "object": "level",
-          "min": 0,
-          "max": 100,
-          "step": 10
-        },
-        {
-          "id": "colour",
-          "type": "number",
-          "label": "Colour (K)",
-          "object": "colour",
-          "min": 2000,
-          "max": 7000,
-          "step": 100
+          "label": "Input 4",
+          "keyLabel": "Key 4 · On/off",
+          "parameters": { "ledShown": true },
+          "equipment": null
         }
       ]
     },
@@ -218,6 +201,51 @@
           "equipment": { "type": "dimmableLamp" }
         }
       ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "level",
+          "name": "Level",
+          "ga": "1/3/1",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "colour",
+          "name": "Colour temperature",
+          "ga": "1/6/1",
+          "dpt": "7.600",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "level",
+          "type": "number",
+          "label": "Level (%)",
+          "object": "level",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "colour",
+          "type": "number",
+          "label": "Colour (K)",
+          "object": "colour",
+          "min": 2000,
+          "max": 7000,
+          "step": 100
+        }
+      ]
     }
   ],
   "options": { "speed": 1, "filterTables": false }
@@ -227,7 +255,7 @@
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Tunable white: level and colour temperature"</span>,
   <span class="k">"description"</span>: <span class="s">"A dimming actuator drives a tunable white light. Keys 1 to 3 send a colour temperature with DPT 7.600 (2700 K warm, 4000 K neutral, 6500 K cold); the numeric fields send a level (DPT 5.001) and any colour temperature. Requests outside the 2700–6500 K range of the channel are limited to it, and the actuator reports the applied value."</span>,
-  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Office"</span> }],
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Office"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Ceiling light switch"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"1/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Ceiling light level"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
@@ -240,15 +268,16 @@
       <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
       <span class="k">"name"</span>: <span class="s">"Push-button"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
-      <span class="k">"kind"</span>: <span class="s">"pushButton"</span>,
-      <span class="k">"behavior"</span>: <span class="s">"pushButton/v1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
       <span class="k">"objects"</span>: [
         {
           <span class="k">"id"</span>: <span class="s">"warm"</span>,
           <span class="k">"name"</span>: <span class="s">"Warm white"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"7.600"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"warm"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -256,7 +285,8 @@
           <span class="k">"name"</span>: <span class="s">"Neutral white"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"7.600"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"neutral"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -264,7 +294,8 @@
           <span class="k">"name"</span>: <span class="s">"Cold white"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"7.600"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"cold"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         },
         {
@@ -272,59 +303,39 @@
           <span class="k">"name"</span>: <span class="s">"Switch"</span>,
           <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
           <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"onoff"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"level"</span>,
-          <span class="k">"name"</span>: <span class="s">"Level"</span>,
-          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
-          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"colour"</span>,
-          <span class="k">"name"</span>: <span class="s">"Colour temperature"</span>,
-          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
-          <span class="k">"dpt"</span>: <span class="s">"7.600"</span>,
-          <span class="k">"port"</span>: <span class="s">"input"</span>,
-          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
         }
       ],
-      <span class="k">"buttons"</span>: [
-        { <span class="k">"id"</span>: <span class="s">"warm"</span>, <span class="k">"label"</span>: <span class="s">"Key 1 · 2700 K"</span>, <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"warm"</span>, <span class="k">"value"</span>: <span class="n">2700</span> } },
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"warm"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 1 · 2700 K"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">2700</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
         {
           <span class="k">"id"</span>: <span class="s">"neutral"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 2 · 4000 K"</span>,
-          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"neutral"</span>, <span class="k">"value"</span>: <span class="n">4000</span> }
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 2 · 4000 K"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">4000</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         },
-        { <span class="k">"id"</span>: <span class="s">"cold"</span>, <span class="k">"label"</span>: <span class="s">"Key 3 · 6500 K"</span>, <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"cold"</span>, <span class="k">"value"</span>: <span class="n">6500</span> } },
+        {
+          <span class="k">"id"</span>: <span class="s">"cold"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 3 · 6500 K"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">6500</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
         {
           <span class="k">"id"</span>: <span class="s">"onoff"</span>,
-          <span class="k">"label"</span>: <span class="s">"Key 4 · On/off"</span>,
-          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"onoff"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> },
-          <span class="k">"led"</span>: <span class="s">"onoff"</span>
-        }
-      ],
-      <span class="k">"inputs"</span>: [
-        {
-          <span class="k">"id"</span>: <span class="s">"level"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Level (%)"</span>,
-          <span class="k">"object"</span>: <span class="s">"level"</span>,
-          <span class="k">"min"</span>: <span class="n">0</span>,
-          <span class="k">"max"</span>: <span class="n">100</span>,
-          <span class="k">"step"</span>: <span class="n">10</span>
-        },
-        {
-          <span class="k">"id"</span>: <span class="s">"colour"</span>,
-          <span class="k">"type"</span>: <span class="s">"number"</span>,
-          <span class="k">"label"</span>: <span class="s">"Colour (K)"</span>,
-          <span class="k">"object"</span>: <span class="s">"colour"</span>,
-          <span class="k">"min"</span>: <span class="n">2000</span>,
-          <span class="k">"max"</span>: <span class="n">7000</span>,
-          <span class="k">"step"</span>: <span class="n">100</span>
+          <span class="k">"label"</span>: <span class="s">"Input 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Key 4 · On/off"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
         }
       ]
     },
@@ -388,6 +399,51 @@
           <span class="k">"parameters"</span>: { <span class="k">"valueFadeMs"</span>: <span class="n">1500</span> },
           <span class="k">"initialState"</span>: { <span class="k">"levelPct"</span>: <span class="n">80</span> },
           <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualization"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"level"</span>,
+          <span class="k">"name"</span>: <span class="s">"Level"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"colour"</span>,
+          <span class="k">"name"</span>: <span class="s">"Colour temperature"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"7.600"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"level"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Level (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"level"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"colour"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Colour (K)"</span>,
+          <span class="k">"object"</span>: <span class="s">"colour"</span>,
+          <span class="k">"min"</span>: <span class="n">2000</span>,
+          <span class="k">"max"</span>: <span class="n">7000</span>,
+          <span class="k">"step"</span>: <span class="n">100</span>
         }
       ]
     }

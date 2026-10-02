@@ -35,8 +35,7 @@ import {
   display,
   passive,
   presenceDetector,
-  pushButton,
-} from "./behaviors/push-button";
+} from "./behaviors/simple-devices";
 import { shutterActuator } from "./behaviors/shutter-actuator";
 import { switchActuator } from "./behaviors/switch-actuator";
 
@@ -117,7 +116,6 @@ export function restoreRegistry(s: RegistrySnapshot): void {
 export const behaviorIds = () => [...behaviors.keys()];
 export const equipmentIds = () => [...equipment.keys()];
 
-registerBehavior("pushButton/v1", pushButton);
 registerBehavior("switchActuator/v1", switchActuator);
 registerBehavior("shutterActuator/v1", shutterActuator);
 registerBehavior("display/v1", display);

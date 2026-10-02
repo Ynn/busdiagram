@@ -5,9 +5,16 @@
   "lines": [
     {
       "address": "1.1",
-      "name": "Example line"
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
     }
   ],
+  "clock": {
+    "start": "2026-01-05T07:59:30",
+    "speed": 10
+  },
   "groupAddresses": [
     {
       "address": "1/1/1",
@@ -40,69 +47,54 @@
       "id": "pushButton",
       "name": "Push-button",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
+          "port": "switch",
+          "channel": "in1",
           "flags": {
             "W": true,
             "T": true
           }
         }
       ],
-      "buttons": [
+      "channels": [
         {
-          "id": "button-0",
-          "label": "Key 1",
-          "press": {
-            "object": "key1",
-            "value": 1
-          }
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "onPress": "on"
+          },
+          "equipment": null
         }
       ]
     },
     {
       "id": "clk",
-      "name": "Weekly clock",
+      "name": "Weekly time switch",
       "address": "1.1.4",
-      "kind": "sensor",
-      "behavior": "pushButton/v1",
-      "description": "The buttons simulate the clock reaching its scheduled times.",
+      "kind": "timeSwitch",
+      "behavior": "timeSwitch/v1",
+      "parameters": {
+        "program": "Daily 08:00 = 1; Daily 08:05 = 0"
+      },
+      "description": "Switches channel A on at 08:00 and off at 08:05; the simulated clock starts at 07:59:30 and runs ten times faster.",
       "objects": [
         {
           "id": "c1",
           "name": "Channel A",
           "ga": "1/1/2",
           "dpt": "1.001",
-          "port": "input",
+          "port": "output",
           "flags": {
-            "W": true,
+            "W": false,
             "T": true
-          }
-        }
-      ],
-      "buttons": [
-        {
-          "id": "button-0",
-          "label": "8:00",
-          "icon": "clock",
-          "press": {
-            "object": "c1",
-            "value": 1
-          }
-        },
-        {
-          "id": "button-1",
-          "label": "8:05",
-          "icon": "clock",
-          "press": {
-            "object": "c1",
-            "value": 0
           }
         }
       ]
@@ -112,7 +104,11 @@
       "name": "Presence detector",
       "address": "1.1.5",
       "kind": "sensor",
-      "behavior": "pushButton/v1",
+      "behavior": "presenceDetector/v1",
+      "parameters": {
+        "holdMs": 1000,
+        "sendOnEnd": false
+      },
       "objects": [
         {
           "id": "p",
@@ -121,14 +117,14 @@
           "dpt": "1.001",
           "port": "input",
           "flags": {
-            "W": true,
+            "W": false,
             "T": true
           }
         }
       ],
       "buttons": [
         {
-          "id": "button-0",
+          "id": "passage",
           "label": "Passage",
           "icon": "presence",
           "press": {

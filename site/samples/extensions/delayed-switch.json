@@ -2,55 +2,91 @@
   "formatVersion": 2,
   "title": "Extension · delayed switch",
   "description": "The delayedSwitch/v1 behavior is loaded by an extension script. Key 1 sends 1 and the lamp turns on after 2 seconds; Key 2 sends 0 and cancels a pending turn-on. L2 uses the alternative ledStrip view with the same Boolean state.",
-  "lines": [{ "address": "1.1", "name": "Example line" }],
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example line",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
   "groupAddresses": [
-    { "address": "1/1/1", "name": "Delayed lighting", "dpt": "1.001" },
-    { "address": "1/4/1", "name": "L1 status feedback", "dpt": "1.001" }
+    {
+      "address": "1/1/1",
+      "name": "Delayed lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "L1 status feedback",
+      "dpt": "1.001"
+    }
   ],
   "devices": [
     {
       "id": "pushButton",
-      "name": "Push button",
+      "name": "Push-button interface",
       "address": "1.1.1",
-      "kind": "pushButton",
-      "behavior": "pushButton/v1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
       "objects": [
         {
           "id": "key1",
           "name": "Key 1 on",
           "ga": "1/1/1",
           "dpt": "1.001",
-          "port": "input",
-          "flags": { "W": true, "T": true }
-        },
-        {
-          "id": "key2",
-          "name": "Key 2 off",
-          "ga": "1/1/1",
-          "dpt": "1.001",
-          "port": "input",
-          "flags": { "W": true, "T": true }
+          "port": "switch",
+          "channel": "key1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
         },
         {
           "id": "status",
           "name": "L1 status",
           "ga": "1/4/1",
           "dpt": "1.001",
-          "port": "display",
-          "flags": { "W": true, "T": false }
-        }
-      ],
-      "buttons": [
-        {
-          "id": "key1",
-          "label": "Key 1",
-          "press": { "object": "key1", "value": 1 },
-          "led": "status"
+          "port": "led",
+          "channel": "key1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "key2",
-          "label": "Key 2",
-          "press": { "object": "key2", "value": 0 }
+          "name": "Key 2 off",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "key2",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "key1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on",
+            "ledShown": true
+          }
+        },
+        {
+          "id": "key2",
+          "label": "Input 2",
+          "keyLabel": "Key 2",
+          "parameters": {
+            "function": "switch",
+            "onPress": "off"
+          }
         }
       ]
     },
@@ -68,7 +104,10 @@
           "dpt": "1.001",
           "port": "switch",
           "channel": "s1",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         },
         {
           "id": "e1",
@@ -77,7 +116,10 @@
           "dpt": "1.001",
           "port": "status",
           "channel": "s1",
-          "flags": { "W": false, "T": true }
+          "flags": {
+            "W": false,
+            "T": true
+          }
         },
         {
           "id": "c2",
@@ -86,24 +128,39 @@
           "dpt": "1.001",
           "port": "switch",
           "channel": "s2",
-          "flags": { "W": true, "T": false }
+          "flags": {
+            "W": true,
+            "T": false
+          }
         }
       ],
       "channels": [
         {
           "id": "s1",
           "label": "L1",
-          "parameters": { "delayMs": 2000 },
-          "equipment": { "type": "lamp" }
+          "parameters": {
+            "delayMs": 2000
+          },
+          "equipment": {
+            "type": "lamp"
+          }
         },
         {
           "id": "s2",
           "label": "L2",
-          "parameters": { "delayMs": 1000 },
-          "equipment": { "type": "lamp", "view": "ledStrip" }
+          "parameters": {
+            "delayMs": 1000
+          },
+          "equipment": {
+            "type": "lamp",
+            "view": "ledStrip"
+          }
         }
       ]
     }
   ],
-  "options": { "speed": 1, "filterTables": false }
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
 }

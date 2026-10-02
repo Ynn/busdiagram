@@ -5,7 +5,7 @@ import type { Simulation } from "../../src/knx/sim";
 
 export const scenariosDir = resolve(import.meta.dirname, "../../scenarios");
 
-/** Six historical scenarios (format v1), compatibility fixes. */
+/** Six historical scenarios in format v1, kept as fixtures for compatibility tests. */
 export const LEGACY = [
   "lighting-control.json",
   "status-feedback.json",
@@ -14,6 +14,11 @@ export const LEGACY = [
   "timers.json",
   "full-topology.json",
 ];
+export const legacy = (name: string) =>
+  readJson(resolve(import.meta.dirname, "fixtures/v1", name)) as Record<
+    string,
+    unknown
+  >;
 
 export const activeScenarios = () =>
   readdirSync(scenariosDir).filter((f) => f.endsWith(".json"));
@@ -50,3 +55,48 @@ export function v2(devices: unknown[], extra: Record<string, unknown> = {}) {
 }
 
 export const flags = (W: boolean, T: boolean) => ({ W, T });
+
+export interface KeySpec {
+  /** Input (and key) identifier. */
+  id: string;
+  /** Object identifier; the input identifier by default. */
+  object?: string;
+  ga: string | string[];
+  dpt?: string;
+  /** Port of the object: "switch" by default. */
+  port?: string;
+  flags?: { W: boolean; T: boolean };
+  /** Parameters of the input: a toggling switch by default. */
+  parameters?: Record<string, unknown>;
+}
+
+/** Push-button interface with one input per key, each with one object. */
+export function keypad(
+  id: string,
+  address: string,
+  keys: KeySpec[],
+  extra: Record<string, unknown> = {},
+) {
+  return {
+    id,
+    name: "Push-button interface",
+    address,
+    kind: "buttonInterface",
+    behavior: "buttonInterface/v1",
+    channels: keys.map((k) => ({
+      id: k.id,
+      label: k.id,
+      parameters: { function: "switch", ...k.parameters },
+    })),
+    objects: keys.map((k) => ({
+      id: k.object ?? k.id,
+      name: k.id,
+      ga: k.ga,
+      dpt: k.dpt ?? "1.001",
+      port: k.port ?? "switch",
+      channel: k.id,
+      flags: k.flags ?? flags(true, true),
+    })),
+    ...extra,
+  };
+}
