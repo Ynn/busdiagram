@@ -65,9 +65,9 @@ attrs: monitor="false"
 
 Click the **PSU** label of a line or segment on the diagram to cut its bus voltage, and again to restore it; programmatically, `sim.setBusVoltage("L1.2", false)` (`L1.2b` for the segment behind an extension). The line is drawn grey and dashed, and its devices are greyed:
 
-- each device first runs its bus failure behavior (a switch actuator sets `busFailure`; a shutter actuator stops its motors), then stops: its timers are cancelled, it neither receives nor sends, and its keys do nothing;
+- each device first runs its bus failure behavior (`busFailure` of a switch actuator, a dimmer or DALI channel, or a shutter actuator, which stops its motors by default), then stops: its timers are cancelled, it neither receives nor sends, and its keys do nothing;
 - couplers do not forward telegrams to the segment; the journal notes why;
-- when the voltage returns, each device runs its recovery behavior (`busRecovery` of a switch actuator or a push-button interface) and restarts.
+- when the voltage returns, each device runs its recovery behavior (`busRecovery` of a switch actuator, a dimmer or DALI channel, a shutter actuator, or a push-button interface) and restarts; actuators send their status again.
 
 The simulation starts with the installation already in operation: recovery reactions run only after a failure cut in the diagram, not at start. See the [bus voltage example](../examples/bus-voltage.html).
 
@@ -86,6 +86,8 @@ The measured power of a circuit is given at start by `initialState.powerW` and c
 ## Presence detector: `presenceDetector/v1`
 
 A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, set `sendOnEnd: false` with a short hold time, as in the [timer example](../examples/timers.html). The presence object may use DPT 1.001 or 1.018 (occupancy).
+
+Several detectors can watch one room as master and slaves: each slave sends 1 on its detections to the `slaveTrigger` object of the master, which counts it as its own detection (switch-on, or a restart of the hold time; its brightness threshold applies).
 
 A `brightness` object (DPT 9.004) sends the brightness measured by the detector, entered by the reader on a numeric input. With `brightnessThresholdLux`, a detection switches on only while that brightness is below the threshold; a presence already active is still extended. There is no light model: the brightness does not depend on the lamps or on daylight, and constant light regulation is not modeled.
 
@@ -124,7 +126,7 @@ An optional `enable` object (DPT 1.003) blocks the output while it is 0; setting
 
 ## Clock master: `clockMaster/v1`
 
-A clock master sends the time of day on a `time` object (DPT 10.001: day of week and time) and the date on a `date` object (DPT 11.001), from the scenario's [simulated clock](time.html#simulated-clock). It sends shortly after start (`sendOnStart`, `startDelayMs`), every `sendPeriodMin` clock minutes aligned on the clock (1 by default; 0 disables periodic sending), and after the clock is set. Give its objects the R flag so that other devices can read the current time.
+A clock master sends the time of day on a `time` object (DPT 10.001: day of week and time) and the date on a `date` object (DPT 11.001), from the scenario's [simulated clock](time.html#simulated-clock). It sends shortly after start (`sendOnStart`, `startDelayMs`), every `sendPeriodMin` clock minutes aligned on the clock (1 by default; 0 disables periodic sending), and after the clock is set. Its objects have the R flag by default, so that other devices can read the current time, as on the clocks of training kits.
 
 ## Weekly time switch: `timeSwitch/v1`
 
@@ -138,7 +140,7 @@ Days are `Mon` … `Sun`, ranges such as `Mon-Fri`, lists such as `Sat,Sun`, or 
 
 ## Display and supervisor: `display/v1`
 
-A display receives and shows values through its `display` port without issuing control commands. With `"kind": "supervisor"`, it connects to the IP network by default. Its access and filtering are explained in the [topology guide](topology.html).
+A display receives and shows values through its `display` port without issuing control commands. With `"kind": "supervisor"`, it is drawn as a supervision software, its values written under the object names; on the IP network it declares `"medium": "IP"`. Its access and filtering are explained in the [topology guide](topology.html).
 
 ## USB interface: `usbInterface/v1`
 

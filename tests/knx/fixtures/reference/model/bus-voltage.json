@@ -1,0 +1,105 @@
+{
+  "devices": {
+    "buttonInterface": {
+      "sw1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "lk2": {
+        "number": 8,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sw3": {
+        "number": 15,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "switchActuator": {
+      "sw1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "st1": {
+        "number": 2,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      },
+      "lk1": {
+        "number": 5,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sw2": {
+        "number": 9,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "st2": {
+        "number": 10,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      }
+    }
+  },
+  "diagnostics": [],
+  "filterTables": {
+    "1.1.0": [
+      "1/1/1",
+      "1/1/2",
+      "1/4/1",
+      "1/4/2",
+      "1/6/1"
+    ],
+    "1.2.0": [
+      "1/1/1",
+      "1/1/2",
+      "1/4/1",
+      "1/4/2",
+      "1/6/1"
+    ]
+  }
+}

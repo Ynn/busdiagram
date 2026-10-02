@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -51,13 +51,13 @@
 <td><code>switch</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Channel switch command (0 = off, 1 = on).</td>
+<td>Switching command of the output (0 = off, 1 = on).</td>
 </tr>
 <tr>
 <td><code>status</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Relay status feedback, sent after each effective change.</td>
+<td>Status of the relay, sent after each effective change.</td>
 </tr>
 <tr>
 <td><code>scene</code></td>
@@ -69,7 +69,7 @@
 <td><code>forced</code></td>
 <td>2.001</td>
 <td>required</td>
-<td>Priority override (2 = force off, 3 = force on, 0/1 = end override).</td>
+<td>Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override).</td>
 </tr>
 <tr>
 <td><code>lock</code></td>
@@ -320,25 +320,25 @@
 <td><code>move</code></td>
 <td>1.008</td>
 <td>required</td>
-<td>Shutter: 0 raises toward 0%, 1 lowers toward 100%.</td>
+<td>Up/down: 0 raises toward 0 %, 1 lowers toward 100 %.</td>
 </tr>
 <tr>
 <td><code>stopStep</code></td>
 <td>1.007</td>
 <td>required</td>
-<td>Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).</td>
+<td>Stop when moving; otherwise one step of stepPct (0 up, 1 down).</td>
 </tr>
 <tr>
 <td><code>positionCommand</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Shutter target position in percent.</td>
+<td>Target position in percent.</td>
 </tr>
 <tr>
 <td><code>positionStatus</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Actuator&#39;s estimated shutter position, sent after stopping.</td>
+<td>Estimated position, sent after stopping.</td>
 </tr>
 <tr>
 <td><code>scene</code></td>
@@ -363,6 +363,12 @@
 <td>1.005, 1.001</td>
 <td>optional (all channels when omitted)</td>
 <td>1 raises the shutter and locks it against other commands; 0 releases it in place</td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority.</td>
 </tr>
 </tbody></table>
 </div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
@@ -446,6 +452,48 @@
 <td></td>
 <td>A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.</td>
 </tr>
+<tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No reaction), &quot;up&quot; (Up), &quot;down&quot; (Down), &quot;stop&quot; (Stop), &quot;position&quot; (Position)</td>
+<td>Movement when the lock object receives 1; the wind alarm keeps priority.</td>
+</tr>
+<tr>
+<td><code>lockPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position reached when the lock starts, with “Position”.</td>
+</tr>
+<tr>
+<td><code>afterLock</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No reaction), &quot;up&quot; (Up), &quot;down&quot; (Down), &quot;restore&quot; (Position before the lock)</td>
+<td>Movement when the lock object receives 0.</td>
+</tr>
+<tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;stop&quot;</code></td>
+<td>&quot;stop&quot; (Stop), &quot;up&quot; (Up), &quot;down&quot; (Down)</td>
+<td>Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position).</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No movement), &quot;up&quot; (Up), &quot;down&quot; (Down), &quot;position&quot; (Position)</td>
+<td>Movement when the bus voltage returns; the estimated position is sent in any case.</td>
+</tr>
+<tr>
+<td><code>busRecoveryPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position reached on bus recovery, with “Position”.</td>
+</tr>
 </tbody></table>
 </div><p><strong>Initial channel state</strong> (<code>channels[].initialState</code>)</p>
 <div class="table"><table>
@@ -488,7 +536,7 @@
 <td><code>display</code></td>
 <td>any</td>
 <td>none</td>
-<td>Object that receives and displays a value, such as an indicator or supervisor.</td>
+<td>Value received and shown, as by an indicator or a supervisor.</td>
 </tr>
 </tbody></table>
 </div><p><em>No parameters.</em></p>
@@ -507,13 +555,13 @@
 <td><code>input</code></td>
 <td>any</td>
 <td>none</td>
-<td>Object written by a button or numeric input, then transmitted.</td>
+<td>Object written by a numeric input of the diagram, then transmitted.</td>
 </tr>
 <tr>
 <td><code>display</code></td>
 <td>any</td>
 <td>none</td>
-<td>Object that receives and displays a value, such as an indicator or supervisor.</td>
+<td>Value received and kept, as shown by a visualization.</td>
 </tr>
 </tbody></table>
 </div><p><em>No parameters.</em></p>
@@ -533,6 +581,12 @@
 <td>1.001, 1.018</td>
 <td>none</td>
 <td>output object: 1 on detection, 0 when the timer expires</td>
+</tr>
+<tr>
+<td><code>slaveTrigger</code></td>
+<td>1.001, 1.018</td>
+<td>none</td>
+<td>1 sent by a slave detector of the same room: counts as a detection (master/slave operation)</td>
 </tr>
 <tr>
 <td><code>brightness</code></td>
@@ -627,7 +681,7 @@
 <td><code>switch</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Channel switch command (0 = off, 1 = on).</td>
+<td>Switching command of the channel (0 = off, 1 = on).</td>
 </tr>
 <tr>
 <td><code>dim</code></td>
@@ -645,13 +699,13 @@
 <td><code>status</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Relay status feedback, sent after each effective change.</td>
+<td>Switching status of the channel, sent after each change.</td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Brightness value feedback (5.001), sent after a transition.</td>
+<td>Brightness value (5.001), sent after a transition.</td>
 </tr>
 <tr>
 <td><code>scene</code></td>
@@ -775,6 +829,27 @@
 <td>Delay before sending status feedback (ms), after a transition completes.</td>
 </tr>
 <tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Unchanged), &quot;off&quot; (Off), &quot;level&quot; (Fixed level)</td>
+<td>Level of the channel when the bus voltage fails; it is then kept until the voltage returns.</td>
+</tr>
+<tr>
+<td><code>busFailureLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Level set when the bus voltage fails, with “Fixed level”.</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;previous&quot;</code></td>
+<td>&quot;previous&quot; (Level before the failure), &quot;off&quot; (Off), &quot;on&quot; (On)</td>
+<td>Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent.</td>
+</tr>
+<tr>
 <td><code>minColourK</code></td>
 <td>integer</td>
 <td><code>2700</code></td>
@@ -830,7 +905,7 @@
 <td><code>switch</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Channel switch command (0 = off, 1 = on).</td>
+<td>Switching command of the channel (0 = off, 1 = on).</td>
 </tr>
 <tr>
 <td><code>dim</code></td>
@@ -848,13 +923,13 @@
 <td><code>status</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>Relay status feedback, sent after each effective change.</td>
+<td>Switching status of the channel, sent after each change.</td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Brightness value feedback (5.001), sent after a transition.</td>
+<td>Brightness value (5.001), sent after a transition.</td>
 </tr>
 <tr>
 <td><code>scene</code></td>
@@ -872,19 +947,19 @@
 <td><code>broadcastSwitch</code></td>
 <td>1.001</td>
 <td>none</td>
-<td>Switch all groups with a DALI broadcast.</td>
+<td>Switches all groups with a DALI broadcast.</td>
 </tr>
 <tr>
 <td><code>broadcastValue</code></td>
 <td>5.001</td>
 <td>none</td>
-<td>Set all group levels with a DALI broadcast.</td>
+<td>Sets the level of all groups with a DALI broadcast.</td>
 </tr>
 <tr>
 <td><code>generalError</code></td>
 <td>1.005</td>
 <td>none</td>
-<td>Fault on the DALI line across all groups (1.005).</td>
+<td>Fault on the DALI line, across all groups (1.005).</td>
 </tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
@@ -1009,6 +1084,27 @@
 <td>Delay before sending status feedback (ms), after a transition completes.</td>
 </tr>
 <tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Unchanged), &quot;off&quot; (Off), &quot;level&quot; (Fixed level)</td>
+<td>Level of the channel when the bus voltage fails; it is then kept until the voltage returns.</td>
+</tr>
+<tr>
+<td><code>busFailureLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Level set when the bus voltage fails, with “Fixed level”.</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;previous&quot;</code></td>
+<td>&quot;previous&quot; (Level before the failure), &quot;off&quot; (Off), &quot;on&quot; (On)</td>
+<td>Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent.</td>
+</tr>
+<tr>
 <td><code>minColourK</code></td>
 <td>integer</td>
 <td><code>2700</code></td>
@@ -1064,7 +1160,7 @@
 <td><code>actualTemp</code></td>
 <td>9.001</td>
 <td>none</td>
-<td>Thermostat: measured temperature (9.001), sent on change.</td>
+<td>Measured temperature (9.001), sent on change.</td>
 </tr>
 <tr>
 <td><code>externalTemp</code></td>
@@ -1076,7 +1172,7 @@
 <td><code>baseSetpoint</code></td>
 <td>9.001</td>
 <td>none</td>
-<td>Thermostat: base heating comfort setpoint (9.001).</td>
+<td>Base comfort setpoint for heating (9.001).</td>
 </tr>
 <tr>
 <td><code>setpointShift</code></td>
@@ -1088,19 +1184,19 @@
 <td><code>setpointStatus</code></td>
 <td>9.001</td>
 <td>none</td>
-<td>Thermostat: current setpoint (9.001).</td>
+<td>Current setpoint (9.001).</td>
 </tr>
 <tr>
 <td><code>hvacMode</code></td>
 <td>20.102</td>
 <td>none</td>
-<td>Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).</td>
+<td>Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).</td>
 </tr>
 <tr>
 <td><code>hvacModeStatus</code></td>
 <td>20.102</td>
 <td>none</td>
-<td>Thermostat: current mode (20.102).</td>
+<td>Current mode (20.102).</td>
 </tr>
 <tr>
 <td><code>presence</code></td>
@@ -1124,7 +1220,7 @@
 <td><code>heatCoolStatus</code></td>
 <td>1.100</td>
 <td>none</td>
-<td>Thermostat: current heating or cooling mode.</td>
+<td>Current mode: 1 heating, 0 cooling (1.100).</td>
 </tr>
 <tr>
 <td><code>heatingValue</code></td>
@@ -1142,13 +1238,13 @@
 <td><code>coolingValue</code></td>
 <td>5.001</td>
 <td>none</td>
-<td>Thermostat: continuous cooling control value (5.001).</td>
+<td>Continuous cooling control value (5.001).</td>
 </tr>
 <tr>
 <td><code>coolingSwitch</code></td>
 <td>1.001</td>
 <td>none</td>
-<td>Thermostat: one-bit cooling command.</td>
+<td>One-bit cooling command.</td>
 </tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
@@ -1311,7 +1407,7 @@
 <td><code>value</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Brightness value in percent (5.001); zero switches off.</td>
+<td>Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs.</td>
 </tr>
 <tr>
 <td><code>switch</code></td>
@@ -1323,7 +1419,7 @@
 <td><code>valueStatus</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Brightness value feedback (5.001), sent after a transition.</td>
+<td>Control value applied to the valve (5.001).</td>
 </tr>
 <tr>
 <td><code>fault</code></td>
@@ -1445,7 +1541,7 @@
 <td><code>temperature</code></td>
 <td>9.001</td>
 <td>none</td>
-<td>Sensor: room temperature (9.001).</td>
+<td>Room temperature (9.001).</td>
 </tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
@@ -2044,7 +2140,7 @@
 <td><code>dim</code></td>
 <td>3.007</td>
 <td>required</td>
-<td>Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.</td>
+<td>Relative dimming sent by the input (3.007): a step to dim up or down, then a stop on release.</td>
 </tr>
 <tr>
 <td><code>move</code></td>
@@ -2056,7 +2152,7 @@
 <td><code>stopStep</code></td>
 <td>1.007</td>
 <td>required</td>
-<td>Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).</td>
+<td>Stop or step sent by the input (1.007).</td>
 </tr>
 <tr>
 <td><code>value</code></td>

@@ -16,6 +16,6 @@ export async function loadData(root) {
     },
   });
   const mod = await import(join(tmp, "data.mjs") + `?t=${Date.now()}`);
-  return { ...mod.data, convert: mod.convert, validate: mod.validate };
+  return { ...mod.data, normalize: mod.normalize, validate: mod.validate };
 }
 

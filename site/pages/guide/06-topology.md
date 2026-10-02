@@ -46,7 +46,7 @@ A KNXnet/IP router replaces a coupler and uses its individual address:
 | `"areaCouplers"` | Area couplers | `A.0.0` | Backbone |
 | `"lineCouplers"` | Line couplers | `A.L.0` | Main lines and backbone |
 
-The model routes through the IP network and applies each router's filter table as it would for a twisted-pair coupler. A device with `"medium": "IP"`, such as a supervisor by default, connects to that network.
+The model routes through the IP network and applies each router's filter table as it would for a twisted-pair coupler. A device with `"medium": "IP"`, such as a supervisor, connects to that network.
 
 ```knx
 scenario: full-topology

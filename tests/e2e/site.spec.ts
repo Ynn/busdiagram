@@ -106,7 +106,7 @@ test("documentation has valid internal links and anchors", () => {
       if (!html.includes(`id="${id}"`))
         broken.push(`search → ${entry.u}#${id}`);
   }
-  expect(search).toHaveLength(66);
+  expect(search).toHaveLength(65);
   expect(broken).toEqual([]);
 });
 

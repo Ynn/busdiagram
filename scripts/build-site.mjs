@@ -19,10 +19,10 @@ await rm(out, { recursive: true, force: true });
 await mkdir(resolve(out, "assets"), { recursive: true });
 // Prevent GitHub Pages from processing this static site with Jekyll.
 await writeFile(resolve(out, ".nojekyll"), "");
-// Publish templates for src="..." and player.html?src=..., converted to format 2
+// Publish templates for src="..." and player.html?src=..., normalized (default values omitted)
 // so that downloaded files match the format taught in the guide.
 const siteData = await loadData(root);
-const { convert } = siteData;
+const { normalize } = siteData;
 await mkdir(resolve(out, "scenarios"), { recursive: true });
 const examples = [];
 for (const f of (await readdir(resolve(root, "scenarios"))).sort()) {
@@ -30,7 +30,7 @@ for (const f of (await readdir(resolve(root, "scenarios"))).sort()) {
   const json = JSON.parse(
     await readFile(resolve(root, "scenarios", f), "utf8"),
   );
-  const v2 = convert(json);
+  const v2 = normalize(json);
   examples.push({ file: f, title: String(v2.title ?? f), json: v2 });
   await writeFile(
     resolve(out, "scenarios", f),

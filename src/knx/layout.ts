@@ -5,6 +5,9 @@ import { en } from "../i18n";
 // The order of connections comes from the logical topology (network.ts): the layout places it.
 import { buildTopology } from "./network";
 import type { CouplerKind, Topology } from "./network";
+import type { EquipmentSize } from "./contracts";
+import type { Registry } from "./registry";
+import { captureRegistry } from "./registry";
 import type { Device, Scenario } from "./scenario";
 
 export type Pt = [number, number];
@@ -123,14 +126,9 @@ export interface Geometry {
   points: Map<string, Pt>;
 }
 
-export interface EquipmentSize {
-  width: number;
-  height: number;
-  /** Distance from the top of the drawing to its axis (default: mid-height). */
-  anchorY?: number;
-}
-
 export interface LayoutOptions {
+  /** Registry whose view sizes apply (the current registry by default). */
+  registry?: Registry;
   /** Horizontal difference between two participants in a row. */
   deviceGap?: number;
   /** Language of drawn labels (lines, areas, backbone). */
@@ -138,17 +136,6 @@ export interface LayoutOptions {
   /** Dimensions of an equipment view, provided by the view registry. */
   equipmentSize?: (view: string) => EquipmentSize | undefined;
 }
-
-export const DEFAULT_EQUIPMENT_SIZES: Record<string, EquipmentSize> = {
-  lamp: { width: LOAD_W, height: 32 },
-  shutter: { width: 92, height: 142, anchorY: 58 },
-  venetianBlind: { width: 92, height: 178, anchorY: 58 },
-  dimmableLamp: { width: LOAD_W, height: 32 },
-  daliGroup: { width: 168, height: 78, anchorY: 22 },
-  radiator: { width: 96, height: 36 },
-  fan: { width: LOAD_W, height: 34 },
-  appliance: { width: LOAD_W, height: 34 },
-};
 
 export const cardHeight = (d: Device) => (2 + d.objects.length) * ROW;
 export const rowCenter = (g: DevG, i: number) => g.top + (2.5 + i) * ROW;
@@ -216,26 +203,7 @@ export function segPos(s: Seg, p: Pt): number {
   return at;
 }
 
-const COMMAND_PORTS = [
-  "switch",
-  "dim",
-  "value",
-  "move",
-  "stopStep",
-  "positionCommand",
-  "scene",
-];
-
 const SCREEN_H = 48;
-
-function screenIds(d: Device): Set<string> {
-  const ids = d.objects
-    .filter((o) =>
-      ["actualTemp", "setpointStatus", "hvacModeStatus"].includes(o.port),
-    )
-    .map((o) => o.id);
-  return new Set(ids.length ? ids : d.objects.slice(0, 1).map((o) => o.id));
-}
 
 /** Device geometry (card on the left, loads on the right), relative to the top of its row. */
 function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
@@ -244,7 +212,9 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
     d.objects.flatMap((o, i) => (ids.has(o.id) ? [i] : []));
   // A thermostat has a display, placed at the head of its plate, facing its state objects.
   const screen =
-    d.kind === "thermostat" && d.objects.length ? screenIds(d) : null;
+    d.presentation.screen && d.objects.length
+      ? new Set(d.presentation.screen)
+      : null;
   const controls: { kind: KeyG["kind"]; id: string; ids: Set<string> }[] = [
     ...(screen ? [{ kind: "screen" as const, id: "screen", ids: screen }] : []),
     ...d.buttons.map((b) => ({
@@ -324,7 +294,7 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   d.channels.forEach((c) => {
     if (!c.equipmentConfigs.length) return;
     const rows = d.objects.flatMap((o, i) =>
-      o.channel === c.id && COMMAND_PORTS.includes(o.port) ? [i] : [],
+      o.channel === c.id && o.drivesLoad ? [i] : [],
     );
     const all = rows.length
       ? rows
@@ -404,11 +374,10 @@ export function layout(
 ): Geometry {
   const t = opts.t ?? en;
   const DEV_GAP = opts.deviceGap ?? 58;
+  const sizes = (opts.registry ?? captureRegistry()).viewSizes;
   const sizeOf = (view: string): EquipmentSize =>
     opts.equipmentSize?.(view) ??
-    (Object.hasOwn(DEFAULT_EQUIPMENT_SIZES, view)
-      ? DEFAULT_EQUIPMENT_SIZES[view]
-      : undefined) ?? { width: LOAD_W, height: 40 };
+    sizes.get(view) ?? { width: LOAD_W, height: 40 };
   const T = s.topology;
   const areas = T.areas.map((a) => a.address);
   const areaName = new Map(T.areas.map((a) => [a.address, a.name]));

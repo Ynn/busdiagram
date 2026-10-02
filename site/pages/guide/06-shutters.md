@@ -35,6 +35,7 @@ tabs: json
 | `scene` | 17.001 | Recalls a channel position preset. |
 | `slatCommand` / `slatStatus` | 5.001 | Slat angle setpoint and estimated angle of a venetian blind (0 % open, 100 % closed). |
 | `windAlarm` | 1.005, 1.001 | 1 raises the shutter and ignores other commands; 0 releases it where it is. Without `channel`, applies to all channels. |
+| `lock` | 1.001 | 1 locks the output: commands are ignored; `lockStart` (up, down, stop, or a position `lockPositionPct`) and `afterLock` (up, down, or back to the position before the lock) set its reactions. The wind alarm keeps priority. |
 
 The position convention is **0% open (top), 100% closed (bottom)**. A motor wired in reverse is described on the shutter with `"wiringReversed": true` in its equipment parameters; the actuator's `invertOutput` compensates it without changing the DPT direction convention. When the two disagree, the shutter moves opposite to the commands and a configuration warning is shown above the diagram.
 
@@ -46,6 +47,7 @@ The position convention is **0% open (top), 100% closed (bottom)**. A motor wire
 - A new command replaces a pending start, stop, or status transmission.
 - At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. `endSupplementPct` can add extra travel to reach the physical stop; its default is 0.
 - While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the [weather protection example](../examples/weather-protection.html).
+- On a bus voltage failure the motors stop (`busFailure: "stop"`), or run to an end position (`"up"`, `"down"`); on recovery the output stays (`busRecovery: "none"`), moves up or down, or to `busRecoveryPositionPct`, and the estimated position is sent again.
 - A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set `stepPct` (for example 5) on the channel to model them.
 
 ## Venetian blinds and slats

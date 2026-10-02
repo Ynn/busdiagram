@@ -1,14 +1,14 @@
 // Weather station thresholds, shutter wind alarm, logic module, and dimming actuator.
 import { describe, expect, it } from "vitest";
-import { evaluate } from "../../src/knx/behaviors/logic";
-import { ventilationStep } from "../../src/knx/behaviors/air-quality";
+import { evaluate } from "../../src/participants/logic-gate/behavior";
+import { ventilationStep } from "../../src/participants/air-quality-sensor/behavior";
 import { createSimulator } from "../../src/core";
 import { checkValue, decode, encode } from "../../src/knx/dpt";
 import {
   currentEntry,
   nextSwitch,
   parseProgram,
-} from "../../src/knx/behaviors/time";
+} from "../../src/participants/time-switch/behavior";
 import { buildFrame } from "../../src/knx/format";
 import { load, obj, raw } from "./helpers";
 

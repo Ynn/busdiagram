@@ -72,7 +72,18 @@ const installationDivider = () =>
 export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
   const def = ed.registry.behaviors.get(d.behavior);
   const lv = E.levelsOf(doc);
-  const visu = d.kind === "supervisor";
+  // A supervision software can sit on the IP network (as declared by its behavior).
+  const visu =
+    d.medium === "IP" ||
+    !!def?.presentation?.({
+      kind: d.kind ?? "",
+      objects: d.objects.map((o) => ({
+        id: o.id,
+        port: o.port ?? "",
+        channel: o.channel ?? null,
+      })),
+      channels: d.channels ?? [],
+    }).supervisor;
   const places: [string, string][] = [
     ...(visu && lv.ip
       ? [["IP", t`IP network (KNXnet/IP routing)`] as [string, string]]
@@ -726,7 +737,7 @@ function layoutItems(
       return c
         ? ed.text(
             t`Scenes (number=value, e.g. 1=1, 2=0)`,
-            E.switchChannels(d).find((x) => x.id === c.id)?.scenes ?? "",
+            E.channelScenesText(d, c.id),
             (v) =>
               ed.run(t`Scenes`, (x) => E.setChannelScenes(x, d.id, c.id, v)),
           )

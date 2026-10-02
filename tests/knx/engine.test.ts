@@ -3,10 +3,7 @@ import { describe, expect, it } from "vitest";
 import { cardHeight, layout } from "../../src/knx/layout";
 import { buildTopology } from "../../src/knx/network";
 import { buildScenario } from "../../src/knx/scenario";
-import type { ScenarioError } from "../../src/knx/scenario";
 import {
-  LEGACY,
-  legacy,
   activeScenarios,
   estPos,
   lampOn,
@@ -46,60 +43,18 @@ describe("scenarios provided", () => {
   );
 });
 
-describe("compatibility of the six v1 scenarios", () => {
-  type V1 = {
-    devices: {
-      address?: string;
-      objects: { ga: string | string[] }[];
-      buttons?: unknown[];
-      channels?: unknown[];
-    }[];
-  };
-  // Keys of format 1 used the former push-button behavior: without them, the files load.
-  const withoutKeys = (f: string) => {
-    const json = structuredClone(legacy(f)) as V1;
-    json.devices.forEach((d) => delete d.buttons);
-    return json;
-  };
-
-  it.each(LEGACY)(
-    "%s: same devices and associations without keys; one address per device",
+describe("model of the examples", () => {
+  it.each(activeScenarios())(
+    "%s: one address per device, one topology point per device",
     (f) => {
-      const json = withoutKeys(f);
-      const s = buildScenario(json);
-      expect(s.formatVersion).toBe(1);
-      expect(s.devices).toHaveLength(json.devices.length);
-      json.devices.forEach((d, i) => {
-        const m = s.devices[i]!;
-        expect(m.address).toBe(d.address ?? "");
-        expect(m.channels).toHaveLength(d.channels?.length ?? 0);
-        expect(m.objects.map((o) => o.gas)).toEqual(
-          d.objects.map((o) =>
-            Array.isArray(o.ga) ? o.ga : o.ga ? [o.ga] : [],
-          ),
-        );
-      });
+      const s = buildScenario(raw(f));
       const ias = s.devices.map((d) => d.address).filter(Boolean);
       expect(new Set(ias).size).toBe(ias.length);
-      // The topology contains exactly one point per device.
-      const topo = buildTopology(s);
-      expect(topo.deviceSegment.size).toBe(s.devices.length);
+      expect(buildTopology(s).deviceSegment.size).toBe(s.devices.length);
     },
   );
 
-  it("keys of format 1 are refused with a conversion hint", () => {
-    try {
-      buildScenario(legacy("lighting-control.json"));
-      expect.unreachable();
-    } catch (e) {
-      expect((e as ScenarioError).details.map((d) => d.code)).toContain(
-        "removed",
-      );
-      expect(String((e as Error).message)).toContain("buttonInterface/v1");
-    }
-  });
-
-  it("v1: travel and timer are converted to milliseconds, roles to ports", () => {
+  it("timers: durations of the parameters, in milliseconds", () => {
     const s = buildScenario(raw("timers.json"));
     const switchActuator = s.devicesById.get("switchActuator")!;
     expect(switchActuator.behavior).toBe("switchActuator/v1");

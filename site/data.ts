@@ -134,8 +134,8 @@ export const data = {
     }),
 };
 
-/** Convert a scenario of any supported format to JSON format 2. */
-export const convert = (json: unknown) =>
+/** Normalize a scenario to the minimal JSON written by the designer. */
+export const normalize = (json: unknown) =>
   toV2(buildScenario(json, registry), registry);
 
 /** Validate a scenario; problems carry the JSON path, a code, and an English message. */

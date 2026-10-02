@@ -41,7 +41,8 @@ import "./guided";
 import { cursorContext, nodeForPath, parsePath } from "./json-tree";
 import { setDesignerLanguage, t } from "./lang";
 import { initLayout } from "./layout";
-import { SNIPPETS, SnippetRefusal } from "./snippets";
+import { SnippetRefusal } from "./snippet-kit";
+import { TEMPLATES } from "./standard-designer";
 
 // ── Language: saved choice, or English on first use ──
 const LANG = "bus-diagram-designer-lang";
@@ -50,7 +51,7 @@ function pickLanguage(): string {
     const saved = localStorage.getItem(LANG);
     if (saved) return saved;
   } catch {
-    // stockage indisponible
+    // Storage unavailable.
   }
   return "en";
 }
@@ -71,8 +72,6 @@ const pageTexts = (): Record<string, string> => ({
   "Reformat the JSON": t`Reformat the JSON`,
   "Open…": t`Open…`,
   "Open a .json file": t`Open a .json file`,
-  "→ Format 2": t`→ Format 2`,
-  "Convert a format 1 scenario to format 2": t`Convert a format 1 scenario to format 2`,
   Export: t`Export`,
   "Extensions…": t`Extensions…`,
   "Load, replace or remove extensions (.js)": t`Load, replace or remove extensions (.js)`,
@@ -486,7 +485,6 @@ guided.undo = () => undo(editor);
 guided.redo = () => redo(editor);
 $("#undo-btn").addEventListener("click", () => undo(editor));
 $("#redo-btn").addEventListener("click", () => redo(editor));
-guided.convert = () => convertToV2();
 guided.onSelect = (id) => (guided.selected = id);
 preview.addEventListener("bd-select", (e) => {
   guided.selected = (e as CustomEvent<{ deviceId: string }>).detail.deviceId;
@@ -522,7 +520,7 @@ function refresh() {
   const v2 =
     !a.parseError &&
     (a.data as { formatVersion?: unknown })?.formatVersion === 2;
-  guided.format = a.parseError ? "invalid" : v2 ? "v2" : "v1";
+  guided.format = a.parseError ? "invalid" : v2 ? "v2" : "unversioned";
   guided.doc = v2 ? (a.data as Doc) : null;
   if (!a.valid) return;
   const key = JSON.stringify(a.data);
@@ -589,7 +587,7 @@ tplSelect.addEventListener("change", () => {
 });
 
 const insertSelect = $<HTMLSelectElement>("#insert");
-SNIPPETS.forEach((s) => {
+TEMPLATES.forEach((s) => {
   const o = document.createElement("option");
   o.value = s.id;
   o.textContent = s.label;
@@ -597,7 +595,7 @@ SNIPPETS.forEach((s) => {
   insertSelect.append(o);
 });
 insertSelect.addEventListener("change", () => {
-  const s = SNIPPETS.find((x) => x.id === insertSelect.value);
+  const s = TEMPLATES.find((x) => x.id === insertSelect.value);
   insertSelect.selectedIndex = 0;
   if (!s) return;
   if (
@@ -649,14 +647,6 @@ $<HTMLInputElement>("#file").addEventListener("change", async (e) => {
     setText(text);
   }
 });
-
-function convertToV2() {
-  const a = analyze(editor.state.doc.toString());
-  if (!a.valid) return toast(t`The scenario must be valid to be converted.`);
-  setText(formatJson(toV2(buildScenario(a.data, registry, t), registry)));
-  toast(t`Converted to format 2 (default values omitted).`);
-}
-$("#to-v2").addEventListener("click", convertToV2);
 
 // Extensions are trusted scripts selected by the user, never loaded from a scenario.
 /** Apply a new extension list; restore the old list if validation fails. */
@@ -782,11 +772,19 @@ $<HTMLInputElement>("#ext-file").addEventListener("change", async (e) => {
 );
 
 const langSelect = $<HTMLSelectElement>("#lang");
-const langNames: Record<string, string> = { fr: "Français", en: "English" };
+/** Name of a language in that language ("Français", "Deutsch"), or its code. */
+const languageName = (l: string) => {
+  try {
+    const name = new Intl.DisplayNames([l], { type: "language" }).of(l);
+    return name ? name[0]!.toLocaleUpperCase(l) + name.slice(1) : l;
+  } catch {
+    return l;
+  }
+};
 availableLanguages().forEach((l) => {
   const o = document.createElement("option");
   o.value = l;
-  o.textContent = langNames[l] ?? l;
+  o.textContent = languageName(l);
   o.selected = l === language;
   langSelect.append(o);
 });

@@ -1,0 +1,257 @@
+{
+  "formatVersion": 2,
+  "title": "Shutter: estimated versus actual travel",
+  "description": "The actuator is configured for 20 seconds, while the real shutter takes 30 seconds. Compare this with a 30-second setting.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Example installation",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "2/1/1",
+      "name": "Movement",
+      "dpt": "1.008"
+    },
+    {
+      "address": "2/1/2",
+      "name": "Stop / step",
+      "dpt": "1.007"
+    },
+    {
+      "address": "2/1/3",
+      "name": "Position setpoint",
+      "dpt": "5.001"
+    },
+    {
+      "address": "2/1/4",
+      "name": "Estimated position",
+      "dpt": "5.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "move_key2",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "stop_key2",
+          "name": "Stop / slat step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "target",
+          "name": "Setpoint",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "key3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "key1",
+          "label": "Input 1",
+          "keyLabel": "Key 1 · Up",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "up"
+          },
+          "equipment": null
+        },
+        {
+          "id": "key2",
+          "label": "Input 2",
+          "keyLabel": "Key 2 · Down",
+          "parameters": {
+            "function": "blind",
+            "blindMode": "down"
+          },
+          "equipment": null
+        },
+        {
+          "id": "key3",
+          "label": "Input 3",
+          "keyLabel": "Key 3 · 50 %",
+          "parameters": {
+            "function": "value",
+            "shortValue": 50
+          },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Shutter actuator",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Movement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "stop",
+          "name": "Stop / step",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "target",
+          "name": "Requested position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "positionCommand",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "status",
+          "name": "Estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "s1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Shutter S1",
+          "parameters": {
+            "estimatedTravelTimeMs": 20000
+          },
+          "equipment": {
+            "type": "shutter",
+            "parameters": {
+              "actualTravelTimeMs": 30000
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.2",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "target",
+          "name": "Setpoint",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "feedback",
+          "name": "Received estimated position",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "position",
+          "type": "number",
+          "label": "Setpoint (%)",
+          "object": "target",
+          "min": 0,
+          "max": 100,
+          "step": 1
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

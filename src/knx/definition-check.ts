@@ -174,6 +174,10 @@ export function checkBehavior<S>(
     "onBusFailure",
     "onBusRecovery",
     "contactKey",
+    "validate",
+    "normalize",
+    "warnings",
+    "presentation",
   ].forEach((h) => {
     const f = (d as unknown as Record<string, unknown>)[h];
     if (f !== undefined && typeof f !== "function")

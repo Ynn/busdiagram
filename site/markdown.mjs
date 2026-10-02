@@ -151,7 +151,7 @@ export function renderPage(source, pageData, siteData, scenarios, root) {
     if (conf.scenario)
       json =
         scenarios.get(conf.scenario) &&
-        data.convert(scenarios.get(conf.scenario));
+        data.normalize(scenarios.get(conf.scenario));
     else if (conf.file)
       json = JSON.parse(readFileSync(resolve(root, conf.file)));
     if (!json)

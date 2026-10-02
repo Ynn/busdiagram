@@ -1,0 +1,50 @@
+{
+  "devices": {
+    "usbInterface": {},
+    "pushButton": {
+      "key1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "switchActuator": {
+      "c1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "e1": {
+        "number": 2,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      }
+    }
+  },
+  "diagnostics": [],
+  "filterTables": {
+    "1.1.0": [
+      "1/1/1",
+      "1/4/1"
+    ],
+    "1.2.0": [
+      "1/1/1",
+      "1/4/1"
+    ]
+  }
+}

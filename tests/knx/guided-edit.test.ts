@@ -155,16 +155,15 @@ describe("guided designer: topology", () => {
     doc.devices.push({
       id: "sup",
       kind: "supervisor",
+      medium: "IP",
       behavior: "display/v1",
       objects: [],
     });
     valid(doc);
     expect(() => E.setIpRole(doc, null)).toThrow(/IP network/);
     E.connectDevice(doc, "sup", "1.1");
-    expect(doc.devices.at(-1)).toMatchObject({
-      medium: "TP",
-      address: "1.1.3",
-    });
+    expect(doc.devices.at(-1)).toMatchObject({ address: "1.1.3" });
+    expect(doc.devices.at(-1)!.medium).toBeUndefined();
     E.setIpRole(doc, null);
     expect(doc.topology).toBeUndefined();
     valid(doc);
@@ -201,21 +200,20 @@ describe("guided designer: dimming and DALI", () => {
     }) as unknown as E.Doc;
 
   it("dimmer actuator, DALI gateway, and push-button interface templates are valid", async () => {
-    const { SNIPPETS } = await import("../../site/designer/snippets");
+    const { TEMPLATES } = await import("../../site/designer/standard-designer");
     for (const id of ["dim", "dali", "buttonInterface4"]) {
-      const doc = SNIPPETS.find((s) => s.id === id)!.apply(empty()) as E.Doc;
+      const doc = TEMPLATES.find((s) => s.id === id)!.apply(empty()) as E.Doc;
       valid(doc);
     }
   });
-
 });
 
 describe("guided designer: rooms and heating", () => {
   it("thermostat templates, heating actuator and contact create a room in a valid scenario", async () => {
-    const { SNIPPETS } = await import("../../site/designer/snippets");
+    const { TEMPLATES } = await import("../../site/designer/standard-designer");
     let doc = v2("lighting-control.json");
     for (const id of ["roomThermostat", "heatingActuator", "windowContact"])
-      doc = SNIPPETS.find((s) => s.id === id)!.apply(doc) as E.Doc;
+      doc = TEMPLATES.find((s) => s.id === id)!.apply(doc) as E.Doc;
     expect(E.roomsOf(doc).map((r) => r.id)).toEqual(["room1"]);
     const s = buildScenario(doc);
     expect(s.rooms).toHaveLength(1);

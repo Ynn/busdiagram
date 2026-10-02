@@ -33,53 +33,6 @@ const ICONS: [string, string][] = [
   ["dimDown", "☼−: dim"],
 ];
 
-/** Role of objects for standard behaviors. */
-export const PORT_DOCS: Record<string, string> = {
-  input: "Object written by a button or numeric input, then transmitted.",
-  display:
-    "Object that receives and displays a value, such as an indicator or supervisor.",
-  switch: "Channel switch command (0 = off, 1 = on).",
-  status: "Relay status feedback, sent after each effective change.",
-  move: "Shutter: 0 raises toward 0%, 1 lowers toward 100%.",
-  stopStep:
-    "Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).",
-  positionCommand: "Shutter target position in percent.",
-  positionStatus: "Actuator's estimated shutter position, sent after stopping.",
-  scene:
-    "Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels.",
-  forced:
-    "Priority override (2 = force off, 3 = force on, 0/1 = end override).",
-  dim: "Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming.",
-  value: "Brightness value in percent (5.001); zero switches off.",
-  valueStatus: "Brightness value feedback (5.001), sent after a transition.",
-  error: "Lamp or ballast fault in a DALI group (1.005).",
-  broadcastSwitch: "Switch all groups with a DALI broadcast.",
-  broadcastValue: "Set all group levels with a DALI broadcast.",
-  generalError: "Fault on the DALI line across all groups (1.005).",
-  actualTemp: "Thermostat: measured temperature (9.001), sent on change.",
-  externalTemp:
-    "Thermostat: temperature from an external sensor (9.001), replacing the internal sensor.",
-  baseSetpoint: "Thermostat: base heating comfort setpoint (9.001).",
-  setpointShift: "Thermostat: offset from the base setpoint (9.002, in K).",
-  setpointStatus: "Thermostat: current setpoint (9.001).",
-  hvacMode:
-    "Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).",
-  hvacModeStatus: "Thermostat: current mode (20.102).",
-  presence: "Thermostat: presence requests comfort mode.",
-  window: "Thermostat: an open window requests priority protection mode.",
-  heatCool: "Thermostat: 1 selects heating, 0 selects cooling (1.100).",
-  heatCoolStatus: "Thermostat: current heating or cooling mode.",
-  heatingValue: "Thermostat: continuous heating control value (5.001).",
-  heatingSwitch: "Thermostat: one-bit heating command (two-point or PWM).",
-  coolingValue: "Thermostat: continuous cooling control value (5.001).",
-  coolingSwitch: "Thermostat: one-bit cooling command.",
-  fault:
-    "Heating actuator: missing control value triggers emergency mode (1.005).",
-  contact:
-    "Window contact: 1.019 or 1.001 uses 1 for open; 1.009 uses 1 for closed.",
-  temperature: "Sensor: room temperature (9.001).",
-};
-
 // Enumeration wordings are used for forms; they are not JSON Schema.
 const params = (s: ParamSchema | undefined) =>
   s
@@ -107,14 +60,14 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
   ) =>
     names.map((n) => ({
       const: n,
-      description: describe(n) ?? PORT_DOCS[n] ?? n,
+      description: describe(n) ?? n,
     }));
-  const allPorts = [
-    ...new Set([
-      ...Object.keys(PORT_DOCS),
-      ...[...registry.behaviors.values()].flatMap((d) => Object.keys(d.ports)),
-    ]),
-  ];
+  // Every port of the registered behaviors, described by the first one that declares it.
+  const portDocs = new Map<string, string | undefined>();
+  for (const d of registry.behaviors.values())
+    for (const [n, port] of Object.entries(d.ports))
+      if (!portDocs.get(n)) portDocs.set(n, port.description);
+  const allPorts = [...portDocs.keys()];
   const byBehavior = [...registry.behaviors].map(([id, def]) => ({
     if: { properties: { behavior: { const: id } }, required: ["behavior"] },
     then: {
@@ -190,8 +143,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
       ),
       formatVersion: {
         const: 2,
-        description:
-          "Format version 2. Without this field, the file is read as legacy format 1.",
+        description: "Format version: 2, the only supported version.",
       },
       title: text("Title displayed in the toolbar."),
       description: text("Description displayed below the toolbar."),
@@ -501,7 +453,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               "Object DPT; defaults to the DPT of its first declared group address.",
           },
           port: {
-            oneOf: portOneOf(allPorts, () => undefined),
+            oneOf: portOneOf(allPorts, (n) => portDocs.get(n)),
             description: "Object role in the device's behavior.",
           },
           channel: text(
@@ -792,7 +744,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               "Individual address in area.line.device form; its line must be declared.",
           },
           kind: text(
-            "Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…",
+            'Type of device, as a free description (buttonInterface, switchActuator, display…). Only a behavior that documents a value gives it an effect: display/v1 draws "supervisor" as a supervision software.',
           ),
           behavior: {
             anyOf: [
@@ -808,7 +760,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
           medium: {
             enum: ["TP", "IP"],
             description:
-              "Communication medium: TP by default, or IP on the topology.ip network; supervisors default to IP.",
+              'Communication medium: TP by default, or IP on the topology.ip network (a supervisor on the IP network writes "IP").',
           },
           room: {
             type: "string",

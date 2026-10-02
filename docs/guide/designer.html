@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -42,7 +42,7 @@
   <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
 
   <h4>For developers</h4>
-  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li></ul>
 
   <h4>Simulation model</h4>
   <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
@@ -52,7 +52,7 @@
 <p class="crumb">Guide</p>
 <h1 id="designer"><a class="anchor" href="#designer">#</a>Designer</h1><p>The <a href="../designer/index.html">designer</a> is the main authoring tool for diagrams. It is a standalone web application that works offline. Editing tools appear on the left and a live preview on the right; drag the separator between them (or focus it and use the arrow keys) to share the width, and <strong>Hide preview</strong> to give the editor the whole window. The layout is remembered by the browser. You can prepare a scenario without writing JSON, edit the JSON directly, and export the result for a page or presentation.</p>
 <p>Both editing modes use the same scenario. Changes made in the guided forms update the JSON; valid JSON edits update the forms. The browser saves the draft locally and restores it when you return.</p>
-<h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Start a scenario</h2><p>Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing <code>.json</code> file. Format 1 scenarios are converted to format 2 when needed.</p>
+<h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Start a scenario</h2><p>Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing <code>.json</code> file.</p>
 <h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Guided editor</h2><p>The guided editor follows the working logic taught in KNX courses: panels with a tree and a list, a catalog, group addresses linked to group objects by drag and drop. The preview on the right shows the result at once.</p>
 <h3 id="panels"><a class="anchor" href="#panels">#</a>Panels</h3><p>Two panels are stacked. The selector in the title bar of each panel chooses its content: <strong>Topology</strong>, <strong>Group addresses</strong>, <strong>Catalog</strong>, or <strong>Installation</strong> (title, description, simulated clock, heated rooms). <strong>+ Panel</strong> opens the second panel, and <strong>×</strong> closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.</p>
 <p>In the Topology tree, a line with a line repeater or a segment coupler shows its two segments, and each device sits in its segment. A line without extension shows its devices directly. Devices are collapsed: open one (▸) to show its group objects in the tree. The <strong>Filter</strong> field above each tree keeps the nodes whose address or name contains the text, with their parents.</p>

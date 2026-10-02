@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ports · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -45,54 +45,109 @@
 </tr>
 </thead>
 <tbody><tr>
-<td><code>input</code></td>
-<td>Object written by a button or numeric input, then transmitted.</td>
-<td><code>passive/v1</code>, <code>presenceDetector/v1</code></td>
-</tr>
-<tr>
-<td><code>display</code></td>
-<td>Object that receives and displays a value, such as an indicator or supervisor.</td>
-<td><code>display/v1</code>, <code>passive/v1</code></td>
-</tr>
-<tr>
 <td><code>switch</code></td>
-<td>Channel switch command (0 = off, 1 = on).</td>
+<td>Switching command of the output (0 = off, 1 = on).</td>
 <td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>status</code></td>
-<td>Relay status feedback, sent after each effective change.</td>
+<td>Status of the relay, sent after each effective change.</td>
 <td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
 </tr>
 <tr>
-<td><code>move</code></td>
-<td>Shutter: 0 raises toward 0%, 1 lowers toward 100%.</td>
-<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
-</tr>
-<tr>
-<td><code>stopStep</code></td>
-<td>Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down).</td>
-<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
-</tr>
-<tr>
-<td><code>positionCommand</code></td>
-<td>Shutter target position in percent.</td>
-<td><code>shutterActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>positionStatus</code></td>
-<td>Actuator&#39;s estimated shutter position, sent after stopping.</td>
-<td><code>shutterActuator/v1</code></td>
-</tr>
-<tr>
 <td><code>scene</code></td>
-<td>Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels.</td>
+<td>scene number (17.001), or scene control (18.001) whose learn bit stores the current state</td>
 <td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
 </tr>
 <tr>
 <td><code>forced</code></td>
-<td>Priority override (2 = force off, 3 = force on, 0/1 = end override).</td>
+<td>Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override).</td>
 <td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1 locks the output in the state set by lockStart, 0 unlocks it (afterLock)</td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>logic</code></td>
+<td>combined with the switching command by logicOperation (AND or OR)</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>power</code></td>
+<td>electrical power drawn by the load of the channel: W with 14.056, kW with 9.024</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>sum of the power of all channels: W with 14.056, kW with 9.024</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>powerLimit</code></td>
+<td>1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>move</code></td>
+<td>Up/down: 0 raises toward 0 %, 1 lowers toward 100 %.</td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>stopStep</code></td>
+<td>Stop when moving; otherwise one step of stepPct (0 up, 1 down).</td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>positionCommand</code></td>
+<td>Target position in percent.</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>positionStatus</code></td>
+<td>Estimated position, sent after stopping.</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>slatCommand</code></td>
+<td>slat angle (0 % open, 100 % closed) of a venetian blind</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>slatStatus</code></td>
+<td>estimated slat angle, sent after stopping</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1 raises the shutter and locks it against other commands; 0 releases it in place</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td>Value received and shown, as by an indicator or a supervisor.</td>
+<td><code>display/v1</code>, <code>passive/v1</code></td>
+</tr>
+<tr>
+<td><code>input</code></td>
+<td>Object written by a numeric input of the diagram, then transmitted.</td>
+<td><code>passive/v1</code>, <code>presenceDetector/v1</code></td>
+</tr>
+<tr>
+<td><code>slaveTrigger</code></td>
+<td>1 sent by a slave detector of the same room: counts as a detection (master/slave operation)</td>
+<td><code>presenceDetector/v1</code></td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>measured brightness (lx), entered by the reader and sent; there is no light model</td>
+<td><code>presenceDetector/v1</code>, <code>weatherStation/v1</code></td>
 </tr>
 <tr>
 <td><code>dim</code></td>
@@ -106,257 +161,207 @@
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
-<td>Brightness value feedback (5.001), sent after a transition.</td>
+<td>Brightness value (5.001), sent after a transition.</td>
 <td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code></td>
 </tr>
 <tr>
-<td><code>error</code></td>
-<td>Lamp or ballast fault in a DALI group (1.005).</td>
-<td><code>daliGateway/v1</code></td>
-</tr>
-<tr>
-<td><code>broadcastSwitch</code></td>
-<td>Switch all groups with a DALI broadcast.</td>
-<td><code>daliGateway/v1</code></td>
-</tr>
-<tr>
-<td><code>broadcastValue</code></td>
-<td>Set all group levels with a DALI broadcast.</td>
-<td><code>daliGateway/v1</code></td>
-</tr>
-<tr>
-<td><code>generalError</code></td>
-<td>Fault on the DALI line across all groups (1.005).</td>
-<td><code>daliGateway/v1</code></td>
-</tr>
-<tr>
-<td><code>actualTemp</code></td>
-<td>Thermostat: measured temperature (9.001), sent on change.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>externalTemp</code></td>
-<td>Thermostat: temperature from an external sensor (9.001), replacing the internal sensor.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>baseSetpoint</code></td>
-<td>Thermostat: base heating comfort setpoint (9.001).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>setpointShift</code></td>
-<td>Thermostat: offset from the base setpoint (9.002, in K).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>setpointStatus</code></td>
-<td>Thermostat: current setpoint (9.001).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>hvacMode</code></td>
-<td>Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>hvacModeStatus</code></td>
-<td>Thermostat: current mode (20.102).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>presence</code></td>
-<td>Thermostat: presence requests comfort mode.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>window</code></td>
-<td>Thermostat: an open window requests priority protection mode.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>heatCool</code></td>
-<td>Thermostat: 1 selects heating, 0 selects cooling (1.100).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>heatCoolStatus</code></td>
-<td>Thermostat: current heating or cooling mode.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>heatingValue</code></td>
-<td>Thermostat: continuous heating control value (5.001).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>heatingSwitch</code></td>
-<td>Thermostat: one-bit heating command (two-point or PWM).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>coolingValue</code></td>
-<td>Thermostat: continuous cooling control value (5.001).</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>coolingSwitch</code></td>
-<td>Thermostat: one-bit cooling command.</td>
-<td><code>roomThermostat/v1</code></td>
-</tr>
-<tr>
-<td><code>fault</code></td>
-<td>Heating actuator: missing control value triggers emergency mode (1.005).</td>
-<td><code>heatingActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>contact</code></td>
-<td>Window contact: 1.019 or 1.001 uses 1 for open; 1.009 uses 1 for closed.</td>
-<td><code>windowContact/v1</code></td>
-</tr>
-<tr>
-<td><code>temperature</code></td>
-<td>Sensor: room temperature (9.001).</td>
-<td><code>temperatureSensor/v1</code>, <code>airQualitySensor/v1</code></td>
-</tr>
-<tr>
-<td><code>lock</code></td>
-<td>lock</td>
-<td><code>switchActuator/v1</code>, <code>buttonInterface/v1</code></td>
-</tr>
-<tr>
-<td><code>logic</code></td>
-<td>logic</td>
-<td><code>switchActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>power</code></td>
-<td>power</td>
-<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
-</tr>
-<tr>
-<td><code>energy</code></td>
-<td>energy</td>
-<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
-</tr>
-<tr>
-<td><code>totalPower</code></td>
-<td>totalPower</td>
-<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
-</tr>
-<tr>
-<td><code>powerLimit</code></td>
-<td>powerLimit</td>
-<td><code>switchActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>slatCommand</code></td>
-<td>slatCommand</td>
-<td><code>shutterActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>slatStatus</code></td>
-<td>slatStatus</td>
-<td><code>shutterActuator/v1</code></td>
-</tr>
-<tr>
-<td><code>windAlarm</code></td>
-<td>windAlarm</td>
-<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
-</tr>
-<tr>
-<td><code>brightness</code></td>
-<td>brightness</td>
-<td><code>presenceDetector/v1</code>, <code>weatherStation/v1</code></td>
-</tr>
-<tr>
 <td><code>colourTemperature</code></td>
-<td>colourTemperature</td>
+<td>colour temperature setpoint (K) of a tunable white channel</td>
 <td><code>dimmerActuator/v1</code></td>
 </tr>
 <tr>
 <td><code>colourTemperatureStatus</code></td>
-<td>colourTemperatureStatus</td>
+<td>applied colour temperature (K)</td>
 <td><code>dimmerActuator/v1</code></td>
 </tr>
 <tr>
+<td><code>error</code></td>
+<td>lamp or ballast fault in the group</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>broadcastSwitch</code></td>
+<td>Switches all groups with a DALI broadcast.</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>broadcastValue</code></td>
+<td>Sets the level of all groups with a DALI broadcast.</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>generalError</code></td>
+<td>Fault on the DALI line, across all groups (1.005).</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>actualTemp</code></td>
+<td>Measured temperature (9.001), sent on change.</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>externalTemp</code></td>
+<td>replaces the internal sensor after a value is received</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>baseSetpoint</code></td>
+<td>Base comfort setpoint for heating (9.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>setpointShift</code></td>
+<td>base setpoint = configured setpoint + offset</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>setpointStatus</code></td>
+<td>Current setpoint (9.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>hvacMode</code></td>
+<td>Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>hvacModeStatus</code></td>
+<td>Current mode (20.102).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td>1 = presence: comfort mode</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatCool</code></td>
+<td>1 = heating, 0 = cooling</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatCoolStatus</code></td>
+<td>Current mode: 1 heating, 0 cooling (1.100).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatingValue</code></td>
+<td>continuous control value from 0 to 100%</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatingSwitch</code></td>
+<td>two-point control, or PWM under PI control</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>Continuous cooling control value (5.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>One-bit cooling command.</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>fault</code></td>
+<td>missing control value: fallback program</td>
+<td><code>heatingActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>contact</code></td>
+<td>1.019 / 1.001: 1 means open; 1.009: 1 means closed</td>
+<td><code>windowContact/v1</code></td>
+</tr>
+<tr>
+<td><code>temperature</code></td>
+<td>Room temperature (9.001).</td>
+<td><code>temperatureSensor/v1</code>, <code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
 <td><code>logicIn</code></td>
-<td>logicIn</td>
+<td>one-bit input of the logic function</td>
 <td><code>logicGate/v1</code></td>
 </tr>
 <tr>
 <td><code>enable</code></td>
-<td>enable</td>
+<td>0 blocks the output; 1 enables it again and sends the current result</td>
 <td><code>logicGate/v1</code></td>
 </tr>
 <tr>
 <td><code>time</code></td>
-<td>time</td>
+<td>time received from a clock master, used by the time window</td>
 <td><code>logicGate/v1</code>, <code>clockMaster/v1</code></td>
 </tr>
 <tr>
 <td><code>logicOut</code></td>
-<td>logicOut</td>
+<td>result of the logic function</td>
 <td><code>logicGate/v1</code></td>
 </tr>
 <tr>
 <td><code>wind</code></td>
-<td>wind</td>
+<td>measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)</td>
 <td><code>weatherStation/v1</code></td>
 </tr>
 <tr>
 <td><code>outdoorTemp</code></td>
-<td>outdoorTemp</td>
+<td>measured outdoor temperature (°C), sent when entered</td>
 <td><code>weatherStation/v1</code></td>
 </tr>
 <tr>
 <td><code>sunProtection</code></td>
-<td>sunProtection</td>
+<td>1 when the brightness threshold is reached, 0 after hysteresis</td>
 <td><code>weatherStation/v1</code></td>
 </tr>
 <tr>
 <td><code>humidity</code></td>
-<td>humidity</td>
+<td>measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001</td>
 <td><code>airQualitySensor/v1</code></td>
 </tr>
 <tr>
 <td><code>co2</code></td>
-<td>co2</td>
+<td>measured CO₂ concentration (ppm), sent when entered</td>
 <td><code>airQualitySensor/v1</code></td>
 </tr>
 <tr>
 <td><code>co2Alarm</code></td>
-<td>co2Alarm</td>
+<td>1 when the CO₂ alarm threshold is reached, 0 after hysteresis</td>
 <td><code>airQualitySensor/v1</code></td>
 </tr>
 <tr>
 <td><code>humidityAlarm</code></td>
-<td>humidityAlarm</td>
+<td>1 when the humidity alarm threshold is reached, 0 after hysteresis</td>
 <td><code>airQualitySensor/v1</code></td>
 </tr>
 <tr>
 <td><code>ventilation</code></td>
-<td>ventilation</td>
+<td>control value (%) of the current ventilation step</td>
 <td><code>airQualitySensor/v1</code></td>
 </tr>
 <tr>
 <td><code>date</code></td>
-<td>date</td>
+<td>date of the simulated clock</td>
 <td><code>clockMaster/v1</code></td>
 </tr>
 <tr>
 <td><code>output</code></td>
-<td>output</td>
+<td>object that receives the programmed values</td>
 <td><code>timeSwitch/v1</code></td>
 </tr>
 <tr>
 <td><code>command</code></td>
-<td>command</td>
+<td>value received from KNX and forwarded to the other system (mode, setpoint, boost…)</td>
 <td><code>systemGateway/v1</code></td>
 </tr>
 <tr>
 <td><code>led</code></td>
-<td>led</td>
+<td>state shown by the LED of the key</td>
 <td><code>buttonInterface/v1</code></td>
 </tr>
 </tbody></table>

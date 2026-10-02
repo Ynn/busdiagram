@@ -12,7 +12,7 @@ Related files, relative to this one: `schema/scenario-v2.schema.json` (JSON Sche
 - Individual addresses: `area.line.device` with device 1–255 on a declared line. `A.L.0` is reserved for the line coupler. Each address is used once.
 - Group addresses: three levels, `main/middle/sub` with main 0–31, middle 0–7, sub 0–255. `0/0/0` is refused.
 - Identifiers (`id`) use letters, digits, `_`, `.`, and `-`, and are unique within their list.
-- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free classification used for display (for example `buttonInterface`, `switchActuator`, `supervisor`); `behavior` must be one of the identifiers listed below.
+- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free description (for example `buttonInterface`, `switchActuator`, `supervisor`); only `display/v1` gives `supervisor` an effect, drawing it as a supervision software. A device on the IP network writes `"medium": "IP"`. `behavior` must be one of the identifiers listed below.
 - Each object has `id`, `ga`, `port`, and `flags`, usually `dpt` and `name`. `ga` is a string or an array; the first address is the sending address, the others are receive-only; `[]` leaves the object unassociated. `port` must belong to the device behavior, and `dpt` must be accepted by that port.
 - Flags: `W` (a received write updates the object), `T` (the object may transmit), optional `R` (answers a read on any of its addresses, on its sending address) and `U` (a response updates it). Inputs of an actuator use `W: true, T: false`; commands and status feedback use `W: false, T: true`.
 - Objects linked to the same group address must have the same payload size (all one-bit, all one-byte, and so on).
@@ -151,10 +151,10 @@ Drives channel outputs with `switch` commands; connect a compatible equipment ty
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `switch` | 1.001 | required | in |  |
-| `status` | 1.001 | required | out |  |
+| `switch` | 1.001 | required | in | Switching command of the output (0 = off, 1 = on). |
+| `status` | 1.001 | required | out | Status of the relay, sent after each effective change. |
 | `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current state |
-| `forced` | 2.001 | required | in |  |
+| `forced` | 2.001 | required | in | Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override). |
 | `lock` | 1.001 | required | in | 1 locks the output in the state set by lockStart, 0 unlocks it (afterLock) |
 | `logic` | 1.001 | required | in | combined with the switching command by logicOperation (AND or OR) |
 | `power` | 14.056, 9.024 | required | out | electrical power drawn by the load of the channel: W with 14.056, kW with 9.024 |
@@ -197,14 +197,15 @@ Drives channel outputs with `motor` commands; connect a compatible equipment typ
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `move` | 1.008 | required | in |  |
-| `stopStep` | 1.007 | required | in |  |
-| `positionCommand` | 5.001 | required | in |  |
-| `positionStatus` | 5.001 | required | out |  |
+| `move` | 1.008 | required | in | Up/down: 0 raises toward 0 %, 1 lowers toward 100 %. |
+| `stopStep` | 1.007 | required | in | Stop when moving; otherwise one step of stepPct (0 up, 1 down). |
+| `positionCommand` | 5.001 | required | in | Target position in percent. |
+| `positionStatus` | 5.001 | required | out | Estimated position, sent after stopping. |
 | `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current position |
 | `slatCommand` | 5.001 | required | in | slat angle (0 % open, 100 % closed) of a venetian blind |
 | `slatStatus` | 5.001 | required | out | estimated slat angle, sent after stopping |
 | `windAlarm` | 1.005, 1.001 | optional | in | 1 raises the shutter and locks it against other commands; 0 releases it in place |
+| `lock` | 1.001 | required | in | 1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority. |
 
 Channel `parameters`:
 - `estimatedTravelTimeMs` (integer, required; > 0): Travel time configured in the actuator (ms): downwards, and upwards unless estimatedTravelTimeUpMs is set.
@@ -217,6 +218,12 @@ Channel `parameters`:
 - `endSupplementPct` (number, default 0; ≥ 0 ; ≤ 50): Extra travel time toward 0% or 100%, as a percentage of full travel. The motor runs even if the estimate is already at the limit; the end stop recalibrates the estimate (often 5–10% on a real actuator).
 - `invertOutput` (boolean, default false): Invert the up and down outputs to compensate a motor wired in reverse (shutter parameter wiringReversed). Without such wiring, enabling it makes the shutter move opposite to the commands.
 - `sceneLearning` (boolean, default true): A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.
+- `lockStart` (string, default "none"; "none" (No reaction), "up" (Up), "down" (Down), "stop" (Stop), "position" (Position)): Movement when the lock object receives 1; the wind alarm keeps priority.
+- `lockPositionPct` (number, default 0; ≥ 0 ; ≤ 100): Position reached when the lock starts, with “Position”.
+- `afterLock` (string, default "none"; "none" (No reaction), "up" (Up), "down" (Down), "restore" (Position before the lock)): Movement when the lock object receives 0.
+- `busFailure` (string, default "stop"; "stop" (Stop), "up" (Up), "down" (Down)): Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position).
+- `busRecovery` (string, default "none"; "none" (No movement), "up" (Up), "down" (Down), "position" (Position)): Movement when the bus voltage returns; the estimated position is sent in any case.
+- `busRecoveryPositionPct` (number, default 0; ≥ 0 ; ≤ 100): Position reached on bus recovery, with “Position”.
 Channel `initialState`:
 - `estimatedPositionPct` (number, default 0; ≥ 0 ; ≤ 100): Position the actuator assumes at start (0 = fully open, 100 = fully closed); the connected shutter starts at its own position.
 - `estimatedSlatPct` (number, default 0; ≥ 0 ; ≤ 100): Slat angle the actuator assumes at start (venetian blinds).
@@ -227,7 +234,7 @@ Display / supervisor: receives and shows values, with no output or retransmissio
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `display` | any | none | in |  |
+| `display` | any | none | in | Value received and shown, as by an indicator or a supervisor. |
 
 ### `passive/v1`
 
@@ -237,8 +244,8 @@ Accepts `buttons` and numeric `inputs`.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `input` | any | none | out |  |
-| `display` | any | none | in |  |
+| `input` | any | none | out | Object written by a numeric input of the diagram, then transmitted. |
+| `display` | any | none | in | Value received and kept, as shown by a visualization. |
 
 ### `presenceDetector/v1`
 
@@ -249,6 +256,7 @@ Accepts `buttons` and numeric `inputs`.
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
 | `input` | 1.001, 1.018 | none | out | output object: 1 on detection, 0 when the timer expires |
+| `slaveTrigger` | 1.001, 1.018 | none | in | 1 sent by a slave detector of the same room: counts as a detection (master/slave operation) |
 | `brightness` | 9.004 | none | out | measured brightness (lx), entered by the reader and sent; there is no light model |
 
 Device `parameters`:
@@ -274,11 +282,11 @@ Drives channel outputs with `dim` commands; connect a compatible equipment type.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `switch` | 1.001 | required | in |  |
-| `dim` | 3.007 | required | in |  |
-| `value` | 5.001 | required | in |  |
-| `status` | 1.001 | required | out |  |
-| `valueStatus` | 5.001 | required | out |  |
+| `switch` | 1.001 | required | in | Switching command of the channel (0 = off, 1 = on). |
+| `dim` | 3.007 | required | in | Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming. |
+| `value` | 5.001 | required | in | Brightness value in percent (5.001); zero switches off. |
+| `status` | 1.001 | required | out | Switching status of the channel, sent after each change. |
+| `valueStatus` | 5.001 | required | out | Brightness value (5.001), sent after a transition. |
 | `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current level |
 | `colourTemperature` | 7.600 | required | in | colour temperature setpoint (K) of a tunable white channel |
 | `colourTemperatureStatus` | 7.600 | required | out | applied colour temperature (K) |
@@ -297,6 +305,9 @@ Channel `parameters`:
 - `valueSwitchesOn` (boolean, default true): A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.
 - `valueSwitchesOff` (boolean, default true): A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms), after a transition completes.
+- `busFailure` (string, default "unchanged"; "unchanged" (Unchanged), "off" (Off), "level" (Fixed level)): Level of the channel when the bus voltage fails; it is then kept until the voltage returns.
+- `busFailureLevelPct` (number, default 100; ≥ 0 ; ≤ 100): Level set when the bus voltage fails, with “Fixed level”.
+- `busRecovery` (string, default "previous"; "previous" (Level before the failure), "off" (Off), "on" (On)): Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent.
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
 Channel `initialState`:
@@ -311,16 +322,16 @@ Drives channel outputs with `dim` commands; connect a compatible equipment type.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `switch` | 1.001 | required | in |  |
-| `dim` | 3.007 | required | in |  |
-| `value` | 5.001 | required | in |  |
-| `status` | 1.001 | required | out |  |
-| `valueStatus` | 5.001 | required | out |  |
+| `switch` | 1.001 | required | in | Switching command of the channel (0 = off, 1 = on). |
+| `dim` | 3.007 | required | in | Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming. |
+| `value` | 5.001 | required | in | Brightness value in percent (5.001); zero switches off. |
+| `status` | 1.001 | required | out | Switching status of the channel, sent after each change. |
+| `valueStatus` | 5.001 | required | out | Brightness value (5.001), sent after a transition. |
 | `scene` | 17.001, 18.001 | optional | in | scene number (17.001), or scene control (18.001) whose learn bit stores the current level |
 | `error` | 1.005 | required | out | lamp or ballast fault in the group |
-| `broadcastSwitch` | 1.001 | none | in |  |
-| `broadcastValue` | 5.001 | none | in |  |
-| `generalError` | 1.005 | none | out |  |
+| `broadcastSwitch` | 1.001 | none | in | Switches all groups with a DALI broadcast. |
+| `broadcastValue` | 5.001 | none | in | Sets the level of all groups with a DALI broadcast. |
+| `generalError` | 1.005 | none | out | Fault on the DALI line, across all groups (1.005). |
 
 Device `parameters`:
 - `pollMs` (integer, default 2000; ≥ 500): Interval between ballast status polls for faults.
@@ -338,6 +349,9 @@ Channel `parameters`:
 - `valueSwitchesOn` (boolean, default true): A brightness value above 0 turns on a channel that is off; otherwise the value is ignored while the channel is off.
 - `valueSwitchesOff` (boolean, default true): A brightness value of 0 turns the channel off; otherwise the channel dims to its minimum level.
 - `statusDelayMs` (integer, default 300; ≥ 0): Delay before sending status feedback (ms), after a transition completes.
+- `busFailure` (string, default "unchanged"; "unchanged" (Unchanged), "off" (Off), "level" (Fixed level)): Level of the channel when the bus voltage fails; it is then kept until the voltage returns.
+- `busFailureLevelPct` (number, default 100; ≥ 0 ; ≤ 100): Level set when the bus voltage fails, with “Fixed level”.
+- `busRecovery` (string, default "previous"; "previous" (Level before the failure), "off" (Off), "on" (On)): Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent.
 - `minColourK` (integer, default 2700; ≥ 1000 ; ≤ 10000): Lowest colour temperature (K) of a tunable white channel; lower requests are limited to it.
 - `maxColourK` (integer, default 6500; ≥ 1000 ; ≤ 10000): Highest colour temperature (K) of a tunable white channel; higher requests are limited to it.
 Channel `initialState`:
@@ -352,21 +366,21 @@ Accepts `buttons` and numeric `inputs`.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `actualTemp` | 9.001 | none | out |  |
+| `actualTemp` | 9.001 | none | out | Measured temperature (9.001), sent on change. |
 | `externalTemp` | 9.001 | none | in | replaces the internal sensor after a value is received |
-| `baseSetpoint` | 9.001 | none | in |  |
+| `baseSetpoint` | 9.001 | none | in | Base comfort setpoint for heating (9.001). |
 | `setpointShift` | 9.002 | none | in | base setpoint = configured setpoint + offset |
-| `setpointStatus` | 9.001 | none | out |  |
-| `hvacMode` | 20.102 | none | in |  |
-| `hvacModeStatus` | 20.102 | none | out |  |
+| `setpointStatus` | 9.001 | none | out | Current setpoint (9.001). |
+| `hvacMode` | 20.102 | none | in | Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection). |
+| `hvacModeStatus` | 20.102 | none | out | Current mode (20.102). |
 | `presence` | 1.018, 1.001 | none | in | 1 = presence: comfort mode |
 | `window` | 1.019, 1.001, 1.009 | none | in | open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority |
 | `heatCool` | 1.100 | none | in | 1 = heating, 0 = cooling |
-| `heatCoolStatus` | 1.100 | none | out |  |
+| `heatCoolStatus` | 1.100 | none | out | Current mode: 1 heating, 0 cooling (1.100). |
 | `heatingValue` | 5.001 | none | out | continuous control value from 0 to 100% |
 | `heatingSwitch` | 1.001 | none | out | two-point control, or PWM under PI control |
-| `coolingValue` | 5.001 | none | out |  |
-| `coolingSwitch` | 1.001 | none | out |  |
+| `coolingValue` | 5.001 | none | out | Continuous cooling control value (5.001). |
+| `coolingSwitch` | 1.001 | none | out | One-bit cooling command. |
 
 Device `parameters`:
 - `controlType` (string, default "pi"; "pi" (PI (continuous or PWM)), "twoPoint" (Two-point)): pi uses proportional-integral control with a continuous value (5.001) or PWM (1 bit); twoPoint uses on/off control with hysteresis.
@@ -397,9 +411,9 @@ Drives channel outputs with `switch` commands; connect a compatible equipment ty
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `value` | 5.001 | required | in |  |
+| `value` | 5.001 | required | in | Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs. |
 | `switch` | 1.001 | required | in | two-point or thermostat PWM control |
-| `valueStatus` | 5.001 | required | out |  |
+| `valueStatus` | 5.001 | required | out | Control value applied to the valve (5.001). |
 | `fault` | 1.005 | required | out | missing control value: fallback program |
 
 Channel `parameters`:
@@ -428,7 +442,7 @@ Room temperature sensor: sends its room's temperature on change and cyclically.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `temperature` | 9.001 | none | out |  |
+| `temperature` | 9.001 | none | out | Room temperature (9.001). |
 
 Device `parameters`:
 - `sendDeltaK` (number, default 0.2; ≥ 0.1 ; ≤ 5): Temperature change (K) that triggers a transmission.
@@ -569,9 +583,9 @@ Push-button interface: each channel is a contact input with a function (switchin
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
 | `switch` | 1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.017, 1.018, 1.019, 1.100 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
-| `dim` | 3.007 | required | out |  |
+| `dim` | 3.007 | required | out | Relative dimming sent by the input (3.007): a step to dim up or down, then a stop on release. |
 | `move` | 1.008 | required | both | blind movement; with W set, a one-key input takes the direction of the last movement received |
-| `stopStep` | 1.007 | required | out |  |
+| `stopStep` | 1.007 | required | out | Stop or step sent by the input (1.007). |
 | `value` | 2.001, 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102 | required | out | value sent by the Value function, or scene number (17.001) or scene control with storing (18.001) for the Scene function |
 | `lock` | 1.001 | required | in | 1 locks the input (presses are ignored), 0 unlocks it |
 | `led` | 1.001 | required | in | state shown by the LED of the key |

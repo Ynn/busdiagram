@@ -1,13 +1,5 @@
 // French locale catalog for English source messages.
 export const frMessages: Record<string, string> = {
-  "Clock master: the scenario declares no clock":
-    "Horloge maîtresse : le scénario ne déclare pas d'horloge",
-  "Time switch: program of {0} applies ({1})":
-    "Programmateur : le programme de {0} s'applique ({1})",
-  "Time switch: the scenario declares no clock":
-    "Programmateur : le scénario ne déclare pas d'horloge",
-  "Time switch: entries ignored: {0}": "Programmateur : entrées ignorées : {0}",
-  "Time switch: {0} → {1}": "Programmateur : {0} → {1}",
   "Time of day": "Heure",
   Date: "Date",
   "{0} is not a valid date (YYYYMMDD)":
@@ -28,61 +20,16 @@ export const frMessages: Record<string, string> = {
   Set: "Régler",
   "Set the simulated clock": "Régler l'horloge simulée",
   "Set time": "Régler l'heure",
-  "Time window from": "Plage horaire à partir de",
-  "Time window to": "Plage horaire jusqu'à",
-  "Clock master: sends the time of day (10.001) and the date (11.001) of the simulated clock at a fixed period and after the clock is set.":
-    "Horloge maîtresse : émet l'heure (10.001) et la date (11.001) de l'horloge simulée à période fixe et après un réglage de l'horloge.",
-  "Send period": "Période d'envoi",
-  "Weekly time switch: sends the programmed value on its output objects at the programmed times of the simulated clock.":
-    "Programmateur hebdomadaire : émet la valeur programmée sur ses objets de sortie aux heures programmées de l'horloge simulée.",
-  "Weekly program": "Programme hebdomadaire",
-  "Send current state on start": "Émettre l'état courant au démarrage",
-  "{0}: no slats configured, slat command ignored":
-    "{0} : aucune lamelle configurée, commande de lamelles ignorée",
   "Slat angle estimated by the actuator ({0} %)":
     "Angle des lamelles estimé par l'actionneur ({0} %)",
   "Slats est.": "Lamelles est.",
-  "Actual blind: {0} %, slats {1} %": "Store réel : {0} %, lamelles {1} %",
-  slats: "lamelles",
-  "Slat angle setpoint": "Consigne d'angle des lamelles",
-  "Slat angle feedback": "Retour d'angle des lamelles",
-  "Configured slat rotation time": "Durée de rotation des lamelles paramétrée",
-  "Slat step": "Pas de lamelle",
-  "Estimated slat angle at start": "Angle des lamelles estimé au départ",
-  "Actual slat rotation time": "Durée réelle de rotation des lamelles",
-  "Actual slat angle at start": "Angle réel des lamelles au départ",
-  "{0}: output shed, command stored without effect":
-    "{0} : sortie délestée, commande mémorisée sans effet",
-  "Total power {0} W reaches the limit {1} W":
-    "La puissance totale {0} W atteint la limite {1} W",
-  "Total power {0} W is back below {1} W":
-    "La puissance totale {0} W repasse sous {1} W",
-  "{0}: switched off by load shedding": "{0} : coupée par délestage",
-  "{0}: load shedding ended, stored command applied":
-    "{0} : fin du délestage, commande mémorisée appliquée",
   shed: "délestée",
-  "Appliance: {0} W rated": "Appareil : {0} W nominaux",
-  "Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering.":
-    "Actionneur de commutation : chaque voie commande un relais ; minuterie, retour d'état et mesure de puissance et d'énergie en option.",
   Energy: "Énergie",
   "Total power": "Puissance totale",
-  "Power limit": "Limite de puissance",
   "Metering send interval": "Intervalle d'envoi des mesures",
   "Power send threshold": "Seuil d'envoi de la puissance",
   "Energy time scale": "Échelle de temps de l'énergie",
-  "Total power limit": "Limite de puissance totale",
-  "Minimum shedding time": "Durée minimale de délestage",
-  "Power limit hysteresis": "Hystérésis de la limite de puissance",
-  "Shed on power limit": "Délester sur limite de puissance",
   "Rated power": "Puissance nominale",
-  Appliance: "Appareil",
-  "{0} reaches the alarm threshold {1}: alarm set":
-    "{0} atteint le seuil d'alarme {1} : alarme activée",
-  "{0} is below {1}: alarm reset": "{0} est sous {1} : alarme désactivée",
-  "Ventilation step kept for its minimum time":
-    "Palier de ventilation maintenu pendant sa durée minimale",
-  "CO₂ {0} ppm: ventilation step {1}":
-    "CO₂ {0} ppm : palier de ventilation {1}",
   "{0}: {1} K limited to {2} K by the channel range":
     "{0} : {1} K limité à {2} K par la plage de la voie",
   State: "État",
@@ -98,93 +45,29 @@ export const frMessages: Record<string, string> = {
   Inactive: "Inactif",
   Inverted: "Inversé",
   "Not inverted": "Non inversé",
-  "Fan: {0} %": "Ventilateur : {0} %",
-  "Dimmer: switching, relative (3.007) and absolute (5.001) dimming, tunable white (7.600), status feedback.":
-    "Variateur : commutation, variation relative (3.007) et absolue (5.001), blanc réglable (7.600), retours d'état.",
-  "Colour temperature status": "Retour de température de couleur",
   "Warmest colour temperature": "Température de couleur la plus chaude",
   "Coldest colour temperature": "Température de couleur la plus froide",
   "Initial colour temperature": "Température de couleur initiale",
-  "Air quality sensor: sends measured temperature, relative humidity, and CO₂; sets alarms at thresholds and controls ventilation in three steps.":
-    "Capteur de qualité d'air : émet la température, l'humidité relative et le CO₂ mesurés ; active des alarmes à des seuils et commande la ventilation en trois paliers.",
-  "Relative humidity": "Humidité relative",
-  "CO₂": "CO₂",
-  "CO₂ alarm": "Alarme CO₂",
-  "Humidity alarm": "Alarme humidité",
-  "Ventilation control value": "Valeur de commande de ventilation",
-  "CO₂ alarm threshold": "Seuil d'alarme CO₂",
-  "CO₂ alarm hysteresis": "Hystérésis de l'alarme CO₂",
-  "Humidity alarm threshold": "Seuil d'alarme humidité",
-  "Humidity alarm hysteresis": "Hystérésis de l'alarme humidité",
-  "Threshold step 0 ↔ 1": "Seuil palier 0 ↔ 1",
-  "Threshold step 1 ↔ 2": "Seuil palier 1 ↔ 2",
-  "Threshold step 2 ↔ 3": "Seuil palier 2 ↔ 3",
-  "Step hysteresis": "Hystérésis des paliers",
-  "Control value step 0": "Valeur de commande palier 0",
-  "Control value step 1": "Valeur de commande palier 1",
-  "Control value step 2": "Valeur de commande palier 2",
-  "Control value step 3": "Valeur de commande palier 3",
-  "Minimum time per step": "Durée minimale par palier",
-  Fan: "Ventilateur",
-  "Relay operating mode": "Mode de fonctionnement du relais",
   "Normally closed relay: the load is powered while the channel is off.":
     "Relais normalement fermé : la charge est alimentée tant que la voie est à l'arrêt.",
-  "{0} · {1}: the actuator expects a normally open valve, but the valve is normally closed; the valve opens when no heat is requested.":
-    "{0} · {1} : l'actionneur attend une vanne normalement ouverte, mais la vanne est normalement fermée ; elle s'ouvre quand aucune chaleur n'est demandée.",
-  "{0} · {1}: the actuator expects a normally closed valve, but the valve is normally open; the valve opens when no heat is requested.":
-    "{0} · {1} : l'actionneur attend une vanne normalement fermée, mais la vanne est normalement ouverte ; elle s'ouvre quand aucune chaleur n'est demandée.",
-  "{0} · {1}: the motor is wired in reverse and the actuator does not compensate it; the shutter moves opposite to the commands.":
-    "{0} · {1} : le moteur est câblé à l'envers et l'actionneur ne le compense pas ; le volet se déplace à l'inverse des commandes.",
-  "{0} · {1}: the actuator inverts its output, but the motor is wired normally; the shutter moves opposite to the commands.":
-    "{0} · {1} : l'actionneur inverse sa sortie, mais le moteur est câblé normalement ; le volet se déplace à l'inverse des commandes.",
-  "{0}: the contact is normally closed, but the input is not inverted; open and closed are reported the wrong way round.":
-    "{0} : le contact est normalement fermé, mais l'entrée n'est pas inversée ; ouvert et fermé sont signalés à l'envers.",
-  "{0}: the input is inverted, but the contact is normally open; open and closed are reported the wrong way round.":
-    "{0} : l'entrée est inversée, mais le contact est normalement ouvert ; ouvert et fermé sont signalés à l'envers.",
   "{0} links DPT {1} and DPT {2}, whose values 0 and 1 have opposite meanings; check the receiving objects.":
     "{0} relie le DPT {1} et le DPT {2}, dont les valeurs 0 et 1 ont des sens opposés ; vérifiez les objets récepteurs.",
-  "thermostat: no external temperature for {0} s: internal sensor used":
-    "thermostat : aucune température externe depuis {0} s : sonde interne utilisée",
-  "thermostat: external temperature received again":
-    "thermostat : température externe à nouveau reçue",
-  "Outdoor temperature of the rooms set to {0} °C":
-    "Température extérieure des pièces réglée à {0} °C",
   "Configuration check": "Contrôle de configuration",
-  "External temperature timeout": "Délai de la température externe",
-  "Contact type": "Type de contact",
   "Normally open": "Normalement ouvert",
   "Normally closed": "Normalement fermé",
-  "Invert input": "Inverser l'entrée",
-  "Outdoor temperature applies to the rooms":
-    "La température extérieure s'applique aux pièces",
-  "Motor wired in reverse": "Moteur câblé à l'envers",
-  "Heating effect (K)": "Effet de chauffage (K)",
   Command: "Commande",
   "Status feedback": "Retour d'état",
   Scene: "Scène",
   Forcing: "Forçage",
   "Up/down": "Montée/descente",
   "Stop/step": "Arrêt/pas",
-  "Position setpoint": "Consigne de position",
-  "Position feedback": "Retour de position",
-  Transmission: "Émission",
   Display: "Affichage",
   Timer: "Minuterie",
   "Status feedback delay": "Délai du retour d'état",
-  "End of forcing": "Fin du forçage",
-  "On at start": "Allumé au départ",
   "Configured travel time": "Course paramétrée",
-  "Start delay": "Délai de départ",
-  "Position feedback delay": "Délai du retour de position",
-  "Stop/step increment": "Pas d'un arrêt/pas",
-  "Inverted wiring": "Câblage inversé",
-  "Estimated position at start": "Position estimée au départ",
   "Actual travel time": "Course réelle",
-  "Actual position at start": "Position réelle au départ",
-  "Switch-on delay": "Retard d'allumage",
   "Dimmer: switching, relative (3.007) and absolute (5.001) dimming, status feedback.":
     "Variateur : commutation, variation relative (3.007) et absolue (5.001), retours d'état.",
-  Switching: "Commutation",
   Dimming: "Variation",
   Value: "Valeur",
   Status: "État",
@@ -199,114 +82,24 @@ export const frMessages: Record<string, string> = {
   "Switch on by dimming": "Allumage par variation",
   "Switch off by dimming": "Extinction par variation",
   "Initial level": "Niveau au départ",
-  "KNX/DALI gateway: each channel is a DALI group of ballasts; broadcast, scenes and fault reporting.":
-    "Passerelle KNX/DALI : chaque canal est un groupe DALI de ballasts ; broadcast, scènes et report des défauts.",
-  Fault: "Défaut",
-  "Broadcast switching": "Broadcast commutation",
-  "Broadcast value": "Broadcast valeur",
-  "General fault": "Défaut général",
-  "Ballast polling": "Interrogation des ballasts",
-  "Dimmable lamp": "Lampe variable",
-  "DALI group": "Groupe DALI",
-  "Number of ballasts": "Nombre de ballasts",
-  "First short address": "Première adresse courte",
-  "Faulty ballasts": "Ballasts en défaut",
-  "USB interface: writes and reads group addresses from the USB interface panel of the diagram.":
-    "Interface USB : écrit et lit des adresses de groupe depuis le panneau d'interface USB du diagramme.",
   "Long press duration": "Durée d'appui long",
-  "Switch-off warning": "Préavis d'extinction",
-  "Hold time restarted by a detection": "Temporisation relancée par un passage",
-  "Send 0 at the end": "Émettre 0 à la fin",
-  "Hold time": "Temporisation",
   Presence: "Présence",
-  "Presence detector: sends 1 on first detection, 0 when its hold time ends (restarted by each detection).":
-    "Détecteur de présence : émet 1 au premier passage, 0 à la fin de sa temporisation (relancée à chaque passage).",
-  "Timer retriggering": "Redéclenchement de la minuterie",
-  "Early switch-off by 0": "Arrêt anticipé par 0",
-  "End-of-travel supplement": "Supplément en fin de course",
-  Lamp: "Lampe",
   "Push button or sensor: each gesture writes a value into a local object, then transmits it.":
     "Poussoir ou capteur : chaque geste écrit une valeur dans un objet local puis l'émet.",
   "Switch actuator: each channel drives a relay; optional timer and status feedback.":
     "Actionneur de commutation : chaque canal pilote un relais ; minuterie et retour d'état facultatifs.",
-  "Shutter actuator without sensor: position estimated from the configured travel time.":
-    "Actionneur de volet sans capteur : estimation de position par le temps de course paramétré.",
-  "Display / supervisor: receives and shows values, with no output or retransmission.":
-    "Afficheur / superviseur : reçoit et affiche les valeurs, sans sortie ni retransmission.",
-  "Device without logic: it keeps the values of its objects, and sends the values typed in the diagram, as a visualization panel.":
-    "Appareil sans logique : il garde les valeurs de ses objets et envoie les valeurs saisies dans le schéma, comme un écran de visualisation.",
-  "Roller shutter": "Volet roulant",
-  "Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling.":
-    "Thermostat d'ambiance : modes confort / veille / économie / protection (20.102), fenêtre et présence, régulation PI (5.001 ou PWM) ou deux points, chauffage et refroidissement.",
-  "Measured temperature": "Température mesurée",
-  "External temperature": "Température externe",
-  "Base setpoint": "Consigne de base",
-  "Setpoint shift": "Décalage de consigne",
-  "Current setpoint": "Consigne en cours",
-  "Mode (preset)": "Mode (présélection)",
-  "Current mode": "Mode en cours",
   Window: "Fenêtre",
-  "Heating / cooling": "Chauffage / refroidissement",
-  "Heating / cooling status": "État chauffage / refroidissement",
-  "Heating control value": "Commande chauffage",
-  "Heating 1-bit control": "Commande chauffage 1 bit",
-  "Cooling control value": "Commande refroidissement",
-  "Cooling 1-bit control": "Commande refroidissement 1 bit",
-  "Control type": "Type de régulation",
-  "Standby setback": "Abaissement veille",
-  "Economy setback": "Abaissement économie",
-  "Frost protection setpoint": "Consigne hors gel",
-  "Heat protection setpoint": "Consigne protection chaleur",
-  "Dead zone": "Zone neutre",
-  "Minimum setpoint": "Consigne minimale",
-  "Maximum setpoint": "Consigne maximale",
-  Hysteresis: "Hystérésis",
-  "Proportional band": "Bande proportionnelle",
-  "Integral time": "Temps d'intégration",
   "PWM cycle time": "Période PWM",
-  "Calculation period": "Période de calcul",
   "Send on change": "Émission sur variation",
-  "Cyclic sending of control value": "Émission cyclique de la commande",
-  "Temperature send threshold": "Émission de la température",
-  "Cyclic sending of temperature": "Émission cyclique de la température",
-  "Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.":
-    "Actionneur de chauffage : chaque sortie alimente une vanne thermoélectrique ; grandeur continue (5.001) modulée en PWM ou commande 1 bit directe, surveillance et secours.",
-  "Control value": "Grandeur de commande",
-  "1-bit command": "Commande 1 bit",
-  "Control value status": "État de la commande",
-  "Control value failure": "Défaut de commande",
-  "Valve direction of action": "Sens d'action de la vanne",
-  "Control value monitoring": "Surveillance de la commande",
-  "Emergency control value": "Commande de secours",
-  "Window contact (binary input): sends the opening and closing of its room's window.":
-    "Contact de fenêtre (entrée binaire) : transmet l'ouverture et la fermeture de la fenêtre de sa pièce.",
-  Contact: "Contact",
   Invert: "Inverser",
-  "Room temperature sensor: sends its room's temperature on change and cyclically.":
-    "Sonde de température d'ambiance : émet la température de sa pièce sur variation et cycliquement.",
   Temperature: "Température",
   "Cyclic sending": "Émission cyclique",
-  Radiator: "Radiateur",
-  "Valve travel time": "Course de la vanne",
-  "Valve open when de-energised": "Vanne ouverte hors tension",
   Power: "Puissance",
-  Emitter: "Émetteur",
-  "Initial opening": "Ouverture au départ",
   "Set value": "Valeur paramétrée",
   "Last value": "Dernière valeur",
-  Restarts: "Redémarre",
-  "No effect": "Sans effet",
-  Extends: "Prolonge",
-  "Last command": "Dernière commande",
-  "Previous state": "État d'avant",
-  Unchanged: "Inchangé",
   On: "Marche",
   Off: "Arrêt",
   Toggle: "Inversion",
-  "PI (continuous or PWM)": "PI (continue ou PWM)",
-  "Two-point": "Deux points",
-  "Closed when de-energised": "Fermée hors tension",
-  "Open when de-energised": "Ouverte hors tension",
   Heating: "Chauffage",
   Cooling: "Refroidissement",
   "Send on start": "Émission au démarrage",
@@ -316,39 +109,20 @@ export const frMessages: Record<string, string> = {
     "{0} : éteint, une valeur de luminosité n'allume pas (paramètre)",
   "{0}: a value of 0 does not switch off (parameter): minimum level {1} %":
     "{0} : une valeur 0 n'éteint pas (paramètre) : niveau minimum {1} %",
-  "Configured travel time up": "Durée de montée configurée",
-  "Actual travel time up": "Durée de montée réelle",
   "{0} links DPT {1} ({2}) and DPT {3} ({4}): the same bytes mean different values; each receiver interprets them with its own DPT.":
     "{0} relie le DPT {1} ({2}) et le DPT {3} ({4}) : les mêmes octets désignent des valeurs différentes ; chaque récepteur les interprète avec son propre DPT.",
   "PSU {0} mA": "Alim. {0} mA",
   PSU: "Alim.",
   "Bus power supply with choke": "Alimentation de bus avec self",
-  "Other system": "Autre système",
-  "Value from the other system": "Valeur de l'autre système",
-  "Command to the other system": "Commande vers l'autre système",
-  "{0} → {1}: {2} (forwarded, not simulated)":
-    "{0} → {1} : {2} (transmis, non simulé)",
-  "Gateway to another building system (Modbus, BACnet…): values from that system are entered and sent on KNX; KNX commands are received and forwarded to it, without simulating the other protocol.":
-    "Passerelle vers un autre système du bâtiment (Modbus, BACnet…) : les valeurs de ce système sont saisies et envoyées sur KNX ; les commandes KNX sont reçues et lui sont transmises, sans simuler l'autre protocole.",
   "{0} (DPT not simulated)": "{0} (DPT non simulé)",
-  "DPT {0} is not simulated: only objects of a passive or display device (passive/v1, display/v1) may use it":
-    "le DPT {0} n'est pas simulé : seuls les objets d'un appareil passif ou d'affichage (passive/v1, display/v1) peuvent l'utiliser",
+  "DPT {0} is not simulated: only objects of a device that shows values without using them ({1}) may use it":
+    "le DPT {0} n'est pas simulé : seuls les objets d'un appareil qui montre des valeurs sans les utiliser ({1}) peuvent l'utiliser",
   "DPT {0} is not simulated: its value stays unknown until a telegram is received":
     "le DPT {0} n'est pas simulé : sa valeur reste inconnue jusqu'à la réception d'un télégramme",
-  "Energy meter: measures several circuits that other devices switch or that are always supplied; sends their power and integrated energy.":
-    "Compteur d'énergie : mesure plusieurs circuits commutés par d'autres appareils ou alimentés en permanence ; envoie leur puissance et l'énergie intégrée.",
-  "Measured power at start": "Puissance mesurée au démarrage",
-  "Meter index at start": "Index du compteur au démarrage",
-  "Switch-on brightness threshold": "Seuil de luminosité d'enclenchement",
-  "Detection: {0} lx is not below the threshold of {1} lx, no switch-on":
-    "Détection : {0} lx n'est pas sous le seuil de {1} lx, pas d'enclenchement",
   "“{0}” is not a main group (0–31) or a middle group (0–31/0–7)":
     "« {0} » n'est ni un groupe principal (0–31) ni un groupe médian (0–31/0–7)",
   "duplicate group range {0}": "groupe {0} en double",
   "Start-up send delay": "Délai d'émission au démarrage",
-  "Group addresses assigned to the interface":
-    "Adresses de groupe affectées à l'interface",
-  "no timer": "pas de minuterie",
   "Loading KNX scenario…": "Chargement du scénario KNX…",
   "Could not load {0} ({1}).": "Chargement de {0} impossible ({1}).",
   "Invalid scenario:": "Scénario invalide :",
@@ -578,18 +352,9 @@ export const frMessages: Record<string, string> = {
   "invalid delay for “{0}”: {1}": "délai invalide pour « {0} » : {1}",
   "invalid output command on {0}: {1}":
     "commande de sortie invalide sur {0} : {1}",
-  "{0}: already moving to {1} %, command has no effect":
-    "{0} : déjà en mouvement vers {1} %, commande sans effet",
   "{0}: no preset for scene {1}, command ignored":
     "{0} : aucun préréglage pour la scène {1}, commande ignorée",
-  "{0}: output forced (on), command stored without effect":
-    "{0} : sortie forcée (marche), commande mémorisée sans effet",
-  "{0}: output forced (off), command stored without effect":
-    "{0} : sortie forcée (arrêt), commande mémorisée sans effet",
-  "Actual shutter: {0} %": "Volet réel : {0} %",
   "The scenario must be a JSON object.": "Le scénario doit être un objet JSON.",
-  "unknown format version “{0}” (supported versions: 1, 2)":
-    "version de format inconnue « {0} » (versions prises en charge : 1, 2)",
   "unknown field “{0}”": "champ inconnu « {0} »",
   "required field": "champ requis",
   "text expected": "texte attendu",
@@ -617,7 +382,6 @@ export const frMessages: Record<string, string> = {
     "DPT vide (retirer le champ ou écrire un DPT)",
   "DPT “{0}” not supported": "DPT « {0} » non pris en charge",
   "duplicate identifier “{0}”": "identifiant « {0} » en double",
-  "unknown type “{0}”": "type inconnu « {0} »",
   "unknown behavior “{0}” (extension not loaded? Available behaviors: {1})":
     "comportement inconnu « {0} » (extension non chargée ? Comportements disponibles : {1})",
   "“TP” or “IP” expected": "« TP » ou « IP » attendu",
@@ -640,10 +404,6 @@ export const frMessages: Record<string, string> = {
   "individual address {0} already used ({1})":
     "adresse individuelle {0} déjà utilisée ({1})",
   "duplicate channel “{0}”": "canal « {0} » en double",
-  "strictly positive duration in seconds expected":
-    "durée en secondes strictement positive attendue",
-  "“lamp”, “shutter” or “none” expected":
-    "« lamp », « shutter » ou « none » attendu",
   "object or null expected": "objet ou null attendu",
   "unknown equipment “{0}” (available: {1})":
     "équipement inconnu « {0} » (disponibles : {1})",
@@ -654,11 +414,6 @@ export const frMessages: Record<string, string> = {
   "object { scene number: value } expected":
     "objet { numéro de scène : valeur } attendu",
   "integer scene number 1–64 expected": "numéro de scène entier 1–64 attendu",
-  "DALI scene number 1–16 expected": "numéro de scène DALI 1–16 attendu",
-  "DALI gateway supports at most 16 groups":
-    "une passerelle DALI prend en charge au plus 16 groupes",
-  "DALI short address A{0} is already assigned to channel {1}; overlapping groups are outside this model":
-    "l’adresse courte DALI A{0} est déjà affectée au canal {1} ; les groupes qui se chevauchent ne sont pas modélisés",
   "number expected": "nombre attendu",
   "preset 0 or 1 expected for a switching channel":
     "préréglage 0 ou 1 attendu pour un canal de commutation",
@@ -674,7 +429,6 @@ export const frMessages: Record<string, string> = {
   "“{0}” is not a valid 3-level group address (e.g. 1/1/1)":
     "« {0} » n'est pas une adresse de groupe 3 niveaux valide (ex. 1/1/1)",
   "duplicate address {0} in the object": "adresse {0} en double dans l'objet",
-  "unknown role “{0}”": "rôle inconnu « {0} »",
   "port “{0}” not accepted by {1} (ports: {2})":
     "port « {0} » non accepté par {1} (ports : {2})",
   "channel “{0}” missing from {1}.channels":
@@ -714,12 +468,9 @@ export const frMessages: Record<string, string> = {
   "strictly positive step expected": "pas strictement positif attendu",
   "bounds outside the range {0}…{1} of DPT {2}":
     "bornes hors de la plage {0}…{1} du DPT {2}",
-  "flags { W, T } required in v2": "flags { W, T } requis en v2",
   "{0} is associated with objects of different sizes: {1} here, {2} elsewhere":
     "{0} est associée à des objets de tailles différentes : {1} ici, {2} ailleurs",
   "strictly positive number expected": "nombre strictement positif attendu",
-  'missing: this file uses format 2 fields (behavior, port, flags); add "formatVersion": 2':
-    'absent : ce fichier utilise des champs du format 2 (behavior, port, flags) ; ajouter "formatVersion": 2',
   integer: "entier",
   number: "nombre",
   boolean: "booléen",
@@ -732,6 +483,10 @@ export const frMessages: Record<string, string> = {
   "required parameter": "paramètre requis",
   "{0} expected": "{0} attendu",
   "value {0} out of bounds ({1})": "valeur {0} hors bornes ({1})",
+  "{0} and {1}": "{0} et {1}",
+  " (line {0}, column {1})": " (ligne {0}, colonne {1})",
+  "Invalid JSON in {0}{1}: {2}": "JSON invalide dans {0}{1} : {2}",
+  "the content of <bus-diagram>": "le contenu de <bus-diagram>",
   "unknown value “{0}” ({1})": "valeur « {0} » inconnue ({1})",
   "registerMessages: language code required":
     "registerMessages : code de langue requis",
@@ -820,16 +575,6 @@ export const frMessages: Record<string, string> = {
     '{0} est sur la ligne principale {1}, absente de cette installation : ajouter une ligne à la zone {2} ou « topology »: { "mainLines": true }',
   'an IP device requires an IP network (“topology”: { "ip": … })':
     'un participant IP nécessite un réseau IP (« topology »: { "ip": … })',
-  "{0}: shutter stopped, stop/step has no effect (no slats)":
-    "{0} : volet à l'arrêt, arrêt/pas sans effet (pas de lamelles)",
-  "{0}: timer cannot be retriggered, telegram has no effect":
-    "{0} : minuterie non redéclenchable, télégramme sans effet",
-  "{0}: early switch-off of the timer not allowed, telegram 0 has no effect":
-    "{0} : arrêt anticipé de la minuterie non autorisé, télégramme 0 sans effet",
-  "Detection: hold time restarted, no new telegram":
-    "Passage : temporisation relancée, pas de nouveau télégramme",
-  "Detection: hold time not restarted": "Passage : temporisation non relancée",
-  "{0}: switch-off warning": "{0} : préavis d'extinction",
   "flag “{0}” not simulated (W, T, R and U are; C is always active)":
     "flag « {0} » non simulé (W, T, R et U le sont ; C est toujours actif)",
   "USB interface: reading {0}": "Interface USB : lecture de {0}",
@@ -851,40 +596,8 @@ export const frMessages: Record<string, string> = {
   Tools: "Outils",
   "Full screen": "Plein écran",
   "Exit full screen": "Quitter le plein écran",
-  "Logic module disabled: output not sent":
-    "Module logique désactivé : sortie non émise",
-  "Logic result unchanged ({0}): no telegram":
-    "Résultat logique inchangé ({0}) : pas de télégramme",
-  "{0} reaches the threshold {1}: output set":
-    "{0} atteint le seuil {1} : sortie activée",
-  "{0} is below {1} (threshold − hysteresis): output reset":
-    "{0} est sous {1} (seuil − hystérésis) : sortie désactivée",
-  "{0}: wind alarm, shutter raised and locked":
-    "{0} : alarme vent, volet remonté et verrouillé",
-  "{0}: wind alarm ended, shutter released in place":
-    "{0} : fin de l'alarme vent, volet libéré sur place",
-  "{0}: wind alarm active, command ignored":
-    "{0} : alarme vent active, commande ignorée",
   "Wind alarm": "Alarme vent",
-  "Logic module: combines one-bit inputs (AND, OR, XOR, NOT) and sends the result; an optional enable object blocks the output.":
-    "Module logique : combine des entrées 1 bit (ET, OU, OU exclusif, NON) et émet le résultat ; un objet de validation facultatif bloque la sortie.",
-  "Logic input": "Entrée logique",
-  "Logic output": "Sortie logique",
-  Operation: "Opération",
-  AND: "ET",
-  OR: "OU",
-  XOR: "OU exclusif",
-  "NOT (first input)": "NON (première entrée)",
-  "Send on change only": "Émettre seulement sur changement",
-  "Weather station: sends measured wind speed, brightness, and temperature; sets one-bit outputs when wind or brightness thresholds are reached.":
-    "Station météo : émet la vitesse du vent, la luminosité et la température mesurées ; active des sorties 1 bit quand les seuils de vent ou de luminosité sont atteints.",
   Brightness: "Luminosité",
-  "Outdoor temperature": "Température extérieure",
-  "Sun protection": "Protection solaire",
-  "Wind alarm threshold": "Seuil d'alarme vent",
-  "Wind alarm hysteresis": "Hystérésis de l'alarme vent",
-  "Sun protection threshold": "Seuil de protection solaire",
-  "Sun protection hysteresis": "Hystérésis de la protection solaire",
   Lux: "Luminosité (lux)",
   "Wind speed": "Vitesse du vent",
   "0/0/0 is the broadcast address and cannot be used as a group address":
@@ -942,27 +655,6 @@ export const frMessages: Record<string, string> = {
   "level {0} %": "niveau {0} %",
   "interact: function expected": "interact : fonction attendue",
   "equipment action: {0}": "action sur l'équipement : {0}",
-  "Ballast A{0} faulty (click to repair)":
-    "Ballast A{0} en défaut (cliquer pour le réparer)",
-  "Ballast A{0}: click to simulate a fault":
-    "Ballast A{0} : cliquer pour simuler un défaut",
-  "window open": "fenêtre ouverte",
-  presence: "présence",
-  preset: "présélection",
-  "thermostat: {0} mode ({1}), setpoint {2} °C":
-    "thermostat : mode {0} ({1}), consigne {2} °C",
-  "thermostat: setpoint {0} °C": "thermostat : consigne {0} °C",
-  comfort: "confort",
-  standby: "veille",
-  economy: "économie",
-  protection: "protection",
-  auto: "auto",
-  "thermostat: no temperature (room or “externalTemp” object): no control":
-    "thermostat : aucune température (pièce ou objet « externalTemp ») : pas de régulation",
-  "control value received: emergency mode ended":
-    "commande reçue : fin du programme de secours",
-  "no control value received: emergency mode at {0} %":
-    "aucune grandeur de commande reçue : programme de secours à {0} %",
   "heatOutput: function expected": "heatOutput : fonction attendue",
   "Window/Door": "Fenêtre/Porte",
   "Heating/Cooling": "Chauffage/Refroidissement",
@@ -986,10 +678,6 @@ export const frMessages: Record<string, string> = {
   "{0}: window closed": "{0} : fenêtre fermée",
   "{0}: outside temperature {1} °C": "{0} : température extérieure {1} °C",
   "{0}.deviceState: {1}": "{0}.deviceState : {1}",
-  "Cooling emitter: valve {0} % open":
-    "Émetteur de froid : vanne ouverte à {0} %",
-  "Radiator: valve {0} % open": "Radiateur : vanne ouverte à {0} %",
-  valve: "vanne",
   setpoint: "consigne",
   cooling: "refroidissement",
   heating: "chauffage",
@@ -1003,8 +691,6 @@ export const frMessages: Record<string, string> = {
   "Raise outside temperature": "Monter la température extérieure",
   "{0}.enumTitles: one label (text) per “enum” value expected":
     "{0}.enumTitles : un libellé (texte) par valeur de « enum » attendu",
-  "{0} ballasts from A{1} would reach A{2}: DALI short addresses stop at 63":
-    "{0} ballasts à partir de A{1} iraient jusqu'à A{2} : les adresses courtes DALI s'arrêtent à 63",
   "checkParameters: function expected": "checkParameters : fonction attendue",
   "write to {0} refused: {1}": "écriture de {0} refusée : {1}",
   "interact must return the state (object)":
@@ -1015,30 +701,12 @@ export const frMessages: Record<string, string> = {
     "objet, liste d'objets ou null attendu",
   "a shutter output drives one motor; connect each shutter to its own output":
     "une sortie de store commande un seul moteur ; raccorder chaque store à sa propre sortie",
-  "Metering and load shedding": "Comptage et délestage",
-  "Load shedding": "Délestage",
   Function: "Fonction",
   Scenes: "Scènes",
-  Metering: "Comptage",
-  "Shedding applies when the device has a total power limit (page Metering and load shedding).":
-    "Le délestage s'applique quand l'appareil a une limite de puissance totale (page Comptage et délestage).",
-  Drive: "Entraînement",
-  Slats: "Lamelles",
-  Position: "Position",
   Safety: "Sécurité",
-  "The wind alarm raises the shutter and blocks it until the alarm ends.":
-    "L'alarme vent remonte le store et le bloque jusqu'à la fin de l'alarme.",
   "Limits and transitions": "Limites et transitions",
   "Switching by dimming or by value": "Commutation par variation ou par valeur",
-  Gateway: "Passerelle",
-  Broadcast: "Diffusion générale",
-  Faults: "Défauts",
-  "A faulty ballast leaves its lamp off; the gateway reports it on this object.":
-    "Un ballast en défaut laisse sa lampe éteinte ; la passerelle le signale sur cet objet.",
-  Setpoints: "Consignes",
   "Group objects": "Objets de groupe",
-  "Presence and window": "Présence et fenêtre",
-  Valve: "Vanne",
   "parameterLayout: object expected": "parameterLayout : objet attendu",
   "{0}: list expected": "{0} : liste attendue",
   "{0}.{1}: unknown “{2}”": "{0}.{1} : « {2} » inconnu",
@@ -1063,25 +731,8 @@ export const frMessages: Record<string, string> = {
     "l'appareil a déjà répondu à cette lecture",
   "segment {0}: {1} devices, more than the 64 of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler":
     "segment {0} : {1} participants, plus que les 64 d'un segment TP1 ; utiliser des participants TP1-256, ou un répéteur de ligne ou un coupleur de segment",
-  "{0}: group object “{1}” not enabled, nothing sent":
-    "{0} : objet de groupe « {1} » non activé, rien n'est envoyé",
-  "{0}: storing a scene needs a scene control object (DPT 18.001), nothing sent":
-    "{0} : mémoriser une scène demande un objet de commande de scène (DPT 18.001), rien n'est envoyé",
-  "{0}: input locked": "{0} : entrée verrouillée",
-  "{0}: input unlocked": "{0} : entrée déverrouillée",
-  "{0}: input locked, press ignored": "{0} : entrée verrouillée, appui ignoré",
-  "{0}: stopped, bus voltage failure":
-    "{0} : arrêt, coupure de la tension du bus",
-  "{0}: output locked, command stored without effect":
-    "{0} : sortie verrouillée, commande mémorisée sans effet",
-  "{0}: output locked": "{0} : sortie verrouillée",
-  "{0}: output unlocked": "{0} : sortie déverrouillée",
-  "{0}: switch-on delay of {1} s": "{0} : retard à l'enclenchement de {1} s",
-  "{0}: switch-off delay of {1} s": "{0} : retard au déclenchement de {1} s",
   "{0}: scene storing disabled, scene {1} unchanged":
     "{0} : mémorisation des scènes désactivée, scène {1} inchangée",
-  "{0}: scene {1} stored (on)": "{0} : scène {1} mémorisée (marche)",
-  "{0}: scene {1} stored (off)": "{0} : scène {1} mémorisée (arrêt)",
   "Scene control": "Commande de scène",
   "DPT 18.001: bit 6 is reserved; use 0–63 to recall a scene, 128–191 to store it":
     "DPT 18.001 : le bit 6 est réservé ; 0–63 rappelle une scène, 128–191 la mémorise",
@@ -1098,37 +749,9 @@ export const frMessages: Record<string, string> = {
   "Bus voltage restored on {0}": "Tension du bus rétablie sur {0}",
   "Bus voltage cut on {0}": "Tension du bus coupée sur {0}",
   Lock: "Verrouillage",
-  "Logic link": "Liaison logique",
-  "Switch-off delay": "Retard d'extinction",
   "When locked": "Au verrouillage",
-  "End of lock": "Fin du verrouillage",
-  "Logic operation": "Opération logique",
-  "AND: on when the command and the logic object are 1":
-    "ET : marche quand la commande et l'objet logique valent 1",
-  "OR: on when the command or the logic object is 1":
-    "OU : marche quand la commande ou l'objet logique vaut 1",
   "Scene storing": "Mémorisation des scènes",
-  "On bus voltage failure": "À la coupure de la tension du bus",
   "On bus voltage recovery": "Au retour de la tension du bus",
-  "State before the failure": "État avant la coupure",
-  Delays: "Temporisations",
-  "Delays apply to the switching object; scenes, forcing, and the lock act at once.":
-    "Les temporisations s'appliquent à l'objet de commutation ; les scènes, le forçage et le verrouillage agissent immédiatement.",
-  "Forcing and lock": "Forçage et verrouillage",
-  "Forcing has priority over the lock; while either is active, commands are stored.":
-    "Le forçage est prioritaire sur le verrouillage ; tant que l'un des deux est actif, les commandes sont mémorisées.",
-  "Bus voltage": "Tension du bus",
-  "Push-button interface: each channel is a contact input with a function (switching, dimming, blind, value, scene), with short and long presses; lock, bus voltage recovery and cyclic sending.":
-    "Interface de boutons-poussoirs : chaque canal est une entrée de contact avec une fonction (commutation, variation, store, valeur, scène), avec appuis courts et longs ; verrouillage, retour de la tension du bus et émission cyclique.",
-  "Value or scene": "Valeur ou scène",
-  LED: "LED",
-  Blind: "Store",
-  "Long press from": "Appui long à partir de",
-  "Short and long presses": "Appuis courts et longs",
-  "On press": "À l'appui",
-  "No action": "Aucune action",
-  "On release": "Au relâchement",
-  "Short press": "Appui court",
   "Long press": "Appui long",
   "Dimming operation": "Mode de variation",
   "One key: short toggles, long dims in turn":
@@ -1137,47 +760,10 @@ export const frMessages: Record<string, string> = {
     "Plus clair : court marche, long plus clair",
   "Darker: short off, long darker":
     "Plus sombre : court arrêt, long plus sombre",
-  "Dimming step": "Pas de variation",
-  "100 %": "100 %",
-  "50 %": "50 %",
-  "25 %": "25 %",
-  "12.5 %": "12,5 %",
-  "6 %": "6 %",
-  "3 %": "3 %",
-  "1.5 %": "1,5 %",
   "Blind operation": "Mode du store",
   "One key: direction alternates": "Une touche : sens alterné",
   "Up key": "Touche montée",
   "Down key": "Touche descente",
-  "Stop on release": "Arrêt au relâchement",
-  "Value on short press": "Valeur à l'appui court",
-  "Value on long press": "Valeur à l'appui long",
-  "no long press": "pas d'appui long",
-  "Store by long press": "Mémoriser par appui long",
-  "No reaction": "Aucune réaction",
-  "When unlocked": "Au déverrouillage",
-  "Send the current value": "Envoyer la valeur actuelle",
-  "When locked (blind)": "Au verrouillage (store)",
-  "When unlocked (blind)": "Au déverrouillage (store)",
-  "On bus voltage recovery (blind)": "Au retour de la tension du bus (store)",
-  "Recovery delay": "Délai au retour",
-  "no cyclic sending": "pas d'émission cyclique",
-  "Cyclic sending of": "Émission cyclique de",
-  "Both values": "Les deux valeurs",
-  "Only 1 (on)": "Seulement 1 (marche)",
-  "Only 0 (off)": "Seulement 0 (arrêt)",
-  "LED lit for 0": "LED allumée pour 0",
-  "Storing needs a scene control object (DPT 18.001); a scene number object (17.001) only recalls.":
-    "La mémorisation demande un objet de commande de scène (DPT 18.001) ; un objet de numéro de scène (17.001) ne fait que rappeler.",
-  "While the input is locked, its presses are ignored.":
-    "Tant que l'entrée est verrouillée, ses appuis sont ignorés.",
-  "Without an LED object, the LED of a switching or dimming input shows its switching object.":
-    "Sans objet LED, la LED d'une entrée de commutation ou de variation montre son objet de commutation.",
-  "Bus voltage and cyclic sending": "Tension du bus et émission cyclique",
-  "Bus voltage recovery": "Retour de la tension du bus",
-  "No reaction for this function.": "Aucune réaction pour cette fonction.",
-  "Cyclic sending applies to the switching function.":
-    "L'émission cyclique concerne la fonction de commutation.",
   "{0} links DPT 17.001 and DPT 18.001: recalls are read alike, but a 17.001 object reads a storing telegram (learn bit) as a recall.":
     "{0} relie le DPT 17.001 et le DPT 18.001 : les rappels se lisent de la même façon, mais un objet 17.001 lit un télégramme de mémorisation (bit d'apprentissage) comme un rappel.",
   "click to cut the bus voltage": "cliquer pour couper la tension du bus",
@@ -1195,9 +781,6 @@ export const frMessages: Record<string, string> = {
   "timer: off in {0} s": "minuterie : arrêt dans {0} s",
   Delay: "Retard",
   "switching on in {0} s": "allumage dans {0} s",
-  "{0}, {1}: {2}": "{0}, {1} : {2}",
-  "keys of format 1 are no longer supported; convert the file to format 2 and use a push-button interface (buttonInterface/v1)":
-    "les touches du format 1 ne sont plus prises en charge ; convertir le fichier au format 2 et utiliser une interface de boutons-poussoirs (buttonInterface/v1)",
   "same address in the device: value updated; W flag off, no reaction":
     "même adresse dans l'appareil : valeur mise à jour ; indicateur W désactivé, aucune réaction",
   "same address in the device: value updated; U flag off, no reaction":
@@ -1224,19 +807,18 @@ export const frMessages: Record<string, string> = {
     "channelObjects.values.{0} : port de canal « {1} » inconnu",
   "channelObjects.values.{0}: DPT “{1}” not accepted by port “{2}”":
     "channelObjects.values.{0} : DPT « {1} » non accepté par le port « {2} »",
-  "Operation (blind)": "Fonctionnement (store)",
-  "One key: on/off, brighter and darker in turn":
-    "Une touche : marche/arrêt, plus clair et plus sombre en alternance",
-  "Two keys: this key switches on and brightens":
-    "Deux touches : cette touche allume et éclaircit",
-  "Two keys: this key switches off and darkens":
-    "Deux touches : cette touche éteint et assombrit",
-  "One key: up and down in turn":
-    "Une touche : montée et descente en alternance",
-  "Two keys: this key raises": "Deux touches : cette touche fait monter",
-  "Two keys: this key lowers": "Deux touches : cette touche fait descendre",
-  "The group objects of the function are created with it; link them in the Group objects tab.":
-    "Les objets de groupe de la fonction sont créés avec elle ; les lier dans l'onglet Objets de groupe.",
-  "Operation (dimming)": "Fonctionnement (variation)",
-  "LED on the key": "LED sur la touche",
+  'required: add "formatVersion": 2 at the root of the scenario':
+    'requis : ajouter "formatVersion": 2 à la racine du scénario',
+  "unknown format version “{0}” (supported version: 2)":
+    "version de format « {0} » inconnue (version prise en charge : 2)",
+  "flags { W, T } required": "indicateurs { W, T } requis",
+  "No reaction": "Aucune réaction",
+  "When unlocked": "Au déverrouillage",
+  "On bus voltage failure": "À la coupure de la tension du bus",
+  "On at start": "Allumé au départ",
+  "Bus voltage": "Tension du bus",
+  Unchanged: "Inchangé",
+  "Fixed level": "Niveau fixe",
+  "Level on bus voltage failure": "Niveau à la coupure de la tension du bus",
+  "Level before the failure": "Niveau avant la coupure",
 };

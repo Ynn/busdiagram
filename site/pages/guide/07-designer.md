@@ -12,7 +12,7 @@ Both editing modes use the same scenario. Changes made in the guided forms updat
 
 ## Start a scenario
 
-Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing `.json` file. Format 1 scenarios are converted to format 2 when needed.
+Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing `.json` file.
 
 ## Guided editor
 

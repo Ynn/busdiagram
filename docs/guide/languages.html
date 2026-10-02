@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Languages · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -42,7 +42,7 @@
   <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li class="cur"><a href="../guide/languages.html">Languages</a></li></ul>
 
   <h4>For developers</h4>
-  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li></ul>
 
   <h4>Simulation model</h4>
   <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
@@ -50,7 +50,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-<h1 id="languages"><a class="anchor" href="#languages">#</a>Languages</h1><p>The component and designer support English and French. English is the source language; French wording is supplied by locale catalogs. Scenario titles, device names, and other values in scenario JSON are author-controlled content and are not translated automatically.</p>
+<h1 id="languages"><a class="anchor" href="#languages">#</a>Languages</h1><p>The component and designer are delivered in English and French, and accept other languages through locale catalogs. English is the source language; the other languages are supplied by catalogs. Scenario titles, device names, and other values in scenario JSON are author-controlled content and are not translated automatically.</p>
 <h2 id="select-a-language"><a class="anchor" href="#select-a-language">#</a>Select a language</h2><p>The component uses the nearest <code>lang</code> attribute on itself or an ancestor:</p>
 <pre class="code"><code>&lt;<span class="t">html</span> <span class="a">lang</span>=<span class="s">"en"</span>&gt;
   &lt;<span class="t">bus-diagram</span> <span class="a">src</span>=<span class="s">"scenarios/lighting-control.json"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;
@@ -87,12 +87,13 @@
 <pre class="code"><code>BusDiagram.registerMessages(<span class="s">"de"</span>, {
   <span class="k">"Group monitor"</span>: <span class="s">"Gruppenmonitor"</span>,
   <span class="k">"unknown channel “{0}” in {1}"</span>: <span class="s">"unbekannter Kanal „{0}“ in {1}"</span>,
-});</code></pre><p>Load the catalog after the library and select <code>&lt;html lang=&quot;de&quot;&gt;</code>. Missing messages fall back to English. <code>BusDiagram.availableLanguages()</code> lists registered language codes. The French catalog in <code>src/i18n/fr.ts</code> provides a complete example; the designer has additional entries in <code>site/designer/fr.ts</code>.</p>
+});</code></pre><p>Load the catalog after the library and select <code>&lt;html lang=&quot;de&quot;&gt;</code>. A regional code such as <code>de-AT</code> uses <code>de-AT</code>, then <code>de</code>, then English: missing messages fall back to English. <code>BusDiagram.availableLanguages()</code> lists registered language codes; the designer offers each of them in its language selector, under its own name (&quot;Deutsch&quot;).</p>
+<p>The French wording is split by origin: <code>src/i18n/fr.ts</code> for the diagram and the engine, <code>site/designer/fr.ts</code> for the designer, and, for each participant or equipment, its own catalogs (<code>src/participants/&lt;name&gt;/messages.fr.ts</code> for the library, <code>designer.fr.ts</code> for the designer; <code>src/equipment/&lt;name&gt;/messages.fr.ts</code>). A complete locale gives the same files in its language.</p>
 <h2 id="messages-in-an-extension"><a class="anchor" href="#messages-in-an-extension">#</a>Messages in an extension</h2><p>An extension can localize its own status messages through <code>ctx.t</code>:</p>
 <pre class="code"><code>ctx.note(ctx.t<span class="s">`${label}: scheduled to switch on in ${delay} s`</span>);
 BusDiagram.registerMessages(<span class="s">"fr"</span>, {
   <span class="k">"{0}: scheduled to switch on in {1} s"</span>: <span class="s">"{0} : allumage prévu dans {1} s"</span>,
-});</code></pre><p>Titles declared in behavior and equipment definitions are translated by the same catalog when it contains them.</p>
+});</code></pre><p>Titles declared in behavior and equipment definitions are translated by the same catalog when it contains them. A delivered participant declares its catalogs in its entries, by language (<code>messages: { fr: …, de: … }</code>), and may bring a language that the rest of the library lacks: its texts are translated, the others fall back to English.</p>
 
 <nav class="pager">
 <a href="../guide/viewer.html">← Standalone page and link</a>

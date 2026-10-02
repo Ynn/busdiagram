@@ -17,7 +17,7 @@
     },
     "formatVersion": {
       "const": 2,
-      "description": "Format version 2. Without this field, the file is read as legacy format 1."
+      "description": "Format version: 2, the only supported version."
     },
     "title": {
       "type": "string",
@@ -515,44 +515,88 @@
         "port": {
           "oneOf": [
             {
-              "const": "input",
-              "description": "Object written by a button or numeric input, then transmitted."
-            },
-            {
-              "const": "display",
-              "description": "Object that receives and displays a value, such as an indicator or supervisor."
-            },
-            {
               "const": "switch",
-              "description": "Channel switch command (0 = off, 1 = on)."
+              "description": "Switching command of the output (0 = off, 1 = on)."
             },
             {
               "const": "status",
-              "description": "Relay status feedback, sent after each effective change."
-            },
-            {
-              "const": "move",
-              "description": "Shutter: 0 raises toward 0%, 1 lowers toward 100%."
-            },
-            {
-              "const": "stopStep",
-              "description": "Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down)."
-            },
-            {
-              "const": "positionCommand",
-              "description": "Shutter target position in percent."
-            },
-            {
-              "const": "positionStatus",
-              "description": "Actuator's estimated shutter position, sent after stopping."
+              "description": "Status of the relay, sent after each effective change."
             },
             {
               "const": "scene",
-              "description": "Scene number (bus byte 0–63 represents scenes 1–64), or scene control (18.001) whose learn bit (128) stores the current state; without a channel, apply to all channels."
+              "description": "scene number (17.001), or scene control (18.001) whose learn bit stores the current state"
             },
             {
               "const": "forced",
-              "description": "Priority override (2 = force off, 3 = force on, 0/1 = end override)."
+              "description": "Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override)."
+            },
+            {
+              "const": "lock",
+              "description": "1 locks the output in the state set by lockStart, 0 unlocks it (afterLock)"
+            },
+            {
+              "const": "logic",
+              "description": "combined with the switching command by logicOperation (AND or OR)"
+            },
+            {
+              "const": "power",
+              "description": "electrical power drawn by the load of the channel: W with 14.056, kW with 9.024"
+            },
+            {
+              "const": "energy",
+              "description": "active energy counted for the channel, sent cyclically: Wh with 13.010, kWh with 13.013"
+            },
+            {
+              "const": "totalPower",
+              "description": "sum of the power of all channels: W with 14.056, kW with 9.024"
+            },
+            {
+              "const": "powerLimit",
+              "description": "1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)"
+            },
+            {
+              "const": "move",
+              "description": "Up/down: 0 raises toward 0 %, 1 lowers toward 100 %."
+            },
+            {
+              "const": "stopStep",
+              "description": "Stop when moving; otherwise one step of stepPct (0 up, 1 down)."
+            },
+            {
+              "const": "positionCommand",
+              "description": "Target position in percent."
+            },
+            {
+              "const": "positionStatus",
+              "description": "Estimated position, sent after stopping."
+            },
+            {
+              "const": "slatCommand",
+              "description": "slat angle (0 % open, 100 % closed) of a venetian blind"
+            },
+            {
+              "const": "slatStatus",
+              "description": "estimated slat angle, sent after stopping"
+            },
+            {
+              "const": "windAlarm",
+              "description": "1 raises the shutter and locks it against other commands; 0 releases it in place"
+            },
+            {
+              "const": "display",
+              "description": "Value received and shown, as by an indicator or a supervisor."
+            },
+            {
+              "const": "input",
+              "description": "Object written by a numeric input of the diagram, then transmitted."
+            },
+            {
+              "const": "slaveTrigger",
+              "description": "1 sent by a slave detector of the same room: counts as a detection (master/slave operation)"
+            },
+            {
+              "const": "brightness",
+              "description": "measured brightness (lx), entered by the reader and sent; there is no light model"
             },
             {
               "const": "dim",
@@ -564,207 +608,167 @@
             },
             {
               "const": "valueStatus",
-              "description": "Brightness value feedback (5.001), sent after a transition."
-            },
-            {
-              "const": "error",
-              "description": "Lamp or ballast fault in a DALI group (1.005)."
-            },
-            {
-              "const": "broadcastSwitch",
-              "description": "Switch all groups with a DALI broadcast."
-            },
-            {
-              "const": "broadcastValue",
-              "description": "Set all group levels with a DALI broadcast."
-            },
-            {
-              "const": "generalError",
-              "description": "Fault on the DALI line across all groups (1.005)."
-            },
-            {
-              "const": "actualTemp",
-              "description": "Thermostat: measured temperature (9.001), sent on change."
-            },
-            {
-              "const": "externalTemp",
-              "description": "Thermostat: temperature from an external sensor (9.001), replacing the internal sensor."
-            },
-            {
-              "const": "baseSetpoint",
-              "description": "Thermostat: base heating comfort setpoint (9.001)."
-            },
-            {
-              "const": "setpointShift",
-              "description": "Thermostat: offset from the base setpoint (9.002, in K)."
-            },
-            {
-              "const": "setpointStatus",
-              "description": "Thermostat: current setpoint (9.001)."
-            },
-            {
-              "const": "hvacMode",
-              "description": "Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
-            },
-            {
-              "const": "hvacModeStatus",
-              "description": "Thermostat: current mode (20.102)."
-            },
-            {
-              "const": "presence",
-              "description": "Thermostat: presence requests comfort mode."
-            },
-            {
-              "const": "window",
-              "description": "Thermostat: an open window requests priority protection mode."
-            },
-            {
-              "const": "heatCool",
-              "description": "Thermostat: 1 selects heating, 0 selects cooling (1.100)."
-            },
-            {
-              "const": "heatCoolStatus",
-              "description": "Thermostat: current heating or cooling mode."
-            },
-            {
-              "const": "heatingValue",
-              "description": "Thermostat: continuous heating control value (5.001)."
-            },
-            {
-              "const": "heatingSwitch",
-              "description": "Thermostat: one-bit heating command (two-point or PWM)."
-            },
-            {
-              "const": "coolingValue",
-              "description": "Thermostat: continuous cooling control value (5.001)."
-            },
-            {
-              "const": "coolingSwitch",
-              "description": "Thermostat: one-bit cooling command."
-            },
-            {
-              "const": "fault",
-              "description": "Heating actuator: missing control value triggers emergency mode (1.005)."
-            },
-            {
-              "const": "contact",
-              "description": "Window contact: 1.019 or 1.001 uses 1 for open; 1.009 uses 1 for closed."
-            },
-            {
-              "const": "temperature",
-              "description": "Sensor: room temperature (9.001)."
-            },
-            {
-              "const": "lock",
-              "description": "lock"
-            },
-            {
-              "const": "logic",
-              "description": "logic"
-            },
-            {
-              "const": "power",
-              "description": "power"
-            },
-            {
-              "const": "energy",
-              "description": "energy"
-            },
-            {
-              "const": "totalPower",
-              "description": "totalPower"
-            },
-            {
-              "const": "powerLimit",
-              "description": "powerLimit"
-            },
-            {
-              "const": "slatCommand",
-              "description": "slatCommand"
-            },
-            {
-              "const": "slatStatus",
-              "description": "slatStatus"
-            },
-            {
-              "const": "windAlarm",
-              "description": "windAlarm"
-            },
-            {
-              "const": "brightness",
-              "description": "brightness"
+              "description": "Brightness value (5.001), sent after a transition."
             },
             {
               "const": "colourTemperature",
-              "description": "colourTemperature"
+              "description": "colour temperature setpoint (K) of a tunable white channel"
             },
             {
               "const": "colourTemperatureStatus",
-              "description": "colourTemperatureStatus"
+              "description": "applied colour temperature (K)"
+            },
+            {
+              "const": "error",
+              "description": "lamp or ballast fault in the group"
+            },
+            {
+              "const": "broadcastSwitch",
+              "description": "Switches all groups with a DALI broadcast."
+            },
+            {
+              "const": "broadcastValue",
+              "description": "Sets the level of all groups with a DALI broadcast."
+            },
+            {
+              "const": "generalError",
+              "description": "Fault on the DALI line, across all groups (1.005)."
+            },
+            {
+              "const": "actualTemp",
+              "description": "Measured temperature (9.001), sent on change."
+            },
+            {
+              "const": "externalTemp",
+              "description": "replaces the internal sensor after a value is received"
+            },
+            {
+              "const": "baseSetpoint",
+              "description": "Base comfort setpoint for heating (9.001)."
+            },
+            {
+              "const": "setpointShift",
+              "description": "base setpoint = configured setpoint + offset"
+            },
+            {
+              "const": "setpointStatus",
+              "description": "Current setpoint (9.001)."
+            },
+            {
+              "const": "hvacMode",
+              "description": "Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
+            },
+            {
+              "const": "hvacModeStatus",
+              "description": "Current mode (20.102)."
+            },
+            {
+              "const": "presence",
+              "description": "1 = presence: comfort mode"
+            },
+            {
+              "const": "window",
+              "description": "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority"
+            },
+            {
+              "const": "heatCool",
+              "description": "1 = heating, 0 = cooling"
+            },
+            {
+              "const": "heatCoolStatus",
+              "description": "Current mode: 1 heating, 0 cooling (1.100)."
+            },
+            {
+              "const": "heatingValue",
+              "description": "continuous control value from 0 to 100%"
+            },
+            {
+              "const": "heatingSwitch",
+              "description": "two-point control, or PWM under PI control"
+            },
+            {
+              "const": "coolingValue",
+              "description": "Continuous cooling control value (5.001)."
+            },
+            {
+              "const": "coolingSwitch",
+              "description": "One-bit cooling command."
+            },
+            {
+              "const": "fault",
+              "description": "missing control value: fallback program"
+            },
+            {
+              "const": "contact",
+              "description": "1.019 / 1.001: 1 means open; 1.009: 1 means closed"
+            },
+            {
+              "const": "temperature",
+              "description": "Room temperature (9.001)."
             },
             {
               "const": "logicIn",
-              "description": "logicIn"
+              "description": "one-bit input of the logic function"
             },
             {
               "const": "enable",
-              "description": "enable"
+              "description": "0 blocks the output; 1 enables it again and sends the current result"
             },
             {
               "const": "time",
-              "description": "time"
+              "description": "time received from a clock master, used by the time window"
             },
             {
               "const": "logicOut",
-              "description": "logicOut"
+              "description": "result of the logic function"
             },
             {
               "const": "wind",
-              "description": "wind"
+              "description": "measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)"
             },
             {
               "const": "outdoorTemp",
-              "description": "outdoorTemp"
+              "description": "measured outdoor temperature (°C), sent when entered"
             },
             {
               "const": "sunProtection",
-              "description": "sunProtection"
+              "description": "1 when the brightness threshold is reached, 0 after hysteresis"
             },
             {
               "const": "humidity",
-              "description": "humidity"
+              "description": "measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001"
             },
             {
               "const": "co2",
-              "description": "co2"
+              "description": "measured CO₂ concentration (ppm), sent when entered"
             },
             {
               "const": "co2Alarm",
-              "description": "co2Alarm"
+              "description": "1 when the CO₂ alarm threshold is reached, 0 after hysteresis"
             },
             {
               "const": "humidityAlarm",
-              "description": "humidityAlarm"
+              "description": "1 when the humidity alarm threshold is reached, 0 after hysteresis"
             },
             {
               "const": "ventilation",
-              "description": "ventilation"
+              "description": "control value (%) of the current ventilation step"
             },
             {
               "const": "date",
-              "description": "date"
+              "description": "date of the simulated clock"
             },
             {
               "const": "output",
-              "description": "output"
+              "description": "object that receives the programmed values"
             },
             {
               "const": "command",
-              "description": "command"
+              "description": "value received from KNX and forwarded to the other system (mode, setpoint, boost…)"
             },
             {
               "const": "led",
-              "description": "led"
+              "description": "state shown by the LED of the key"
             }
           ],
           "description": "Object role in the device's behavior."
@@ -1635,7 +1639,7 @@
         },
         "kind": {
           "type": "string",
-          "description": "Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…"
+          "description": "Type of device, as a free description (buttonInterface, switchActuator, display…). Only a behavior that documents a value gives it an effect: display/v1 draws \"supervisor\" as a supervision software."
         },
         "behavior": {
           "anyOf": [
@@ -1679,7 +1683,7 @@
             "TP",
             "IP"
           ],
-          "description": "Communication medium: TP by default, or IP on the topology.ip network; supervisors default to IP."
+          "description": "Communication medium: TP by default, or IP on the topology.ip network (a supervisor on the IP network writes \"IP\")."
         },
         "room": {
           "type": "string",
@@ -1985,11 +1989,11 @@
                       "oneOf": [
                         {
                           "const": "switch",
-                          "description": "Channel switch command (0 = off, 1 = on)."
+                          "description": "Switching command of the output (0 = off, 1 = on)."
                         },
                         {
                           "const": "status",
-                          "description": "Relay status feedback, sent after each effective change."
+                          "description": "Status of the relay, sent after each effective change."
                         },
                         {
                           "const": "scene",
@@ -1997,7 +2001,7 @@
                         },
                         {
                           "const": "forced",
-                          "description": "Priority override (2 = force off, 3 = force on, 0/1 = end override)."
+                          "description": "Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override)."
                         },
                         {
                           "const": "lock",
@@ -2141,6 +2145,72 @@
                           "type": "boolean",
                           "default": true,
                           "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts."
+                        },
+                        "lockStart": {
+                          "title": "When locked",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down",
+                            "stop",
+                            "position"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the lock object receives 1; the wind alarm keeps priority."
+                        },
+                        "lockPositionPct": {
+                          "title": "Position when locked",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 0,
+                          "description": "Position reached when the lock starts, with “Position”."
+                        },
+                        "afterLock": {
+                          "title": "When unlocked",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down",
+                            "restore"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the lock object receives 0."
+                        },
+                        "busFailure": {
+                          "title": "On bus voltage failure",
+                          "type": "string",
+                          "enum": [
+                            "stop",
+                            "up",
+                            "down"
+                          ],
+                          "default": "stop",
+                          "description": "Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position)."
+                        },
+                        "busRecovery": {
+                          "title": "On bus voltage recovery",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down",
+                            "position"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the bus voltage returns; the estimated position is sent in any case."
+                        },
+                        "busRecoveryPositionPct": {
+                          "title": "Position on bus recovery",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 0,
+                          "description": "Position reached on bus recovery, with “Position”."
                         }
                       }
                     },
@@ -2178,19 +2248,19 @@
                       "oneOf": [
                         {
                           "const": "move",
-                          "description": "Shutter: 0 raises toward 0%, 1 lowers toward 100%."
+                          "description": "Up/down: 0 raises toward 0 %, 1 lowers toward 100 %."
                         },
                         {
                           "const": "stopStep",
-                          "description": "Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down)."
+                          "description": "Stop when moving; otherwise one step of stepPct (0 up, 1 down)."
                         },
                         {
                           "const": "positionCommand",
-                          "description": "Shutter target position in percent."
+                          "description": "Target position in percent."
                         },
                         {
                           "const": "positionStatus",
-                          "description": "Actuator's estimated shutter position, sent after stopping."
+                          "description": "Estimated position, sent after stopping."
                         },
                         {
                           "const": "scene",
@@ -2207,6 +2277,10 @@
                         {
                           "const": "windAlarm",
                           "description": "1 raises the shutter and locks it against other commands; 0 releases it in place"
+                        },
+                        {
+                          "const": "lock",
+                          "description": "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority."
                         }
                       ]
                     }
@@ -2254,7 +2328,7 @@
                       "oneOf": [
                         {
                           "const": "display",
-                          "description": "Object that receives and displays a value, such as an indicator or supervisor."
+                          "description": "Value received and shown, as by an indicator or a supervisor."
                         }
                       ]
                     }
@@ -2302,11 +2376,11 @@
                       "oneOf": [
                         {
                           "const": "input",
-                          "description": "Object written by a button or numeric input, then transmitted."
+                          "description": "Object written by a numeric input of the diagram, then transmitted."
                         },
                         {
                           "const": "display",
-                          "description": "Object that receives and displays a value, such as an indicator or supervisor."
+                          "description": "Value received and kept, as shown by a visualization."
                         }
                       ]
                     }
@@ -2387,6 +2461,10 @@
                         {
                           "const": "input",
                           "description": "output object: 1 on detection, 0 when the timer expires"
+                        },
+                        {
+                          "const": "slaveTrigger",
+                          "description": "1 sent by a slave detector of the same room: counts as a detection (master/slave operation)"
                         },
                         {
                           "const": "brightness",
@@ -2577,6 +2655,37 @@
                           "default": 300,
                           "description": "Delay before sending status feedback (ms), after a transition completes."
                         },
+                        "busFailure": {
+                          "title": "On bus voltage failure",
+                          "type": "string",
+                          "enum": [
+                            "unchanged",
+                            "off",
+                            "level"
+                          ],
+                          "default": "unchanged",
+                          "description": "Level of the channel when the bus voltage fails; it is then kept until the voltage returns."
+                        },
+                        "busFailureLevelPct": {
+                          "title": "Level on bus voltage failure",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 100,
+                          "description": "Level set when the bus voltage fails, with “Fixed level”."
+                        },
+                        "busRecovery": {
+                          "title": "On bus voltage recovery",
+                          "type": "string",
+                          "enum": [
+                            "previous",
+                            "off",
+                            "on"
+                          ],
+                          "default": "previous",
+                          "description": "Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent."
+                        },
                         "minColourK": {
                           "title": "Warmest colour temperature",
                           "expert": true,
@@ -2630,7 +2739,7 @@
                       "oneOf": [
                         {
                           "const": "switch",
-                          "description": "Channel switch command (0 = off, 1 = on)."
+                          "description": "Switching command of the channel (0 = off, 1 = on)."
                         },
                         {
                           "const": "dim",
@@ -2642,11 +2751,11 @@
                         },
                         {
                           "const": "status",
-                          "description": "Relay status feedback, sent after each effective change."
+                          "description": "Switching status of the channel, sent after each change."
                         },
                         {
                           "const": "valueStatus",
-                          "description": "Brightness value feedback (5.001), sent after a transition."
+                          "description": "Brightness value (5.001), sent after a transition."
                         },
                         {
                           "const": "scene",
@@ -2811,6 +2920,37 @@
                           "default": 300,
                           "description": "Delay before sending status feedback (ms), after a transition completes."
                         },
+                        "busFailure": {
+                          "title": "On bus voltage failure",
+                          "type": "string",
+                          "enum": [
+                            "unchanged",
+                            "off",
+                            "level"
+                          ],
+                          "default": "unchanged",
+                          "description": "Level of the channel when the bus voltage fails; it is then kept until the voltage returns."
+                        },
+                        "busFailureLevelPct": {
+                          "title": "Level on bus voltage failure",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 100,
+                          "description": "Level set when the bus voltage fails, with “Fixed level”."
+                        },
+                        "busRecovery": {
+                          "title": "On bus voltage recovery",
+                          "type": "string",
+                          "enum": [
+                            "previous",
+                            "off",
+                            "on"
+                          ],
+                          "default": "previous",
+                          "description": "Level of the channel when the bus voltage returns (on: the switch-on level); the status feedback is then sent."
+                        },
                         "minColourK": {
                           "title": "Warmest colour temperature",
                           "expert": true,
@@ -2864,7 +3004,7 @@
                       "oneOf": [
                         {
                           "const": "switch",
-                          "description": "Channel switch command (0 = off, 1 = on)."
+                          "description": "Switching command of the channel (0 = off, 1 = on)."
                         },
                         {
                           "const": "dim",
@@ -2876,11 +3016,11 @@
                         },
                         {
                           "const": "status",
-                          "description": "Relay status feedback, sent after each effective change."
+                          "description": "Switching status of the channel, sent after each change."
                         },
                         {
                           "const": "valueStatus",
-                          "description": "Brightness value feedback (5.001), sent after a transition."
+                          "description": "Brightness value (5.001), sent after a transition."
                         },
                         {
                           "const": "scene",
@@ -2892,15 +3032,15 @@
                         },
                         {
                           "const": "broadcastSwitch",
-                          "description": "Switch all groups with a DALI broadcast."
+                          "description": "Switches all groups with a DALI broadcast."
                         },
                         {
                           "const": "broadcastValue",
-                          "description": "Set all group levels with a DALI broadcast."
+                          "description": "Sets the level of all groups with a DALI broadcast."
                         },
                         {
                           "const": "generalError",
-                          "description": "Fault on the DALI line across all groups (1.005)."
+                          "description": "Fault on the DALI line, across all groups (1.005)."
                         }
                       ]
                     }
@@ -3113,7 +3253,7 @@
                       "oneOf": [
                         {
                           "const": "actualTemp",
-                          "description": "Thermostat: measured temperature (9.001), sent on change."
+                          "description": "Measured temperature (9.001), sent on change."
                         },
                         {
                           "const": "externalTemp",
@@ -3121,7 +3261,7 @@
                         },
                         {
                           "const": "baseSetpoint",
-                          "description": "Thermostat: base heating comfort setpoint (9.001)."
+                          "description": "Base comfort setpoint for heating (9.001)."
                         },
                         {
                           "const": "setpointShift",
@@ -3129,15 +3269,15 @@
                         },
                         {
                           "const": "setpointStatus",
-                          "description": "Thermostat: current setpoint (9.001)."
+                          "description": "Current setpoint (9.001)."
                         },
                         {
                           "const": "hvacMode",
-                          "description": "Thermostat: selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
+                          "description": "Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
                         },
                         {
                           "const": "hvacModeStatus",
-                          "description": "Thermostat: current mode (20.102)."
+                          "description": "Current mode (20.102)."
                         },
                         {
                           "const": "presence",
@@ -3153,7 +3293,7 @@
                         },
                         {
                           "const": "heatCoolStatus",
-                          "description": "Thermostat: current heating or cooling mode."
+                          "description": "Current mode: 1 heating, 0 cooling (1.100)."
                         },
                         {
                           "const": "heatingValue",
@@ -3165,11 +3305,11 @@
                         },
                         {
                           "const": "coolingValue",
-                          "description": "Thermostat: continuous cooling control value (5.001)."
+                          "description": "Continuous cooling control value (5.001)."
                         },
                         {
                           "const": "coolingSwitch",
-                          "description": "Thermostat: one-bit cooling command."
+                          "description": "One-bit cooling command."
                         }
                       ]
                     }
@@ -3256,7 +3396,7 @@
                       "oneOf": [
                         {
                           "const": "value",
-                          "description": "Brightness value in percent (5.001); zero switches off."
+                          "description": "Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs."
                         },
                         {
                           "const": "switch",
@@ -3264,7 +3404,7 @@
                         },
                         {
                           "const": "valueStatus",
-                          "description": "Brightness value feedback (5.001), sent after a transition."
+                          "description": "Control value applied to the valve (5.001)."
                         },
                         {
                           "const": "fault",
@@ -3417,7 +3557,7 @@
                       "oneOf": [
                         {
                           "const": "temperature",
-                          "description": "Sensor: room temperature (9.001)."
+                          "description": "Room temperature (9.001)."
                         }
                       ]
                     }
@@ -4411,7 +4551,7 @@
                         },
                         {
                           "const": "dim",
-                          "description": "Relative dimming (3.007): direction bit and step size 1–7; 0 stops dimming."
+                          "description": "Relative dimming sent by the input (3.007): a step to dim up or down, then a stop on release."
                         },
                         {
                           "const": "move",
@@ -4419,7 +4559,7 @@
                         },
                         {
                           "const": "stopStep",
-                          "description": "Shutter: stop when moving; otherwise step by stepPct (0 up, 1 down)."
+                          "description": "Stop or step sent by the input (1.007)."
                         },
                         {
                           "const": "value",

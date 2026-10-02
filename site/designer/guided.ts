@@ -15,7 +15,8 @@ import { buildScenario } from "../../src/knx/scenario";
 import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { t } from "./lang";
-import { SNIPPETS, freeAddress } from "./snippets";
+import { freeAddress } from "./snippet-kit";
+import { TEMPLATES, designerOf } from "./standard-designer";
 import type { Host, WorkspaceState } from "./workspace";
 import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
 import * as P from "./params";
@@ -41,14 +42,13 @@ export class GuidedEditor extends LitElement implements Host {
   declare doc: Doc | null;
   /** Selected device ID, "ga:1/1/1" for a group address, or null for the scenario overview. */
   declare selected: string | null;
-  /** "v2", "v1", "invalid": what the editor contains. */
-  declare format: "v2" | "v1" | "invalid";
+  /** "v2", "unversioned" (no "formatVersion": 2), "invalid": what the editor contains. */
+  declare format: "v2" | "unversioned" | "invalid";
   declare alert: Refusal | null;
   /** Removal pending confirmation (button key). */
   declare confirming: string | null;
   registry!: Registry;
   commit: (label: string, mutate: Mutate) => Refusal | null = () => null;
-  convert: () => void = () => {};
   undo: () => void = () => {};
   redo: () => void = () => {};
   onSelect: (id: string | null) => void = () => {};
@@ -223,12 +223,9 @@ export class GuidedEditor extends LitElement implements Host {
       return html`<p class="g-note">
         ${t`The JSON has a syntax error: fix it in the JSON tab (errors are listed below) to resume guided editing.`}
       </p>`;
-    if (this.format === "v1")
+    if (this.format === "unversioned")
       return html`<p class="g-note">
-        ${t`This scenario uses format 1. The guided designer works on format 2:`}
-        <button class="g-btn" @click=${() => this.convert()}>
-          ${t`Convert to format 2`}
-        </button>
+        ${t`The scenario needs "formatVersion": 2 at its root: add it in the JSON tab to resume guided editing.`}
       </p>`;
     const doc = this.doc;
     if (!doc) return nothing;
@@ -640,7 +637,7 @@ export class GuidedEditor extends LitElement implements Host {
                       this.selectAdded = new Set(d.devices.map((x) => x.id));
                       Object.assign(
                         d,
-                        SNIPPETS.find((x) => x.id === "sup")!.apply(d),
+                        TEMPLATES.find((x) => x.id === "sup")!.apply(d),
                       );
                     });
                     if (!ok) this.selectAdded = null;
@@ -1063,7 +1060,7 @@ export class GuidedEditor extends LitElement implements Host {
       if (v.startsWith("snippet:"))
         Object.assign(
           d,
-          SNIPPETS.find((x) => x.id === v.slice(8))!.apply(d, { line }),
+          TEMPLATES.find((x) => x.id === v.slice(8))!.apply(d, { line }),
         );
       else addGeneric(d, v.slice(4), this.registry, line);
       const added = d.devices.filter((x) => !this.selectAdded!.has(x.id));
@@ -1092,7 +1089,7 @@ export class GuidedEditor extends LitElement implements Host {
       }}
     >
       <option value="">+ ${t`Add a device…`}</option>
-      ${SNIPPETS.filter((s) => !["ga", "line"].includes(s.id)).map((s) => html`<option value="snippet:${s.id}" title=${s.hint}>${s.label}</option>`)}
+      ${TEMPLATES.filter((s) => !["ga", "line"].includes(s.id)).map((s) => html`<option value="snippet:${s.id}" title=${s.hint}>${s.label}</option>`)}
       ${
         extensions.length
           ? html`<optgroup label=${t`Loaded extensions`}>
@@ -1106,61 +1103,8 @@ export class GuidedEditor extends LitElement implements Host {
   // ── View 2: device ──
 
   typeLabel(d: Dev): string {
-    const n = (d.channels ?? []).length;
-    switch (d.behavior) {
-      case "switchActuator/v1":
-        return n === 1
-          ? t`Switch actuator · 1 output`
-          : t`Switch actuator · ${n} outputs`;
-      case "shutterActuator/v1":
-        return n === 1
-          ? t`Shutter actuator · 1 output`
-          : t`Shutter actuator · ${n} outputs`;
-      case "display/v1":
-        return d.kind === "supervisor" ? t`IP supervisor` : t`Display`;
-      case "dimmerActuator/v1":
-        return n === 1 ? t`Dimmer · 1 output` : t`Dimmer · ${n} outputs`;
-      case "daliGateway/v1":
-        return n === 1
-          ? t`DALI gateway · 1 group`
-          : t`DALI gateway · ${n} groups`;
-      case "usbInterface/v1":
-        return t`USB interface`;
-      case "presenceDetector/v1":
-        return t`Presence detector`;
-      case "roomThermostat/v1":
-        return t`Room thermostat`;
-      case "heatingActuator/v1":
-        return n === 1
-          ? t`Heating actuator · 1 output`
-          : t`Heating actuator · ${n} outputs`;
-      case "windowContact/v1":
-        return t`Window contact`;
-      case "temperatureSensor/v1":
-        return t`Temperature sensor`;
-      case "passive/v1":
-        return t`Device without logic`;
-      case "buttonInterface/v1":
-        return n === 1
-          ? t`Push-button interface · 1 input`
-          : t`Push-button interface · ${n} inputs`;
-      case "energyMeter/v1":
-        return t`Energy meter`;
-      case "weatherStation/v1":
-        return t`Weather station`;
-      case "airQualitySensor/v1":
-        return t`Air quality sensor`;
-      case "logicGate/v1":
-        return t`Logic module`;
-      case "clockMaster/v1":
-        return t`Clock master`;
-      case "timeSwitch/v1":
-        return t`Weekly time switch`;
-      case "systemGateway/v1":
-        return t`Gateway to another system`;
-      default:
-        return t`Extension ${d.behavior}`;
-    }
+    const own = designerOf(d.behavior)?.typeLabel;
+    return own ? own(d) : t`Extension ${d.behavior}`;
   }
 
   /** Foldable map: a summary of a line, detail at click. */
@@ -1182,9 +1126,9 @@ export class GuidedEditor extends LitElement implements Host {
     </details>`;
   }
 
-  // ── Touches ───────────────────────────────────────────────────────────────
+  // ── Keys ──────────────────────────────────────────────────────────────────
 
-  // ── Afficheur ─────────────────────────────────────────────────────────────
+  // ── Display ───────────────────────────────────────────────────────────────
 
   // ── Actuator outputs ──────────────────────────────────────────────────
 

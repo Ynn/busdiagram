@@ -313,8 +313,8 @@ export class Simulation {
       this.devices.set(d.id, rt);
       if (def.onTick) this.tickers.push(rt);
     });
-    // Parameters that disagree with the load they compensate: non-blocking warnings.
-    configWarnings(s, this.t).forEach((w) =>
+    // Configuration that illustrates a commissioning error: non-blocking warnings.
+    configWarnings(s, this.t, this.registry).forEach((w) =>
       this.warn(w.code, w.message, w.deviceId),
     );
     this.devices.forEach((rt) =>
@@ -849,8 +849,7 @@ export class Simulation {
       dpt: o.dpt,
       value,
       service: "GroupValueWrite",
-      kind:
-        o.port === "status" || o.port === "positionStatus" ? "state" : "cmd",
+      kind: o.telegram === "state" ? "state" : "cmd",
     });
   }
 

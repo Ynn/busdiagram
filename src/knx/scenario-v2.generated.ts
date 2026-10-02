@@ -17,7 +17,7 @@ name?: string
  */
 address?: string
 /**
- * Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…
+ * Type of device, as a free description (buttonInterface, switchActuator, display…). Only a behavior that documents a value gives it an effect: display/v1 draws "supervisor" as a supervision software.
  */
 kind: string
 /**
@@ -31,7 +31,7 @@ parameters?: {
 
 }
 /**
- * Communication medium: TP by default, or IP on the topology.ip network; supervisors default to IP.
+ * Communication medium: TP by default, or IP on the topology.ip network (a supervisor on the IP network writes "IP").
  */
 medium?: ("TP" | "IP")
 /**
@@ -186,7 +186,7 @@ export interface ScenarioV2 {
  */
 $schema?: string
 /**
- * Format version 2. Without this field, the file is read as legacy format 1.
+ * Format version: 2, the only supported version.
  */
 formatVersion: 2
 /**
@@ -446,7 +446,7 @@ dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1
 /**
  * Object role in the device's behavior.
  */
-port: ("input" | "display" | "switch" | "status" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "scene" | "forced" | "dim" | "value" | "valueStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "slatCommand" | "slatStatus" | "windAlarm" | "brightness" | "colourTemperature" | "colourTemperatureStatus" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "command" | "led")
+port: ("switch" | "status" | "scene" | "forced" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "slatCommand" | "slatStatus" | "windAlarm" | "display" | "input" | "slaveTrigger" | "brightness" | "dim" | "value" | "valueStatus" | "colourTemperature" | "colourTemperatureStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "command" | "led")
 /**
  * Channel ID within the device; required by actuator ports.
  */

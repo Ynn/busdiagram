@@ -1,5 +1,6 @@
 // Scenario format (JSON provided by author), validation and standardized model.
-// Two input formats — v1 (without version format) and v2 — and one internal model.
+// Input format 2 (`"formatVersion": 2`) and the internal model built from it.
+import { defaultInitial, defaultRead, defaultUpdate } from "./ports";
 import {
   compareAddress,
   isBroadcastGA,
@@ -87,6 +88,10 @@ export interface KnxObject extends ObjectInfo {
   gas: string[];
   flags: ObjectFlags;
   initial: number | null;
+  /** Class of the telegrams it sends, declared by its port. */
+  telegram: "command" | "state";
+  /** Drawn as driving the loads of its channel, declared by its port. */
+  drivesLoad: boolean;
 }
 
 export interface Button extends ButtonInfo {
@@ -112,6 +117,14 @@ export interface Device extends DeviceInfo {
   description: string;
   /** Receiver device: group-address column on the left side of its card. */
   receiver: boolean;
+  /** Presentation declared by its behavior. */
+  presentation: {
+    screen: readonly string[] | null;
+    supervisor: boolean;
+    busInterface: boolean;
+    remoteSystem: boolean;
+    metered: readonly string[];
+  };
   objects: KnxObject[];
   buttons: Button[];
   inputs: NumberInput[];
@@ -186,7 +199,7 @@ export interface Room {
 }
 
 export interface Scenario {
-  formatVersion: 1 | 2;
+  formatVersion: 2;
   title: string;
   description: string;
   lines: Line[];
@@ -241,42 +254,6 @@ export class ScenarioError extends Error {
   }
 }
 
-// ── Version 1 mappings ─────────────────────────────────────────────────────
-
-const V1_KINDS = [
-  "pushButton",
-  "switchActuator",
-  "shutterActuator",
-  "sensor",
-  "supervisor",
-  "generic",
-];
-
-const V1_ROLE_PORT: Record<string, string> = {
-  sensor: "input",
-  display: "display",
-  switch: "switch",
-  status: "status",
-  move: "move",
-  stop: "stopStep",
-  position: "positionStatus",
-  scene: "scene",
-  forced: "forced",
-};
-
-const PORT_DPT: Record<string, string> = {
-  switch: "1.001",
-  status: "1.001",
-  move: "1.008",
-  stopStep: "1.007",
-  positionCommand: "5.001",
-  positionStatus: "5.001",
-  scene: "17.001",
-  forced: "2.001",
-  input: "1.001",
-  display: "1.001",
-};
-
 const ID_RE = /^[A-Za-z0-9_][A-Za-z0-9_.-]*$/;
 
 const ICONS: ButtonIcon[] = [
@@ -321,8 +298,6 @@ const AREA_KEYS = ["address", "name"];
 const COUPLER_KEYS = ["address", "name", "down", "up"];
 const ROUTING: GroupRouting[] = ["filter", "route", "block"];
 const LINE_KEYS = ["address", "name", "extension", "powerSupply"];
-/** Behaviors whose objects may use a DPT that is shown but not simulated. */
-const REPRESENTING = new Set(["passive/v1", "display/v1"]);
 const EXT_KEYS = ["address", "mode", "switchable", "powerSupply"];
 const PSU_KEYS = ["name", "currentMa"];
 const GA_KEYS = ["address", "name", "dpt"];
@@ -385,23 +360,6 @@ const own = <T>(o: Readonly<Record<string, T>>, k: string): T | undefined =>
 const isRecord = (v: unknown): v is Rec =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
-/**
- * Standard behaviour corresponding to a device v1. Keys of format 1 were handled by the
- * former push-button behavior, which has been removed: a device with keys is refused.
- */
-function v1Behavior(kind: string): string {
-  switch (kind) {
-    case "switchActuator":
-      return "switchActuator/v1";
-    case "shutterActuator":
-      return "shutterActuator/v1";
-    case "supervisor":
-      return "display/v1";
-    default:
-      return "passive/v1";
-  }
-}
-
 // ── Construction ───────────────────────────────────────────────────────────
 
 export function buildScenario(
@@ -422,40 +380,21 @@ export function buildScenario(
       },
     ]);
 
-  let version: 1 | 2 = 1;
-  if (raw.formatVersion !== undefined) {
-    if (raw.formatVersion === 2) version = 2;
-    else if (raw.formatVersion === 1) version = 1;
-    else
-      throw new ScenarioError([
-        {
-          path: "formatVersion",
-          code: "version",
-          message: t`unknown format version “${String(raw.formatVersion)}” (supported versions: 1, 2)`,
-        },
-      ]);
-  }
-  const v2 = version === 2;
-  if (!v2 && raw.formatVersion === undefined && Array.isArray(raw.devices)) {
-    const looksV2 = raw.devices.some(
-      (d) =>
-        isRecord(d) &&
-        (d.behavior !== undefined ||
-          (Array.isArray(d.objects) &&
-            d.objects.some(
-              (o) =>
-                isRecord(o) && (o.port !== undefined || o.flags !== undefined),
-            ))),
-    );
-    if (looksV2)
-      err(
-        "formatVersion",
-        "required",
-        t`missing: this file uses format 2 fields (behavior, port, flags); add "formatVersion": 2`,
-      );
-  }
+  if (raw.formatVersion !== 2)
+    throw new ScenarioError([
+      raw.formatVersion === undefined
+        ? {
+            path: "formatVersion",
+            code: "required",
+            message: t`required: add "formatVersion": 2 at the root of the scenario`,
+          }
+        : {
+            path: "formatVersion",
+            code: "version",
+            message: t`unknown format version “${String(raw.formatVersion)}” (supported version: 2)`,
+          },
+    ]);
   const unknownKeys = (obj: Rec, allowed: string[], path: string) => {
-    if (!v2) return;
     Object.keys(obj).forEach((k) => {
       if (!allowed.includes(k))
         err(
@@ -919,7 +858,7 @@ export function buildScenario(
       );
     if (groupAddresses.has(address))
       return err(p, "duplicate", t`duplicate group address ${address}`);
-    if (v2 && g.dpt === "")
+    if (g.dpt === "")
       err(`${p}.dpt`, "dpt", t`empty DPT (remove the field or write a DPT)`);
     const dpt = str(g, "dpt", p) ?? "";
     // A declared DPT may be one that is shown but not simulated (known size).
@@ -988,23 +927,10 @@ export function buildScenario(
       return null;
     }
     const rawButtons = arr(d, "buttons", `${p}.`);
-    const rawInputs = v2 ? arr(d, "inputs", `${p}.`) : [];
-    const kind = str(d, "kind", p, v2) ?? "generic";
-    if (!v2 && !V1_KINDS.includes(kind))
-      err(`${p}.kind`, "enum", t`unknown type “${kind}”`);
+    const rawInputs = arr(d, "inputs", `${p}.`);
+    const kind = str(d, "kind", p, true) ?? "generic";
 
-    // Comportement
-    let behaviorId: string;
-    if (v2) behaviorId = nonEmpty(d, "behavior", p) ?? "";
-    else {
-      behaviorId = v1Behavior(kind);
-      if (rawButtons.length)
-        err(
-          `${p}.buttons`,
-          "removed",
-          t`keys of format 1 are no longer supported; convert the file to format 2 and use a push-button interface (buttonInterface/v1)`,
-        );
-    }
+    const behaviorId = nonEmpty(d, "behavior", p) ?? "";
     const behavior: BehaviorDefinition<unknown> | undefined =
       registry.behaviors.get(behaviorId);
     if (behaviorId && !behavior)
@@ -1015,7 +941,7 @@ export function buildScenario(
       );
 
     // Media and address
-    let medium: "TP" | "IP" = kind === "supervisor" ? "IP" : "TP";
+    let medium: "TP" | "IP" = "TP";
     if (d.medium !== undefined) {
       if (d.medium !== "TP" && d.medium !== "IP")
         err(`${p}.medium`, "enum", t`“TP” or “IP” expected`);
@@ -1107,35 +1033,9 @@ export function buildScenario(
       problems,
       t,
     );
-    // Addresses assigned to a bus interface: each must be a usable group address.
-    const tableGAs: string[] = [];
-    if (
-      behaviorId === "usbInterface/v1" &&
-      typeof parameters.groupAddresses === "string"
-    )
-      for (const ga of parameters.groupAddresses
-        .split(/[\s,;]+/)
-        .filter(Boolean)) {
-        if (!parseGA(ga))
-          err(
-            `${p}.parameters.groupAddresses`,
-            "address",
-            t`“${ga}” is not a valid 3-level group address (0–31/0–7/0–255)`,
-          );
-        else if (isBroadcastGA(ga))
-          err(
-            `${p}.parameters.groupAddresses`,
-            "address",
-            t`0/0/0 is the broadcast address and cannot be used as a group address`,
-          );
-        else tableGAs.push(ga);
-      }
-
     // Channels
     const channels: Channel[] = [];
     const rawChannels = arr(d, "channels", `${p}.`);
-    if (behaviorId === "daliGateway/v1" && rawChannels.length > 16)
-      err(`${p}.channels`, "range", t`DALI gateway supports at most 16 groups`);
     rawChannels.forEach((c, ci) => {
       const cp = `${p}.channels[${ci}]`;
       if (!isRecord(c)) return err(cp, "type", t`object expected`);
@@ -1147,49 +1047,10 @@ export function buildScenario(
       const label = str(c, "label", cp) ?? cid;
       const keyLabel = str(c, "keyLabel", cp) ?? null;
 
-      let rawParams: unknown = c.parameters;
-      let rawInit: unknown = c.initialState;
+      const rawParams: unknown = c.parameters;
+      const rawInit: unknown = c.initialState;
       const equipment: EquipmentConfig[] = [];
-      let rawEquip: unknown = c.equipment;
-      if (!v2) {
-        // Translation v1: seconds → milliseconds, load → equipment.
-        const num = (k: string) => {
-          const v = c[k];
-          if (v === undefined) return undefined;
-          if (typeof v !== "number" || !Number.isFinite(v) || v <= 0) {
-            err(
-              `${cp}.${k}`,
-              "range",
-              t`strictly positive duration in seconds expected`,
-            );
-            return undefined;
-          }
-          return Math.round(v * 1000);
-        };
-        const timer = num("timer");
-        const travel = num("travel") ?? 12000;
-        const load =
-          c.load ??
-          (kind === "shutterActuator"
-            ? "shutter"
-            : kind === "switchActuator"
-              ? "lamp"
-              : "none");
-        if (load !== "lamp" && load !== "shutter" && load !== "none")
-          err(`${cp}.load`, "enum", t`“lamp”, “shutter” or “none” expected`);
-        if (behaviorId === "switchActuator/v1")
-          rawParams = { timerMs: timer ?? null };
-        else if (behaviorId === "shutterActuator/v1")
-          rawParams = { estimatedTravelTimeMs: travel };
-        else rawParams = undefined;
-        rawInit = undefined;
-        rawEquip =
-          load === "lamp"
-            ? { type: "lamp" }
-            : load === "shutter"
-              ? { type: "shutter", parameters: { actualTravelTimeMs: travel } }
-              : null;
-      }
+      const rawEquip: unknown = c.equipment;
       const chParams = validateParams(
         behavior?.channelParameters,
         rawParams,
@@ -1303,8 +1164,6 @@ export function buildScenario(
             // Canonical spelling: "01" and "1" would designate the same scene.
             if (!/^([1-9]|[1-5][0-9]|6[0-4])$/.test(k))
               return err(sp, "range", t`integer scene number 1–64 expected`);
-            if (behaviorId === "daliGateway/v1" && n > 16)
-              return err(sp, "range", t`DALI scene number 1–16 expected`);
             if (typeof v !== "number" || !Number.isFinite(v))
               return err(sp, "type", t`number expected`);
             if (behavior?.output === "switch" && v !== 0 && v !== 1)
@@ -1335,37 +1194,6 @@ export function buildScenario(
       });
     });
 
-    // Each modeled DALI group owns its ballasts independently. Reject a shared short
-    // address instead of simulating one physical ballast as two unrelated loads.
-    if (behaviorId === "daliGateway/v1") {
-      const owners = new Map<number, string>();
-      channels.forEach((channel, index) => {
-        channel.equipmentConfigs.forEach((equipment, li) => {
-          if (equipment.type !== "daliGroup") return;
-          const first = Number(equipment.parameters.firstAddress ?? 0);
-          const count = Number(equipment.parameters.ballasts ?? 2);
-          if (
-            !Number.isInteger(first) ||
-            !Number.isInteger(count) ||
-            first < 0 ||
-            count < 1 ||
-            first + count > 64
-          )
-            return;
-          for (let address = first; address < first + count; address++) {
-            const previous = owners.get(address);
-            if (previous)
-              err(
-                `${p}.channels[${index}].equipment${channel.equipmentConfigs.length > 1 ? `[${li}]` : ""}.parameters.firstAddress`,
-                "duplicate",
-                t`DALI short address A${address} is already assigned to channel ${previous}; overlapping groups are outside this model`,
-              );
-            else owners.set(address, channel.id);
-          }
-        });
-      });
-    }
-
     // Objects (first pass: identity, GA, port, channel, DPT)
     const objects: KnxObject[] = [];
     const objectFlagsRaw = new Map<KnxObject, unknown>();
@@ -1381,8 +1209,8 @@ export function buildScenario(
       let gas: string[] = [];
       if (Array.isArray(o.ga)) gas = o.ga as string[];
       else if (typeof o.ga === "string") {
-        // v2: "" is not "no address" (write []); v1 tolerated it.
-        if (o.ga === "" && v2)
+        // "" is not "no address": write [].
+        if (o.ga === "")
           err(
             `${op}.ga`,
             "address",
@@ -1391,7 +1219,7 @@ export function buildScenario(
         gas = o.ga === "" ? [] : [o.ga];
       } else if (o.ga !== undefined)
         err(`${op}.ga`, "type", t`group address or list of addresses expected`);
-      else if (v2)
+      else
         err(
           `${op}.ga`,
           "required",
@@ -1421,17 +1249,11 @@ export function buildScenario(
         return true;
       });
 
-      let port: string;
-      if (v2) port = nonEmpty(o, "port", op) ?? "";
-      else {
-        const role = o.role ?? (kind === "supervisor" ? "display" : "sensor");
-        port = typeof role === "string" ? (own(V1_ROLE_PORT, role) ?? "") : "";
-        if (!port) err(`${op}.role`, "enum", t`unknown role “${String(role)}”`);
-      }
+      const port = nonEmpty(o, "port", op) ?? "";
       const portDef = behavior ? own(behavior.ports, port) : undefined;
       if (port && behavior && !portDef)
         err(
-          `${op}.${v2 ? "port" : "role"}`,
+          `${op}.port`,
           "port",
           t`port “${port}” not accepted by ${behaviorId} (ports: ${Object.keys(behavior.ports).join(", ")})`,
         );
@@ -1452,20 +1274,12 @@ export function buildScenario(
             "port",
             t`port “${port}” does not refer to a channel`,
           );
-      } else if (
-        !v2 &&
-        portDef &&
-        portDef.channel !== "none" &&
-        channels.length === 1
-      ) {
-        channel = channels[0]!.id;
       } else if (portDef?.channel === "required") {
         err(`${op}.channel`, "required", t`port “${port}” requires a channel`);
       }
 
-      let dpt =
+      const dpt =
         str(o, "dpt", op) ?? groupAddresses.get(gas[0] ?? "")?.dpt ?? "";
-      if (!dpt && !v2) dpt = own(PORT_DPT, port) ?? "1.001";
       if (!dpt)
         err(
           `${op}.dpt`,
@@ -1476,11 +1290,16 @@ export function buildScenario(
         // A passive or display device may show a data type without simulating it.
         if (!isRepresentableDpt(dpt))
           err(`${op}.dpt`, "dpt", t`DPT “${dpt}” not supported`);
-        else if (!REPRESENTING.has(behaviorId))
+        else if (behavior && !behavior.representsAnyDpt)
           err(
             `${op}.dpt`,
             "dpt",
-            t`DPT ${dpt} is not simulated: only objects of a passive or display device (passive/v1, display/v1) may use it`,
+            t`DPT ${dpt} is not simulated: only objects of a device that shows values without using them (${[
+              ...registry.behaviors,
+            ]
+              .filter(([, b]) => b.representsAnyDpt)
+              .map(([id]) => id)
+              .join(", ")}) may use it`,
           );
         else if (o.value !== undefined && o.value !== null)
           err(
@@ -1499,7 +1318,7 @@ export function buildScenario(
           t`DPT ${dpt} incompatible with port “${port}” (expected: ${portDef.dpts.join(", ")})`,
         );
 
-      let initial: number | null = defaultInitial(port, dpt);
+      let initial: number | null = defaultInitial(portDef, dpt);
       if (o.value !== undefined) {
         if (o.value === null) initial = null;
         else if (typeof o.value !== "number")
@@ -1522,6 +1341,8 @@ export function buildScenario(
         initial,
         flags: { W: true, T: false, R: false, U: false, C: true, I: false },
         priority: "low",
+        telegram: portDef?.telegram ?? "command",
+        drivesLoad: portDef?.drivesLoad === true,
       };
       if (o.priority !== undefined) {
         if (
@@ -1552,9 +1373,8 @@ export function buildScenario(
       return o ?? null;
     };
     const inputIds = new Set<string>();
-    const actionTargets = new Set<KnxObject>();
 
-    // Touches
+    // Keys
     const buttons: Button[] = [];
     if (
       rawButtons.length &&
@@ -1570,11 +1390,7 @@ export function buildScenario(
       const buttonPath = `${p}.buttons[${bi}]`;
       if (!isRecord(b)) return err(buttonPath, "type", t`object expected`);
       unknownKeys(b, BUTTON_V2, buttonPath);
-      const bid = v2
-        ? ident(b, "id", buttonPath)
-        : b.id === undefined
-          ? `button-${bi}`
-          : ident(b, "id", buttonPath);
+      const bid = ident(b, "id", buttonPath);
       if (bid && inputIds.has(bid))
         err(
           `${buttonPath}.id`,
@@ -1628,7 +1444,6 @@ export function buildScenario(
           const bad = checkValue(o.dpt, a.value, t);
           if (bad) err(`${ap}.value`, "range", bad);
         }
-        actionTargets.add(o);
         return { object: o.id, value: a.value as number | "toggle" };
       };
       const press = action("press");
@@ -1744,7 +1559,6 @@ export function buildScenario(
             "port",
             t`object “${o.id}” must have port “input”`,
           );
-        actionTargets.add(o);
       }
       const info = o ? dptInfo(o.dpt) : undefined;
       const num = (k: string, def: number | undefined) => {
@@ -1784,65 +1598,47 @@ export function buildScenario(
       });
     });
 
-    // Flags: explicit in v2, deduced in v1 without adding spontaneous emission.
-    objects.forEach((o, oi) => {
+    // Flags: W and T explicit, the others with their defaults.
+    objects.forEach((o) => {
       const f = objectFlagsRaw.get(o);
       const fp = `${p}.objects[${rawObjects.findIndex((x) => isRecord(x) && x.id === o.id)}].flags`;
-      if (v2) {
-        if (!isRecord(f)) {
-          err(
-            fp,
-            f === undefined ? "required" : "type",
-            t`flags { W, T } required in v2`,
-          );
-          return;
-        }
-        Object.keys(f).forEach((k) => {
-          if (!["W", "T", "R", "U", "C", "I"].includes(k))
-            err(
-              `${fp}.${k}`,
-              "unknown-field",
-              t`unknown flag “${k}” (C, R, W, T, U and I are simulated)`,
-            );
-        });
-        if (typeof f.W !== "boolean")
-          err(`${fp}.W`, "type", t`boolean expected`);
-        if (typeof f.T !== "boolean")
-          err(`${fp}.T`, "type", t`boolean expected`);
-        for (const k of ["R", "U", "C", "I"] as const)
-          if (f[k] !== undefined && typeof f[k] !== "boolean")
-            err(`${fp}.${k}`, "type", t`boolean expected`);
-        o.flags = {
-          W: f.W === true,
-          T: f.T === true,
-          R: typeof f.R === "boolean" ? f.R : defaultRead(o.port),
-          U: typeof f.U === "boolean" ? f.U : defaultUpdate(o.port),
-          C: f.C !== false,
-          I: f.I === true,
-        };
-      } else {
-        o.flags = {
-          W: true,
-          T:
-            actionTargets.has(o) ||
-            o.port === "status" ||
-            o.port === "positionStatus",
-          R: defaultRead(o.port),
-          U: defaultUpdate(o.port),
-          C: true,
-          I: false,
-        };
+      if (!isRecord(f)) {
+        err(
+          fp,
+          f === undefined ? "required" : "type",
+          t`flags { W, T } required`,
+        );
+        return;
       }
-      void oi;
+      Object.keys(f).forEach((k) => {
+        if (!["W", "T", "R", "U", "C", "I"].includes(k))
+          err(
+            `${fp}.${k}`,
+            "unknown-field",
+            t`unknown flag “${k}” (C, R, W, T, U and I are simulated)`,
+          );
+      });
+      if (typeof f.W !== "boolean") err(`${fp}.W`, "type", t`boolean expected`);
+      if (typeof f.T !== "boolean") err(`${fp}.T`, "type", t`boolean expected`);
+      for (const k of ["R", "U", "C", "I"] as const)
+        if (f[k] !== undefined && typeof f[k] !== "boolean")
+          err(`${fp}.${k}`, "type", t`boolean expected`);
+      o.flags = {
+        W: f.W === true,
+        T: f.T === true,
+        R: typeof f.R === "boolean" ? f.R : defaultRead(behavior, o.port),
+        U: typeof f.U === "boolean" ? f.U : defaultUpdate(behavior, o.port),
+        C: f.C !== false,
+        I: f.I === true,
+      };
     });
 
+    const shown = behavior?.presentation?.({ kind, objects, channels }) ?? {};
     const receiver =
-      kind === "switchActuator" ||
-      kind === "shutterActuator" ||
-      kind === "supervisor" ||
+      shown.receiver ??
       (buttons.length === 0 && inputs.length === 0 && channels.length > 0);
 
-    return {
+    const device: Device = {
       id,
       name: str(d, "name", p) ?? id,
       address,
@@ -1853,7 +1649,7 @@ export function buildScenario(
       line,
       downstream: d.downstream === true,
       inFilterTables: d.inFilterTables !== false,
-      tableGAs,
+      tableGAs: [],
       description: str(d, "description", p) ?? "",
       room: roomRef(d, p),
       objects,
@@ -1861,7 +1657,20 @@ export function buildScenario(
       inputs,
       channels,
       receiver,
+      presentation: {
+        screen: shown.screen?.length ? [...shown.screen] : null,
+        supervisor: shown.supervisor === true,
+        busInterface: shown.busInterface === true,
+        remoteSystem: shown.remoteSystem === true,
+        metered: [...(shown.metered ?? [])],
+      },
     };
+    // Rules of the behavior, on the assembled device.
+    behavior
+      ?.validate?.(device, t)
+      .forEach((x) => err(x.path ? `${p}.${x.path}` : p, x.code, x.message));
+    device.tableGAs = behavior?.normalize?.(device).tableGroupAddresses ?? [];
+    return device;
   }
 
   // ── Link consistency: each group address carries one data size. ──
@@ -1917,7 +1726,7 @@ export function buildScenario(
 
   if (problems.length) throw new ScenarioError(problems);
   return {
-    formatVersion: version,
+    formatVersion: 2,
     title,
     description,
     lines,
@@ -1931,18 +1740,6 @@ export function buildScenario(
     options: { speed, filterTables },
   };
 }
-
-/** Default initial value; a measure (DPT 9.xxx) remains unknown until its first value. */
-export const defaultInitial = (port: string, dpt: string) =>
-  port === "display" || dpt.startsWith("9.") || !isSupportedDpt(dpt) ? null : 0;
-
-/** Flag R by default: Status objects respond to readings (manufacturing settings). */
-export const defaultRead = (port: string) =>
-  ["status", "positionStatus", "valueStatus", "error", "generalError"].includes(
-    port,
-  );
-/** Flag U by default: Display objects (view, display) take the answers. */
-export const defaultUpdate = (port: string) => port === "display";
 
 /** Icon deduced when `icon` is absent. */
 export function defaultIcon(

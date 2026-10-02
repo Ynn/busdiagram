@@ -30,6 +30,15 @@ export function registerMessages(
 
 export const availableLanguages = () => ["en", ...catalogs.keys()];
 
+/** Copy of the registered catalogs, to cancel the messages of a refused extension. */
+export type MessagesSnapshot = ReadonlyMap<string, Record<string, string>>;
+export const saveMessages = (): MessagesSnapshot => new Map(catalogs);
+export function restoreMessages(s: MessagesSnapshot): void {
+  catalogs.clear();
+  s.forEach((v, k) => catalogs.set(k, v));
+  cache.clear();
+}
+
 /** Static message text with numbered interpolation slots. */
 export function messageKey(strings: readonly string[]): string {
   return strings.reduce((a, s, i) => (i ? `${a}{${i - 1}}${s}` : s), "");

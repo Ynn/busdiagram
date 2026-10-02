@@ -17,7 +17,7 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
 | `registerEquipment(id, definition)` | Register an equipment model. |
 | `registerEquipmentView(id, { size, render })` | Register an equipment drawing. |
 | `buildScenario(json, registry?, t?)` | Validate and normalize JSON; raise `ScenarioError` with `{ path, code, message }` details on failure. |
-| `toV2(scenario)` | Convert a normalized scenario to format-2 JSON. |
+| `toV2(scenario)` | Write a normalized scenario as minimal format-2 JSON (values equal to their defaults are omitted). |
 | `createSimulator(json, options?)` | Create a simulation without a DOM component. |
 | `registerMessages(language, messages)` | Add or extend a locale catalog; see [languages](../guide/languages.html). |
 | `availableLanguages()` | List available locale codes. |

@@ -8,3 +8,4 @@ examples/extensions/*.js
 demo/
 # Pages of the documentation keep compact Markdown tables (no column padding).
 site/pages/**/*.md
+tests/knx/fixtures/reference/

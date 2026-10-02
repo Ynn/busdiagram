@@ -1,15 +1,11 @@
 // Conversion of the standardized model to a JSON in minimum and readable format 2:
-// the optional values equal to the defects are not written. Serves to migrate a v1 scenario.
+// the optional values equal to the defaults are not written.
 import type { JsonObject, ParamSchema } from "./contracts";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
 import type { PowerSupply, Scenario } from "./scenario";
-import {
-  defaultIcon,
-  defaultInitial,
-  defaultRead,
-  defaultUpdate,
-} from "./scenario";
+import { defaultInitial, defaultRead, defaultUpdate, portOf } from "./ports";
+import { defaultIcon } from "./scenario";
 import type { ScenarioV2 } from "./scenario-v2.generated";
 
 function withoutDefaults(
@@ -122,7 +118,7 @@ export function toV2(
     devices: s.devices.map((d) => {
       const def = registry.behaviors.get(d.behavior);
       const byId = new Map(d.objects.map((o) => [o.id, o]));
-      const defaultMedium = d.kind === "supervisor" ? "IP" : "TP";
+      const defaultMedium = "TP";
       return compact({
         id: d.id,
         name: d.name,
@@ -144,14 +140,26 @@ export function toV2(
             port: o.port,
             channel: o.channel ?? undefined,
             value:
-              o.initial !== defaultInitial(o.port, o.dpt)
+              o.initial !==
+              defaultInitial(
+                portOf(registry.behaviors.get(d.behavior), o.port),
+                o.dpt,
+              )
                 ? o.initial
                 : undefined,
             flags: compact({
               W: o.flags.W,
               T: o.flags.T,
-              R: o.flags.R !== defaultRead(o.port) ? o.flags.R : undefined,
-              U: o.flags.U !== defaultUpdate(o.port) ? o.flags.U : undefined,
+              R:
+                o.flags.R !==
+                defaultRead(registry.behaviors.get(d.behavior), o.port)
+                  ? o.flags.R
+                  : undefined,
+              U:
+                o.flags.U !==
+                defaultUpdate(registry.behaviors.get(d.behavior), o.port)
+                  ? o.flags.U
+                  : undefined,
               C: o.flags.C ? undefined : false,
               I: o.flags.I ? true : undefined,
             }),

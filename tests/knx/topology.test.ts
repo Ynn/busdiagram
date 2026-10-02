@@ -39,6 +39,7 @@ const act = (id: string, address: string, ga = "1/1/1"): J => ({
 const sup = (extra: J = {}): J => ({
   id: "sup",
   kind: "supervisor",
+  medium: "IP",
   behavior: "display/v1",
   objects: [
     {

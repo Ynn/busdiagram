@@ -1,8 +1,11 @@
-// Configuration consistency: an actuator or input parameter that compensates a physical
-// property of its load must agree with that property. A mismatch is a valid scenario
-// (it can illustrate a commissioning error) and is reported as a non-blocking warning.
+// Configuration consistency: a valid scenario can still illustrate a commissioning error
+// (a parameter that disagrees with its load, a segment without power supply...), reported
+// as a non-blocking warning. Each behavior brings its own rules (`warnings`); the rules
+// common to every installation are here.
 import type { Translate } from "../i18n";
-import { checkValue, dptTitle } from "./dpt";
+import { dptTitle } from "./dpt";
+import type { Registry } from "./registry";
+import { captureRegistry } from "./registry";
 import type { Scenario } from "./scenario";
 
 export interface ConfigWarning {
@@ -13,78 +16,23 @@ export interface ConfigWarning {
   message: string;
 }
 
-export function configWarnings(s: Scenario, t: Translate): ConfigWarning[] {
+export function configWarnings(
+  s: Scenario,
+  t: Translate,
+  registry: Registry = captureRegistry(),
+): ConfigWarning[] {
   const out: ConfigWarning[] = [];
-  for (const d of s.devices) {
-    for (const c of d.channels)
-      for (const eq of c.equipmentConfigs) {
-        // Heating actuator output and thermoelectric valve.
-        if (d.behavior === "heatingActuator/v1" && eq.type === "radiator") {
-          const actuatorNo = c.parameters.valveType === "normallyOpen";
-          const valveNo = eq.parameters.normallyOpen === true;
-          if (actuatorNo !== valveNo)
-            out.push({
-              code: "config-valve",
-              deviceId: d.id,
-              channelId: c.id,
-              message: actuatorNo
-                ? t`${d.name || d.id} · ${c.label}: the actuator expects a normally open valve, but the valve is normally closed; the valve opens when no heat is requested.`
-                : t`${d.name || d.id} · ${c.label}: the actuator expects a normally closed valve, but the valve is normally open; the valve opens when no heat is requested.`,
-            });
-        }
-        // Shutter actuator output and motor wiring.
-        if (d.behavior === "shutterActuator/v1" && eq.type === "shutter") {
-          const compensated = c.parameters.invertOutput === true;
-          const reversed = eq.parameters.wiringReversed === true;
-          if (compensated !== reversed)
-            out.push({
-              code: "config-wiring",
-              deviceId: d.id,
-              channelId: c.id,
-              message: reversed
-                ? t`${d.name || d.id} · ${c.label}: the motor is wired in reverse and the actuator does not compensate it; the shutter moves opposite to the commands.`
-                : t`${d.name || d.id} · ${c.label}: the actuator inverts its output, but the motor is wired normally; the shutter moves opposite to the commands.`,
-            });
-        }
-      }
-    // Window contact: the input interpretation must match the contact type.
-    if (d.behavior === "windowContact/v1") {
-      const nc = d.parameters.contactType === "normallyClosed";
-      const invert = d.parameters.invert === true;
-      if (nc !== invert)
-        out.push({
-          code: "config-contact",
-          deviceId: d.id,
-          message: nc
-            ? t`${d.name || d.id}: the contact is normally closed, but the input is not inverted; open and closed are reported the wrong way round.`
-            : t`${d.name || d.id}: the input is inverted, but the contact is normally open; open and closed are reported the wrong way round.`,
-        });
-    }
-  }
-  // Values of a push-button interface input: within the range of their object's DPT.
-  for (const d of s.devices) {
-    if (d.behavior !== "buttonInterface/v1") continue;
-    for (const c of d.channels) {
-      const o = d.objects.find((x) => x.port === "value" && x.channel === c.id);
-      if (!o || c.parameters.function !== "value") continue;
-      for (const k of ["shortValue", "longValue"]) {
-        const v = c.parameters[k];
-        const bad = typeof v === "number" ? checkValue(o.dpt, v, t) : null;
-        if (bad)
-          out.push({
-            code: "config-value-range",
-            deviceId: d.id,
-            message: t`${d.name || d.id}, ${c.label}: ${bad}`,
-          });
-      }
-    }
-  }
+  // Rules of each behavior on its own configuration.
+  for (const d of s.devices)
+    registry.behaviors
+      .get(d.behavior)
+      ?.warnings?.(d, t)
+      .forEach((w) => out.push({ ...w, deviceId: d.id }));
 
   // Each TP segment needs its own bus power supply (KNX TP1 specification).
   for (const l of s.lines) {
     const segs: [string, boolean][] = [[l.address, !!l.powerSupply]];
-    if (l.extension)
-      segs.push([`${l.address} · 2`, !!l.extension.powerSupply]);
+    if (l.extension) segs.push([`${l.address} · 2`, !!l.extension.powerSupply]);
     for (const [seg, powered] of segs)
       if (!powered)
         out.push({

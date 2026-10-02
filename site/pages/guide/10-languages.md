@@ -6,7 +6,7 @@ order: 10.5
 
 # Languages
 
-The component and designer support English and French. English is the source language; French wording is supplied by locale catalogs. Scenario titles, device names, and other values in scenario JSON are author-controlled content and are not translated automatically.
+The component and designer are delivered in English and French, and accept other languages through locale catalogs. English is the source language; the other languages are supplied by catalogs. Scenario titles, device names, and other values in scenario JSON are author-controlled content and are not translated automatically.
 
 ## Select a language
 
@@ -39,7 +39,9 @@ BusDiagram.registerMessages("de", {
 });
 ```
 
-Load the catalog after the library and select `<html lang="de">`. Missing messages fall back to English. `BusDiagram.availableLanguages()` lists registered language codes. The French catalog in `src/i18n/fr.ts` provides a complete example; the designer has additional entries in `site/designer/fr.ts`.
+Load the catalog after the library and select `<html lang="de">`. A regional code such as `de-AT` uses `de-AT`, then `de`, then English: missing messages fall back to English. `BusDiagram.availableLanguages()` lists registered language codes; the designer offers each of them in its language selector, under its own name ("Deutsch").
+
+The French wording is split by origin: `src/i18n/fr.ts` for the diagram and the engine, `site/designer/fr.ts` for the designer, and, for each participant or equipment, its own catalogs (`src/participants/<name>/messages.fr.ts` for the library, `designer.fr.ts` for the designer; `src/equipment/<name>/messages.fr.ts`). A complete locale gives the same files in its language.
 
 ## Messages in an extension
 
@@ -52,4 +54,4 @@ BusDiagram.registerMessages("fr", {
 });
 ```
 
-Titles declared in behavior and equipment definitions are translated by the same catalog when it contains them.
+Titles declared in behavior and equipment definitions are translated by the same catalog when it contains them. A delivered participant declares its catalogs in its entries, by language (`messages: { fr: …, de: … }`), and may bring a language that the rest of the library lacks: its texts are translated, the others fall back to English.

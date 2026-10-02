@@ -8,19 +8,6 @@ export const designerFr: Record<string, string> = {
   "Clock masters, time switches, and time windows need a simulated clock.":
     "Les horloges maîtresses, programmateurs et plages horaires ont besoin d'une horloge simulée.",
   "Add a simulated clock": "Ajouter une horloge simulée",
-  "Clock master": "Horloge maîtresse",
-  "Sends the time (10.001) and the date (11.001) of the simulated clock; adds a clock to the scenario if it has none.":
-    "Envoie l'heure (10.001) et la date (11.001) de l'horloge simulée ; ajoute une horloge au scénario s'il n'en a pas.",
-  "Weekly time switch": "Programmateur hebdomadaire",
-  "Sends 1 at 07:00 and 0 at 22:00 every day; edit the program and link the output.":
-    "Envoie 1 à 07:00 et 0 à 22:00 chaque jour ; modifier le programme et lier la sortie.",
-  "Programmed output": "Sortie programmée",
-  "Air quality sensor": "Capteur de qualité d'air",
-  "Temperature (9.001), humidity (9.007), and CO₂ (9.008) entered on the device; CO₂ alarm (1.005) and ventilation control value (5.001).":
-    "Température (9.001), humidité (9.007) et CO₂ (9.008) saisis sur l'appareil ; alarme CO₂ (1.005) et valeur de commande de ventilation (5.001).",
-  "Temperature (°C)": "Température (°C)",
-  "Humidity (%)": "Humidité (%)",
-  "CO₂ (ppm)": "CO₂ (ppm)",
   "line {0} has no extension": "la ligne {0} n'a pas d'extension",
   "“{0}” is not an individual address of line {1}":
     "« {0} » n'est pas une adresse individuelle de la ligne {1}",
@@ -28,14 +15,6 @@ export const designerFr: Record<string, string> = {
   "Power supply of the segment": "Alimentation du segment",
   "not shown": "non représentée",
   "shown, current not given": "représentée, courant non précisé",
-  "Energy meter": "Compteur d'énergie",
-  "Measures a circuit that it does not switch (heat pump, water heater, sockets): power (14.056) and energy (13.010); the measured power is entered on the device.":
-    "Mesure un circuit qu'il ne commute pas (pompe à chaleur, chauffe-eau, prises) : puissance (14.056) et énergie (13.010) ; la puissance mesurée est saisie sur l'appareil.",
-  "Power (W)": "Puissance (W)",
-  "Circuit 1": "Circuit 1",
-  "Gateway to another system": "Passerelle vers un autre système",
-  "Boundary with Modbus, BACnet, or M-Bus: a value from the other system (9.001) is entered and sent on KNX; a command (1.001) is received and forwarded. The other system is not simulated.":
-    "Frontière avec Modbus, BACnet ou M-Bus : une valeur de l'autre système (9.001) est saisie et envoyée sur KNX ; une commande (1.001) est reçue et transmise. L'autre système n'est pas simulé.",
   "Show preview": "Afficher l'aperçu",
   "Hide preview": "Masquer l'aperçu",
   "Resize the editor and the preview": "Redimensionner l'éditeur et l'aperçu",
@@ -182,16 +161,6 @@ export const designerFr: Record<string, string> = {
   Segment: "Segment",
   "On the segment behind the line extension ({0})":
     "Sur le segment derrière l'extension de ligne ({0})",
-  "Weather station": "Station météo",
-  "Wind speed (9.005) and brightness (9.004) entered on the device, wind alarm (1.005) and sun protection (1.001) outputs.":
-    "Vitesse du vent (9.005) et luminosité (9.004) saisies sur l'appareil, sorties alarme vent (1.005) et protection solaire (1.001).",
-  "Wind (m/s)": "Vent (m/s)",
-  "Brightness (lx)": "Luminosité (lx)",
-  "Logic module": "Module logique",
-  "AND of two one-bit inputs sent on a new output address; change the operation and link the inputs.":
-    "ET de deux entrées 1 bit émis sur une nouvelle adresse de sortie ; changez l'opération et associez les entrées.",
-  "Logic input 1": "Entrée logique 1",
-  "Logic input 2": "Entrée logique 2",
   channel: "canal",
   object: "objet",
   required: "requis",
@@ -208,9 +177,6 @@ export const designerFr: Record<string, string> = {
   "Reformat the JSON": "Remettre en forme le JSON",
   "Open…": "Ouvrir…",
   "Open a .json file": "Ouvrir un fichier .json",
-  "→ Format 2": "→ Format 2",
-  "Convert a format 1 scenario to format 2":
-    "Convertir un scénario de format 1 au format 2",
   Export: "Exporter",
   "Extensions…": "Extensions…",
   "Extension {0} rejected: {1}": "Extension {0} refusée : {1}",
@@ -237,7 +203,6 @@ export const designerFr: Record<string, string> = {
   "16:9 slide": "Diapositive 16:9",
   Open: "Ouvrir",
   Copy: "Copier",
-  Close: "Fermer",
   "New installation": "Nouvelle installation",
   "Lab kit": "Maquette",
   "Empty installation": "Installation vide",
@@ -254,10 +219,6 @@ export const designerFr: Record<string, string> = {
   "{0} added. {1}": "{0} ajouté. {1}",
   "Fix the JSON syntax before formatting.":
     "Syntaxe JSON à corriger avant la mise en forme.",
-  "The scenario must be valid to be converted.":
-    "Le scénario doit être valide pour être converti.",
-  "Converted to format 2 (default values omitted).":
-    "Converti au format 2 (valeurs par défaut omises).",
   "The scenario contains errors: fix them before exporting.":
     "Le scénario contient des erreurs : corrigez-les avant d'exporter.",
   "Copied to the clipboard.": "Copié dans le presse-papiers.",
@@ -285,23 +246,9 @@ export const designerFr: Record<string, string> = {
   "One object and one group address per key, toggle with LED.":
     "Un objet et une adresse de groupe par touche, télérupteur avec voyant.",
   "Lighting key {0}": "Éclairage BP{0}",
-  "{0}-output switch actuator": "Commutateur {0} sorties",
-  "One channel and one lamp per output; fill in the objects' group addresses.":
-    "Un canal et une lampe par sortie ; renseigner les adresses de groupe des objets.",
   "Channel {0}": "Canal {0}",
-  "Shutter actuator": "Actionneur de volet",
-  "Up/down, stop/step, setpoint and position feedback; link them to group addresses.":
-    "Montée/descente, arrêt/pas, consigne et retour de position ; les lier à des adresses de groupe.",
   "Shutter up/down": "Volet montée/descente",
   "Shutter stop/step": "Volet arrêt/pas",
-  "Requested position": "Position demandée",
-  Shutter: "Volet",
-  "Presence detector": "Détecteur de présence",
-  "A “Passage” key: 1 on detection, 0 after the hold time (10 s).":
-    "Une touche « Passage » : 1 à la détection, 0 après la temporisation (10 s).",
-  Presence: "Présence",
-  Passage: "Passage",
-  "IP supervisor": "Superviseur IP",
   Supervisor: "Superviseur",
   "Group address": "Adresse de groupe",
   "Declares the next free address 1/1/x (name and DPT to fill in).":
@@ -330,13 +277,9 @@ export const designerFr: Record<string, string> = {
   "Shutter: stop/step": "Volet : arrêt/pas",
   "stop / step ▲": "arrêt / pas ▲",
   "stop / step ▼": "arrêt / pas ▼",
-  Scene: "Scène",
   "scene {0}": "scène {0}",
   "0 %": "0 %",
-  "25 %": "25 %",
-  "50 %": "50 %",
   "75 %": "75 %",
-  "100 %": "100 %",
   "force off": "forcer à l'arrêt",
   "force on": "forcer en marche",
   "end of forcing": "fin du forçage",
@@ -362,9 +305,6 @@ export const designerFr: Record<string, string> = {
   "object used by an LED": "objet utilisé par un voyant",
   "The JSON has a syntax error: fix it in the JSON tab (errors are listed below) to resume guided editing.":
     "Le JSON contient une erreur de syntaxe : corrigez-la dans l'onglet JSON (les erreurs sont listées dessous) pour reprendre l'édition guidée.",
-  "This scenario uses format 1. The guided designer works on format 2:":
-    "Ce scénario est au format 1. Le concepteur guidé travaille sur le format 2 :",
-  "Convert to format 2": "Convertir au format 2",
   "Undo (Ctrl+Z)": "Annuler (Ctrl+Z)",
   Undo: "Annuler",
   "Redo (Ctrl+Y)": "Rétablir (Ctrl+Y)",
@@ -386,16 +326,12 @@ export const designerFr: Record<string, string> = {
   Deletion: "Suppression",
   "Delete device": "Supprimer le participant",
   Press: "Appui",
-  "Short press": "Appui court",
-  "Long press": "Appui long",
   Keys: "Touches",
   Label: "Libellé",
   Gesture: "Geste",
   "single press": "appui simple",
   "short press + long press": "appui court + appui long",
-  Function: "Fonction",
   "Sending address": "Adresse d'émission",
-  LED: "Voyant",
   "Status {0}": "Retour état {0}",
   "Delete key": "Supprimer la touche",
   Key: "Touche",
@@ -407,7 +343,6 @@ export const designerFr: Record<string, string> = {
   "none (unused output)": "aucune (sortie libre)",
   "Scenes (number=value, e.g. 1=1, 2=0)":
     "Scènes (numéro=valeur, ex. 1=1, 2=0)",
-  Scenes: "Scènes",
   "Delete output": "Supprimer la sortie",
   "Add an output": "Ajouter une sortie",
   "Objects shared by all outputs": "Objets communs à toutes les sorties",
@@ -455,12 +390,7 @@ export const designerFr: Record<string, string> = {
     "Supprimer « {0} » ? Ses adresses de groupe restent déclarées.",
   "Push-button · 1 key": "Poussoir · 1 touche",
   "Push-button · {0} keys": "Poussoir · {0} touches",
-  "Switch actuator · 1 output": "Commutateur · 1 sortie",
-  "Switch actuator · {0} outputs": "Commutateur · {0} sorties",
-  "Shutter actuator · 1 output": "Actionneur de volet · 1 sortie",
-  "Shutter actuator · {0} outputs": "Actionneur de volet · {0} sorties",
   Display: "Afficheur",
-  "Device without logic": "Participant sans logique",
   "Extension {0}": "Extension {0}",
   "Value sent": "Valeur envoyée",
   "Status feedback listened to (LED)": "Retour d'état écouté (voyant)",
@@ -496,8 +426,6 @@ export const designerFr: Record<string, string> = {
   "1 byte": "1 octet",
   "fix the JSON syntax first (see the errors)":
     "corrigez d'abord la syntaxe JSON (voir les erreurs)",
-  "Display on the IP network; adds the KNXnet/IP routers if missing.":
-    "Afficheur sur le réseau IP ; ajoute les routeurs KNXnet/IP s'ils manquent.",
   "the IP routers act as line couplers: the IP network already replaces main lines and backbone":
     "les routeurs IP tiennent lieu de coupleurs de ligne : le réseau IP remplace déjà lignes principales et dorsale",
   "a device is connected to the IP network (supervisor): connect it to a line or delete it first":
@@ -590,17 +518,11 @@ export const designerFr: Record<string, string> = {
     "Objets de communication : noms et flags",
   "Name of object {0}": "Nom de l'objet {0}",
   "Object name": "Nom de l'objet",
-  "Access to the bus through a USB interface: write and read group addresses from the USB interface panel of the diagram.":
-    "Accès au bus par une interface USB : écrire et lire des adresses de groupe depuis le panneau d'interface USB du diagramme.",
   "Dimming (stops on release)": "Variation (arrêt au relâchement)",
   brighter: "plus clair",
   darker: "plus sombre",
   "brighter by 25 %": "plus clair de 25 %",
   "darker by 25 %": "plus sombre de 25 %",
-  "Dimmer · 1 output": "Variateur · 1 sortie",
-  "Dimmer · {0} outputs": "Variateur · {0} sorties",
-  "DALI gateway · 1 group": "Passerelle DALI · 1 groupe",
-  "DALI gateway · {0} groups": "Passerelle DALI · {0} groupes",
   switching: "commutation",
   dimming: "variation",
   value: "valeur",
@@ -646,25 +568,9 @@ export const designerFr: Record<string, string> = {
   "Delete room {0}?": "Supprimer la pièce {0} ?",
   Room: "Pièce",
   "Add a room": "Ajouter une pièce",
-  "Room thermostat": "Thermostat d'ambiance",
-  "Heating actuator · 1 output": "Actionneur de chauffage · 1 sortie",
-  "Heating actuator · {0} outputs": "Actionneur de chauffage · {0} sorties",
-  "Window contact": "Contact de fenêtre",
-  "Temperature sensor": "Sonde de température",
   "Heated room": "Pièce chauffée",
-  "Group objects": "Objets de groupe",
   "Objects by function": "Objets par fonction",
   "Room 1": "Pièce 1",
-  "PI control of its room: temperature (9.001), heating control value (5.001), mode (20.102), window and presence; link its objects to group addresses.":
-    "Régulation PI de sa pièce : température (9.001), valeur de commande de chauffage (5.001), mode (20.102), fenêtre et présence ; lier ses objets à des adresses de groupe.",
-  "Heating actuator, 2 outputs": "Actionneur de chauffage 2 sorties",
-  "Electrothermal valves driven by PWM from a 5.001 control value; fill in the group addresses.":
-    "Vannes thermoélectriques pilotées en PWM depuis une grandeur de commande 5.001 ; renseigner les adresses de groupe.",
-  "Heating actuator": "Actionneur de chauffage",
-  "H{0} control value": "H{0} grandeur de commande",
-  "H{0} control value status": "H{0} état de la commande",
-  "Sends its room's window opening (1.019); link it to the address of the thermostat's “Window” object.":
-    "Envoie l'ouverture de la fenêtre de sa pièce (1.019) ; la lier à l'adresse de l'objet « Fenêtre » du thermostat.",
   "New device": "Nouveau participant",
   "This behaviour requires settings (*): fill them in, then add the device on line {0}.":
     "Ce comportement exige des réglages (*) : renseignez-les, puis ajoutez le participant sur la ligne {0}.",
@@ -684,8 +590,6 @@ export const designerFr: Record<string, string> = {
   "No extension loaded.": "Aucune extension chargée.",
   "Replace…": "Remplacer…",
   "Extension {0} removed.": "Extension {0} retirée.",
-  "Sends its room's temperature (9.001); link it for instance to the address of a thermostat's “External temperature” object.":
-    "Envoie la température de sa pièce (9.001) ; la lier par exemple à l'adresse de l'objet « Température externe » d'un thermostat.",
   Extensions: "Extensions",
   "Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.":
     "Scripts qui ajoutent des comportements, équipements ou vues. Ils sont mémorisés dans ce navigateur et embarqués dans la page autonome exportée. Un script qui échoue ne laisse aucune définition chargée.",
@@ -849,12 +753,8 @@ export const designerFr: Record<string, string> = {
     "Une sortie est un relais ou un canal de l'actionneur : elle a ses propres réglages et objets de groupe, et se commande indépendamment. Les charges raccordées à une même sortie sont câblées en parallèle : elles commutent toujours ensemble.",
   "Enabled functions": "Fonctions activées",
   "Push-button": "Poussoir",
-  "Switch actuator": "Commutateur",
-  "Command L{0}": "Commande L{0}",
   "Four keys to start with; set the number of keys on the Configuration page of its parameters.":
     "Quatre touches au départ ; régler le nombre de touches dans la page Configuration de ses paramètres.",
-  "Four outputs to start with, one lamp each; set the number of outputs on the Configuration page, and the loads of each output.":
-    "Quatre sorties au départ, une lampe chacune ; régler le nombre de sorties dans la page Configuration, et les charges de chaque sortie.",
   "Other settings": "Autres réglages",
   "Sort by {0}": "Trier par {0}",
   "Resize column {0}": "Redimensionner la colonne {0}",
@@ -889,18 +789,7 @@ export const designerFr: Record<string, string> = {
     "Canal {0} supprimé, avec ses objets.",
   "An input is a contact of the interface, wired to a conventional push-button; on the diagram it is a key. Its function, chosen on its Function page, decides its group objects.":
     "Une entrée est un contact de l'interface, raccordé à un bouton-poussoir conventionnel ; sur le schéma, c'est une touche. Sa fonction, choisie sur sa page Fonction, décide de ses objets de groupe.",
-  "Push-button interface": "Interface de boutons-poussoirs",
-  "Four contact inputs for conventional push-buttons; each has a function (switching, dimming, blind, value, scene), a lock and a bus voltage recovery reaction.":
-    "Quatre entrées de contact pour boutons-poussoirs conventionnels ; chacune a une fonction (commutation, variation, store, valeur, scène), un verrouillage et une réaction au retour de la tension du bus.",
   "Lighting input {0}": "Éclairage entrée {0}",
-  "Input {0}": "Entrée {0}",
-  "Switching {0}": "Commutation {0}",
-  "Four inputs to start with; set the number of inputs on the Configuration page, and the function of each input on its pages.":
-    "Quatre entrées au départ ; régler le nombre d'entrées sur la page Configuration, et la fonction de chaque entrée sur ses pages.",
-  "Push-button interface · 1 input":
-    "Interface de boutons-poussoirs · 1 entrée",
-  "Push-button interface · {0} inputs":
-    "Interface de boutons-poussoirs · {0} entrées",
   Communication: "Communication",
   "Read on initialisation": "Lecture à l'initialisation",
   "C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts again after a bus voltage failure.":
@@ -917,4 +806,6 @@ export const designerFr: Record<string, string> = {
   "Wired push-button": "Bouton-poussoir raccordé",
   "Installation simulated around the device: wiring, loads, values entered in the diagram. These are not parameters of the device.":
     "Installation simulée autour de l'appareil : câblage, charges, valeurs saisies dans le schéma. Ce ne sont pas des paramètres de l'appareil.",
+  'The scenario needs "formatVersion": 2 at its root: add it in the JSON tab to resume guided editing.':
+    "Le scénario doit porter \"formatVersion\": 2 à sa racine : ajoutez-le dans l'onglet JSON pour reprendre l'édition guidée.",
 };

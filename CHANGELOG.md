@@ -6,6 +6,10 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Added
 
+- Shutter actuator: lock object per output (`lock`), with reactions when locked (`lockStart`: up, down, stop, or position `lockPositionPct`) and unlocked (`afterLock`: up, down, or back to the position before the lock); the wind alarm keeps priority. Behavior on bus voltage failure (`busFailure`: stop, up, down) and recovery (`busRecovery`: none, up, down, position `busRecoveryPositionPct`), with the position sent again.
+- Dimmer actuator and KNX/DALI gateway: behavior on bus voltage failure (`busFailure`: unchanged, off, fixed level `busFailureLevelPct`) and recovery (`busRecovery`: level before the failure, off, on), with the status sent again.
+- Presence detector: master/slave operation; a `slaveTrigger` object receives the detections of slave detectors of the same room.
+- Languages: a participant can bring texts in any language in its entries; the designer shows each language under its own name.
 - Designer: the pages that describe the installation simulated around a device (connected loads, wired push-button, inputs in the diagram) are set apart from its parameters: orange of the 230 V wiring, plug icon, and an **Installation** divider in the tree of pages. Example devices of the push-button interface are named “Push-button interface”.
 - Designer: a **Simulation** tab shows the diagram alone over the whole width.
 - Push-button interface: `ledShown` (off by default) gives a key its LED; `keyLabel` is the text written on the push-button wired to an input, drawn on its key, while the input keeps its name (`label`). In the designer, the text of the key is on its own **Wired push-button** page.
@@ -20,6 +24,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 - DPT 18.001 (scene control): the switch, dimming, DALI and shutter actuators store their current state as a scene when they receive the learn bit (`sceneLearning`).
 - Shutter actuator: the motors stop when the bus voltage fails.
 - Behavior definitions: `contactInputs` and `contactKey` for contact inputs, port direction `"both"`.
+- Behavior definitions: `presentation(device)` declares how the diagram and the designer draw a device (`screen`, `supervisor`, `busInterface`, `remoteSystem`, `receiver`, `metered`).
+- Behavior definitions: rules on their own configuration, `validate` (blocking errors), `normalize` (derived data, such as the group addresses kept by the filter tables) and `warnings` (configuration warnings); `representsAnyDpt` lets the objects of a behavior carry a DPT that is shown but not simulated. The rules of the delivered participants (DALI limits, addresses of the USB interface, valve, motor wiring, window contact, values of the push-button interface) use them.
 - Designer: the guided editor follows the working logic taught in KNX courses:
   - two stacked panels, each showing the Topology, the Group addresses, the Catalog, or the Installation, with a tree on the left and a list with tabs at its bottom;
   - Topology tree of areas, lines, and devices, which open to show their group objects; a device has Group objects and Parameters tabs, a group object has Associations and Properties tabs;
@@ -49,6 +55,10 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Changed
 
+- R flag by default, as on the corresponding products: time and date of the clock master, output of the time switch, measured temperature, setpoint, mode, heating/cooling and control values of the room thermostat, measured values of the air quality and temperature sensors. Scenarios that wrote `"R": true` on these objects can leave it out.
+- `kind` no longer changes the topology: a device on the IP network writes `"medium": "IP"` (a supervisor used to default to IP). The drawing of a device comes from its behavior (`presentation`): thermostat screen, supervisor values, USB interface panel, system of a gateway, metered outputs, receiver column. `kind` remains a description; display/v1 documents its `"supervisor"` value.
+- Behavior definitions: a port declares what its objects mean, instead of the engine guessing it from the port name. `defaultFlags` gives the default R and U flags; `telegram: "state"` marks state reports in the monitor; `drivesLoad` links the objects to the loads of their channel in the diagram; `initialUnknown` makes them start without a value. An undeclared port is neutral (R and U off, command telegrams). Extensions that relied on the names `status`, `positionStatus`, `display`… must declare these fields; the sample extension does. Every port of the delivered behaviors has its own description, used by the reference and the schema.
+- Source organization: a participant gathers its code in its own folder (`src/participants/<name>/`): behavior, parameter pages, a model entry for the library, a designer entry (catalog entry, template, displayed type), and its own translations. Every delivered participant has its folder; code shared explicitly by several of them is in `src/participants/shared/` (dimming, clock, typed values). The registry installs the delivered participants from one composition (`src/standard-model.ts`), and the designer catalog, templates and device types come from the designer entries (`site/designer/standard-designer.ts`). In the list of templates of the JSON tab, the templates follow the order of the catalog. Public identifiers, scenarios and diagrams are unchanged.
 - Push-button interface in the designer: the function of an input creates its group objects (switching; switching and dimming; up/down and stop/step; value or scene) and replaces them when another function is chosen; no box enables them any more. The operation is chosen as one key or two keys. Behavior definitions can declare such objects with `channelObjects`.
 - When a device sends, its other objects on the same group address take the value whatever their W flag, as the KNX Application Layer specifies; W (U for a response) only decides whether the device reacts.
 - DPTs shown without simulation must be identifiers of the standard catalog (KNX Datapoint Types of KNX Standard v3.0.0), with sub-numbers of up to five digits (`1.1200`); their size now counts in the check of objects of different sizes on one address.
@@ -65,8 +75,15 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 - `bus-diagram.js` and `bus-diagram.esm.js` start with the license notices of the third-party components they include and the address of the source code of their version, so that every copy (CDN, download from the designer, standalone page) carries them. A standalone page exported by the designer also names its version, license, and source.
 
+### Removed
+
+- Scenario format 1: a scenario must declare `"formatVersion": 2`; a file without it is refused with the error `required` (`version` for another value). The conversion of format 1 is gone with it: the **→ Format 2** button of the designer, the guide page “Format 1 and conversion”, and the error `removed`. `toV2()` remains, to write a scenario as minimal JSON.
+
 ### Fixed
 
+- Dimmer actuator and DALI gateway: switching on (fixed or last level) now stays within `minLevelPct` and `maxLevelPct`, as a brightness value already did.
+- English messages: the range of a parameter out of bounds read “≥ 0.1 et ≤ 5”; the JSON error of a component mixed English and French. Both follow the language of the messages.
+- Designer: an extension refused while loading leaves none of its translations behind (only its definitions were cancelled).
 - Diagram: on a narrow key, the icon (I/O) wrapped onto several lines and touched the edge; keys keep a margin, the icon stays on one line and the label is shortened with an ellipsis. The key plate is a little wider.
 - Site: the asset URLs of a development build now change with each modification (`?v=…` with a fingerprint of the local changes), so that a browser does not keep running an older designer or library; documentation pages used the package version only.
 - Designer: changing the function of a push-button interface input left the objects of the former function in place.

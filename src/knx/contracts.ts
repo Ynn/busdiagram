@@ -193,6 +193,61 @@ export interface ChannelInfo {
   readonly loads: readonly string[];
 }
 
+/** What the presentation of a device is decided from. */
+export interface PresentationInput {
+  readonly kind: string;
+  readonly objects: readonly {
+    readonly id: string;
+    readonly port: string;
+    readonly channel: string | null;
+  }[];
+  readonly channels: readonly { readonly id: string }[];
+}
+
+/** How the diagram and the designer present a device. */
+export interface DevicePresentation {
+  /** Objects facing a screen drawn at the head of the plate (a thermostat display). */
+  screen?: readonly string[];
+  /** Drawn as a supervision software: values written under the object names. */
+  supervisor?: boolean;
+  /** Bus interface: its panel writes and reads any group address. */
+  busInterface?: boolean;
+  /** The `system` field of its device state is shown next to its address. */
+  remoteSystem?: boolean;
+  /** Group-address column on the left; by default for a device with channels and no keys. */
+  receiver?: boolean;
+  /** Channels whose loads show their measured power. */
+  metered?: readonly string[];
+}
+
+/** Load connected to an output, as configured. */
+export interface LoadInfo {
+  readonly type: string;
+  readonly parameters: Readonly<JsonObject>;
+}
+
+/** Device as the rules of its behavior see it: channels with the parameters of their loads. */
+export interface RuleDeviceInfo extends DeviceInfo {
+  readonly channels: readonly (ChannelInfo & {
+    readonly equipmentConfigs: readonly LoadInfo[];
+  })[];
+}
+
+/** Blocking error found by the rules of a behavior. */
+export interface RuleProblem {
+  /** Path relative to the device, such as `parameters.groupAddresses`; "" for the device. */
+  readonly path: string;
+  readonly code: string;
+  readonly message: string;
+}
+
+/** Non-blocking warning found by the rules of a behavior. */
+export interface RuleWarning {
+  readonly code: string;
+  readonly channelId?: string;
+  readonly message: string;
+}
+
 /** Exhibit: Physical dimensions that a sensor can measure (read only). */
 export interface RoomInfo {
   readonly id: string;
@@ -305,6 +360,14 @@ export interface BehaviorPort {
    */
   direction?: "in" | "out" | "both";
   description?: string;
+  /** Flags R and U of its objects when the scenario does not write them (false otherwise). */
+  defaultFlags?: { readonly R?: boolean; readonly U?: boolean };
+  /** Class of the telegrams its objects send: a command (default), or a state report. */
+  telegram?: "command" | "state";
+  /** The diagram links its objects to the loads of their channel (command of an output). */
+  drivesLoad?: boolean;
+  /** Its objects start with an unknown value until a telegram gives one (a display). */
+  initialUnknown?: boolean;
 }
 
 export interface BehaviorDefinition<S = unknown> {
@@ -337,6 +400,11 @@ export interface BehaviorDefinition<S = unknown> {
   /** Keys (`buttons`) are refused when false; by default they follow `acceptsInputs`. */
   acceptsKeys?: boolean;
   /**
+   * Its objects may carry a standard DPT that is shown but not simulated: the device
+   * shows or keeps values without using them (visualization, device without logic).
+   */
+  representsAnyDpt?: boolean;
+  /**
    * Each channel is a contact input (a key on the diagram): the device receives the
    * edges "down" and "up", and "hold" when the key is held past its long-press time.
    */
@@ -356,6 +424,20 @@ export interface BehaviorDefinition<S = unknown> {
     /** Long-press time (ms), or null when the input has no long press. */
     longPressMs?: number | null;
   };
+  /**
+   * Errors specific to the behavior, on a device whose structure is valid: the scenario
+   * is refused. Paths are relative to the device (`channels[2].scenes.17`).
+   */
+  validate?(device: RuleDeviceInfo, t: Translate): RuleProblem[];
+  /** Data derived from the configuration that the engine uses afterwards. */
+  normalize?(device: RuleDeviceInfo): {
+    /** Group addresses of the device kept by the filter tables without an object. */
+    tableGroupAddresses?: string[];
+  };
+  /** Teaching warnings about the configuration: the simulation runs. */
+  warnings?(device: RuleDeviceInfo, t: Translate): RuleWarning[];
+  /** How the diagram and the designer present a device of this behavior. */
+  presentation?(device: PresentationInput): DevicePresentation;
   createState(device: DeviceInfo): S;
   onInit?(ctx: BehaviorContext<S>): void;
   onInput?(ctx: BehaviorContext<S>, input: InputEvent): void;
@@ -389,6 +471,32 @@ export interface BehaviorDefinition<S = unknown> {
 }
 
 // ── Non-KNX equipment ──
+
+/** Size of the view of an equipment in the diagram. */
+export interface EquipmentSize {
+  width: number;
+  height: number;
+  /** Distance from the top of the drawing to its axis (default: mid-height). */
+  anchorY?: number;
+}
+
+/**
+ * Model entry of a participant: what the library needs of it, without the designer.
+ * Pure data: installed once by the registry, never importing it.
+ */
+export interface ParticipantModel {
+  // The definitions are heterogeneous: the type of state is specific to each.
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  /** Behaviors, by public identifier. */
+  readonly behaviors?: Readonly<Record<string, BehaviorDefinition<any>>>;
+  /** Equipment, by identifier. */
+  readonly equipment?: Readonly<Record<string, EquipmentDefinition<any>>>;
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+  /** Texts of the behaviors and their log messages, by language. */
+  readonly messages?: Readonly<Record<string, Record<string, string>>>;
+  /** Sizes of the views of its equipment, by view: the layout reads them without the views. */
+  readonly viewSizes?: Readonly<Record<string, EquipmentSize>>;
+}
 
 export interface EquipmentDefinition<S extends JsonObject = JsonObject> {
   /** Short name for forms ("Light"). */

@@ -104,7 +104,7 @@ export function llmReference(data, examples) {
     "- Individual addresses: `area.line.device` with device 1–255 on a declared line. `A.L.0` is reserved for the line coupler. Each address is used once.",
     "- Group addresses: three levels, `main/middle/sub` with main 0–31, middle 0–7, sub 0–255. `0/0/0` is refused.",
     "- Identifiers (`id`) use letters, digits, `_`, `.`, and `-`, and are unique within their list.",
-    "- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free classification used for display (for example `buttonInterface`, `switchActuator`, `supervisor`); `behavior` must be one of the identifiers listed below.",
+    "- Each device has `id`, `kind`, `behavior`, and `objects`. `kind` is a free description (for example `buttonInterface`, `switchActuator`, `supervisor`); only `display/v1` gives `supervisor` an effect, drawing it as a supervision software. A device on the IP network writes `\"medium\": \"IP\"`. `behavior` must be one of the identifiers listed below.",
     "- Each object has `id`, `ga`, `port`, and `flags`, usually `dpt` and `name`. `ga` is a string or an array; the first address is the sending address, the others are receive-only; `[]` leaves the object unassociated. `port` must belong to the device behavior, and `dpt` must be accepted by that port.",
     "- Flags: `W` (a received write updates the object), `T` (the object may transmit), optional `R` (answers a read on any of its addresses, on its sending address) and `U` (a response updates it). Inputs of an actuator use `W: true, T: false`; commands and status feedback use `W: false, T: true`.",
     "- Objects linked to the same group address must have the same payload size (all one-bit, all one-byte, and so on).",

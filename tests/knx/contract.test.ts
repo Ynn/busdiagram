@@ -111,16 +111,14 @@ describe("all scenarios and examples", () => {
   });
 });
 
-describe("conversion v1 → v2 (toV2)", () => {
+describe("normalized export (toV2)", () => {
   const ajv = new Ajv2020({ allErrors: true, strict: false });
   const validate = ajv.compile(schema);
   const norm = (m: ReturnType<typeof buildScenario>) =>
-    JSON.stringify({ ...m, formatVersion: 0 }, (_k, v) =>
-      v instanceof Map ? [...v.entries()] : v,
-    );
+    JSON.stringify(m, (_k, v) => (v instanceof Map ? [...v.entries()] : v));
 
   it.each(activeScenarios())(
-    "%s: v2 matches the schema and produces the same model",
+    "%s: the export matches the schema and produces the same model",
     (f) => {
       const m1 = buildScenario(raw(f), standard);
       const v2doc = toV2(m1, standard);

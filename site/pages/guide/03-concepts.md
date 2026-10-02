@@ -18,7 +18,7 @@ button press → device behavior → communication object → bus telegram
 
 ## Device
 
-A KNX device has an individual address such as `1.1.10`. It contains communication objects and may also have buttons, inputs, and channels. Its `behavior` defines its logic, for example `pushButton/v1`, `switchActuator/v1`, `shutterActuator/v1`, `daliGateway/v1`, `roomThermostat/v1`, or a registered [extension](extensions.html). The `kind` field classifies the device and determines its representation.
+A KNX device has an individual address such as `1.1.10`. It contains communication objects and may also have buttons, inputs, and channels. Its `behavior` defines its logic and how it is drawn, for example `buttonInterface/v1`, `switchActuator/v1`, `shutterActuator/v1`, `daliGateway/v1`, `roomThermostat/v1`, or a registered [extension](extensions.html). The `kind` field is a free description of the device; only a behavior that documents a value gives it an effect, such as `"supervisor"` for a display.
 
 ## Communication object
 

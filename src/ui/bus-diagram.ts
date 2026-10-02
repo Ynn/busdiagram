@@ -107,7 +107,7 @@ const domReady: Promise<void> =
       });
 
 /** JSON.parse with a message that places the error (line, column). */
-function parseJson(text: string, where: string): unknown {
+function parseJson(text: string, where: string, t: Translate): unknown {
   try {
     return JSON.parse(text);
   } catch (e) {
@@ -117,9 +117,9 @@ function parseJson(text: string, where: string): unknown {
     if (m) {
       const before = text.slice(0, Number(m[1]));
       const line = before.split("\n").length;
-      at = ` (ligne ${line}, colonne ${before.length - before.lastIndexOf("\n")})`;
+      at = t` (line ${line}, column ${before.length - before.lastIndexOf("\n")})`;
     }
-    throw new Error(`Invalid JSON in ${where}${at}: ${msg}`, { cause: e });
+    throw new Error(t`Invalid JSON in ${where}${at}: ${msg}`, { cause: e });
   }
 }
 
@@ -306,7 +306,7 @@ export class BusDiagram extends LitElement {
           throw new Error(
             this.tr`Element ${this.scenario} not found in the page.`,
           );
-        this.load(parseJson(el.textContent ?? "", this.scenario));
+        this.load(parseJson(el.textContent ?? "", this.scenario, this.tr));
       } else if (this.src) {
         const url = this.src;
         const r = await fetch(url);
@@ -320,7 +320,9 @@ export class BusDiagram extends LitElement {
       } else if (!this.model && !this.sim) {
         const inline = this.inlineScenario();
         if (inline !== null)
-          this.load(parseJson(inline, "the content of <bus-diagram>"));
+          this.load(
+            parseJson(inline, this.tr`the content of <bus-diagram>`, this.tr),
+          );
       }
     } catch (e) {
       if (token === this.loadToken) this.fail(e);
@@ -417,7 +419,7 @@ export class BusDiagram extends LitElement {
 
   private interfaces(): Device[] {
     return (this.model?.devices ?? []).filter(
-      (d) => d.behavior === "usbInterface/v1",
+      (d) => d.presentation.busInterface,
     );
   }
 
@@ -1230,7 +1232,7 @@ export class BusDiagram extends LitElement {
 
   private renderDevice(d: Device, dg: DevG, sim: Simulation) {
     const t = sim.timeMs;
-    const sup = d.kind === "supervisor";
+    const sup = d.presentation.supervisor;
     const cells = d.objects.map((o) => {
       const at = sim.objectUpdatedAt(d.id, o.id);
       const fresh = at !== null && t - at < 1300;
@@ -1290,7 +1292,7 @@ export class BusDiagram extends LitElement {
       >
         <div class="cell ia">
           ${d.address || "KNXnet/IP"}${
-            d.behavior === "systemGateway/v1"
+            d.presentation.remoteSystem
               ? html`<small class="sys"
                   >⇄ ${String(sim.deviceState(d.id).system ?? "")}</small
                 >`
@@ -1452,10 +1454,7 @@ export class BusDiagram extends LitElement {
         : "",
       app.shed ? this.tr`shed` : "",
       // Metered output: measured power.
-      d.objects.some(
-        (o) =>
-          o.channel === c.id && (o.port === "power" || o.port === "energy"),
-      )
+      d.presentation.metered.includes(c.id)
         ? `${Math.round(Number(app.powerW ?? 0))} W`
         : "",
     ].filter(Boolean);

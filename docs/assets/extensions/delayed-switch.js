@@ -32,13 +32,18 @@ var BusDiagramExt_delayed_switch = (function(exports, bus_diagram) {
 				dpts: ["1.001"],
 				channel: "required",
 				title: "Command",
-				direction: "in"
+				direction: "in",
+				description: "Switching command of the output, applied after the delay.",
+				drivesLoad: true
 			},
 			status: {
 				dpts: ["1.001"],
 				channel: "required",
 				title: "Status feedback",
-				direction: "out"
+				direction: "out",
+				description: "Status of the output, sent after each effective change.",
+				defaultFlags: { R: true },
+				telegram: "state"
 			}
 		},
 		output: "switch",

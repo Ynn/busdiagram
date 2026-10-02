@@ -5,21 +5,6 @@ import type { Simulation } from "../../src/knx/sim";
 
 export const scenariosDir = resolve(import.meta.dirname, "../../scenarios");
 
-/** Six historical scenarios in format v1, kept as fixtures for compatibility tests. */
-export const LEGACY = [
-  "lighting-control.json",
-  "status-feedback.json",
-  "shutter-control.json",
-  "scenes.json",
-  "timers.json",
-  "full-topology.json",
-];
-export const legacy = (name: string) =>
-  readJson(resolve(import.meta.dirname, "fixtures/v1", name)) as Record<
-    string,
-    unknown
-  >;
-
 export const activeScenarios = () =>
   readdirSync(scenariosDir).filter((f) => f.endsWith(".json"));
 

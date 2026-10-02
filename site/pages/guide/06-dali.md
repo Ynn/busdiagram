@@ -21,7 +21,7 @@ A `dimmerActuator/v1` channel accepts three kinds of control:
 | `valueStatus` | 5.001 | Actual brightness after a transition. |
 | `scene` | 17.001 | Recall a channel brightness preset. |
 
-Channel parameters include `onLevel` (`"fixed"` or `"last"`), `onLevelPct`, `dimTimeMs`, `switchFadeMs`, `valueFadeMs`, `minLevelPct`, `maxLevelPct`, `dimSwitchesOn`, and `dimSwitchesOff` for relative dimming, and `valueSwitchesOn` and `valueSwitchesOff` for brightness values. With `valueSwitchesOn: false`, a value received while the channel is off is ignored; with `valueSwitchesOff: false`, a value of 0 dims to the minimum level instead of switching off. Both options exist in dimming actuator manuals; by default both are allowed. See the [behavior reference](../reference/behaviors.html).
+Channel parameters include `onLevel` (`"fixed"` or `"last"`), `onLevelPct`, `dimTimeMs`, `switchFadeMs`, `valueFadeMs`, `minLevelPct`, `maxLevelPct`, `dimSwitchesOn`, and `dimSwitchesOff` for relative dimming, and `valueSwitchesOn` and `valueSwitchesOff` for brightness values. With `valueSwitchesOn: false`, a value received while the channel is off is ignored; with `valueSwitchesOff: false`, a value of 0 dims to the minimum level instead of switching off. Both options exist in dimming actuator manuals; by default both are allowed. The switch-on level stays within the minimum and maximum levels. On a bus voltage failure the level is unchanged, or set to off or `busFailureLevelPct` (`busFailure`); on recovery it returns to the level before the failure, or is set off or on (`busRecovery`), and the status is sent again. See the [behavior reference](../reference/behaviors.html).
 
 ```json
 {

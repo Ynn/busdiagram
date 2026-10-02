@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -42,7 +42,7 @@
   <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
 
   <h4>For developers</h4>
-  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li class="cur"><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/format-v1.html">Format 1 and conversion</a></li></ul>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li class="cur"><a href="../guide/extensions.html">Extensions</a></li></ul>
 
   <h4>Simulation model</h4>
   <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
@@ -74,12 +74,17 @@
       channel: <span class="s">"required"</span>,
       title: <span class="s">"Command"</span>,
       direction: <span class="s">"in"</span>,
+      description: <span class="s">"Switching command of the output, applied after the delay."</span>,
+      drivesLoad: <span class="kw">true</span>,
     },
     status: {
       dpts: [<span class="s">"1.001"</span>],
       channel: <span class="s">"required"</span>,
       title: <span class="s">"Status feedback"</span>,
       direction: <span class="s">"out"</span>,
+      description: <span class="s">"Status of the output, sent after each effective change."</span>,
+      defaultFlags: { R: <span class="kw">true</span> },
+      telegram: <span class="s">"state"</span>,
     },
   },
   output: <span class="s">"switch"</span>,
@@ -182,7 +187,59 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </div><p>The context <code>ctx</code> exposes <code>t</code> for translated messages, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>getOutput</code>, <code>readEquipment</code>, <code>readPower</code>, <code>readRoom</code>, <code>setOutsideTemperature</code>, <code>clock</code>, <code>schedule</code>, <code>cancel</code>, and <code>note</code>. <code>setObject</code> changes a local value without transmitting. <code>transmit</code> checks flag T and the sending address. <code>readEquipment(channel, index)</code> returns the state of a load of a channel: the first one by default, or another one when several loads are wired to the output (<code>ctx.device.channels[i].loads</code> lists their types). <code>readPower</code> returns the power drawn through a channel, in W: the sum of its loads that model it. <code>clock()</code> returns the simulated clock (<code>nowMs</code>, <code>speed</code>) or <code>null</code> without one; divide a clock delay by <code>speed</code> to schedule it in simulation time. <code>note</code> adds an explanation to the event log.</p>
 <p>Equipment models can define <code>heatOutput(state, parameters)</code> to heat or cool a room and <code>checkParameters(parameters, t)</code> to validate related parameters. A view can define <code>interact(state, action, parameters, equipment)</code> to respond to a user action. Use simulation time and <code>ctx.schedule</code> for delayed behavior; browser timers such as <code>setTimeout</code> do not follow simulation time.</p>
 <p>With <code>contactInputs: true</code>, each channel of a device is drawn as a key that reports its edges, and the behavior measures presses with <code>ctx.schedule</code>; <code>contactKey(channel, objects)</code> can choose the key&#39;s icon and the object shown by its LED. A port with <code>direction: &quot;both&quot;</code> sends and listens, so the designer enables its W and T flags. <code>channelObjects: { parameter, values }</code> lists, for each value of a channel parameter, the ports (and DPTs) of the objects that the channel has: the designer creates and removes them when the parameter changes, as a product&#39;s parameter dialog does for a function.</p>
-<p>An exception in a behavior pauses only that diagram and reports an <code>extension-error</code>. An exception in a view replaces that view with an error frame and reports <code>view-error</code> in <code>getState()</code>.</p>
+<p>A behavior can check its own configuration when a scenario is loaded:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>validate(device, t)</code></td>
+<td>Returns blocking errors <code>{ path, code, message }</code>; the path is relative to the device (<code>channels[2].scenes.17</code>) and the scenario is refused.</td>
+</tr>
+<tr>
+<td><code>normalize(device)</code></td>
+<td>Returns data derived from the configuration: <code>tableGroupAddresses</code>, group addresses of the device that the coupler filter tables keep without an object.</td>
+</tr>
+<tr>
+<td><code>warnings(device, t)</code></td>
+<td>Returns configuration warnings <code>{ code, channelId?, message }</code>: the simulation runs, and the warnings are shown above the diagram.</td>
+</tr>
+</tbody></table>
+</div><p><code>presentation(device)</code> tells the diagram and the designer how to draw a device of the behavior, from its <code>kind</code>, objects and channels: <code>screen</code> (objects facing a screen at the head of the plate), <code>supervisor</code> (values written under the object names), <code>busInterface</code> (panel that writes and reads any group address), <code>remoteSystem</code> (the <code>system</code> field of its state shown next to its address), <code>receiver</code> (group-address column on the left; by default for a device with channels and no keys), and <code>metered</code> (channels whose loads show their measured power).</p>
+<p>The device passed to these rules is the normalized device, with the parameters of its channels and of their loads (<code>channels[i].equipmentConfigs</code>). With <code>representsAnyDpt: true</code>, the objects of the behavior may carry a standard DPT that is shown but not simulated, as for a visualization.</p>
+<p>A port declares what its objects mean; a port name means nothing by itself:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port field</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>defaultFlags: { R, U }</code></td>
+<td>Flags R and U of its objects when the scenario does not write them; false otherwise. A status object usually has <code>R: true</code>, a display <code>U: true</code>.</td>
+</tr>
+<tr>
+<td><code>telegram: &quot;state&quot;</code></td>
+<td>Its telegrams are state reports, styled as such in the monitor; <code>&quot;command&quot;</code> by default.</td>
+</tr>
+<tr>
+<td><code>drivesLoad: true</code></td>
+<td>The diagram links its objects to the loads of their channel, as the command of an output.</td>
+</tr>
+<tr>
+<td><code>initialUnknown: true</code></td>
+<td>Its objects start with an unknown value until a telegram gives one, as a display.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Role of the port, shown in the reference and the schema.</td>
+</tr>
+</tbody></table>
+</div><p>An exception in a behavior pauses only that diagram and reports an <code>extension-error</code>. An exception in a view replaces that view with an error frame and reports <code>view-error</code> in <code>getState()</code>.</p>
 <h3 id="definition-checks"><a class="anchor" href="#definition-checks">#</a>Definition checks</h3><p><code>registerBehavior</code> validates ports, supported DPTs, output types, and parameter defaults. Parameter schemas use a flat subset of JSON Schema: scalar <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>string</code>, and <code>null</code> properties, with bounds, <code>enum</code>, <code>enumTitles</code>, <code>default</code>, and <code>description</code>. Nested objects and arrays are unsupported. A registered definition is copied and frozen.</p>
 <h3 id="labels-for-guided-editing"><a class="anchor" href="#labels-for-guided-editing">#</a>Labels for guided editing</h3><p>Optional metadata makes an extension usable in the <a href="designer.html">guided designer</a>:</p>
 <div class="table"><table>
@@ -285,13 +342,52 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 });</code></pre><p>A scenario can select this view with <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;lamp&quot;, &quot;view&quot;: &quot;ledStrip&quot; }</code>. The underlying lamp model and its <code>{ on }</code> state remain the same.</p>
 <h2 id="load-scripts"><a class="anchor" href="#load-scripts">#</a>Load scripts</h2><pre class="code"><code>&lt;<span class="t">script</span> <span class="a">defer</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;
 &lt;<span class="t">script</span> <span class="a">defer</span> <span class="a">src</span>=<span class="s">"extensions/delayed-switch.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>Components wait for these scripts to load. Extensions share registered definitions through <code>BusDiagram</code>; they should not rely on global variables from another extension. The designer and standalone export wrap each extension in its own function scope. When loading raw files with <code>&lt;script src&gt;</code>, compile each extension as an IIFE to avoid global name collisions. <code>npm run build</code> compiles <code>site/samples/extensions/*.ts</code> into classic scripts.</p>
+<h2 id="deliver-a-participant-with-the-library"><a class="anchor" href="#deliver-a-participant-with-the-library">#</a>Deliver a participant with the library</h2><p>A participant delivered with BusDiagram lives in its own folder, <code>src/participants/&lt;name&gt;/</code>, and uses the same contract as an extension. Its files:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>behavior.ts</code></td>
+<td>The behavior definition: parameters, ports and their meaning, state, reactions, presentation.</td>
+</tr>
+<tr>
+<td><code>layout.ts</code></td>
+<td>Its pages of parameters (<code>parameterLayout</code>).</td>
+</tr>
+<tr>
+<td><code>rules.ts</code></td>
+<td>Its <code>validate</code>, <code>normalize</code>, and <code>warnings</code> rules, if any.</td>
+</tr>
+<tr>
+<td><code>messages.fr.ts</code></td>
+<td>Translations of its texts (parameters, pages, log messages); one file per language.</td>
+</tr>
+<tr>
+<td><code>model.ts</code></td>
+<td>Its model entry: behaviors and catalogs, <code>{ behaviors, messages }</code>.</td>
+</tr>
+<tr>
+<td><code>designer.ts</code></td>
+<td>Its designer entry: catalog category, templates, displayed type, designer catalogs.</td>
+</tr>
+<tr>
+<td><code>designer.fr.ts</code></td>
+<td>Translations of its designer texts.</td>
+</tr>
+</tbody></table>
+</div><p>Two lists compose the delivered participants: <code>src/standard-model.ts</code> (model entries, installed by the registry) and <code>site/designer/standard-designer.ts</code> (designer entries). Adding a participant means adding its folder and one line to each list; the engine, the diagram, and the designer know participants only through these declarations. Code shared on purpose by several participants is in <code>src/participants/shared/</code>. A delivered equipment follows the same layout in <code>src/equipment/&lt;name&gt;/</code>: <code>equipment.ts</code> (physical model), <code>size.ts</code> (size of its views, read by the layout), <code>view.ts</code>, <code>messages.fr.ts</code>, and <code>model.ts</code>, whose entry also gives the sizes of its views (<code>viewSizes</code>).</p>
+<p>The tests check this organization: a participant depends neither on the registry nor on another participant, its model entry never reaches the designer, shared modules name no behavior, and its texts are in its own catalogs.</p>
 
 <nav class="pager">
 <a href="../guide/versions.html">← Versions and releases</a>
 <a href="../guide/time.html">Time and step mode →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Deliver a participant with the library</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

@@ -1,0 +1,124 @@
+{
+  "formatVersion": 2,
+  "title": "USB interface panel: write and read a group address",
+  "description": "A USB interface (1.1.255) connects a commissioning computer to line 1.1. Write to 1/1/1 in the USB interface panel: the telegram crosses coupler 1.2.0 to reach the actuator. Read 1/4/1: the status object answers because its R flag is set. Read 1/1/1: no object on that sending address has the R flag, so no one answers.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Panel",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    },
+    {
+      "address": "1.2",
+      "name": "Floor",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "Office lighting",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/4/1",
+      "name": "Office lighting status",
+      "dpt": "1.001"
+    }
+  ],
+  "devices": [
+    {
+      "id": "usbInterface",
+      "name": "USB interface",
+      "address": "1.1.255",
+      "kind": "interface",
+      "behavior": "usbInterface/v1",
+      "objects": []
+    },
+    {
+      "id": "pushButton",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "key1",
+          "name": "Key 1 toggle",
+          "ga": [
+            "1/1/1",
+            "1/4/1"
+          ],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "key1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "key1",
+          "label": "Input 1",
+          "keyLabel": "Key 1",
+          "parameters": {
+            "ledShown": true
+          },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Switching actuator",
+      "address": "1.2.1",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Channel 1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "e1",
+          "name": "Status 1",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Office",
+          "equipment": {
+            "type": "lamp"
+          }
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

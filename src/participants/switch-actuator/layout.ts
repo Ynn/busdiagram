@@ -1,0 +1,135 @@
+// Pages of parameters of the switch actuator in the designer: each function of an output
+// on its own page, the group objects enabled where their function is set.
+import type { ParameterLayout } from "../../knx/contracts";
+
+export const switchLayout: ParameterLayout = {
+  device: [
+    {
+      id: "metering",
+      title: "Metering and load shedding",
+      items: [
+        { heading: "Total power" },
+        { groupObject: "totalPower" },
+        { parameter: "meterIntervalMs" },
+        { parameter: "powerSendDeltaW" },
+        { parameter: "energyTimeScale" },
+        { heading: "Load shedding" },
+        { parameter: "powerLimitW" },
+        {
+          when: { parameter: "powerLimitW", not: [0, null] },
+          items: [
+            { groupObject: "powerLimit" },
+            { parameter: "powerLimitHysteresisW" },
+            { parameter: "sheddingTimeMs" },
+          ],
+        },
+      ],
+    },
+  ],
+  channel: [
+    {
+      id: "function",
+      title: "Function",
+      items: [
+        { groupObject: "switch" },
+        { parameter: "relayMode" },
+        { initialState: "on" },
+        { heading: "Status" },
+        { groupObject: "status" },
+        {
+          when: { groupObject: "status" },
+          items: [{ parameter: "statusDelayMs" }],
+        },
+      ],
+    },
+    {
+      id: "delays",
+      title: "Delays",
+      items: [
+        { parameter: "onDelayMs" },
+        { parameter: "offDelayMs" },
+        {
+          note: "Delays apply to the switching object; scenes, forcing, and the lock act at once.",
+        },
+      ],
+    },
+    {
+      id: "timer",
+      title: "Timer",
+      items: [
+        { parameter: "timerMs" },
+        {
+          when: { parameter: "timerMs", not: [null, 0] },
+          items: [
+            { parameter: "timerRetrigger" },
+            { parameter: "timerWarningMs" },
+            { parameter: "timerOffAllowed" },
+          ],
+        },
+      ],
+    },
+    {
+      id: "forcing",
+      title: "Forcing and lock",
+      items: [
+        { heading: "Forcing" },
+        { groupObject: "forced" },
+        {
+          when: { groupObject: "forced" },
+          items: [{ parameter: "afterForcing" }],
+        },
+        { heading: "Lock" },
+        { groupObject: "lock" },
+        {
+          when: { groupObject: "lock" },
+          items: [
+            { parameter: "lockStart" },
+            { parameter: "afterLock" },
+            {
+              note: "Forcing has priority over the lock; while either is active, commands are stored.",
+            },
+          ],
+        },
+      ],
+    },
+    {
+      id: "logic",
+      title: "Logic link",
+      items: [
+        { groupObject: "logic" },
+        {
+          when: { groupObject: "logic" },
+          items: [{ parameter: "logicOperation" }],
+        },
+      ],
+    },
+    {
+      id: "scenes",
+      title: "Scenes",
+      items: [
+        { groupObject: "scene" },
+        {
+          when: { groupObject: "scene" },
+          items: [{ parameter: "sceneLearning" }, { scenes: true }],
+        },
+      ],
+    },
+    {
+      id: "bus",
+      title: "Bus voltage",
+      items: [{ parameter: "busFailure" }, { parameter: "busRecovery" }],
+    },
+    {
+      id: "metering",
+      title: "Metering",
+      items: [
+        { groupObject: "power" },
+        { groupObject: "energy" },
+        { parameter: "loadShedding" },
+        {
+          note: "Shedding applies when the device has a total power limit (page Metering and load shedding).",
+        },
+      ],
+    },
+  ],
+};

@@ -2,7 +2,7 @@
 // the object table of a product, so that an input keeps its numbers when another changes.
 import { describe, expect, it } from "vitest";
 import * as E from "../../site/designer/edit";
-import { SNIPPETS } from "../../site/designer/snippets";
+import { TEMPLATES } from "../../site/designer/standard-designer";
 import { buildScenario } from "../../src/knx/scenario";
 
 const empty = () =>
@@ -15,7 +15,7 @@ const empty = () =>
 
 /** A document with one device made from a designer template. */
 function withDevice(template: string) {
-  const doc = SNIPPETS.find((s) => s.id === template)!.apply(empty(), {
+  const doc = TEMPLATES.find((s) => s.id === template)!.apply(empty(), {
     line: "1.1",
   }) as E.Doc;
   const d = doc.devices.at(-1)!;

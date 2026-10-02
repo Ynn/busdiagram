@@ -2,12 +2,12 @@ import { describe, expect, it } from "vitest";
 import { captureRegistry } from "../../src/knx/registry";
 import { buildAuthorSchema } from "../../src/knx/schema";
 import { SchemaNavigator } from "../../site/designer/completion";
+import { TEMPLATES } from "../../site/designer/standard-designer";
 import {
-  SNIPPETS,
   SnippetRefusal,
   freeAddress,
   freeGa,
-} from "../../site/designer/snippets";
+} from "../../site/designer/snippet-kit";
 import { raw } from "./helpers";
 import { buildScenario } from "../../src/knx/scenario";
 
@@ -51,8 +51,8 @@ describe("designer: navigation in the diagram", () => {
 });
 
 describe("safe insertions", () => {
-  const pushButton4 = SNIPPETS.find((s) => s.id === "buttonInterface4")!;
-  const switchActuator4 = SNIPPETS.find((s) => s.id === "switchActuator4")!;
+  const pushButton4 = TEMPLATES.find((s) => s.id === "buttonInterface4")!;
+  const switchActuator4 = TEMPLATES.find((s) => s.id === "switchActuator4")!;
   const empty = (lines: Record<string, unknown>[]) => ({
     formatVersion: 2,
     lines,
@@ -102,7 +102,7 @@ describe("safe insertions", () => {
     const lines = empty(
       Array.from({ length: 15 }, (_, i) => ({ address: `1.${i + 1}` })),
     );
-    expect(() => SNIPPETS.find((s) => s.id === "line")!.apply(lines)).toThrow(
+    expect(() => TEMPLATES.find((s) => s.id === "line")!.apply(lines)).toThrow(
       /15 lines/,
     );
   });
@@ -110,7 +110,7 @@ describe("safe insertions", () => {
   it.each([null, [], { devices: {} }, { groupAddresses: {} }, { lines: [42] }])(
     "malformed document %j: rejected without an uncaught exception",
     (doc) => {
-      for (const s of SNIPPETS)
+      for (const s of TEMPLATES)
         expect(() => s.apply(doc as never)).toThrow(SnippetRefusal);
     },
   );

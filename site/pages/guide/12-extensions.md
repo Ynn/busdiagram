@@ -40,6 +40,28 @@ Equipment models can define `heatOutput(state, parameters)` to heat or cool a ro
 
 With `contactInputs: true`, each channel of a device is drawn as a key that reports its edges, and the behavior measures presses with `ctx.schedule`; `contactKey(channel, objects)` can choose the key's icon and the object shown by its LED. A port with `direction: "both"` sends and listens, so the designer enables its W and T flags. `channelObjects: { parameter, values }` lists, for each value of a channel parameter, the ports (and DPTs) of the objects that the channel has: the designer creates and removes them when the parameter changes, as a product's parameter dialog does for a function.
 
+A behavior can check its own configuration when a scenario is loaded:
+
+| Rule | Role |
+| --- | --- |
+| `validate(device, t)` | Returns blocking errors `{ path, code, message }`; the path is relative to the device (`channels[2].scenes.17`) and the scenario is refused. |
+| `normalize(device)` | Returns data derived from the configuration: `tableGroupAddresses`, group addresses of the device that the coupler filter tables keep without an object. |
+| `warnings(device, t)` | Returns configuration warnings `{ code, channelId?, message }`: the simulation runs, and the warnings are shown above the diagram. |
+
+`presentation(device)` tells the diagram and the designer how to draw a device of the behavior, from its `kind`, objects and channels: `screen` (objects facing a screen at the head of the plate), `supervisor` (values written under the object names), `busInterface` (panel that writes and reads any group address), `remoteSystem` (the `system` field of its state shown next to its address), `receiver` (group-address column on the left; by default for a device with channels and no keys), and `metered` (channels whose loads show their measured power).
+
+The device passed to these rules is the normalized device, with the parameters of its channels and of their loads (`channels[i].equipmentConfigs`). With `representsAnyDpt: true`, the objects of the behavior may carry a standard DPT that is shown but not simulated, as for a visualization.
+
+A port declares what its objects mean; a port name means nothing by itself:
+
+| Port field | Effect |
+| --- | --- |
+| `defaultFlags: { R, U }` | Flags R and U of its objects when the scenario does not write them; false otherwise. A status object usually has `R: true`, a display `U: true`. |
+| `telegram: "state"` | Its telegrams are state reports, styled as such in the monitor; `"command"` by default. |
+| `drivesLoad: true` | The diagram links its objects to the loads of their channel, as the command of an output. |
+| `initialUnknown: true` | Its objects start with an unknown value until a telegram gives one, as a display. |
+| `description` | Role of the port, shown in the reference and the schema. |
+
 An exception in a behavior pauses only that diagram and reports an `extension-error`. An exception in a view replaces that view with an error frame and reports `view-error` in `getState()`.
 
 ### Definition checks
@@ -120,3 +142,21 @@ A scenario can select this view with `"equipment": { "type": "lamp", "view": "le
 ```
 
 Components wait for these scripts to load. Extensions share registered definitions through `BusDiagram`; they should not rely on global variables from another extension. The designer and standalone export wrap each extension in its own function scope. When loading raw files with `<script src>`, compile each extension as an IIFE to avoid global name collisions. `npm run build` compiles `site/samples/extensions/*.ts` into classic scripts.
+
+## Deliver a participant with the library
+
+A participant delivered with BusDiagram lives in its own folder, `src/participants/<name>/`, and uses the same contract as an extension. Its files:
+
+| File | Content |
+| --- | --- |
+| `behavior.ts` | The behavior definition: parameters, ports and their meaning, state, reactions, presentation. |
+| `layout.ts` | Its pages of parameters (`parameterLayout`). |
+| `rules.ts` | Its `validate`, `normalize`, and `warnings` rules, if any. |
+| `messages.fr.ts` | Translations of its texts (parameters, pages, log messages); one file per language. |
+| `model.ts` | Its model entry: behaviors and catalogs, `{ behaviors, messages }`. |
+| `designer.ts` | Its designer entry: catalog category, templates, displayed type, designer catalogs. |
+| `designer.fr.ts` | Translations of its designer texts. |
+
+Two lists compose the delivered participants: `src/standard-model.ts` (model entries, installed by the registry) and `site/designer/standard-designer.ts` (designer entries). Adding a participant means adding its folder and one line to each list; the engine, the diagram, and the designer know participants only through these declarations. Code shared on purpose by several participants is in `src/participants/shared/`. A delivered equipment follows the same layout in `src/equipment/<name>/`: `equipment.ts` (physical model), `size.ts` (size of its views, read by the layout), `view.ts`, `messages.fr.ts`, and `model.ts`, whose entry also gives the sizes of its views (`viewSizes`).
+
+The tests check this organization: a participant depends neither on the registry nor on another participant, its model entry never reaches the designer, shared modules name no behavior, and its texts are in its own catalogs.

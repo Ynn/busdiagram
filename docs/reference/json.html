@@ -7,11 +7,11 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JSON scenario · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.420a4df.modified.b375ce3d">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,7 +24,7 @@
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.420a4df.modified.b375ce3d" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -56,7 +56,7 @@
 <td><code>formatVersion</code></td>
 <td><code>2</code></td>
 <td>yes</td>
-<td>Format version 2. Without this field, the file is read as legacy format 1.</td>
+<td>Format version: 2, the only supported version.</td>
 </tr>
 <tr>
 <td><code>title</code></td>
@@ -292,7 +292,7 @@
 <td><code>kind</code></td>
 <td>string</td>
 <td>yes</td>
-<td>Device grouping and rendering: buttonInterface, switchActuator, shutterActuator, sensor, supervisor, generic…</td>
+<td>Type of device, as a free description (buttonInterface, switchActuator, display…). Only a behavior that documents a value gives it an effect: display/v1 draws &quot;supervisor&quot; as a supervision software.</td>
 </tr>
 <tr>
 <td><code>behavior</code></td>
@@ -310,7 +310,7 @@
 <td><code>medium</code></td>
 <td><code>&quot;TP&quot;</code>, <code>&quot;IP&quot;</code></td>
 <td></td>
-<td>Communication medium: TP by default, or IP on the topology.ip network; supervisors default to IP.</td>
+<td>Communication medium: TP by default, or IP on the topology.ip network (a supervisor on the IP network writes &quot;IP&quot;).</td>
 </tr>
 <tr>
 <td><code>room</code></td>
@@ -398,7 +398,7 @@
 </tr>
 <tr>
 <td><code>port</code></td>
-<td><code>&quot;input&quot;</code>, <code>&quot;display&quot;</code>, <code>&quot;switch&quot;</code>, <code>&quot;status&quot;</code>, <code>&quot;move&quot;</code>, <code>&quot;stopStep&quot;</code>…</td>
+<td><code>&quot;switch&quot;</code>, <code>&quot;status&quot;</code>, <code>&quot;scene&quot;</code>, <code>&quot;forced&quot;</code>, <code>&quot;lock&quot;</code>, <code>&quot;logic&quot;</code>…</td>
 <td>yes</td>
 <td>Object role in the device&#39;s behavior.</td>
 </tr>

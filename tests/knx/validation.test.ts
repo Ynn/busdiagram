@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ScenarioError, buildScenario } from "../../src/knx/scenario";
+import { translator } from "../../src/i18n";
 import { toV2 } from "../../src/knx/export";
-import { flags, keypad, legacy, raw, v2 } from "./helpers";
+import { flags, keypad, raw, v2 } from "./helpers";
 
 function problems(data: unknown) {
   try {
@@ -33,15 +34,54 @@ const pushButton = (extra: Record<string, unknown> = {}) =>
   );
 
 describe("structured errors instead of uncaught TypeError", () => {
+  it("bounds of a parameter, in the language of the messages", () => {
+    const doc = v2([
+      {
+        id: "t",
+        name: "T",
+        address: "1.1.1",
+        kind: "thermostat",
+        behavior: "roomThermostat/v1",
+        parameters: { temperatureSendDeltaK: 50 },
+        objects: [],
+      },
+    ]);
+    const message = (lang: string) => {
+      try {
+        buildScenario(doc, undefined, translator(lang));
+      } catch (e) {
+        return (e as ScenarioError).details[0]!.message;
+      }
+    };
+    expect(message("en")).toBe("value 50 out of bounds (≥ 0.1 and ≤ 5)");
+    expect(message("fr")).toBe("valeur 50 hors bornes (≥ 0.1 et ≤ 5)");
+  });
+
+  it("format 2 only: formatVersion is required and must be 2", () => {
+    const unversioned: Record<string, unknown> = v2([]);
+    delete unversioned.formatVersion;
+    expect(paths(unversioned)).toEqual(["formatVersion [required]"]);
+    expect(paths({ ...v2([]), formatVersion: 1 })).toEqual([
+      "formatVersion [version]",
+    ]);
+    expect(() => buildScenario(v2([]))).not.toThrow();
+  });
+
   it("wrong JSON field types", () => {
-    expect(paths({ lines: "oops", devices: [] })).toContain("lines [type]");
-    expect(paths({ lines: [{ address: "1.1" }], devices: "x" })).toContain(
+    const doc = (fields: Record<string, unknown>) => ({
+      formatVersion: 2,
+      title: "t",
+      ...fields,
+    });
+    expect(paths(doc({ lines: "oops", devices: [] }))).toContain(
+      "lines [type]",
+    );
+    expect(paths(doc({ lines: [{ address: "1.1" }], devices: "x" }))).toContain(
       "devices [type]",
     );
-    expect(paths({ lines: [{ address: "1.1" }], devices: [null, 3] })).toEqual([
-      "devices[0] [type]",
-      "devices[1] [type]",
-    ]);
+    expect(
+      paths(doc({ lines: [{ address: "1.1" }], devices: [null, 3] })),
+    ).toEqual(["devices[0] [type]", "devices[1] [type]"]);
     expect(problems([])).toEqual([
       {
         path: "",
@@ -51,18 +91,27 @@ describe("structured errors instead of uncaught TypeError", () => {
     ]);
   });
 
-  it("missing references, in v1 as in v2", () => {
-    const bad = {
-      lines: [{ address: "1.1" }],
-      devices: [
-        {
-          id: "a",
-          address: "1.2.3",
-          objects: [{ id: "o", name: "o", ga: "1/1" }],
-          buttons: [{ label: "B", press: { object: "zz", value: 1 } }],
-        },
-      ],
-    };
+  it("missing references", () => {
+    const bad = v2([
+      {
+        id: "a",
+        name: "A",
+        address: "1.2.3",
+        kind: "panel",
+        behavior: "passive/v1",
+        objects: [
+          {
+            id: "o",
+            name: "o",
+            ga: ["1/1"],
+            dpt: "1.001",
+            port: "input",
+            flags: flags(false, true),
+          },
+        ],
+        inputs: [{ id: "i", type: "number", label: "I", object: "zz" }],
+      },
+    ]);
     const msg = problems(bad)
       .map((p) => `${p.path} : ${p.message}`)
       .join("\n");
@@ -70,11 +119,11 @@ describe("structured errors instead of uncaught TypeError", () => {
       "devices[0].address : line 1.2 is not declared in “lines”",
     );
     expect(msg).toContain("devices[0].objects[0].ga");
-    expect(msg).toContain("devices[0].buttons[0].press.object");
+    expect(msg).toContain("devices[0].inputs[0].object");
   });
 
   it("addresses outside their valid ranges", () => {
-    expect(paths({ lines: [{ address: "99.99" }], devices: [] })).toContain(
+    expect(paths(v2([], { lines: [{ address: "99.99" }] }))).toContain(
       "lines[0].address [address]",
     );
     expect(paths(v2([pushButton({ address: "1.1.300" })]))).toContain(
@@ -138,12 +187,6 @@ describe("structured errors instead of uncaught TypeError", () => {
     expect(
       paths(shutterActuator({ estimatedTravelTimeMs: 1000, bogus: 1 })),
     ).toEqual(["devices[0].channels[0].parameters.bogus [unknown-field]"]);
-    const v1 = structuredClone(legacy("timers.json")) as {
-      devices: { buttons?: unknown[]; channels?: { timer?: number }[] }[];
-    };
-    v1.devices.forEach((d) => delete d.buttons);
-    v1.devices[3]!.channels![0]!.timer = 0;
-    expect(paths(v1)).toEqual(["devices[3].channels[0].timer [range]"]);
   });
 
   it("incompatible or unsupported DPT", () => {
@@ -472,7 +515,7 @@ describe("DPTs shown but not simulated", () => {
   });
 
   it("are refused elsewhere, with a value, or when the main number is unknown", () => {
-    expect(paths(scenario("pushButton/v1", "235.001"))).toContain(
+    expect(paths(scenario("presenceDetector/v1", "235.001"))).toContain(
       "devices[0].objects[0].dpt [dpt]",
     );
     expect(paths(scenario("passive/v1", "235.001", { value: 3 }))).toContain(

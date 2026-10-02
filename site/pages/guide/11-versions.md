@@ -31,7 +31,7 @@ The internal structure of the component (shadow DOM, CSS classes), the exact dra
 | New compatible feature, such as an optional field, port, or behavior | New minor version (1.1.0) | New minor version (0.2.0) |
 | Correction without interface change | New patch version (1.0.1) | New patch version (0.1.1) |
 
-Behavior identifiers carry their own version (`switchActuator/v1`). An incompatible change of a behavior introduces a new identifier (`switchActuator/v2`) rather than changing the meaning of an existing one. The scenario format has its own number (`formatVersion`), independent of the library version; older formats remain readable, as [format 1](format-v1.html) is today.
+Behavior identifiers carry their own version (`switchActuator/v1`). An incompatible change of a behavior introduces a new identifier (`switchActuator/v2`) rather than changing the meaning of an existing one. The scenario format has its own number (`formatVersion`, currently 2), independent of the library version; every scenario declares it.
 
 ## Pin a version
 

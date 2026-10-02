@@ -113,7 +113,7 @@ export function validateParams(
           p.exclusiveMaximum !== undefined ? `< ${p.exclusiveMaximum}` : "",
         ]
           .filter(Boolean)
-          .join(" et ");
+          .reduce((all, part) => (all ? t`${all} and ${part}` : part), "");
         problems.push({
           path: at,
           code: "range",

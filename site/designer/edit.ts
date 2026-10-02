@@ -3,14 +3,17 @@
 // Identifier required: they also apply to handwritten scenarios.
 // If an edit is impossible, throw EditRefusal; the caller makes no change.
 import { SUPPORTED_DPTS, dptBits } from "../../src/knx/dpt";
-import {
-  defaultRead,
-  defaultUpdate,
-  parseClockStart,
-} from "../../src/knx/scenario";
+import { defaultRead, defaultUpdate } from "../../src/knx/ports";
+import { parseClockStart } from "../../src/knx/scenario";
 import { captureRegistry } from "../../src/knx/registry";
+import { designerOf } from "./standard-designer";
 import { t } from "./lang";
-import { SnippetRefusal, freeAddress, freeGa, usedAddresses } from "./snippets";
+import {
+  SnippetRefusal,
+  freeAddress,
+  freeGa,
+  usedAddresses,
+} from "./snippet-kit";
 
 export class EditRefusal extends Error {}
 
@@ -194,10 +197,10 @@ export function gaUsage(
         objectId: o.id,
         objectName: o.name ?? o.id,
       };
-      if (gas[0] === addr && flagOf(o, "T")) senders.push(u);
-      if (gas[0] === addr && flagOf(o, "R")) responders.push(u);
-      if (flagOf(o, "W")) receivers.push(u);
-      if (flagOf(o, "U")) updaters.push(u);
+      if (gas[0] === addr && flagOf(d, o, "T")) senders.push(u);
+      if (gas[0] === addr && flagOf(d, o, "R")) responders.push(u);
+      if (flagOf(d, o, "W")) receivers.push(u);
+      if (flagOf(d, o, "U")) updaters.push(u);
     }),
   );
   return { senders, responders, receivers, updaters };
@@ -408,9 +411,7 @@ export function removeGa(doc: Doc, addr: string): number {
 
 /** "A.L", "A.0" (main line), "0.0" (backbone), or "IP". */
 export const lineOf = (d: Dev): string | undefined =>
-  d.medium === "IP" || (d.kind === "supervisor" && d.medium !== "TP")
-    ? "IP"
-    : d.address?.split(".").slice(0, 2).join(".");
+  d.medium === "IP" ? "IP" : d.address?.split(".").slice(0, 2).join(".");
 
 export function setLineName(doc: Doc, line: string, name: string) {
   const l = doc.lines.find((x) => String(x.address) === line);
@@ -647,12 +648,7 @@ export function setIpRole(doc: Doc, role: IpRole | null) {
   normalizeIp(doc);
   const topo = (doc.topology ??= {});
   if (!role) {
-    if (
-      doc.devices.some(
-        (d) =>
-          d.medium === "IP" || (d.kind === "supervisor" && d.medium !== "TP"),
-      )
-    )
+    if (doc.devices.some((d) => d.medium === "IP"))
       throw new EditRefusal(
         t`a device is connected to the IP network (supervisor): connect it to a line or delete it first`,
       );
@@ -763,8 +759,7 @@ export function connectDevice(doc: Doc, id: string, where: string) {
     delete d.downstream;
     return;
   }
-  if (d.kind === "supervisor") d.medium = "TP";
-  else delete d.medium;
+  delete d.medium;
   moveDevice(doc, id, where);
 }
 
@@ -874,26 +869,14 @@ export function setPortGas(
     return;
   }
   if (!o) {
-    const base =
-      {
-        switch: "c",
-        status: "e",
-        forced: "f",
-        scene: "sc",
-        move: "move",
-        stopStep: "stop",
-        positionCommand: "target",
-        positionStatus: "status",
-      }[port] ?? port;
+    // Identifier as the participant names its objects (designer entry).
+    const spec = designerOf(d.behavior)?.objectIds?.[port];
+    const base = spec?.prefix ?? port;
+    const numbered =
+      ch !== undefined &&
+      (spec?.numbered !== "several" || (d.channels?.length ?? 0) > 1);
     o = {
-      id: freeObjectId(
-        d,
-        ch && !["move", "stop", "target", "status"].includes(base)
-          ? `${base}${num(ch)}`
-          : ch && (d.channels?.length ?? 0) > 1
-            ? `${base}${num(ch)}`
-            : base,
-      ),
+      id: freeObjectId(d, numbered ? `${base}${num(ch)}` : base),
       name: opts.name,
       ga: [],
       dpt: opts.dpt,
@@ -1060,41 +1043,12 @@ export function sortObjects(d: Dev) {
 export const objectsSorted = (d: Dev) =>
   objectsInOrder(d).every((o, i) => o === d.objects[i]);
 
-export interface SwitchChannelView {
-  id: string;
-  label: string;
-  load: boolean;
-  commands: string[];
-  status: string | null;
-  forced: string | null;
-  timerS: number | null;
-  scenes: string;
-}
-
-export function switchChannels(d: Dev): SwitchChannelView[] {
-  return (d.channels ?? []).map((c) => ({
-    id: c.id,
-    label: c.label ?? c.id,
-    load: loadsOf(c).length > 0,
-    commands: d.objects
-      .filter((o) => o.port === "switch" && o.channel === c.id)
-      .flatMap(gasOf),
-    status:
-      gasOf(
-        objectFor(d, "status", c.id) ?? ({ ga: [] } as unknown as Obj),
-      )[0] ?? null,
-    forced:
-      gasOf(
-        objectFor(d, "forced", c.id) ?? ({ ga: [] } as unknown as Obj),
-      )[0] ?? null,
-    timerS:
-      typeof c.parameters?.timerMs === "number"
-        ? c.parameters.timerMs / 1000
-        : null,
-    scenes: Object.entries(c.scenes ?? {})
-      .map(([k, v]) => `${k}=${v}`)
-      .join(", "),
-  }));
+/** Scene presets of a channel as written in the form: "1=1, 2=0". */
+export function channelScenesText(d: Dev, channelId: string): string {
+  const c = (d.channels ?? []).find((x) => x.id === channelId);
+  return Object.entries(c?.scenes ?? {})
+    .map(([k, v]) => `${k}=${v}`)
+    .join(", ");
 }
 
 export function setChannelLabel(
@@ -1398,7 +1352,7 @@ export function removeChannel(doc: Doc, devId: string, ch: string) {
   sortObjects(d);
 }
 
-// ── Afficheur ────────────────────────────────────────────────────────────────
+// ── Display ──────────────────────────────────────────────────────────────────
 
 export function addDisplay(doc: Doc, devId: string, ga: string) {
   const d = device(doc, devId);
@@ -1416,7 +1370,7 @@ export function addDisplay(doc: Doc, devId: string, ga: string) {
   sortObjects(d);
 }
 
-// ── Objets (mode expert) ─────────────────────────────────────────────────────
+// ── Objects (expert mode) ────────────────────────────────────────────────────
 
 export type Flag = "C" | "R" | "W" | "T" | "U" | "I";
 
@@ -1431,8 +1385,9 @@ export function setObjectFlag(
   if (!o) throw new EditRefusal(t`object “${objectId}” not found`);
   o.flags = { ...o.flags, [flag]: on };
   // Write R, U, C, and I only if they differ from their defaults.
-  if (flag === "R" && on === defaultRead(o.port)) delete o.flags.R;
-  if (flag === "U" && on === defaultUpdate(o.port)) delete o.flags.U;
+  const def = captureRegistry().behaviors.get(device(doc, devId).behavior);
+  if (flag === "R" && on === defaultRead(def, o.port)) delete o.flags.R;
+  if (flag === "U" && on === defaultUpdate(def, o.port)) delete o.flags.U;
   if (flag === "C" && on) delete o.flags.C;
   if (flag === "I" && !on) delete o.flags.I;
 }
@@ -1464,11 +1419,12 @@ export function setObjectName(
   else delete o.name;
 }
 
-/** Effective flag value; R and U have port-specific defaults. */
-export function flagOf(o: Obj, f: Flag): boolean {
+/** Effective flag value; R and U have the defaults declared by the port. */
+export function flagOf(d: Dev, o: Obj, f: Flag): boolean {
   const fl = (o.flags ?? {}) as Partial<Obj["flags"]>;
-  if (f === "R") return fl.R ?? defaultRead(o.port);
-  if (f === "U") return fl.U ?? defaultUpdate(o.port);
+  const def = () => captureRegistry().behaviors.get(d.behavior);
+  if (f === "R") return fl.R ?? defaultRead(def(), o.port);
+  if (f === "U") return fl.U ?? defaultUpdate(def(), o.port);
   if (f === "C") return fl.C !== false;
   return !!fl[f];
 }
@@ -1527,10 +1483,10 @@ export function gaMemberCandidates(doc: Doc, addr: string): MemberCandidate[] {
           dptBits(dpt) === dptBits(o.dpt) ||
           gas.includes(addr),
         flags: {
-          W: flagOf(o, "W"),
-          T: flagOf(o, "T"),
-          R: flagOf(o, "R"),
-          U: flagOf(o, "U"),
+          W: flagOf(d, o, "W"),
+          T: flagOf(d, o, "T"),
+          R: flagOf(d, o, "R"),
+          U: flagOf(d, o, "U"),
         },
       };
     }),

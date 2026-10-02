@@ -14,10 +14,9 @@ Each validation problem has a JSON `path`, a `code`, and a localized `message`.
 | `type` | Wrong value type. |
 | `required` | Missing required field or parameter. |
 | `unknown-field` | Unknown format-2 field or behavior parameter. |
-| `removed` | A format-1 file has keys: they used the former push-button behavior, which has been removed. Convert the file to format 2 and use a push-button interface (`buttonInterface/v1`). |
 | `enum` | Value outside the allowed choices. |
 | `range` | Number outside its allowed range. |
-| `version` | Unsupported `formatVersion`. |
+| `version` | Unsupported `formatVersion` (only 2 is supported). |
 | `id` | Invalid identifier syntax. |
 | `address` | Malformed or out-of-range individual, line, or group address. |
 | `duplicate` | Duplicate identifier or address. |

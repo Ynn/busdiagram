@@ -133,7 +133,7 @@ const flagCell = (host: Host, d: Dev, o: Dev["objects"][number], f: E.Flag) =>
     <input
       type="checkbox"
       aria-label=${`${o.name ?? o.id} ${f}`}
-      .checked=${live(E.flagOf(o, f))}
+      .checked=${live(E.flagOf(d, o, f))}
       @change=${(e: Event) =>
         host.run(t`Flag ${f}`, (x) =>
           E.setObjectFlag(
@@ -165,7 +165,7 @@ function flagColumns<R>(
       id: f,
       label: f,
       title: titles[f],
-      sort: (r) => (E.flagOf(of(r)[1], f) ? 0 : 1),
+      sort: (r) => (E.flagOf(...of(r), f) ? 0 : 1),
       td: (r) => flagCell(host, ...of(r), f),
     })),
   ];

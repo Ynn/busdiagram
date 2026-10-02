@@ -35,9 +35,11 @@
   },
   "include": [
     "src/knx",
+    "src/participants",
     "src/ui",
     "src/equipment",
     "src/core.ts",
+    "src/standard-model.ts",
     "src/index.ts",
     "tests/knx",
     "tests/e2e/demo.spec.ts",
