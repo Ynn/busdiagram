@@ -222,6 +222,12 @@ export const energyMeter: BehaviorDefinition<MeterState> = {
       ctx.schedule("meter", num(ctx.device.parameters.meterIntervalMs, 5000));
     }
   },
+  // The metering part is supplied by the mains: energy goes on being counted while the bus
+  // voltage is cut. When it returns, the meter sends its values, then cyclically again.
+  onBusRecovery(ctx) {
+    ctx.state.started = false;
+    ctx.schedule("meterSoon", 500);
+  },
   channelState(state, ch, timeMs, device): JsonObject {
     const c = state.channels[ch];
     if (!c) return {};

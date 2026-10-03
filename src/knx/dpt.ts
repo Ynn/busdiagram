@@ -43,13 +43,24 @@ const TABLE: DptInfo[] = [
   BOOL("1.012", "Invert"),
   BOOL("1.015", "Reset"),
   BOOL("1.017", "Trigger"),
-  BOOL("1.018", "Occupation"),
+  BOOL("1.018", "Occupancy"),
   BOOL("1.019", "Window/Door"),
+  BOOL("1.022", "Scene A/B"),
   BOOL("1.100", "Heating/Cooling"),
   // 2 bits: c (control, bit 1) and v (value, bit 0). 0/1 = no forcing, 2 = forced shutdown, 3 = forced on.
   {
     id: "2.001",
     name: "Priority control",
+    bits: 2,
+    min: 0,
+    max: 3,
+    integer: true,
+  },
+  // 2 bits: c (control) and v (direction as in 1.008: 0 up, 1 down); 2 = forced up,
+  // 3 = forced down. The forcing input of shutter actuators.
+  {
+    id: "2.008",
+    name: "Direction control",
     bits: 2,
     min: 0,
     max: 3,
@@ -519,6 +530,22 @@ export function encode(dpt: string, v: number): number {
   if (d.codec === "f32") return encodeFloat32(clamped);
   if (d.bits === 16) return encodeFloat16(clamped);
   return Math.min(d.max, Math.max(d.min, Math.round(v)));
+}
+
+/**
+ * Decodes a received payload; a payload that the DPT declares invalid (0x7FFF in DPT 9.xxx)
+ * gives `invalid` instead of an exception, so that the receiver can ignore it.
+ */
+export function decodeOrInvalid(
+  dpt: string,
+  raw: number,
+): { invalid: false; value: number } | { invalid: true } {
+  try {
+    return { invalid: false, value: decode(dpt, raw) };
+  } catch (e) {
+    if (e instanceof RangeError) return { invalid: true };
+    throw e;
+  }
 }
 
 /** Transported byte (or bit) → canonical application value. */

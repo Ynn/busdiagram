@@ -44,7 +44,7 @@ A group telegram has a source individual address, a destination group address, a
 | Service | Sent by | Processed by |
 | --- | --- | --- |
 | `GroupValueWrite` | A behavior with the T flag, or the USB interface panel. | Associated objects with the W flag. |
-| `GroupValueRead` | The USB interface panel. | Associated objects with the R flag; each responds on its sending address. |
+| `GroupValueRead` | The USB interface panel. | Each device answers once: its first associated object with the R flag and a known value responds, on its own sending address. |
 | `GroupValueResponse` | An object answering a read. | Associated objects with the U flag. |
 
 ## Channel and connected equipment
@@ -69,4 +69,4 @@ The separation makes it possible to show a [miscalibrated shutter](shutters.html
 
 ## Internal association
 
-When an object transmits, other objects in the **same device** that share the address may also receive the telegram if their W flag permits it. A status object can therefore control another output of the same actuator. This convention of the model is not implemented identically by every manufacturer.
+When an object transmits, the other objects of the **same device** associated with that address are informed as well, as for a telegram received from the bus: their value is updated, whatever their W flag. W (U for a response) decides only whether the device reacts. A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and only updates its value otherwise. What a device does with such a value, beyond the update, is a choice of its application program.

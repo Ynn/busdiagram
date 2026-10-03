@@ -128,6 +128,7 @@ export const frMessages: Record<string, string> = {
   "Invalid scenario:": "Scénario invalide :",
   "Simulation stopped:": "Simulation interrompue :",
   Reset: "Réinitialiser",
+  "Open in the designer": "Ouvrir dans le designer",
   "Next ▶": "Suivant ▶",
   "Click = short press · hold 0.5 s = long press (keyboard: Enter / Shift+Enter)":
     "Clic = appui court · maintenir 0,5 s = appui long (clavier : Entrée / Maj+Entrée)",
@@ -284,6 +285,8 @@ export const frMessages: Record<string, string> = {
   "Start/Stop": "Marche/Arrêt",
   Trigger: "Déclencheur",
   Occupancy: "Occupation",
+  "Scene A/B": "Scène A/B",
+  "Direction control": "Commande de direction",
   "Priority control": "Commande prioritaire",
   Percentage: "Pourcentage",
   Counter: "Compteur",
@@ -338,6 +341,14 @@ export const frMessages: Record<string, string> = {
     "{0}/{1} : émission demandée sans adresse de groupe",
   "unknown value": "valeur inconnue",
   "reached but no association": "atteint mais aucune association",
+  "no bus voltage on the way: not received":
+    "pas de tension bus sur le trajet : non reçu",
+  "port “{0}” takes one object per channel; “{1}” already uses it on channel “{2}”":
+    "le port « {0} » accepte un seul objet par canal ; « {1} » l'utilise déjà sur le canal « {2} »",
+  "port “{0}” takes one object; “{1}” already uses it":
+    "le port « {0} » accepte un seul objet ; « {1} » l'utilise déjà",
+  "payload invalid for DPT {0}: value unchanged":
+    "données invalides pour le DPT {0} : valeur inchangée",
   "W flag disabled: value and behavior unchanged":
     "flag W désactivé : valeur et comportement inchangés",
   "behavior “{0}” not registered": "comportement « {0} » non enregistré",
@@ -728,8 +739,8 @@ export const frMessages: Record<string, string> = {
     "{0}.id : lettres, chiffres, « - » ou « _ » attendus",
   "the device has already answered this read":
     "l'appareil a déjà répondu à cette lecture",
-  "segment {0}: {1} devices, more than the 64 of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler":
-    "segment {0} : {1} participants, plus que les 64 d'un segment TP1 ; utiliser des participants TP1-256, ou un répéteur de ligne ou un coupleur de segment",
+  "segment {0}: {1} devices and {2} couplers or repeaters, more than the 64 connections of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler":
+    "segment {0} : {1} participants et {2} coupleurs ou répéteurs, plus que les 64 raccordements d'un segment TP1 ; utiliser des participants TP1-256, ou un répéteur de ligne ou un coupleur de segment",
   "{0}: scene storing disabled, scene {1} unchanged":
     "{0} : mémorisation des scènes désactivée, scène {1} inchangée",
   "Scene control": "Commande de scène",

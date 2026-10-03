@@ -13,9 +13,17 @@ async function main() {
       // The language of the link (that of the designer) applies, except ?lang=... explicit.
       const wanted = params.get("lang") ?? lang;
       if (wanted) document.documentElement.lang = wanted;
-      create(app, scenario, { fit: "contain", ...options });
+      // The designer published next to the player opens the scenario.
+      create(app, scenario, {
+        fit: "contain",
+        designer: "designer/index.html",
+        ...options,
+      });
     } else if (params.get("src")) {
-      create(app, params.get("src")!, { fit: "contain" });
+      create(app, params.get("src")!, {
+        fit: "contain",
+        designer: "designer/index.html",
+      });
     } else {
       const p = document.createElement("p");
       p.className = "empty";

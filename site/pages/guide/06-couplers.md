@@ -24,7 +24,7 @@ Line and area couplers appear automatically when the installation has several li
 
 A coupler's filter table lists the line-crossing group addresses: those associated with objects on both of its sides. It is derived from the associations declared in the scenario, as the commissioning software does from a project: an address linking a device in line 1.1 and a device in line 15.15 enters the tables of 1.1.0, 1.0.0, 15.0.0, and 15.15.0. The same table applies in both directions. A telegram whose destination is in the table crosses the coupler; the others are filtered.
 
-A device that sends or receives an address without an object in the project, such as a visualisation or a tool connected through a bus interface, is not counted: its telegrams on that address are filtered at the first coupler. Current commissioning software no longer lets filter tables be edited by hand; the recommended practice is to model the bus interface and assign it the group addresses it uses, or to add a dummy device with those addresses in its line. In a scenario, list the addresses of a USB interface in its `groupAddresses` parameter, and set `"inFilterTables": false` on a supervisor to show one that was not modeled.
+A device that sends or receives an address without an object in the project, such as a visualisation or a tool connected through a bus interface, is not counted: its telegrams on that address are filtered at the first coupler. Recent versions of the commissioning software no longer let filter tables be edited by hand in new projects; the recommended practice is to model the bus interface and assign it the group addresses it uses, or to add a dummy device with those addresses in its line. In a scenario, list the addresses of a USB interface in its `groupAddresses` parameter, and set `"inFilterTables": false` on a supervisor to show one that was not modeled.
 
 Each direction can be set independently in `topology.couplers`: `down` for primary to secondary, `up` for the reverse, each with `"filter"` (default), `"route"`, or `"block"`:
 
@@ -34,7 +34,7 @@ Each direction can be set independently in `topology.couplers`: `down` for prima
 }
 ```
 
-Every telegram starts with a routing counter of 6. Each coupler, repeater, or router that forwards it decrements the counter; a telegram that arrives with a counter of 0 is not forwarded. The value 7, which disables the counter in some service cases, is not modeled.
+Every telegram starts with a routing counter of 6, the usual default value (each device has it as a parameter of its Network Layer). Each coupler, line repeater, or router that forwards it decrements the counter; a telegram that arrives with a counter of 0 is not forwarded. The current routing rules give 7 no special meaning: it is decremented like the other values. A TP1 bridge, another kind of line extension, forwards without changing the counter; it is not modeled.
 
 In the diagram, **Filter tables** in the toolbar shows the table of each coupler, and the telegram details list every coupler crossed with its decision and routing counter.
 

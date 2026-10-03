@@ -36,13 +36,13 @@ tabs: json
 | `slatCommand` / `slatStatus` | 5.001 | Slat angle setpoint and estimated angle of a venetian blind (0 % open, 100 % closed). |
 | `windAlarm` | 1.005, 1.001 | 1 raises the shutter and ignores other commands; 0 releases it where it is. Without `channel`, applies to all channels. |
 | `rainAlarm` / `frostAlarm` | 1.005, 1.001 | Rain and frost alarms, with their reactions `rainReaction` (up by default) and `frostReaction` (no movement by default); `windReaction` sets that of the wind alarm. |
-| `forced` | 2.001 | 3 forces down, 2 forces up; 0 or 1 ends the forcing (`afterForcing`). |
+| `forced` | 2.008, 2.001 | 3 forces down, 2 forces up; 0 or 1 ends the forcing (`afterForcing`). DPT 2.008 (direction control) is the one of the KNX application description of shutter actuators. |
 | `lock` | 1.001 | 1 locks the output: commands are ignored; `lockStart` (up, down, stop, or a position `lockPositionPct`) and `afterLock` (up, down, or back to the position before the lock) set its reactions. |
-| `recallPosition12` / `recallPosition34` | 1.001 | 0 or 1 moves to the stored position 1 or 2 (3 or 4): `preset1Pct` … `preset4Pct`. |
+| `recallPosition12` / `recallPosition34` | 1.022, 1.001 | 0 or 1 moves to the stored position 1 or 2 (3 or 4): `preset1Pct` … `preset4Pct`. |
 | `storePosition12` / `storePosition34` | 1.001 | 0 or 1 stores the current position as position 1 or 2 (3 or 4), unless `presetStoring` is false. |
 | `upperLimit` / `lowerLimit` | 1.002 | 1 when the shutter is estimated at the top or at the bottom, sent on change. |
 
-When several causes hold an output, the first active one applies, in the order of `safetyPriority` (weather alarms, then lock, then forcing by default, as on common shutter actuators), the weather alarms in the order of `alarmPriority` (wind, rain, frost by default). A cause that ends hands the output to the next one; when none remains, `afterAlarm`, `afterForcing`, or `afterLock` sets the movement (none, up, down, or back to the position before the first cause). With `alarmMonitoringMs`, an alarm object that receives no telegram within that time is considered active, as for a weather sensor that sends its alarms cyclically.
+When several causes hold an output, the first active one applies, in the order of `safetyPriority` (weather alarms, then lock, then forcing by default, as on common shutter actuators; the KNX application description of sunblind actuators puts forcing above the weather alarms, which `"forced,alarms,lock"` reproduces), the weather alarms in the order of `alarmPriority` (wind, rain, frost by default). A cause that ends hands the output to the next one; when none remains, `afterAlarm`, `afterForcing`, or `afterLock` sets the movement (none, up, down, or back to the position before the first cause). With `alarmMonitoringMs`, an alarm object that receives no telegram within that time is considered active, as for a weather sensor that sends its alarms cyclically.
 
 The position convention is **0% open (top), 100% closed (bottom)**. A motor wired in reverse is described on the shutter with `"wiringReversed": true` in its equipment parameters; the actuator's `invertOutput` compensates it without changing the DPT direction convention. When the two disagree, the shutter moves opposite to the commands and a configuration warning is shown above the diagram.
 

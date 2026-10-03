@@ -1,0 +1,662 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scénario JSON · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/json.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li class="cur"><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="json-scenario-format-2"><a class="anchor" href="#json-scenario-format-2">#</a>Scénario JSON (format 2)</h1><p>Cette référence est générée à partir du schéma de rédaction <code>schema/scenario-v2.schema.json</code>. Le composant valide en plus les références entre objets, canaux, adresses et ports des comportements. Voir les <a href="errors.html">codes d&#39;erreur</a>.</p>
+<h2 id="root"><a class="anchor" href="#root">#</a>Racine</h2><p>Scénario BusDiagram, format 2. Généré par <code>npm run schema</code>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>$schema</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Chemin du schéma pour la complétion dans l&#39;éditeur ; ignoré par BusDiagram.</td>
+</tr>
+<tr>
+<td><code>formatVersion</code></td>
+<td><code>2</code></td>
+<td>oui</td>
+<td>Version du format : 2, la seule prise en charge.</td>
+</tr>
+<tr>
+<td><code>title</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Titre affiché dans la barre d&#39;outils.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Description affichée sous la barre d&#39;outils.</td>
+</tr>
+<tr>
+<td><code>lines</code></td>
+<td>liste de <a href="#line">Ligne</a></td>
+<td>oui</td>
+<td>Lignes à paire torsadée. Plusieurs lignes ajoutent des coupleurs de ligne et des lignes principales ; plusieurs zones ajoutent une ligne de zone (backbone).</td>
+</tr>
+<tr>
+<td><code>clock</code></td>
+<td>objet</td>
+<td></td>
+<td>Horloge simulée : date et heure locales au démarrage de la simulation, et accélération. Les horloges maîtres, les programmateurs et les plages horaires l&#39;utilisent.</td>
+</tr>
+<tr>
+<td><code>rooms</code></td>
+<td>liste de <a href="#room">Pièce</a></td>
+<td></td>
+<td>Pièces : état thermique partagé par les thermostats, contacts de fenêtre et radiateurs qui y sont affectés.</td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>objet</td>
+<td></td>
+<td>Niveaux de la topologie et réglages des coupleurs. Sans ce champ, une ligne principale apparaît avec deux lignes dans une zone, et une ligne de zone avec deux zones.</td>
+</tr>
+<tr>
+<td><code>ipRouter</code></td>
+<td>objet</td>
+<td></td>
+<td>Ancien réglage d&#39;un réseau IP à un seul routeur ; préférez topology.ip. L&#39;adresse doit être celle d&#39;un coupleur (A.L.0 ou A.0.0).</td>
+</tr>
+<tr>
+<td><code>groupRanges</code></td>
+<td>liste de objet</td>
+<td></td>
+<td>Noms des groupes principaux (&quot;1&quot;) et des groupes médians (&quot;1/2&quot;), affichés dans l&#39;arborescence des adresses de groupe du designer.</td>
+</tr>
+<tr>
+<td><code>groupAddresses</code></td>
+<td>liste de <a href="#group-address">Adresse de groupe</a></td>
+<td></td>
+<td>Adresses de groupe déclarées : noms et DPT affichés dans le moniteur et hérités par les objets associés.</td>
+</tr>
+<tr>
+<td><code>devices</code></td>
+<td>liste de <a href="#device">Appareil</a></td>
+<td>oui</td>
+<td>Appareils dans l&#39;ordre du câble sur leur ligne ; l&#39;ordre détermine le délai de propagation.</td>
+</tr>
+<tr>
+<td><code>options</code></td>
+<td>objet</td>
+<td></td>
+<td>Réglages initiaux de la simulation.</td>
+</tr>
+</tbody></table>
+</div><h2 id="line"><a class="anchor" href="#line">#</a>Ligne</h2><p>Ligne TP.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>address</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Adresse de ligne sous la forme zone.ligne, comme 1.1 ; valeurs 1 à 15. Les lignes principales et la ligne de zone viennent de topology.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom affiché sous le bus, par exemple « Ligne d&#39;exemple ».</td>
+</tr>
+<tr>
+<td><code>extension</code></td>
+<td>objet</td>
+<td></td>
+<td>Extension de ligne : répéteur ou coupleur de segment vers un segment en aval.</td>
+</tr>
+<tr>
+<td><code>powerSupply</code></td>
+<td><a href="#power-supply">Alimentation</a></td>
+<td></td>
+<td>Alimentation bus de la ligne, dessinée sur le schéma.</td>
+</tr>
+</tbody></table>
+</div><h2 id="power-supply"><a class="anchor" href="#power-supply">#</a>Alimentation</h2><p>Alimentation KNX avec self. Dessinée sur le schéma ; la charge du bus n&#39;est pas calculée.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom, comme une référence de produit.</td>
+</tr>
+<tr>
+<td><code>currentMa</code></td>
+<td>nombre</td>
+<td></td>
+<td>Courant nominal en mA, comme 160, 320, 640 ou 1280.</td>
+</tr>
+</tbody></table>
+</div><h2 id="room"><a class="anchor" href="#room">#</a>Pièce</h2><p>Modèle thermique de la pièce : pertes vers la température extérieure plus l&#39;apport des équipements ; une fenêtre ouverte augmente les pertes.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant utilisé par les affectations aux pièces.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom affiché ; par défaut l&#39;identifiant.</td>
+</tr>
+<tr>
+<td><code>temperatureC</code></td>
+<td>nombre</td>
+<td></td>
+<td>Température intérieure initiale en °C ; 20 par défaut.</td>
+</tr>
+<tr>
+<td><code>outsideTemperatureC</code></td>
+<td>nombre</td>
+<td></td>
+<td>Température extérieure en °C ; 5 par défaut.</td>
+</tr>
+<tr>
+<td><code>windowOpen</code></td>
+<td>booléen</td>
+<td></td>
+<td>Fenêtre ouverte au départ.</td>
+</tr>
+<tr>
+<td><code>timeConstantMs</code></td>
+<td>entier</td>
+<td></td>
+<td>Constante de temps des pertes thermiques en millisecondes simulées ; 300 000 ms par défaut.</td>
+</tr>
+</tbody></table>
+</div><p>Voir le <a href="../guide/hvac.html">guide CVC</a> pour le modèle thermique et des exemples.</p>
+<h2 id="group-address"><a class="anchor" href="#group-address">#</a>Adresse de groupe</h2><p>Adresse de groupe déclarée.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>address</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Adresse de groupe à trois niveaux (principal/médian/sous-groupe), comme 1/1/1.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Rôle affiché dans le moniteur et les infobulles.</td>
+</tr>
+<tr>
+<td><code>dpt</code></td>
+<td><a href="dpt.html">DPT</a></td>
+<td></td>
+<td>DPT hérité par les objets qui ne déclarent pas le leur.</td>
+</tr>
+</tbody></table>
+</div><h2 id="device"><a class="anchor" href="#device">#</a>Appareil</h2><p>Appareil KNX avec une adresse individuelle, des objets, des touches, des entrées et des canaux.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant unique dans le scénario.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom affiché sur la carte de l&#39;appareil ; par défaut l&#39;identifiant.</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td>chaîne (format vérifié)</td>
+<td></td>
+<td>Adresse individuelle sous la forme zone.ligne.appareil ; sa ligne doit être déclarée.</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>chaîne</td>
+<td>oui</td>
+<td>Type d&#39;appareil, en description libre (buttonInterface, switchActuator, display…). Seul un comportement qui documente une valeur lui donne un effet : display/v1 dessine &quot;supervisor&quot; comme un logiciel de supervision.</td>
+</tr>
+<tr>
+<td><code>behavior</code></td>
+<td><code>&quot;switchActuator/v1&quot;</code>, <code>&quot;shutterActuator/v1&quot;</code>, <code>&quot;display/v1&quot;</code>, <code>&quot;passive/v1&quot;</code>, <code>&quot;presenceDetector/v1&quot;</code>, <code>&quot;usbInterface/v1&quot;</code>, <code>&quot;dimmerActuator/v1&quot;</code>, <code>&quot;daliGateway/v1&quot;</code>, <code>&quot;roomThermostat/v1&quot;</code>, <code>&quot;heatingActuator/v1&quot;</code>, <code>&quot;windowContact/v1&quot;</code>, <code>&quot;temperatureSensor/v1&quot;</code>, <code>&quot;logicGate/v1&quot;</code>, <code>&quot;weatherStation/v1&quot;</code>, <code>&quot;airQualitySensor/v1&quot;</code>, <code>&quot;clockMaster/v1&quot;</code>, <code>&quot;timeSwitch/v1&quot;</code>, <code>&quot;systemGateway/v1&quot;</code>, <code>&quot;energyMeter/v1&quot;</code>, <code>&quot;buttonInterface/v1&quot;</code>, <code>&quot;alarmModule/v1&quot;</code> ou chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant versionné du comportement enregistré de l&#39;appareil.</td>
+</tr>
+<tr>
+<td><code>parameters</code></td>
+<td>objet</td>
+<td></td>
+<td>Paramètres de l&#39;appareil définis par son comportement.</td>
+</tr>
+<tr>
+<td><code>medium</code></td>
+<td><code>&quot;TP&quot;</code>, <code>&quot;IP&quot;</code></td>
+<td></td>
+<td>Support de communication : TP par défaut, ou IP sur le réseau topology.ip (un superviseur sur le réseau IP indique &quot;IP&quot;).</td>
+</tr>
+<tr>
+<td><code>room</code></td>
+<td>chaîne (format vérifié)</td>
+<td></td>
+<td>Identifiant de la pièce affectée ; thermostats, contacts de fenêtre et sondes de température observent cette pièce.</td>
+</tr>
+<tr>
+<td><code>inFilterTables</code></td>
+<td>booléen</td>
+<td></td>
+<td>false : ne pas inclure cet appareil virtuel dans les tables de filtrage des coupleurs.</td>
+</tr>
+<tr>
+<td><code>downstream</code></td>
+<td>booléen</td>
+<td></td>
+<td>Appareil sur le segment en aval d&#39;une extension de ligne.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Explication affichée quand on sélectionne la carte de l&#39;appareil.</td>
+</tr>
+<tr>
+<td><code>objects</code></td>
+<td>liste de <a href="#communication-object">Objet de communication</a></td>
+<td>oui</td>
+<td>Objets de communication dans l&#39;ordre de la carte de l&#39;appareil.</td>
+</tr>
+<tr>
+<td><code>buttons</code></td>
+<td>liste de <a href="#button">Touche</a></td>
+<td></td>
+<td>Touches (bouton-poussoir, capteur).</td>
+</tr>
+<tr>
+<td><code>inputs</code></td>
+<td>liste de <a href="#numeric-or-digital-input">Entrée numérique</a></td>
+<td></td>
+<td>Entrées numériques.</td>
+</tr>
+<tr>
+<td><code>channels</code></td>
+<td>liste de <a href="#channel">Canal</a></td>
+<td></td>
+<td>Canaux de l&#39;actionneur (sorties).</td>
+</tr>
+</tbody></table>
+</div><p>Les paramètres propres à chaque comportement figurent dans la <a href="behaviors.html">référence des comportements</a>.</p>
+<h2 id="communication-object"><a class="anchor" href="#communication-object">#</a>Objet de communication</h2><p>Objet de communication d&#39;un appareil.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant unique dans l&#39;appareil ; les touches, entrées et voyants peuvent s&#39;y référer.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom affiché sur la carte de l&#39;appareil ; par défaut l&#39;identifiant.</td>
+</tr>
+<tr>
+<td><code>ga</code></td>
+<td>chaîne (format vérifié) ou liste de chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Adresses de groupe associées : la première est l&#39;adresse d&#39;émission ; les autres sont seulement en réception. Une liste vide laisse l&#39;objet sans association.</td>
+</tr>
+<tr>
+<td><code>dpt</code></td>
+<td><a href="dpt.html">DPT</a></td>
+<td></td>
+<td>DPT de l&#39;objet ; par défaut le DPT de sa première adresse de groupe déclarée.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td><code>&quot;switch&quot;</code>, <code>&quot;status&quot;</code>, <code>&quot;scene&quot;</code>, <code>&quot;forced&quot;</code>, <code>&quot;lock&quot;</code>, <code>&quot;logic&quot;</code>…</td>
+<td>oui</td>
+<td>Rôle de l&#39;objet dans le comportement de l&#39;appareil.</td>
+</tr>
+<tr>
+<td><code>channel</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Identifiant du canal dans l&#39;appareil ; obligatoire pour les ports d&#39;actionneur.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>nombre ou null</td>
+<td></td>
+<td>Valeur initiale (zéro par défaut ; inconnue pour un port d&#39;affichage).</td>
+</tr>
+<tr>
+<td><code>flags</code></td>
+<td>objet</td>
+<td>oui</td>
+<td>Indicateurs : C communication, R lecture, W écriture, T transmission, U mise à jour, I lecture à l&#39;initialisation.</td>
+</tr>
+<tr>
+<td><code>priority</code></td>
+<td><code>&quot;low&quot;</code>, <code>&quot;normal&quot;</code>, <code>&quot;urgent&quot;</code></td>
+<td></td>
+<td>Priorité de transmission des trames envoyées par l&#39;objet (low par défaut) ; la priorité système est réservée à la gestion.</td>
+</tr>
+</tbody></table>
+</div><h2 id="button"><a class="anchor" href="#button">#</a>Touche</h2><p>Touche dessinée sur la carte de l&#39;appareil ; utilisez press ou une paire short/long.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant unique parmi les touches et entrées de cet appareil.</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Libellé de la touche ; par exemple « Touche 2 · Descendre » affiche Touche 2 en évidence.</td>
+</tr>
+<tr>
+<td><code>icon</code></td>
+<td><code>&quot;on&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;toggle&quot;</code>, <code>&quot;up&quot;</code>, <code>&quot;down&quot;</code>, <code>&quot;updown&quot;</code>…</td>
+<td></td>
+<td>Icône déduite de l&#39;action si elle est omise.</td>
+</tr>
+<tr>
+<td><code>press</code></td>
+<td>objet</td>
+<td></td>
+<td>Action immédiate à l&#39;appui ; ne peut pas être combinée avec short/long.</td>
+</tr>
+<tr>
+<td><code>short</code></td>
+<td>objet</td>
+<td></td>
+<td>Action au relâchement avant le seuil d&#39;appui long.</td>
+</tr>
+<tr>
+<td><code>long</code></td>
+<td>objet</td>
+<td></td>
+<td>Action après le seuil d&#39;appui long (0,5 s par défaut).</td>
+</tr>
+<tr>
+<td><code>release</code></td>
+<td>objet</td>
+<td></td>
+<td>Action au relâchement après un appui long, comme l&#39;arrêt d&#39;une variation DPT 3.007.</td>
+</tr>
+<tr>
+<td><code>led</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Objet dont la valeur allume le voyant de la touche.</td>
+</tr>
+</tbody></table>
+</div><p>Une action de touche (<code>press</code>, <code>short</code> ou <code>long</code>) désigne un objet et lui donne un nombre ou <code>&quot;toggle&quot;</code>, par exemple <code>{ &quot;object&quot;: &quot;key1&quot;, &quot;value&quot;: 1 }</code>.</p>
+<h2 id="numeric-or-digital-input"><a class="anchor" href="#numeric-or-digital-input">#</a>Entrée numérique</h2><p>Entrée numérique dessinée sur la carte de l&#39;appareil.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant unique parmi les touches et entrées de cet appareil.</td>
+</tr>
+<tr>
+<td><code>type</code></td>
+<td><code>&quot;number&quot;</code></td>
+<td>oui</td>
+<td>Le seul type d&#39;entrée est number.</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Libellé affiché au-dessus de l&#39;entrée.</td>
+</tr>
+<tr>
+<td><code>object</code></td>
+<td>chaîne</td>
+<td>oui</td>
+<td>Objet d&#39;entrée avec une adresse de groupe ; écrit et transmis à la validation.</td>
+</tr>
+<tr>
+<td><code>min</code></td>
+<td>nombre</td>
+<td></td>
+<td>Valeur minimale ; par défaut le minimum du DPT.</td>
+</tr>
+<tr>
+<td><code>max</code></td>
+<td>nombre</td>
+<td></td>
+<td>Valeur maximale ; par défaut le maximum du DPT.</td>
+</tr>
+<tr>
+<td><code>step</code></td>
+<td>nombre</td>
+<td></td>
+<td>Pas de saisie ; 1 par défaut.</td>
+</tr>
+</tbody></table>
+</div><h2 id="channel"><a class="anchor" href="#channel">#</a>Canal</h2><p>Canal de sortie de l&#39;actionneur ; déclarez les canaux matériels même inutilisés.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code></td>
+<td>chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Identifiant unique dans l&#39;appareil, utilisé par ses objets de communication.</td>
+</tr>
+<tr>
+<td><code>label</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Libellé du canal : un libellé de charge comme L1 (« unused » pour une sortie non raccordée), ou le nom d&#39;une entrée.</td>
+</tr>
+<tr>
+<td><code>keyLabel</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Texte écrit sur le bouton-poussoir câblé à une entrée de contact (interface de boutons-poussoirs), dessiné sur sa touche ; par défaut la touche affiche le libellé.</td>
+</tr>
+<tr>
+<td><code>keyContact</code></td>
+<td><code>&quot;normallyOpen&quot;</code>, <code>&quot;normallyClosed&quot;</code></td>
+<td></td>
+<td>Contact du bouton-poussoir câblé à une entrée de contact : normalement ouvert (se ferme à l&#39;appui, par défaut) ou normalement fermé.</td>
+</tr>
+<tr>
+<td><code>parameters</code></td>
+<td>objet</td>
+<td></td>
+<td>Paramètres de canal propres au comportement, comme une minuterie ou une durée de course.</td>
+</tr>
+<tr>
+<td><code>initialState</code></td>
+<td>objet</td>
+<td></td>
+<td>État applicatif initial du canal.</td>
+</tr>
+<tr>
+<td><code>equipment</code></td>
+<td><a href="#equipment">Équipement</a> ou liste de <a href="#equipment">Équipement</a> ou null</td>
+<td></td>
+<td>Équipement raccordé : une charge, une liste de charges commutées ensemble, ou null pour une sortie libre sans charge dessinée.</td>
+</tr>
+<tr>
+<td><code>scenes</code></td>
+<td>objet</td>
+<td></td>
+<td>Préréglages de scènes : le numéro de scène 1 à 64 correspond à un état de relais ou à une position de volet.</td>
+</tr>
+</tbody></table>
+</div><h2 id="equipment"><a class="anchor" href="#equipment">#</a>Équipement</h2><p>Équipement non KNX raccordé à une sortie de canal.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Type</th>
+<th>Obligatoire</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>type</code></td>
+<td><code>&quot;lamp&quot;</code>, <code>&quot;shutter&quot;</code>, <code>&quot;dimmableLamp&quot;</code>, <code>&quot;daliGroup&quot;</code>, <code>&quot;radiator&quot;</code>, <code>&quot;fan&quot;</code>, <code>&quot;appliance&quot;</code>, <code>&quot;waterHeater&quot;</code>, <code>&quot;heatPump&quot;</code>, <code>&quot;siren&quot;</code> ou chaîne (format vérifié)</td>
+<td>oui</td>
+<td>Type d&#39;équipement : lamp, shutter, ou un type enregistré par une extension.</td>
+</tr>
+<tr>
+<td><code>name</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Nom de la charge, comme « Plafonnier » ; affiché sur le schéma et dans le designer.</td>
+</tr>
+<tr>
+<td><code>view</code></td>
+<td>chaîne</td>
+<td></td>
+<td>Type de vue ; par défaut le type d&#39;équipement, comme la vue ledStrip d&#39;une extension.</td>
+</tr>
+<tr>
+<td><code>room</code></td>
+<td>chaîne (format vérifié)</td>
+<td></td>
+<td>Identifiant de la pièce chauffée ou refroidie, pris dans rooms ; obligatoire pour un radiateur.</td>
+</tr>
+<tr>
+<td><code>parameters</code></td>
+<td>objet</td>
+<td></td>
+<td>Paramètres de l&#39;équipement, comme actualTravelTimeMs pour un volet.</td>
+</tr>
+<tr>
+<td><code>initialState</code></td>
+<td>objet</td>
+<td></td>
+<td>État physique initial, comme positionPct pour un volet.</td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../../fr/reference/options.html">← Options d&#39;affichage</a>
+<a href="../../fr/reference/behaviors.html">Comportements et équipements →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#root">Racine</a></li><li><a href="#line">Ligne</a></li><li><a href="#power-supply">Alimentation</a></li><li><a href="#room">Pièce</a></li><li><a href="#group-address">Adresse de groupe</a></li><li><a href="#device">Appareil</a></li><li><a href="#communication-object">Objet de communication</a></li><li><a href="#button">Touche</a></li><li><a href="#numeric-or-digital-input">Entrée numérique</a></li><li><a href="#channel">Canal</a></li><li><a href="#equipment">Équipement</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

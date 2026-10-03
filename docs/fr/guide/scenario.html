@@ -1,0 +1,424 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Structure d&#39;un scénario · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/scenario.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li class="cur"><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="structure-of-a-scenario"><a class="anchor" href="#structure-of-a-scenario">#</a>Structure d&#39;un scénario</h1><p>Un scénario est un document JSON au format version 2. La <a href="../reference/json.html">référence JSON</a> liste tous les champs ; cette page explique comment ils s&#39;articulent.</p>
+<pre class="code"><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Example installation"</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span> }],
+  <span class="k">"groupAddresses"</span>: [],
+  <span class="k">"devices"</span>: [],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre><p>Seuls <code>formatVersion</code>, <code>lines</code> et <code>devices</code> sont obligatoires. Les champs facultatifs sont <code>title</code> et <code>description</code> (affichés au-dessus du schéma), <code>groupAddresses</code> (noms et DPT pour le moniteur), <code>groupRanges</code> (noms des groupes principaux et médians, affichés dans l&#39;arborescence des adresses de groupe), <code>topology</code> (routage IP et réglages des coupleurs), <code>rooms</code> (pièces chauffées), <code>clock</code> (date et heure simulées, voir <a href="time.html#simulated-clock">temps</a>) et <code>options</code> (vitesse initiale de la simulation et affichage des tables de filtrage). Pour la complétion dans l&#39;éditeur, mettez dans <code>$schema</code> le schéma publié, <code>https://ynn.github.io/busdiagram/schema/scenario-v2.schema.json</code>, ou <code>schema/scenario-v2.schema.json</code> dans une copie locale.</p>
+<h2 id="topology"><a class="anchor" href="#topology">#</a>Topologie</h2><p>La disposition du schéma découle des adresses ; vous n&#39;avez pas à saisir de coordonnées de dessin.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Déclaration</th>
+<th>Schéma</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Une ligne, comme <code>1.1</code></td>
+<td>Cette ligne et ses appareils.</td>
+</tr>
+<tr>
+<td>Plusieurs lignes dans une zone (<code>1.1</code>, <code>1.2</code>)</td>
+<td>La ligne principale et les coupleurs de ligne <code>1.1.0</code> et <code>1.2.0</code>.</td>
+</tr>
+<tr>
+<td>Plusieurs zones (<code>1.1</code>, <code>2.1</code>)</td>
+<td>Une ligne de zone (backbone) et les coupleurs de zone <code>1.0.0</code> et <code>2.0.0</code>.</td>
+</tr>
+<tr>
+<td><code>topology</code></td>
+<td>Routage KNXnet/IP et réglages des coupleurs ; voir <a href="topology.html">topologie</a>.</td>
+</tr>
+<tr>
+<td>Une <code>extension</code> sur une ligne</td>
+<td>Un segment en aval avec un répéteur ou un coupleur de segment.</td>
+</tr>
+</tbody></table>
+</div><figure class="example" id="ex1">
+<div class="demo"><bus-diagram monitor="false" designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Topologie KNX : coupleurs, répéteur et routeurs KNXnet/IP","description":"Deux zones sont reliées par un réseau IP. Les routeurs KNXnet/IP 1.0.0 et 2.0.0 servent de coupleurs de zone. L'installation compte quatre lignes, une extension de ligne et un superviseur sur le réseau IP. Comparez le trajet d'une commande locale avec celui d'un télégramme d'état.","lines":[{"address":"1.1","powerSupply":{"currentMa":640}},{"address":"1.2","powerSupply":{"currentMa":640}},{"address":"2.1","powerSupply":{"currentMa":640},"extension":{"address":"2.1.64","mode":"repeater","switchable":true,"powerSupply":{"currentMa":320}}},{"address":"2.2","name":"aucun appareil","powerSupply":{"currentMa":640}}],"topology":{"ip":"areaCouplers"},"groupAddresses":[{"address":"1/1/1","name":"Éclairage du séjour","dpt":"1.001"},{"address":"1/3/1","name":"Éclairage du couloir","dpt":"1.001"},{"address":"1/4/1","name":"État de l'éclairage du séjour","dpt":"1.001"},{"address":"1/4/2","name":"État de l'éclairage du couloir","dpt":"1.001"},{"address":"2/1/1","name":"Volet 1 montée/descente","dpt":"1.008"},{"address":"2/2/1","name":"Volet 1 arrêt/pas","dpt":"1.007"},{"address":"2/4/1","name":"Position volet 1","dpt":"5.001"}],"devices":[{"id":"sup","name":"Superviseur","kind":"supervisor","behavior":"display/v1","medium":"IP","description":"Le superviseur écoute à travers le routeur KNX/IP. Il n'envoie aucune commande ; il observe les commandes de volets et affiche les retours d'état.","objects":[{"id":"pos","name":"Position volet 1","ga":"2/4/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}},{"id":"l1","name":"Séjour","ga":"1/4/1","dpt":"1.001","port":"display","flags":{"W":true,"T":false}},{"id":"l2","name":"Couloir","ga":"1/4/2","dpt":"1.001","port":"display","flags":{"W":true,"T":false}}]},{"id":"p1","name":"Interface de boutons-poussoirs · séjour","address":"1.1.10","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Un appareil a un objet séparé pour chaque touche et chaque fonction. La touche 1 monte le volet et la touche 2 le descend : les appuis longs utilisent 2/1/1, les appuis courts 2/2/1. La touche 3 inverse la lumière par 1/1/1 et écoute aussi le retour d'état sur 1/4/1.","objects":[{"id":"key1Long","name":"Touche 1 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in1","flags":{"W":true,"T":true}},{"id":"key1Short","name":"Touche 1 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2Long","name":"Touche 2 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in2","flags":{"W":true,"T":true}},{"id":"key2Short","name":"Touche 2 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3","name":"Touche 3","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"function":"blind","blindMode":"up"},"equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"Touche 2","parameters":{"function":"blind","blindMode":"down"},"equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Touche 3","parameters":{"ledShown":true},"equipment":null}]},{"id":"c1","name":"Actionneur de commutation","address":"1.1.20","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"cmd","name":"Canal 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"status","name":"État 1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":true,"T":true}}],"channels":[{"id":"a","label":"Séjour","equipment":{"type":"lamp"}}]},{"id":"p2","name":"Interface de boutons-poussoirs · entrée","address":"1.2.10","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Une seule touche de volet : un appui long inverse le sens par 2/1/1 ; un appui court arrête par 2/2/1. Son objet 2/1/1 écoute le bus. Si l'appareil 1.1.10 descend le volet, le prochain appui long le monte.","objects":[{"id":"md","name":"Touche 1 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in1","flags":{"W":true,"T":true}},{"id":"st","name":"Touche 1 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in1","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"function":"blind"},"equipment":null}]},{"id":"p3","name":"Interface de boutons-poussoirs · couloir","address":"2.1.5","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"key1","name":"Touche 1","ga":["1/3/1","1/4/2"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"ledShown":true},"equipment":null}]},{"id":"c2","name":"Actionneur de commutation","address":"2.1.6","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"cmd","name":"Canal 1","ga":"1/3/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"status","name":"État 1","ga":"1/4/2","dpt":"1.001","port":"status","channel":"a","flags":{"W":true,"T":true}}],"channels":[{"id":"a","label":"Couloir","equipment":{"type":"lamp"}}]},{"id":"shutterActuator","name":"Actionneur de volets","address":"2.1.20","kind":"shutterActuator","behavior":"shutterActuator/v1","downstream":true,"objects":[{"id":"md","name":"MD 1","ga":"2/1/1","dpt":"1.008","port":"move","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"st","name":"Arrêt 1","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position 1","ga":"2/4/1","dpt":"5.001","port":"positionStatus","channel":"shutter1","flags":{"W":true,"T":true}}],"channels":[{"id":"shutter1","label":"Volet 1","parameters":{"estimatedTravelTimeMs":12000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":12000}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=full-topology" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-json"><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Topologie KNX : coupleurs, répéteur et routeurs KNXnet/IP"</span>,
+  <span class="k">"description"</span>: <span class="s">"Deux zones sont reliées par un réseau IP. Les routeurs KNXnet/IP 1.0.0 et 2.0.0 servent de coupleurs de zone. L'installation compte quatre lignes, une extension de ligne et un superviseur sur le réseau IP. Comparez le trajet d'une commande locale avec celui d'un télégramme d'état."</span>,
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } },
+    { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } },
+    {
+      <span class="k">"address"</span>: <span class="s">"2.1"</span>,
+      <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> },
+      <span class="k">"extension"</span>: {
+        <span class="k">"address"</span>: <span class="s">"2.1.64"</span>,
+        <span class="k">"mode"</span>: <span class="s">"repeater"</span>,
+        <span class="k">"switchable"</span>: <span class="kw">true</span>,
+        <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> }
+      }
+    },
+    { <span class="k">"address"</span>: <span class="s">"2.2"</span>, <span class="k">"name"</span>: <span class="s">"aucun appareil"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
+  <span class="k">"topology"</span>: { <span class="k">"ip"</span>: <span class="s">"areaCouplers"</span> },
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage du séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage du couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"État de l'éclairage du séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"État de l'éclairage du couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Volet 1 montée/descente"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Volet 1 arrêt/pas"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Position volet 1"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"sup"</span>,
+      <span class="k">"name"</span>: <span class="s">"Superviseur"</span>,
+      <span class="k">"kind"</span>: <span class="s">"supervisor"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"display/v1"</span>,
+      <span class="k">"medium"</span>: <span class="s">"IP"</span>,
+      <span class="k">"description"</span>: <span class="s">"Le superviseur écoute à travers le routeur KNX/IP. Il n'envoie aucune commande ; il observe les commandes de volets et affiche les retours d'état."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position volet 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"l1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Séjour"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"l2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"p1"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs · séjour"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.10"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Un appareil a un objet séparé pour chaque touche et chaque fonction. La touche 1 monte le volet et la touche 2 le descend : les appuis longs utilisent 2/1/1, les appuis courts 2/2/1. La touche 3 inverse la lumière par 1/1/1 et écoute aussi le retour d'état sur 1/4/1."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1Long"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key1Short"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2Long"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2Short"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 3"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"up"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"down"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 3"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"c1"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.20"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"cmd"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"status"</span>,
+          <span class="k">"name"</span>: <span class="s">"État 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [{ <span class="k">"id"</span>: <span class="s">"a"</span>, <span class="k">"label"</span>: <span class="s">"Séjour"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"p2"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs · entrée"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.2.10"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Une seule touche de volet : un appui long inverse le sens par 2/1/1 ; un appui court arrête par 2/2/1. Son objet 2/1/1 écoute le bus. Si l'appareil 1.1.10 descend le volet, le prochain appui long le monte."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"md"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"p3"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs · couloir"</span>,
+      <span class="k">"address"</span>: <span class="s">"2.1.5"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/3/1"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"c2"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"2.1.6"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"cmd"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"status"</span>,
+          <span class="k">"name"</span>: <span class="s">"État 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [{ <span class="k">"id"</span>: <span class="s">"a"</span>, <span class="k">"label"</span>: <span class="s">"Couloir"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de volets"</span>,
+      <span class="k">"address"</span>: <span class="s">"2.1.20"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"downstream"</span>: <span class="kw">true</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"md"</span>,
+          <span class="k">"name"</span>: <span class="s">"MD 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Volet 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">12000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">12000</span> } }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><p>Les coupleurs déduisent leurs tables de filtrage des associations de groupe : une adresse traverse un coupleur quand on en a besoin de l&#39;autre côté. Le compteur de routage part de 6 et diminue à chaque coupleur traversé par le télégramme.</p>
+<h2 id="rooms"><a class="anchor" href="#rooms">#</a>Pièces</h2><p><code>rooms</code> décrit les pièces chauffées, avec leurs températures initiale et extérieure et l&#39;état de la fenêtre. Affectez un thermostat, un contact de fenêtre ou une sonde de température par son champ <code>room</code> ; affectez un radiateur par <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;radiator&quot;, &quot;room&quot;: &quot;living&quot; }</code>. Voir <a href="hvac.html">chauffage</a>.</p>
+<h2 id="device-order-and-propagation"><a class="anchor" href="#device-order-and-propagation">#</a>Ordre des appareils et propagation</h2><p>L&#39;ordre des appareils dans <code>devices</code> suit leur ordre sur le câble. Il influe sur le temps de propagation : des appareils voisins sont à 250 ms l&#39;un de l&#39;autre dans la simulation. Voir <a href="time.html">temps et cadence</a>.</p>
+<h2 id="ids-and-references"><a class="anchor" href="#ids-and-references">#</a>Identifiants et références</h2><p>Chaque appareil a un <code>id</code> unique. Chaque objet, touche, entrée et canal a un <code>id</code> unique dans son appareil. Les touches et les entrées désignent les objets par leur identifiant ; les objets désignent les canaux par <code>channel</code>. Une référence inconnue produit une <a href="errors.html">erreur de validation</a> avec son chemin JSON.</p>
+<h2 id="group-addresses"><a class="anchor" href="#group-addresses">#</a>Adresses de groupe</h2><p>Les adresses de groupe ont trois niveaux : groupe principal 0 à 31, groupe médian 0 à 7 et sous-groupe 0 à 255. <code>0/0/0</code> est la destination de diffusion générale et elle est refusée, comme dans les logiciels de mise en service.</p>
+<p>Un objet peut écouter plusieurs adresses : <code>&quot;ga&quot;: [&quot;1/1/1&quot;, &quot;1/4/1&quot;]</code>. La première est son adresse d&#39;émission ; les autres sont seulement en réception. <code>&quot;ga&quot;: []</code> laisse un objet sans association ; c&#39;est permis, sauf si une commande a besoin qu&#39;il émette.</p>
+<p>Les objets associés à une même adresse de groupe doivent avoir des tailles de données compatibles. Par exemple, un objet DPT 5.001 sur un octet ne peut pas partager une adresse avec un objet DPT 1.001 sur un bit. Des objets de même taille mais de sens différent, comme un numéro de scène (17.001) et un pourcentage (5.001), sont acceptés mais signalés par un <a href="../reference/errors.html#configuration-warnings">avertissement de configuration</a> : les octets passent tels quels, et chaque récepteur les lit avec son propre DPT.</p>
+
+<nav class="pager">
+<a href="../../fr/guide/concepts.html">← Notions</a>
+<a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#topology">Topologie</a></li><li><a href="#rooms">Pièces</a></li><li><a href="#device-order-and-propagation">Ordre des appareils et propagation</a></li><li><a href="#ids-and-references">Identifiants et références</a></li><li><a href="#group-addresses">Adresses de groupe</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

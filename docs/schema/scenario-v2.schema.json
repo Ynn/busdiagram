@@ -276,11 +276,15 @@
             },
             {
               "const": "1.018",
-              "description": "Occupation"
+              "description": "Occupancy"
             },
             {
               "const": "1.019",
               "description": "Window/Door"
+            },
+            {
+              "const": "1.022",
+              "description": "Scene A/B"
             },
             {
               "const": "1.100",
@@ -289,6 +293,10 @@
             {
               "const": "2.001",
               "description": "Priority control"
+            },
+            {
+              "const": "2.008",
+              "description": "Direction control"
             },
             {
               "const": "3.007",
@@ -2757,7 +2765,7 @@
                         },
                         {
                           "const": "lock",
-                          "description": "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority."
+                          "description": "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; by default, weather alarms keep priority (safetyPriority)."
                         },
                         {
                           "const": "rainAlarm",
@@ -2769,7 +2777,7 @@
                         },
                         {
                           "const": "forced",
-                          "description": "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority."
+                          "description": "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). By default, weather alarms and the lock keep priority (safetyPriority)."
                         },
                         {
                           "const": "recallPosition12",
@@ -4374,7 +4382,7 @@
                     "type": "number",
                     "minimum": 0,
                     "default": 2,
-                    "description": "The frost alarm is reset once the temperature reaches threshold + hysteresis (K)."
+                    "description": "The frost alarm is reset once the temperature rises above threshold + hysteresis (K)."
                   },
                   "rainOnDelayMs": {
                     "title": "Delay of the rain alarm",
@@ -4682,8 +4690,8 @@
                     "type": "integer",
                     "minimum": 0,
                     "maximum": 1440,
-                    "default": 1,
-                    "description": "Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set."
+                    "default": 10,
+                    "description": "Clock minutes between two broadcasts, at second 30 of the minute (10 minutes is the standard heartbeat of a KNX system clock); 0 sends only at start and after the clock is set."
                   },
                   "sendOnStart": {
                     "title": "Send on start",

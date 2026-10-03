@@ -373,6 +373,11 @@ export interface BehaviorPort {
   drivesLoad?: boolean;
   /** Its objects start with an unknown value until a telegram gives one (a display). */
   initialUnknown?: boolean;
+  /**
+   * At most one object per channel (per device for a port without channel): the behavior
+   * reads a single value, such as a measurement or an enable; a second one is refused.
+   */
+  single?: boolean;
 }
 
 export interface BehaviorDefinition<S = unknown> {

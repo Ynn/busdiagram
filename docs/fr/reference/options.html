@@ -1,0 +1,227 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options d&#39;affichage · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/options.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li class="cur"><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="display-options"><a class="anchor" href="#display-options">#</a>Options d&#39;affichage</h1><p>Une option se règle par un attribut HTML (<code>monitor=&quot;false&quot;</code>) ou par une propriété JavaScript (<code>{ monitor: false }</code>). Les options JavaScript l&#39;emportent. Les valeurs invalides sont ignorées. Les attributs booléens acceptent <code>true</code>, <code>false</code>, ou l&#39;attribut seul pour vrai.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">fit</span>=<span class="s">"contain"</span> <span class="a">toolbar</span>=<span class="s">"compact"</span> <span class="a">monitor</span>=<span class="s">"false"</span> <span class="a">style</span>=<span class="s">"height:520px"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code"><code><span class="kw">const</span> diagram = BusDiagram.create(<span class="s">"#diagram"</span>, scenario, {
+  fit: <span class="s">"contain"</span>,
+  toolbar: <span class="s">"compact"</span>,
+  monitor: <span class="kw">false</span>,
+});
+diagram.options = { monitor: <span class="kw">true</span> }; <span class="c">// Change an option later.</span></code></pre><h3 id="toolbar"><a class="anchor" href="#toolbar">#</a>toolbar</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>toolbar</code></td>
+<td><code>toolbar</code></td>
+<td>&quot;full&quot; | &quot;compact&quot; | &quot;none&quot;</td>
+<td>&quot;full&quot;</td>
+</tr>
+</tbody></table>
+</div><p>Barre d&#39;outils au-dessus du schéma. ‘full’ affiche le titre, la vitesse, les tables de filtrage, la commande pas à pas, la pause et la réinitialisation. ‘compact’ affiche trois petits boutons flottants dans un coin du schéma, adaptés à une diapositive. ‘none’ masque les commandes tout en laissant le schéma interactif.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">toolbar</span>=<span class="s">"compact"</span>&gt;</code></pre><h3 id="monitor"><a class="anchor" href="#monitor">#</a>monitor</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>monitor</code></td>
+<td><code>monitor</code></td>
+<td>booléen</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Moniteur de groupe et détail des télégrammes sous le schéma. Mettez false quand une diapositive ou une page n&#39;a besoin que du schéma. Les télégrammes circulent toujours sur le bus.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">monitor</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="description"><a class="anchor" href="#description">#</a>description</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>description</code></td>
+<td><code>description</code></td>
+<td>booléen</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p><code>description</code> du scénario sous la barre d&#39;outils. À masquer quand la page ou la diapositive explique déjà l&#39;interaction.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">description</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="hints"><a class="anchor" href="#hints">#</a>hints</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>hints</code></td>
+<td><code>hints</code></td>
+<td>booléen</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Aide expliquant les appuis courts et longs sur les touches. Affichée seulement quand une touche distingue appuis courts et longs.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">hints</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="fit"><a class="anchor" href="#fit">#</a>fit</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>fit</code></td>
+<td><code>fit</code></td>
+<td>&quot;width&quot; | &quot;contain&quot;</td>
+<td>&quot;width&quot;</td>
+</tr>
+</tbody></table>
+</div><p>Mise à l&#39;échelle du schéma. ‘width’ utilise la largeur disponible entre minScale et maxScale ; un schéma trop grand défile horizontalement au lieu de devenir illisible. ‘contain’ fait tenir tout le schéma dans le composant ; donnez au composant une hauteur explicite, par exemple 100 % d&#39;une diapositive.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">fit</span>=<span class="s">"contain"</span> <span class="a">style</span>=<span class="s">"height:560px"</span>&gt;</code></pre><h3 id="maxscale"><a class="anchor" href="#maxscale">#</a>maxScale</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>max-scale</code></td>
+<td><code>maxScale</code></td>
+<td>nombre</td>
+<td>1.2</td>
+</tr>
+</tbody></table>
+</div><p>Échelle maximale du schéma. Évite qu&#39;un petit schéma devienne démesuré sur un grand écran.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">max-scale</span>=<span class="s">"1"</span>&gt;</code></pre><h3 id="minscale"><a class="anchor" href="#minscale">#</a>minScale</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>min-scale</code></td>
+<td><code>minScale</code></td>
+<td>nombre</td>
+<td>0.7</td>
+</tr>
+</tbody></table>
+</div><p>Échelle minimale en mode ‘width’ avant le défilement horizontal. En dessous de cette échelle, les libellés deviendraient illisibles : le schéma défile.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">min-scale</span>=<span class="s">"0.5"</span>&gt;</code></pre><h3 id="speed"><a class="anchor" href="#speed">#</a>speed</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>speed</code></td>
+<td><code>speed</code></td>
+<td>nombre</td>
+<td><code>options.speed</code> du scénario, sinon 1</td>
+</tr>
+</tbody></table>
+</div><p>Vitesse initiale de la simulation. 1 est le temps réel, 0.35 plus lent et 2 plus rapide. Le seuil d&#39;appui long (0,5 seconde réelle) ne change pas.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">speed</span>=<span class="s">"0.35"</span>&gt;</code></pre><h3 id="stepmode"><a class="anchor" href="#stepmode">#</a>stepMode</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>step-mode</code></td>
+<td><code>stepMode</code></td>
+<td>booléen</td>
+<td>false</td>
+</tr>
+</tbody></table>
+</div><p>Démarrer en mode pas à pas. S&#39;arrête à chaque émission, décision de coupleur, réception, changement de sortie et événement programmé, avec une explication et un bouton Suivant.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">step-mode</span>&gt;</code></pre><h3 id="designer"><a class="anchor" href="#designer">#</a>designer</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Attribut HTML</th>
+<th>Option JavaScript</th>
+<th>Type</th>
+<th>Défaut</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>designer</code></td>
+<td><code>designer</code></td>
+<td>URL | &quot;none&quot;</td>
+<td>le designer publié</td>
+</tr>
+</tbody></table>
+</div><p>Designer ouvert par l&#39;icône de la barre d&#39;outils. L&#39;icône ouvre le designer dans un nouvel onglet avec le scénario, transporté compressé dans le lien après #, qui n&#39;est pas envoyé au serveur. Donnez l&#39;adresse d&#39;une copie du designer (par exemple un chemin relatif, pour travailler hors ligne), ou none pour masquer l&#39;icône. Masquée quand la barre d&#39;outils l&#39;est.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">designer</span>=<span class="s">"designer/index.html"</span>&gt;</code></pre>
+<nav class="pager">
+<a href="../../reference/index.html">← Overview</a>
+<a href="../../fr/reference/json.html">Scénario JSON →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

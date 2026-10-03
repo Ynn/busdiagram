@@ -136,9 +136,7 @@ export const waterHeater: EquipmentDefinition<WaterHeaterState> = {
     const next = { ...s, tempC };
     // Reaching the setpoint during this step cuts the element.
     const heating =
-      s.heating && heated >= num(p.setpointC, 60)
-        ? false
-        : thermostat(next, p);
+      s.heating && heated >= num(p.setpointC, 60) ? false : thermostat(next, p);
     return heating === s.heating && tempC === s.tempC
       ? s
       : { ...next, heating };

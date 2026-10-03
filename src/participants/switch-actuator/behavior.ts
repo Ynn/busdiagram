@@ -438,8 +438,9 @@ function meter(ctx: Ctx, cyclic: boolean) {
   if (limit > 0) {
     const hyst = numParam(p.powerLimitHysteresisW, 50);
     const before = m.limitAlarm;
+    // Reset strictly below limit − hysteresis: stable at the limit with no hysteresis.
     const after = before
-      ? total <= limit - hyst
+      ? total < limit - hyst
         ? 0
         : 1
       : total >= limit
@@ -1015,6 +1016,24 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         a === "on" || a === "off" ? a === "on" : (st.beforeFailure ?? st.on);
       st.beforeFailure = null;
       commandSwitch(ctx, ch, on);
+      // Alarms and load shedding kept through the failure act again on the output.
+      if (st.fire) {
+        setRelay(ctx, ch, true);
+        drive(ctx, ch, true);
+      } else if (st.intrusion) {
+        setRelay(ctx, ch, true);
+        st.blinkOn = true;
+        drive(ctx, ch, true);
+        ctx.schedule(
+          `${ch}:blink`,
+          numParam(channelParams(ctx, ch).blinkMs, 1000),
+        );
+      }
+      if (st.shed)
+        ctx.schedule(
+          `${ch}:unshed`,
+          numParam(ctx.device.parameters.sheddingTimeMs, 20000),
+        );
       // The actuator reports its state after a restart.
       statusObjects(ctx, ch).forEach((o) => ctx.setObject(o.id, st.on ? 1 : 0));
       if (statusObjects(ctx, ch).length)

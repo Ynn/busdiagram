@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Error codes · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,9 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
-  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
+  <a class="lang" href="../fr/reference/errors.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -88,7 +88,7 @@
 </tr>
 <tr>
 <td><code>port</code></td>
-<td>Port not accepted by a behavior, or an invalid channel association.</td>
+<td>Port not accepted by a behavior, an invalid channel association, or a second object on a port that takes only one.</td>
 </tr>
 <tr>
 <td><code>dpt</code></td>
@@ -185,11 +185,15 @@
 </tr>
 <tr>
 <td><code>config-segment-size</code></td>
-<td>More than 64 devices on one TP1 segment (a line, or the segment behind its extension). The KNX TP1 specification allows 64 devices per segment, or 256 with TP1-256 devices; otherwise use a line repeater or a segment coupler.</td>
+<td>More than 64 connections on one TP1 segment (a line, a main line, the backbone, or the segment behind an extension): devices, and couplers, routers, or line extensions, which have a TP1 connection on each of their segments. The KNX TP1 specification allows 64 devices per segment, or 256 with TP1-256 devices; otherwise use a line repeater or a segment coupler.</td>
 </tr>
 <tr>
 <td><code>config-datatype</code></td>
 <td>A group address links DPTs of the same size but different meaning, such as a scene number (17.001) and a percentage (5.001), or 5.001 and 5.004. One-bit DPTs are not compared. A scene number (17.001) and a scene control (18.001) agree on recalls; the warning then notes that a 17.001 object reads a storing telegram as a recall.</td>
+</tr>
+<tr>
+<td><code>config-program</code></td>
+<td>A weekly program entry of a time switch cannot be read (days, time, value), or its value does not suit the DPT of the output objects; the entry is ignored.</td>
 </tr>
 <tr>
 <td><code>config-polarity</code></td>

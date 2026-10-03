@@ -296,12 +296,22 @@ describe("simulated clock and time devices", () => {
     expect(sim.getState().clock!.speed).toBe(60);
   });
 
-  it("broadcasts time and date every clock minute", () => {
+  it("broadcasts time and date every clock minute, at second 30", () => {
     const sim = load("time-schedule.json");
-    // Sent at 1 s (21:58 on the clock); the display is the last device of the line.
-    sim.advance(4000);
+    sim.advance(6000);
     expect(obj(sim, "display", "date")).toBe(20260928);
-    expect(obj(sim, "display", "time")).toBe(1 * 86400 + 21 * 3600 + 58 * 60);
+    // Periodic sends at second 30 (KNX system clock), besides the start-up send at 21:58.
+    const times = sim.history
+      .filter((t) => t.ga === "6/0/1" && t.sourceDeviceId === "clock")
+      .map((t) => t.value);
+    expect(times).toContain(1 * 86400 + 21 * 3600 + 58 * 60);
+    const periodic = times.filter((v) => v % 60 !== 0);
+    expect(periodic.length).toBeGreaterThan(3);
+    expect(periodic.every((v) => v % 60 === 30)).toBe(true);
+    // One per clock minute.
+    expect(new Set(periodic.map((v) => Math.floor(v / 60))).size).toBe(
+      periodic.length,
+    );
   });
 
   it("the time switch sends its programmed value at 22:00", () => {

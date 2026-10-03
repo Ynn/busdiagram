@@ -57,7 +57,7 @@ const watch = (page: Page) => {
   return { errors, external };
 };
 
-test("French documentation: language, navigation, and links to the English pages", async ({
+test("French documentation: language, navigation, search, and language switch", async ({
   page,
 }) => {
   const { errors } = watch(page);
@@ -66,26 +66,85 @@ test("French documentation: language, navigation, and links to the English pages
   await expect(page.locator(".side h4").first()).toHaveText("Premiers pas");
   await expect(page.locator(".crumb")).toHaveText("Guide");
   await expect(page.locator("main p.stale")).toHaveCount(0);
-  // A page not translated yet stays in the French navigation, marked, and opens in English.
-  const devices = page.locator(".side a", { hasText: /^Shutters/ });
-  await expect(devices.locator("small.en")).toHaveText("EN");
-  await expect(devices).toHaveAttribute("href", "../../guide/shutters.html");
-  // Search finds French pages, and English pages not translated yet.
+  // A translated page links to its French neighbour; an untranslated one would be marked.
+  const shutters = page.locator(".side a", { hasText: /^Volets/ });
+  await expect(shutters).toHaveAttribute(
+    "href",
+    "../../fr/guide/shutters.html",
+  );
+  const untranslated = page.locator(".side a:has(small.en)");
+  for (const link of await untranslated.all())
+    await expect(link).toHaveAttribute(
+      "href",
+      /^\.\.\/\.\.\/(guide|examples|reference)\//,
+    );
+  // Search finds the French pages.
   await page.locator(".search input").fill("premier");
   await expect(page.locator(".search .results a").first()).toContainText(
     "Premier schéma",
   );
-  await page.locator(".search input").fill("weather station");
+  await page.locator(".search input").fill("station météo");
   await expect(page.locator(".search .results a").first()).toHaveAttribute(
     "href",
-    /^\.\.\/\.\.\/guide\//,
+    /^\.\.\/\.\.\/fr\//,
   );
-  // Switch to the English page and back.
+  // Switch to the English page and back, keeping the section: anchors are shared.
+  await page.goto(
+    url("fr/guide/devices.html#weather-station-weatherstation-v1"),
+  );
+  await expect(
+    page.locator("#weather-station-weatherstation-v1"),
+  ).toContainText("Station météo");
   await page.locator("header .lang").click();
-  await expect(page).toHaveURL(/\/guide\/installation\.html$/);
+  await expect(page).toHaveURL(
+    /\/guide\/devices\.html#weather-station-weatherstation-v1$/,
+  );
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await expect(
+    page.locator("#weather-station-weatherstation-v1"),
+  ).toContainText("Weather station");
   await page.locator("header .lang").click();
-  await expect(page).toHaveURL(/\/fr\/guide\/installation\.html$/);
+  await expect(page).toHaveURL(
+    /\/fr\/guide\/devices\.html#weather-station-weatherstation-v1$/,
+  );
+  // The diagrams of the French pages are in French.
+  await page.goto(url("fr/examples/lighting-control.html"));
+  await expect(
+    page.locator("bus-diagram .card", {
+      hasText: "Interface de boutons-poussoirs",
+    }),
+  ).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+test("the icon of a diagram opens its scenario in the designer", async ({
+  page,
+}) => {
+  const { errors } = watch(page);
+  await page.goto(url("examples/status-feedback.html"));
+  const icon = page.locator(".demo bus-diagram a.ico").first();
+  await expect(icon).toHaveAttribute(
+    "href",
+    /^\.\.\/designer\/index\.html#d=[\w-]+&lang=en$/,
+  );
+  await expect(icon).toHaveAttribute("target", "_blank");
+  await page.goto(await icon.evaluate((a) => (a as HTMLAnchorElement).href));
+  await expect(page.locator("#preview h2")).toHaveText(
+    /Toggle controls and status feedback/,
+  );
+  await expect(page.locator("#status")).toHaveText(/Valid scenario/);
+  // The preview of the designer has no icon.
+  await expect(page.locator("#preview a.ico")).toHaveCount(0);
+  // From a French page, the designer opens in French, with the French texts.
+  await page.goto(url("fr/examples/status-feedback.html"));
+  const fr = page.locator(".demo bus-diagram a.ico").first();
+  await expect(fr).toHaveAttribute("href", /&lang=fr$/);
+  await expect(fr).toHaveAttribute("title", "Ouvrir dans le designer");
+  await page.goto(await fr.evaluate((a) => (a as HTMLAnchorElement).href));
+  await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+  await expect(page.locator("#preview h2")).toHaveText(
+    /Commandes en bascule et retours d'état/,
+  );
   expect(errors).toEqual([]);
 });
 

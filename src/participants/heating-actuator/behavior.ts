@@ -251,6 +251,17 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
       report(ctx, ch);
     }
   },
+  // The timers stop with the bus voltage. When it returns, each output takes up its
+  // control value again, from a new PWM cycle, and its monitoring starts over.
+  onBusRecovery(ctx) {
+    ctx.device.channels.forEach((c) => {
+      const st = ctx.state.channels[c.id];
+      if (!st) return;
+      st.cycling = false;
+      applyValue(ctx, c.id);
+      watch(ctx, c.id);
+    });
+  },
   channelState(state, ch): JsonObject {
     const st = state.channels[ch];
     return st

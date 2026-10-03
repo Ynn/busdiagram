@@ -1,7 +1,7 @@
 ---
 title: Notions
 translationOf: guide/03-concepts.md
-sourceHash: 7b5f42603e02
+sourceHash: 0f15f049a9f6
 order: 3
 ---
 
@@ -19,7 +19,7 @@ appui sur une touche → comportement de l'appareil → objet de communication �
 
 ## Appareil
 
-Un appareil KNX a une adresse individuelle comme `1.1.10`. Il contient des objets de communication et peut aussi avoir des touches, des entrées et des voies. Son `behavior` définit sa logique et la façon de le dessiner, par exemple `buttonInterface/v1`, `switchActuator/v1`, `shutterActuator/v1`, `daliGateway/v1`, `roomThermostat/v1`, ou une [extension](extensions.html) enregistrée. Le champ `kind` est une description libre de l'appareil ; seul un comportement qui documente une valeur lui donne un effet, comme `"supervisor"` pour un afficheur.
+Un appareil KNX a une adresse individuelle comme `1.1.10`. Il contient des objets de communication et peut aussi avoir des touches, des entrées et des canaux. Son `behavior` définit sa logique et la façon de le dessiner, par exemple `buttonInterface/v1`, `switchActuator/v1`, `shutterActuator/v1`, `daliGateway/v1`, `roomThermostat/v1`, ou une [extension](extensions.html) enregistrée. Le champ `kind` est une description libre de l'appareil ; seul un comportement qui documente une valeur lui donne un effet, comme `"supervisor"` pour un afficheur.
 
 ## Objet de communication
 
@@ -45,12 +45,12 @@ Un télégramme de groupe a une adresse individuelle source, une adresse de grou
 | Service | Envoyé par | Traité par |
 | --- | --- | --- |
 | `GroupValueWrite` | Un comportement avec l'indicateur T, ou le panneau de l'interface USB. | Les objets associés avec l'indicateur W. |
-| `GroupValueRead` | Le panneau de l'interface USB. | Les objets associés avec l'indicateur R ; chacun répond sur son adresse d'émission. |
+| `GroupValueRead` | Le panneau de l'interface USB. | Chaque appareil répond une seule fois : son premier objet associé ayant l'indicateur R et une valeur connue répond, sur sa propre adresse d'émission. |
 | `GroupValueResponse` | Un objet qui répond à une lecture. | Les objets associés avec l'indicateur U. |
 
-## Voie et équipement raccordé
+## Canal et équipement raccordé
 
-Une voie est une sortie d'actionneur, comme un relais ou une commande de moteur. Son comportement envoie des commandes comme `on/off` ou `up/down/stop`. L'équipement raccordé, comme une lampe ou un volet, répond à ces commandes et a son propre état physique. Il ne connaît ni les adresses de groupe ni les DPT.
+Un canal est une sortie d'actionneur, comme un relais ou une commande de moteur. Son comportement envoie des commandes comme `on/off` ou `up/down/stop`. L'équipement raccordé, comme une lampe ou un volet, répond à ces commandes et a son propre état physique. Il ne connaît ni les adresses de groupe ni les DPT.
 
 Une sortie peut alimenter plusieurs charges câblées en parallèle, comme un circuit d'éclairage alimente plusieurs luminaires : `equipment` est alors une liste, et chaque charge reçoit les commandes de la sortie. Un actionneur avec mesure mesure la somme de leurs puissances. Une sortie de volet commande un seul moteur.
 
@@ -70,4 +70,4 @@ Cette séparation permet de montrer un [volet mal calibré](shutters.html) : l'a
 
 ## Association interne
 
-Quand un objet émet, les autres objets du **même appareil** qui partagent l'adresse peuvent aussi recevoir le télégramme si leur indicateur W le permet. Un objet d'état peut donc commander une autre sortie du même actionneur. Cette convention du modèle n'est pas mise en œuvre de la même façon par tous les fabricants.
+Quand un objet émet, les autres objets du **même appareil** associés à cette adresse en sont informés aussi, comme pour un télégramme reçu du bus : leur valeur est mise à jour, quel que soit leur indicateur W. W (U pour une réponse) décide seulement si l'appareil réagit. Un objet d'état relié à l'adresse de commande d'une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l'objet de commande, et ne fait sinon que mettre à jour sa valeur. Ce qu'un appareil fait d'une telle valeur, au-delà de la mise à jour, est un choix de son programme d'application.

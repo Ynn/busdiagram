@@ -1,0 +1,441 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Programme horaire · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/time-schedule.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li class="cur"><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="time-schedule"><a class="anchor" href="#time-schedule">#</a>Programme horaire</h1><p>Le scénario déclare une <a href="../guide/time.html#simulated-clock">horloge simulée</a> qui démarre le lundi à 21:57 et va 60 fois plus vite que le temps simulé. Sa date et son heure apparaissent dans une barre en haut à gauche de la zone du schéma.</p>
+<ul>
+<li><strong>Horloge maître :</strong> envoie l&#39;heure (DPT 10.001 sur 6/0/1) et la date (DPT 11.001 sur 6/0/2) à chaque minute de l&#39;horloge. L&#39;afficheur de l&#39;heure reçoit les deux.</li>
+<li><strong>Programmateur hebdomadaire :</strong> son programme allume l&#39;éclairage du couloir à 07:00 et l&#39;éteint à 22:00 les jours de semaine, à 08:30 et 23:00 le week-end. Regardez l&#39;éclairage du couloir s&#39;éteindre à 22:00.</li>
+<li><strong>Logique de nuit :</strong> le module logique ne transmet le détecteur de présence du jardin à l&#39;éclairage du jardin qu&#39;entre 22:00 et 06:00, d&#39;après l&#39;heure reçue de l&#39;horloge maître. Appuyez sur <strong>Mouvement</strong> avant 22:00, puis après.</li>
+</ul>
+<p>Utilisez <strong>Régler l&#39;heure</strong> sur le badge de l&#39;horloge pour passer, par exemple, à 06:59 un jour de semaine et voir l&#39;éclairage du couloir s&#39;allumer.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Programme horaire : horloge maître, programmateur et plage horaire","description":"L'horloge simulée démarre le lundi à 21:57 et va 60 fois plus vite que le temps simulé. L'horloge maître envoie l'heure et la date à chaque minute de l'horloge. Le programmateur éteint l'éclairage du couloir à 22:00 (et l'allume à 07:00 les jours de semaine). Le module logique ne laisse le détecteur de présence commuter l'éclairage du jardin qu'entre 22:00 et 06:00 : déclenchez le détecteur avant et après 22:00. Utilisez Régler l'heure sur le badge de l'horloge pour passer à une autre heure.","lines":[{"address":"1.1","name":"Maison","powerSupply":{"currentMa":640}}],"clock":{"start":"2026-09-28T21:57:00","speed":60},"groupAddresses":[{"address":"6/0/1","name":"Heure","dpt":"10.001"},{"address":"6/0/2","name":"Date","dpt":"11.001"},{"address":"6/1/1","name":"Éclairage du couloir (programme)","dpt":"1.001"},{"address":"6/2/1","name":"Présence jardin","dpt":"1.001"},{"address":"6/2/2","name":"Éclairage du jardin","dpt":"1.001"}],"devices":[{"id":"clock","name":"Horloge maître","address":"1.1.20","kind":"clock","behavior":"clockMaster/v1","parameters":{"sendPeriodMin":1},"objects":[{"id":"time","name":"Heure","ga":"6/0/1","dpt":"10.001","port":"time","flags":{"W":false,"T":true}},{"id":"date","name":"Date","ga":"6/0/2","dpt":"11.001","port":"date","flags":{"W":false,"T":true}}]},{"id":"timeSwitch","name":"Programmateur hebdomadaire","address":"1.1.21","kind":"timeSwitch","behavior":"timeSwitch/v1","parameters":{"program":"Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"},"objects":[{"id":"out","name":"Éclairage du couloir","ga":"6/1/1","dpt":"1.001","port":"output","flags":{"W":false,"T":true}}]},{"id":"presence","name":"Détecteur de présence du jardin","address":"1.1.3","kind":"presenceDetector","behavior":"presenceDetector/v1","parameters":{"holdMs":8000},"objects":[{"id":"p","name":"Présence","ga":"6/2/1","dpt":"1.001","port":"input","flags":{"W":false,"T":true}}],"buttons":[{"id":"motion","label":"Mouvement","icon":"presence","press":{"object":"p","value":1}}]},{"id":"logic","name":"Logique de nuit","address":"1.1.22","kind":"logicModule","behavior":"logicGate/v1","parameters":{"activeFrom":"22:00","activeTo":"06:00"},"objects":[{"id":"presence","name":"Présence","ga":"6/2/1","dpt":"1.001","port":"logicIn","flags":{"W":true,"T":false}},{"id":"time","name":"Heure","ga":"6/0/1","dpt":"10.001","port":"time","flags":{"W":true,"T":false}},{"id":"out","name":"Éclairage du jardin","ga":"6/2/2","dpt":"1.001","port":"logicOut","flags":{"W":false,"T":true}}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Couloir","ga":"6/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Jardin","ga":"6/2/2","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"Couloir","initialState":{"on":true},"equipment":{"type":"lamp"}},{"id":"s2","label":"Jardin","equipment":{"type":"lamp"}}]},{"id":"display","name":"Afficheur de l'heure","address":"1.1.23","kind":"display","behavior":"display/v1","objects":[{"id":"time","name":"Heure","ga":"6/0/1","dpt":"10.001","port":"display","flags":{"W":true,"T":false}},{"id":"date","name":"Date","ga":"6/0/2","dpt":"11.001","port":"display","flags":{"W":true,"T":false}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=time-schedule" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Programme horaire : horloge maître, programmateur et plage horaire",
+  "description": "L'horloge simulée démarre le lundi à 21:57 et va 60 fois plus vite que le temps simulé. L'horloge maître envoie l'heure et la date à chaque minute de l'horloge. Le programmateur éteint l'éclairage du couloir à 22:00 (et l'allume à 07:00 les jours de semaine). Le module logique ne laisse le détecteur de présence commuter l'éclairage du jardin qu'entre 22:00 et 06:00 : déclenchez le détecteur avant et après 22:00. Utilisez Régler l'heure sur le badge de l'horloge pour passer à une autre heure.",
+  "lines": [{ "address": "1.1", "name": "Maison", "powerSupply": { "currentMa": 640 } }],
+  "clock": { "start": "2026-09-28T21:57:00", "speed": 60 },
+  "groupAddresses": [
+    { "address": "6/0/1", "name": "Heure", "dpt": "10.001" },
+    { "address": "6/0/2", "name": "Date", "dpt": "11.001" },
+    { "address": "6/1/1", "name": "Éclairage du couloir (programme)", "dpt": "1.001" },
+    { "address": "6/2/1", "name": "Présence jardin", "dpt": "1.001" },
+    { "address": "6/2/2", "name": "Éclairage du jardin", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "clock",
+      "name": "Horloge maître",
+      "address": "1.1.20",
+      "kind": "clock",
+      "behavior": "clockMaster/v1",
+      "parameters": { "sendPeriodMin": 1 },
+      "objects": [
+        {
+          "id": "time",
+          "name": "Heure",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "date",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "timeSwitch",
+      "name": "Programmateur hebdomadaire",
+      "address": "1.1.21",
+      "kind": "timeSwitch",
+      "behavior": "timeSwitch/v1",
+      "parameters": {
+        "program": "Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"
+      },
+      "objects": [
+        {
+          "id": "out",
+          "name": "Éclairage du couloir",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "output",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "presence",
+      "name": "Détecteur de présence du jardin",
+      "address": "1.1.3",
+      "kind": "presenceDetector",
+      "behavior": "presenceDetector/v1",
+      "parameters": { "holdMs": 8000 },
+      "objects": [
+        {
+          "id": "p",
+          "name": "Présence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "motion",
+          "label": "Mouvement",
+          "icon": "presence",
+          "press": { "object": "p", "value": 1 }
+        }
+      ]
+    },
+    {
+      "id": "logic",
+      "name": "Logique de nuit",
+      "address": "1.1.22",
+      "kind": "logicModule",
+      "behavior": "logicGate/v1",
+      "parameters": { "activeFrom": "22:00", "activeTo": "06:00" },
+      "objects": [
+        {
+          "id": "presence",
+          "name": "Présence",
+          "ga": "6/2/1",
+          "dpt": "1.001",
+          "port": "logicIn",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "time",
+          "name": "Heure",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "time",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "out",
+          "name": "Éclairage du jardin",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "logicOut",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Couloir",
+          "ga": "6/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c2",
+          "name": "Jardin",
+          "ga": "6/2/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Couloir",
+          "initialState": { "on": true },
+          "equipment": { "type": "lamp" }
+        },
+        { "id": "s2", "label": "Jardin", "equipment": { "type": "lamp" } }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Afficheur de l'heure",
+      "address": "1.1.23",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "time",
+          "name": "Heure",
+          "ga": "6/0/1",
+          "dpt": "10.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "date",
+          "name": "Date",
+          "ga": "6/0/2",
+          "dpt": "11.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Programme horaire : horloge maître, programmateur et plage horaire"</span>,
+  <span class="k">"description"</span>: <span class="s">"L'horloge simulée démarre le lundi à 21:57 et va 60 fois plus vite que le temps simulé. L'horloge maître envoie l'heure et la date à chaque minute de l'horloge. Le programmateur éteint l'éclairage du couloir à 22:00 (et l'allume à 07:00 les jours de semaine). Le module logique ne laisse le détecteur de présence commuter l'éclairage du jardin qu'entre 22:00 et 06:00 : déclenchez le détecteur avant et après 22:00. Utilisez Régler l'heure sur le badge de l'horloge pour passer à une autre heure."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Maison"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"clock"</span>: { <span class="k">"start"</span>: <span class="s">"2026-09-28T21:57:00"</span>, <span class="k">"speed"</span>: <span class="n">60</span> },
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"6/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Heure"</span>, <span class="k">"dpt"</span>: <span class="s">"10.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Date"</span>, <span class="k">"dpt"</span>: <span class="s">"11.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage du couloir (programme)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Présence jardin"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"6/2/2"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage du jardin"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"clock"</span>,
+      <span class="k">"name"</span>: <span class="s">"Horloge maître"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.20"</span>,
+      <span class="k">"kind"</span>: <span class="s">"clock"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"clockMaster/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"sendPeriodMin"</span>: <span class="n">1</span> },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Heure"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"time"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"date"</span>,
+          <span class="k">"name"</span>: <span class="s">"Date"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"11.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"date"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"timeSwitch"</span>,
+      <span class="k">"name"</span>: <span class="s">"Programmateur hebdomadaire"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.21"</span>,
+      <span class="k">"kind"</span>: <span class="s">"timeSwitch"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"timeSwitch/v1"</span>,
+      <span class="k">"parameters"</span>: {
+        <span class="k">"program"</span>: <span class="s">"Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0"</span>
+      },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"out"</span>,
+          <span class="k">"name"</span>: <span class="s">"Éclairage du couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"output"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"presence"</span>,
+      <span class="k">"name"</span>: <span class="s">"Détecteur de présence du jardin"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"presenceDetector"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"presenceDetector/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"holdMs"</span>: <span class="n">8000</span> },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"p"</span>,
+          <span class="k">"name"</span>: <span class="s">"Présence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"motion"</span>,
+          <span class="k">"label"</span>: <span class="s">"Mouvement"</span>,
+          <span class="k">"icon"</span>: <span class="s">"presence"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"p"</span>, <span class="k">"value"</span>: <span class="n">1</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"logic"</span>,
+      <span class="k">"name"</span>: <span class="s">"Logique de nuit"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.22"</span>,
+      <span class="k">"kind"</span>: <span class="s">"logicModule"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"logicGate/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"activeFrom"</span>: <span class="s">"22:00"</span>, <span class="k">"activeTo"</span>: <span class="s">"06:00"</span> },
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"name"</span>: <span class="s">"Présence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"logicIn"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Heure"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"time"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"out"</span>,
+          <span class="k">"name"</span>: <span class="s">"Éclairage du jardin"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"logicOut"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Jardin"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Couloir"</span>,
+          <span class="k">"initialState"</span>: { <span class="k">"on"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"Jardin"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"display"</span>,
+      <span class="k">"name"</span>: <span class="s">"Afficheur de l'heure"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.23"</span>,
+      <span class="k">"kind"</span>: <span class="s">"display"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"display/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"time"</span>,
+          <span class="k">"name"</span>: <span class="s">"Heure"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"10.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"date"</span>,
+          <span class="k">"name"</span>: <span class="s">"Date"</span>,
+          <span class="k">"ga"</span>: <span class="s">"6/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"11.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/boiler-room.html">← Pompe à chaleur derrière une passerelle</a>
+<a href="../../fr/examples/usb-interface.html">Outil interface USB →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

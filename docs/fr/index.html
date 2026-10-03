@@ -7,26 +7,26 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Accueil · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
-<script defer src="../assets/search-index-fr.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../"></script>
 </head>
 <body class="home">
 <header class="site">
   <a class="brand" href="../fr/index.html">Bus<span>Diagram</span></a>
   <nav>
     <a href="../fr/guide/installation.html">Guide</a>
-    <a href="../examples/index.html">Exemples</a>
-    <a href="../reference/index.html">Référence</a>
+    <a href="../fr/examples/index.html">Exemples</a>
+    <a href="../fr/reference/index.html">Référence</a>
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../index.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout wide">
 
@@ -37,19 +37,19 @@
 <div><h1 id="busdiagram"><a class="anchor" href="#busdiagram">#</a>BusDiagram</h1><p class="lead">Un outil pour concevoir des schémas pédagogiques d'installations KNX TP et KNXnet/IP : topologie, appareils, objets de communication, adresses de groupe et charges raccordées.</p><p>Décrivez une installation en JSON ; le schéma est disposé d&#39;après ses adresses et peut être intégré dans une page web ou une présentation. On peut manipuler les schémas pour suivre les télégrammes à travers la topologie. La bibliothèque tient en un seul fichier JavaScript et fonctionne hors ligne, sans serveur.</p>
 </div>
 <div><figure class="example" id="ex1">
-<div class="demo"><bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" style="height:330px"><script type="application/json">{"formatVersion":2,"title":"Control multiple outputs","description":"A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"L1–L2 lighting","dpt":"1.001"},{"address":"1/1/2","name":"L1–L4 lighting","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"A four-key push-button: one device, one individual address, and one group object per key.","objects":[{"id":"key1","name":"Key 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2","name":"Key 2","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3","name":"Key 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}},{"id":"key4","name":"Key 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in4","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1","keyLabel":"Key 1","parameters":{"onPress":"on"},"equipment":null},{"id":"in2","label":"Input 2","keyLabel":"Key 2","parameters":{"onPress":"off"},"equipment":null},{"id":"in3","label":"Input 3","keyLabel":"Key 3","parameters":{"onPress":"on"},"equipment":null},{"id":"in4","label":"Input 4","keyLabel":"Key 4","parameters":{"onPress":"off"},"equipment":null}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.","objects":[{"id":"c1","name":"Channel 1","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Channel 2","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Channel 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" designer="../designer/index.html" style="height:330px"><script type="application/json">{"formatVersion":2,"title":"Commander plusieurs sorties","description":"Un bouton-poussoir à quatre touches et un actionneur de commutation à quatre sorties ont chacun une adresse individuelle. La touche 1 (marche) et la touche 2 (arrêt) commandent L1 et L2 ; la touche 3 (marche) et la touche 4 (arrêt) commandent L1 à L4. Un seul télégramme peut commander plusieurs sorties.","lines":[{"address":"1.1","name":"Ligne d'exemple","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"Éclairage L1–L2","dpt":"1.001"},{"address":"1/1/2","name":"Éclairage L1–L4","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Un bouton-poussoir à quatre touches : un appareil, une adresse individuelle et un objet de groupe par touche.","objects":[{"id":"key1","name":"Touche 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2","name":"Touche 2","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3","name":"Touche 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}},{"id":"key4","name":"Touche 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in4","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"onPress":"on"},"equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"Touche 2","parameters":{"onPress":"off"},"equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Touche 3","parameters":{"onPress":"on"},"equipment":null},{"id":"in4","label":"Entrée 4","keyLabel":"Touche 4","parameters":{"onPress":"off"},"equipment":null}]},{"id":"switchActuator","name":"Actionneur de commutation à quatre sorties","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"Un actionneur de commutation à quatre canaux. Les canaux 1 et 2 écoutent les deux adresses de groupe ; les canaux 3 et 4 n'écoutent que 1/1/2.","objects":[{"id":"c1","name":"Canal 1","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Canal 2","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Canal 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Canal 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 
 
 </figure></div>
-</div><h2 id="pour-commencer"><a class="anchor" href="#pour-commencer">#</a>Pour commencer</h2><ol>
+</div><h2 id="get-started"><a class="anchor" href="#get-started">#</a>Pour commencer</h2><ol>
 <li>Chargez la bibliothèque une fois, de préférence dans <code>&lt;head&gt;</code>. Au choix :<ul>
-<li>depuis le CDN jsDelivr, sans rien télécharger : utilisez la balise de l&#39;exemple ci-dessous, qui fige la version 0.3.1 (voir <a href="../guide/versions.html">versions</a>). La page a alors besoin d&#39;une connexion réseau ;</li>
+<li>depuis le CDN jsDelivr, sans rien télécharger : utilisez la balise de l&#39;exemple ci-dessous, qui fige la version 0.3.1 (voir <a href="guide/versions.html">versions</a>). La page a alors besoin d&#39;une connexion réseau ;</li>
 <li>ou depuis une copie placée à côté de votre page, qui fonctionne aussi hors ligne et depuis le disque : téléchargez <a href="../assets/bus-diagram.js?v=0.3.1">bus-diagram.js</a> et utilisez <code>&lt;script src=&quot;bus-diagram.js&quot;&gt;&lt;/script&gt;</code>.</li>
 </ul>
 </li>
 <li>Placez le JSON de l&#39;installation dans un élément <code>&lt;bus-diagram&gt;</code>. Le <a href="../designer/index.html">designer</a> peut générer ce JSON pour vous.</li>
 </ol>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.3.1/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-Vu8l/tD8N1P8qGtwD2h/pb3zdvI2OPw8tdRzZSGFbWVigA06K31sHW+fKerG7wo6"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.3.1/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-1/UMf8eDHblS3QGx8gCazu5QftyY7Kx9Je0LHFzV5H58XhO9+JloEyLeD35GpeKQ"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;
 
 &lt;<span class="t">bus-diagram</span>&gt;
   &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -106,21 +106,21 @@
 &lt;/<span class="t">bus-diagram</span>&gt;</code></pre><p>Cet exemple relie une interface de boutons-poussoirs (une touche qui inverse l&#39;état), un actionneur de commutation et une lampe sur la ligne 1.1. Le guide <a href="guide/first-diagram.html">premier schéma</a> explique chaque champ.</p>
 <div class="cards">
 <a href="guide/installation.html"><b>Guide</b><span>Installer la bibliothèque, décrire une installation et intégrer le schéma dans une page ou une diapositive.</span></a>
-<a href="../examples/index.html"><b>Exemples</b><span>Schémas d'installations types et exemples d'intégration avec du code à copier.</span></a>
-<a href="../reference/index.html"><b>Référence</b><span>Options, champs JSON, ports, DPT, méthodes, événements et codes d'erreur.</span></a>
+<a href="examples/index.html"><b>Exemples</b><span>Schémas d'installations types et exemples d'intégration avec du code à copier.</span></a>
+<a href="reference/index.html"><b>Référence</b><span>Options, champs JSON, ports, DPT, méthodes, événements et codes d'erreur.</span></a>
 <a href="../designer/index.html"><b>Designer</b><span>Formulaires guidés, éditeur JSON, validation, aperçu et export.</span></a>
-</div><h2 id="ce-que-montre-un-schema"><a class="anchor" href="#ce-que-montre-un-schema">#</a>Ce que montre un schéma</h2><ul>
+</div><h2 id="what-a-diagram-shows"><a class="anchor" href="#what-a-diagram-shows">#</a>Ce que montre un schéma</h2><ul>
 <li><strong>Topologie :</strong> lignes, lignes principales, ligne de zone (backbone), répéteurs, coupleurs de segment et routeurs KNXnet/IP, disposés d&#39;après les adresses individuelles.</li>
 <li><strong>Appareils :</strong> boutons-poussoirs, actionneurs, passerelles, thermostats, stations météo, modules logiques et superviseurs, avec leurs objets de communication, adresses de groupe et indicateurs.</li>
-<li><strong>Charges raccordées :</strong> lampes, éclairages à blanc variable, volets roulants et stores à lamelles, ventilateurs, appareils électriques, ballons d&#39;eau chaude, pompes à chaleur, sirènes, groupes DALI et radiateurs reliés aux voies des actionneurs.</li>
+<li><strong>Charges raccordées :</strong> lampes, éclairages à blanc variable, volets roulants et stores à lamelles, ventilateurs, appareils électriques, ballons d&#39;eau chaude, pompes à chaleur, sirènes, groupes DALI et radiateurs reliés aux canaux des actionneurs.</li>
 </ul>
-<h2 id="ce-que-l-on-peut-simuler"><a class="anchor" href="#ce-que-l-on-peut-simuler">#</a>Ce que l&#39;on peut simuler</h2><p>La simulation se limite à ce qu&#39;il faut pour expliquer le schéma. Voir <a href="../guide/limits.html">modèle et limites</a>.</p>
+<h2 id="what-can-be-simulated"><a class="anchor" href="#what-can-be-simulated">#</a>Ce que l&#39;on peut simuler</h2><p>La simulation se limite à ce qu&#39;il faut pour expliquer le schéma. Voir <a href="guide/limits.html">modèle et limites</a>.</p>
 <ul>
 <li><strong>Commandes locales :</strong> appuis sur les touches, appuis courts et longs, saisie de consignes.</li>
 <li><strong>Objets de communication :</strong> changements de valeur et effet des indicateurs C, R, W, T et U.</li>
 <li><strong>Télégrammes :</strong> écritures, lectures et réponses ; propagation sur le bus, filtrage et routage par les coupleurs, réception par les objets associés.</li>
 <li><strong>Actionneurs et charges :</strong> sorties de commutation, lampes, volets et retours d&#39;état.</li>
-<li><strong>Outils de mise en service :</strong> moniteur de groupe, vue octet par octet des télégrammes TP1 et un <a href="../guide/usb-interface.html">outil d&#39;interface USB</a> pour les lectures et écritures de groupe.</li>
+<li><strong>Outils de mise en service :</strong> moniteur de groupe, vue octet par octet des télégrammes TP1 et un <a href="guide/usb-interface.html">outil d&#39;interface USB</a> pour les lectures et écritures de groupe.</li>
 </ul>
 <p>Le <strong>mode pas à pas</strong> s&#39;arrête à chaque événement et explique ce qui s&#39;est passé.</p>
 
@@ -129,7 +129,7 @@
 <a href="../index.html">Home →</a>
 </nav>
 </main>
-<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#pour-commencer">Pour commencer</a></li><li><a href="#ce-que-montre-un-schema">Ce que montre un schéma</a></li><li><a href="#ce-que-l-on-peut-simuler">Ce que l&#39;on peut simuler</a></li></ul></aside>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#get-started">Pour commencer</a></li><li><a href="#what-a-diagram-shows">Ce que montre un schéma</a></li><li><a href="#what-can-be-simulated">Ce que l&#39;on peut simuler</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
 </body>

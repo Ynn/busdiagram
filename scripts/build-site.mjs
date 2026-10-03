@@ -7,6 +7,7 @@ import { build } from "vite";
 import { execFileSync } from "node:child_process";
 import { loadData } from "./site-data.mjs";
 import { MINIMAL, llmReference } from "./llm-reference.mjs";
+import { translateScenario, translations } from "./translations.mjs";
 
 const root = resolve(import.meta.dirname, "..");
 const out = resolve(root, "docs");
@@ -44,6 +45,7 @@ if (minimalProblems.length)
     `llms.txt example is invalid: ${JSON.stringify(minimalProblems)}`,
   );
 const reference = llmReference(siteData, examples);
+const frTexts = translations(root, "fr").scenarios;
 await writeFile(resolve(out, "llms.txt"), reference);
 // Same content for the prompt generator page, which must also work from file://.
 await writeFile(
@@ -53,7 +55,14 @@ await writeFile(
     examples: Object.fromEntries(
       examples.map((x) => [
         x.file.replace(/\.json$/, ""),
-        { title: x.title, json: x.json },
+        {
+          title: x.title,
+          json: x.json,
+          // The prompt generator of the French documentation shows the French title, and
+          // uses the translated example when the display text is to be French.
+          titleFr: frTexts(x.title),
+          jsonFr: translateScenario(x.json, frTexts),
+        },
       ]),
     ),
   }).replace(/</g, "\\u003c")};\n`,

@@ -6,60 +6,10 @@ import type {
   JsonObject,
 } from "../../knx/contracts";
 import { DAY, MINUTE, knxDay, send } from "../shared/clock";
+import { type ProgramEntry, parseProgram } from "./program";
+import { programWarnings, usableEntries } from "./rules";
 
-export interface ProgramEntry {
-  /** Days of the week, 1 = Monday … 7 = Sunday. */
-  days: number[];
-  /** Minutes after midnight. */
-  minute: number;
-  value: number;
-}
-
-const DAY_NAMES = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
-
-function parseDays(text: string): number[] | null {
-  const t = text.trim().toLowerCase();
-  if (t === "daily" || t === "*" || t === "mon-sun")
-    return [1, 2, 3, 4, 5, 6, 7];
-  const days = new Set<number>();
-  for (const part of t.split(",")) {
-    const [a, b] = part.trim().split("-");
-    const i = DAY_NAMES.indexOf(a ?? "");
-    const j = b === undefined ? i : DAY_NAMES.indexOf(b);
-    if (i < 0 || j < 0) return null;
-    for (let k = i; ; k = (k + 1) % 7) {
-      days.add(k + 1);
-      if (k === j) break;
-    }
-  }
-  return [...days].sort();
-}
-
-/**
- * Parse a weekly program such as "Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0".
- * Return the entries and the entries that could not be read.
- */
-export function parseProgram(text: string): {
-  entries: ProgramEntry[];
-  errors: string[];
-} {
-  const entries: ProgramEntry[] = [];
-  const errors: string[] = [];
-  for (const raw of text.split(/[;\n]/)) {
-    const item = raw.trim();
-    if (!item) continue;
-    const m = /^(.+?)\s+(\d{1,2}):(\d{2})\s*=\s*(-?\d+(?:\.\d+)?)$/.exec(item);
-    const days = m ? parseDays(m[1]!) : null;
-    const h = m ? Number(m[2]) : NaN;
-    const min = m ? Number(m[3]) : NaN;
-    if (!m || !days || h > 23 || min > 59) {
-      errors.push(item);
-      continue;
-    }
-    entries.push({ days, minute: h * 60 + min, value: Number(m[4]) });
-  }
-  return { entries, errors };
-}
+export { parseProgram, type ProgramEntry } from "./program";
 
 /** Clock time of the next entry strictly after `nowMs`, looking up to eight days ahead. */
 export function nextSwitch(
@@ -115,8 +65,10 @@ interface SwitchTimerState {
 const hhmm = (minute: number) =>
   `${String(Math.floor(minute / 60)).padStart(2, "0")}:${String(minute % 60).padStart(2, "0")}`;
 
+/** Program of the device; entries whose value does not suit the outputs are left out. */
 function program(ctx: BehaviorContext<SwitchTimerState>) {
-  return parseProgram(String(ctx.device.parameters.program ?? ""));
+  const p = parseProgram(String(ctx.device.parameters.program ?? ""));
+  return { ...p, entries: usableEntries(ctx.device, p.entries) };
 }
 
 function scheduleNext(ctx: BehaviorContext<SwitchTimerState>, fromMs?: number) {
@@ -133,16 +85,47 @@ function scheduleNext(ctx: BehaviorContext<SwitchTimerState>, fromMs?: number) {
   );
 }
 
-/** Send the value the program requests now (at start or after the clock is set). */
+/** Send the value the program requests now, unless an override or a suspension holds. */
 function applyCurrent(ctx: BehaviorContext<SwitchTimerState>) {
   const c = ctx.clock();
-  if (!c || ctx.state.suspended) return;
+  const s = ctx.state;
+  if (!c || s.suspended || s.overridden || s.overrideUntilMs !== null) return;
   const e = currentEntry(program(ctx).entries, c.nowMs);
   if (!e) return;
   ctx.note(
     ctx.t`Time switch: program of ${hhmm(e.minute)} applies (${e.value})`,
   );
   send(ctx, "output", e.value);
+}
+
+/**
+ * After the clock is set or the bus voltage returns: a timed override holds until its end in
+ * clock time, an override until the next switching point ends if that point has passed;
+ * then the program value is sent (at once when a switching point was passed, otherwise as
+ * sendOnStart asks) and the next switching point is scheduled.
+ */
+function resync(ctx: BehaviorContext<SwitchTimerState>) {
+  const c = ctx.clock();
+  if (!c) return;
+  const s = ctx.state;
+  const crossed = s.nextAtMs !== null && c.nowMs >= s.nextAtMs;
+  ctx.cancel("overrideEnd");
+  if (s.overrideUntilMs !== null) {
+    if (c.nowMs >= s.overrideUntilMs) {
+      s.overrideUntilMs = null;
+      ctx.note(ctx.t`Time switch: end of the override`);
+    } else
+      ctx.schedule(
+        "overrideEnd",
+        Math.max(1, Math.round((s.overrideUntilMs - c.nowMs) / c.speed)),
+      );
+  }
+  if (s.overridden && crossed) {
+    s.overridden = false;
+    ctx.note(ctx.t`Time switch: end of the override`);
+  }
+  if (crossed || ctx.device.parameters.sendOnStart !== false) applyCurrent(ctx);
+  scheduleNext(ctx);
 }
 
 const OUTPUT_DPTS = [
@@ -157,6 +140,7 @@ const OUTPUT_DPTS = [
 ];
 
 export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
+  warnings: programWarnings,
   description:
     "Weekly time switch: sends the programmed value on its output objects at the programmed times of the simulated clock.",
   parameters: {
@@ -243,6 +227,7 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
       const c = ctx.clock();
       if (!c) return;
       const minutes = Number(ctx.device.parameters.overrideDurationMin ?? 60);
+      ctx.state.overridden = false;
       ctx.state.overrideUntilMs = c.nowMs + minutes * 60_000;
       ctx.schedule(
         "overrideEnd",
@@ -270,9 +255,6 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
       ctx.note(ctx.t`Time switch: the scenario declares no clock`);
       return;
     }
-    const { errors } = program(ctx);
-    if (errors.length)
-      ctx.note(ctx.t`Time switch: entries ignored: ${errors.join("; ")}`);
     if (ctx.device.parameters.sendOnStart !== false)
       ctx.schedule("start", 1000);
     scheduleNext(ctx);
@@ -283,6 +265,10 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
       ctx.state.overrideUntilMs = null;
       ctx.note(ctx.t`Time switch: end of the override`);
       applyCurrent(ctx);
+      return;
+    }
+    if (key === "recover") {
+      resync(ctx);
       return;
     }
     if (key !== "next") return;
@@ -308,8 +294,12 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
     scheduleNext(ctx, at);
   },
   onClockChange(ctx) {
-    if (ctx.device.parameters.sendOnStart !== false) applyCurrent(ctx);
-    scheduleNext(ctx);
+    resync(ctx);
+  },
+  // The timers stop with the bus voltage; when it returns, the time switch takes up its
+  // program after the same start delay as at start-up.
+  onBusRecovery(ctx) {
+    if (ctx.clock()) ctx.schedule("recover", 1000);
   },
   deviceState(state): JsonObject {
     return {

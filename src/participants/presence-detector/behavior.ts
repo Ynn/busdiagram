@@ -127,6 +127,7 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
   },
   ports: {
     input: {
+      single: true,
       dpts: ["1.001", "1.018"],
       channel: "none",
       title: "Presence",
@@ -150,6 +151,7 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
         "1 sent by a slave detector of the same room: counts as a detection (master/slave operation)",
     },
     brightness: {
+      single: true,
       dpts: ["9.004"],
       channel: "none",
       title: "Brightness",
@@ -219,6 +221,15 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
     if (!out) return;
     ctx.note(ctx.t`Detection reported by a slave detector`);
     detect(ctx, out.id);
+  },
+  // The hold time stopped with the bus voltage. When it returns, a presence still active
+  // runs a whole hold time again, unless the lock holds it on.
+  onBusRecovery(ctx) {
+    const out = ctx.device.objects.find((x) => x.port === "input");
+    if (!out || !ctx.state.active || ctx.device.parameters.slave === true)
+      return;
+    if (ctx.state.locked && ctx.device.parameters.lockStart === "on") return;
+    ctx.schedule("off", Number(ctx.device.parameters.holdMs ?? 10000), out.id);
   },
   onTimer(ctx, key, payload) {
     if (key !== "off" || typeof payload !== "string") return;

@@ -19,11 +19,17 @@ interface ClockState {
   lastMs: number | null;
 }
 
+/**
+ * Periodic broadcasts fall at second 30 of the minute, as the KNX system clock requires
+ * (second 25 to 30), so that receivers do not see the time jump at a minute boundary.
+ */
+const OFFSET = 30_000;
+
 function scheduleClock(ctx: BehaviorContext<ClockState>) {
   const c = ctx.clock();
-  const period = num(ctx.device.parameters.sendPeriodMin, 1) * MINUTE;
+  const period = num(ctx.device.parameters.sendPeriodMin, 10) * MINUTE;
   if (!c || period <= 0) return;
-  const wait = period - (c.nowMs % period);
+  const wait = period - ((((c.nowMs - OFFSET) % period) + period) % period);
   ctx.schedule("send", Math.max(1, Math.round(wait / c.speed)));
 }
 
@@ -49,9 +55,9 @@ export const clockMaster: BehaviorDefinition<ClockState> = {
         type: "integer",
         minimum: 0,
         maximum: 1440,
-        default: 1,
+        default: 10,
         description:
-          "Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set.",
+          "Clock minutes between two broadcasts, at second 30 of the minute (10 minutes is the standard heartbeat of a KNX system clock); 0 sends only at start and after the clock is set.",
       },
       sendOnStart: {
         title: "Send on start",
@@ -108,6 +114,17 @@ export const clockMaster: BehaviorDefinition<ClockState> = {
       broadcast(ctx);
       scheduleClock(ctx);
     }
+  },
+  // When the bus voltage returns, the clock master starts again as at start-up: it sends
+  // the time and date, then resumes its periodic broadcast.
+  onBusRecovery(ctx) {
+    const c = ctx.clock();
+    if (!c) return;
+    setValues(ctx, c.nowMs);
+    ctx.state.lastMs = null;
+    if (ctx.device.parameters.sendOnStart !== false)
+      ctx.schedule("start", num(ctx.device.parameters.startDelayMs, 1000));
+    scheduleClock(ctx);
   },
   onClockChange(ctx) {
     ctx.state.lastMs = null;

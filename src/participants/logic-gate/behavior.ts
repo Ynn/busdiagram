@@ -96,16 +96,19 @@ function update(
   // Inverted output: NAND, NOR, XNOR.
   const logic = p.invertOutput === true ? 1 - raw : raw;
   const result = logic && windowOpen(ctx) ? 1 : 0;
-  const out = ctx.device.objects.find((o) => o.port === "logicOut");
-  if (!out) return;
+  // Every output object sends the result (one per group address).
+  const outs = ctx.device.objects.filter((o) => o.port === "logicOut");
+  if (!outs.length) return;
   if (!force && p.sendOnChangeOnly !== false && result === ctx.state.sent) {
     if (!quiet)
       ctx.note(ctx.t`Logic result unchanged (${result}): no telegram`);
     return;
   }
   ctx.state.sent = result;
-  ctx.setObject(out.id, result);
-  ctx.transmit(out.id);
+  outs.forEach((o) => {
+    ctx.setObject(o.id, result);
+    ctx.transmit(o.id);
+  });
 }
 
 export const logicGate: BehaviorDefinition<LogicState> = {
@@ -194,6 +197,7 @@ export const logicGate: BehaviorDefinition<LogicState> = {
       description: "one-bit input of the logic function",
     },
     enable: {
+      single: true,
       dpts: ["1.003", "1.001"],
       channel: "none",
       title: "Enable",
@@ -202,6 +206,7 @@ export const logicGate: BehaviorDefinition<LogicState> = {
         "0 blocks the output; 1 enables it again and sends the current result",
     },
     time: {
+      single: true,
       dpts: ["10.001"],
       channel: "none",
       title: "Time of day",

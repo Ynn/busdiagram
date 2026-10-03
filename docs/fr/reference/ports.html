@@ -1,0 +1,481 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ports · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/ports.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li class="cur"><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="ports"><a class="anchor" href="#ports">#</a>Ports</h1><p>Le port d&#39;un objet de communication nomme son rôle dans le comportement d&#39;un appareil. Chaque comportement accepte des ports et des DPT précis ; voir les <a href="behaviors.html">comportements</a>.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>Description</th>
+<th>Comportements</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>Commande de commutation de la sortie (0 = arrêt, 1 = marche).</td>
+<td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>État du relais, envoyé après chaque changement effectif.</td>
+<td><code>switchActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>numéro de scène (17.001), ou commande de scène (18.001) dont le bit d&#39;apprentissage mémorise l&#39;état actuel</td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>dimmerActuator/v1</code>, <code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>forced</code></td>
+<td>Forçage prioritaire (2 = forcer à l&#39;arrêt, 3 = forcer en marche, 0 ou 1 = fin du forçage).</td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1 verrouille la sortie dans l&#39;état défini par lockStart, 0 la déverrouille (afterLock)</td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>presenceDetector/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>logic</code></td>
+<td>combiné avec la commande de commutation par logicOperation (ET ou OU)</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>power</code></td>
+<td>puissance électrique consommée par la charge du canal : W avec 14.056, kW avec 9.024</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>énergie active comptée pour le canal, envoyée cycliquement : Wh avec 13.010, kWh avec 13.013</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>somme des puissances de tous les canaux : W avec 14.056, kW avec 9.024</td>
+<td><code>switchActuator/v1</code>, <code>energyMeter/v1</code></td>
+</tr>
+<tr>
+<td><code>powerLimit</code></td>
+<td>1 quand la puissance totale atteint powerLimitW, 0 après l&#39;hystérésis (délestage)</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionAlarm</code></td>
+<td>1 fait clignoter la sortie et ignorer les commandes ; 0 termine l&#39;alarme (afterAlarm). Sans canal, s&#39;applique à tous les canaux.</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>fireAlarm</code></td>
+<td>1 force la sortie en marche et ignore les commandes, en priorité sur l&#39;intrusion ; 0 termine l&#39;alarme. Sans canal, s&#39;applique à tous les canaux.</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>move</code></td>
+<td>Montée/descente : 0 monte vers 0 %, 1 descend vers 100 %.</td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>stopStep</code></td>
+<td>Arrêt pendant un mouvement ; sinon un pas de stepPct (0 vers le haut, 1 vers le bas).</td>
+<td><code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>positionCommand</code></td>
+<td>Position cible en pourcentage.</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>positionStatus</code></td>
+<td>Position estimée, envoyée après l&#39;arrêt.</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>slatCommand</code></td>
+<td>angle des lamelles (0 % ouvert, 100 % fermé) d&#39;un store à lamelles</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>slatStatus</code></td>
+<td>angle des lamelles estimé, envoyé après l&#39;arrêt</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1 déclenche l&#39;alarme vent (windReaction, montée par défaut) : les commandes sont ignorées jusqu&#39;à 0 ; sans canal, s&#39;applique à tous les canaux</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>rainAlarm</code></td>
+<td>1 déclenche l&#39;alarme pluie (rainReaction) ; 0 la termine</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1 déclenche l&#39;alarme gel (frostReaction) ; 0 la termine</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>recallPosition12</code></td>
+<td>0 va à la position mémorisée 1, 1 à la position mémorisée 2</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>recallPosition34</code></td>
+<td>0 va à la position mémorisée 3, 1 à la position mémorisée 4</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>storePosition12</code></td>
+<td>0 mémorise la position actuelle comme position 1, 1 comme position 2</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>storePosition34</code></td>
+<td>0 mémorise la position actuelle comme position 3, 1 comme position 4</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>upperLimit</code></td>
+<td>1 quand le volet est estimé en haut (0 %), envoyé à chaque changement</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>lowerLimit</code></td>
+<td>1 quand le volet est estimé en bas (100 %), envoyé à chaque changement</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td>Valeur reçue et affichée, comme par un voyant ou un superviseur.</td>
+<td><code>display/v1</code>, <code>passive/v1</code></td>
+</tr>
+<tr>
+<td><code>input</code></td>
+<td>Objet écrit par une entrée numérique du schéma, puis transmis.</td>
+<td><code>passive/v1</code>, <code>presenceDetector/v1</code></td>
+</tr>
+<tr>
+<td><code>slaveTrigger</code></td>
+<td>1 envoyé par un détecteur esclave de la même pièce : compte comme une détection (fonctionnement maître/esclave)</td>
+<td><code>presenceDetector/v1</code></td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>luminosité mesurée (lx), saisie par le lecteur et envoyée ; il n&#39;y a pas de modèle d&#39;éclairement</td>
+<td><code>presenceDetector/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>Variation relative (3.007) : bit de sens et pas de 1 à 7 ; 0 arrête la variation.</td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>Valeur de luminosité en pourcentage (5.001) ; zéro éteint.</td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code>, <code>systemGateway/v1</code>, <code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>Valeur de luminosité (5.001), envoyée après une transition.</td>
+<td><code>dimmerActuator/v1</code>, <code>daliGateway/v1</code>, <code>heatingActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>colourTemperature</code></td>
+<td>consigne de température de couleur (K) d&#39;un canal à blanc variable</td>
+<td><code>dimmerActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>colourTemperatureStatus</code></td>
+<td>température de couleur appliquée (K)</td>
+<td><code>dimmerActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>défaut de lampe ou de ballast dans le groupe</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>broadcastSwitch</code></td>
+<td>Commute tous les groupes par une diffusion générale DALI.</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>broadcastValue</code></td>
+<td>Règle le niveau de tous les groupes par une diffusion générale DALI.</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>generalError</code></td>
+<td>Défaut sur la ligne DALI, tous groupes confondus (1.005).</td>
+<td><code>daliGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>actualTemp</code></td>
+<td>Température mesurée (9.001), envoyée à chaque changement.</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>sensorFault</code></td>
+<td>1 quand aucune température n&#39;est utilisable (température externe trop ancienne et pas de sonde d&#39;ambiance) ; 0 quand une température revient</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>externalTemp</code></td>
+<td>remplace la sonde interne dès qu&#39;une valeur est reçue</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>baseSetpoint</code></td>
+<td>Consigne de base de confort en chauffage (9.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>setpointShift</code></td>
+<td>consigne de base = consigne configurée + décalage</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>setpointStatus</code></td>
+<td>Consigne actuelle (9.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>hvacMode</code></td>
+<td>Mode choisi (20.102 : 0 auto, 1 confort, 2 veille, 3 économie, 4 protection).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>hvacModeStatus</code></td>
+<td>Mode actuel (20.102).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td>1 = présence : mode confort</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>fenêtre ouverte (1.019 / 1.001 : 1 = ouverte ; 1.009 : 0 = ouverte) : mode protection, priorité la plus haute</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatCool</code></td>
+<td>1 = chauffage, 0 = refroidissement</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatCoolStatus</code></td>
+<td>Mode actuel : 1 chauffage, 0 refroidissement (1.100).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatingValue</code></td>
+<td>grandeur de commande continue de 0 à 100 %</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>heatingSwitch</code></td>
+<td>régulation tout ou rien, ou MLI en régulation PI</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>Grandeur de commande continue de refroidissement (5.001).</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>Commande de refroidissement sur un bit.</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>fault</code></td>
+<td>grandeur de commande absente : programme de secours</td>
+<td><code>heatingActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>contact</code></td>
+<td>1.019 / 1.001 : 1 signifie ouverte ; 1.009 : 1 signifie fermée</td>
+<td><code>windowContact/v1</code></td>
+</tr>
+<tr>
+<td><code>temperature</code></td>
+<td>Température ambiante (9.001).</td>
+<td><code>temperatureSensor/v1</code>, <code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>logicIn</code></td>
+<td>entrée sur un bit de la fonction logique</td>
+<td><code>logicGate/v1</code></td>
+</tr>
+<tr>
+<td><code>enable</code></td>
+<td>0 bloque la sortie ; 1 la valide à nouveau et envoie le résultat actuel</td>
+<td><code>logicGate/v1</code></td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>heure reçue d&#39;une horloge maître, utilisée par la plage horaire</td>
+<td><code>logicGate/v1</code>, <code>clockMaster/v1</code></td>
+</tr>
+<tr>
+<td><code>logicOut</code></td>
+<td>résultat de la fonction logique</td>
+<td><code>logicGate/v1</code></td>
+</tr>
+<tr>
+<td><code>wind</code></td>
+<td>vitesse du vent mesurée, envoyée à la saisie : m/s avec 9.005, km/h avec 9.028 (les seuils restent en m/s)</td>
+<td><code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>outdoorTemp</code></td>
+<td>température extérieure mesurée (°C), envoyée à la saisie</td>
+<td><code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>sunProtection</code></td>
+<td>1 quand le seuil de luminosité est atteint, 0 après l&#39;hystérésis</td>
+<td><code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>humidity</code></td>
+<td>humidité relative mesurée (%), envoyée à la saisie : flottant sur 2 octets avec 9.007, un octet avec 5.001</td>
+<td><code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>co2</code></td>
+<td>concentration de CO₂ mesurée (ppm), envoyée à la saisie</td>
+<td><code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>co2Alarm</code></td>
+<td>1 quand le seuil d&#39;alarme CO₂ est atteint, 0 après l&#39;hystérésis</td>
+<td><code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>humidityAlarm</code></td>
+<td>1 quand le seuil d&#39;alarme d&#39;humidité est atteint, 0 après l&#39;hystérésis</td>
+<td><code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>ventilation</code></td>
+<td>grandeur de commande (%) du palier de ventilation actuel</td>
+<td><code>airQualitySensor/v1</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>date de l&#39;horloge simulée</td>
+<td><code>clockMaster/v1</code></td>
+</tr>
+<tr>
+<td><code>output</code></td>
+<td>objet qui reçoit les valeurs programmées</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td>Valeur envoyée immédiatement sur la sortie, maintenue jusqu&#39;au prochain point de commutation du programme</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>overrideTimed</code></td>
+<td>Valeur envoyée immédiatement sur la sortie, maintenue pendant overrideDurationMin minutes d&#39;horloge ; la valeur du programme s&#39;applique ensuite</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>overridePermanent</code></td>
+<td>1 suspend le programme (points de commutation ignorés) ; 0 le reprend et envoie sa valeur actuelle</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>valeur reçue de KNX et transmise à l&#39;autre système (mode, consigne, relance…)</td>
+<td><code>systemGateway/v1</code></td>
+</tr>
+<tr>
+<td><code>led</code></td>
+<td>état affiché par la LED de la touche</td>
+<td><code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionTrigger</code></td>
+<td>1 venant d&#39;un contact ou d&#39;un détecteur d&#39;intrusion active l&#39;alarme intrusion mémorisée</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionReset</code></td>
+<td>1 réinitialise l&#39;alarme mémorisée, seulement une fois son déclencheur revenu à 0</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionState</code></td>
+<td>Alarme intrusion mémorisée, envoyée à chaque changement ; reliez-la aux objets d&#39;intrusion des actionneurs</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireTrigger</code></td>
+<td>1 venant d&#39;un détecteur d&#39;incendie active l&#39;alarme incendie mémorisée</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireReset</code></td>
+<td>1 réinitialise l&#39;alarme mémorisée, seulement une fois son déclencheur revenu à 0</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireState</code></td>
+<td>Alarme incendie mémorisée, envoyée à chaque changement ; reliez-la aux objets d&#39;incendie des actionneurs</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../../fr/reference/behaviors.html">← Comportements et équipements</a>
+<a href="../../fr/reference/dpt.html">DPT →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

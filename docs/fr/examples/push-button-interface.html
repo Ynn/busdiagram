@@ -1,0 +1,573 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Interface de boutons-poussoirs · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/push-button-interface.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li class="cur"><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="push-button-interface"><a class="anchor" href="#push-button-interface">#</a>Interface de boutons-poussoirs</h1><p>L&#39;interface a quatre entrées câblées à des boutons-poussoirs conventionnels. Chaque touche du schéma est un contact : elle signale quand elle est enfoncée et quand elle est relâchée, et l&#39;interface décide si l&#39;appui est court ou long, comme un vrai appareil.</p>
+<ul>
+<li><strong>L&#39;entrée 1</strong> inverse L1. Son objet de commutation écoute aussi l&#39;adresse d&#39;état 1/4/1 : la bascule suit la lampe.</li>
+<li><strong>L&#39;entrée 2</strong> fait varier L2 sur une seule touche : un appui court la commute, un appui long fait varier plus clair quand la lampe est éteinte et sinon dans le sens inverse de la fois précédente ; relâcher la touche arrête la variation.</li>
+<li><strong>L&#39;entrée 3</strong> commande le store sur une seule touche : un appui long le déplace, dans l&#39;autre sens à chaque fois ; un appui court l&#39;arrête.</li>
+<li><strong>L&#39;entrée 4</strong> rappelle la scène 1 par un appui court. Un appui long mémorise la scène (DPT 18.001, bit d&#39;apprentissage) : chaque actionneur garde son état actuel comme nouvelle scène 1. Changez les éclairages, mémorisez, changez-les à nouveau, puis rappelez.</li>
+</ul>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Interface de boutons-poussoirs : variation et store sur une touche, mémorisation de scène","description":"Chaque entrée de l'interface est câblée à un bouton-poussoir conventionnel et a une fonction. L'interface mesure elle-même les appuis courts et longs : maintenez une touche puis relâchez-la. L'entrée 2 fait varier sur une seule touche (un appui court inverse, un appui long fait varier tour à tour plus clair ou plus sombre, le relâchement arrête) ; l'entrée 3 commande le store sur une seule touche (un appui long le déplace, le sens alterne, un appui court l'arrête) ; l'entrée 4 rappelle la scène 1 par un appui court et la mémorise par un appui long (DPT 18.001) : chaque actionneur garde alors son état actuel comme nouvelle scène.","lines":[{"address":"1.1","name":"Ligne d'exemple","powerSupply":{"currentMa":320}}],"groupAddresses":[{"address":"1/1/1","name":"Commutation L1","dpt":"1.001"},{"address":"1/1/2","name":"Commutation L2","dpt":"1.001"},{"address":"1/2/2","name":"Variation relative L2","dpt":"3.007"},{"address":"1/3/1","name":"Store montée/descente","dpt":"1.008"},{"address":"1/3/2","name":"Store arrêt/pas","dpt":"1.007"},{"address":"1/4/1","name":"État de commutation L1","dpt":"1.001"},{"address":"1/4/2","name":"État de commutation L2","dpt":"1.001"},{"address":"1/5/1","name":"Commande de scène","dpt":"18.001"}],"devices":[{"id":"buttonInterface","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Commutation entrée 1","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"sw2","name":"Commutation entrée 2","ga":["1/1/2","1/4/2"],"dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"dim2","name":"Variation entrée 2","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"in2","flags":{"W":false,"T":true}},{"id":"mv3","name":"Montée/descente entrée 3","ga":"1/3/1","dpt":"1.008","port":"move","channel":"in3","flags":{"W":true,"T":true}},{"id":"st3","name":"Arrêt/pas entrée 3","ga":"1/3/2","dpt":"1.007","port":"stopStep","channel":"in3","flags":{"W":false,"T":true}},{"id":"sc4","name":"Scène entrée 4","ga":"1/5/1","dpt":"18.001","port":"value","channel":"in4","flags":{"W":false,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Entrée 1 · Lumière","parameters":{"ledShown":true},"equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"Entrée 2 · Variation","parameters":{"function":"dim"},"equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Entrée 3 · Store","parameters":{"function":"blind"},"equipment":null},{"id":"in4","label":"Entrée 4","keyLabel":"Entrée 4 · Scène","parameters":{"function":"scene","sceneStore":true},"equipment":null}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"sw","name":"Commutation","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"st","name":"État","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":false,"T":true}},{"id":"sc","name":"Scène","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"a","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"L1","equipment":{"type":"lamp"},"scenes":{"1":1}}]},{"id":"dimmerActuator","name":"Actionneur de variation","address":"1.1.3","kind":"dimmerActuator","behavior":"dimmerActuator/v1","objects":[{"id":"sw","name":"Commutation","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"d1","flags":{"W":true,"T":false}},{"id":"dim","name":"Variation relative","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"d1","flags":{"W":true,"T":false}},{"id":"st","name":"État","ga":"1/4/2","dpt":"1.001","port":"status","channel":"d1","flags":{"W":false,"T":true}},{"id":"sc","name":"Scène","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"d1","flags":{"W":true,"T":false}}],"channels":[{"id":"d1","label":"L2","parameters":{"dimTimeMs":4000},"equipment":{"type":"dimmableLamp"},"scenes":{"1":60}}]},{"id":"shutterActuator","name":"Actionneur de volets","address":"1.1.4","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"mv","name":"Montée/descente","ga":"1/3/1","dpt":"1.008","port":"move","channel":"s1","flags":{"W":true,"T":false}},{"id":"st","name":"Arrêt/pas","ga":"1/3/2","dpt":"1.007","port":"stopStep","channel":"s1","flags":{"W":true,"T":false}},{"id":"sc","name":"Scène","ga":"1/5/1","dpt":"18.001","port":"scene","channel":"s1","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"Store","parameters":{"estimatedTravelTimeMs":20000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":20000}},"scenes":{"1":0}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=push-button-interface" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Interface de boutons-poussoirs : variation et store sur une touche, mémorisation de scène",
+  "description": "Chaque entrée de l'interface est câblée à un bouton-poussoir conventionnel et a une fonction. L'interface mesure elle-même les appuis courts et longs : maintenez une touche puis relâchez-la. L'entrée 2 fait varier sur une seule touche (un appui court inverse, un appui long fait varier tour à tour plus clair ou plus sombre, le relâchement arrête) ; l'entrée 3 commande le store sur une seule touche (un appui long le déplace, le sens alterne, un appui court l'arrête) ; l'entrée 4 rappelle la scène 1 par un appui court et la mémorise par un appui long (DPT 18.001) : chaque actionneur garde alors son état actuel comme nouvelle scène.",
+  "lines": [{ "address": "1.1", "name": "Ligne d'exemple", "powerSupply": { "currentMa": 320 } }],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "Commutation L1", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "Commutation L2", "dpt": "1.001" },
+    { "address": "1/2/2", "name": "Variation relative L2", "dpt": "3.007" },
+    { "address": "1/3/1", "name": "Store montée/descente", "dpt": "1.008" },
+    { "address": "1/3/2", "name": "Store arrêt/pas", "dpt": "1.007" },
+    { "address": "1/4/1", "name": "État de commutation L1", "dpt": "1.001" },
+    { "address": "1/4/2", "name": "État de commutation L2", "dpt": "1.001" },
+    { "address": "1/5/1", "name": "Commande de scène", "dpt": "18.001" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Interface de boutons-poussoirs",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Commutation entrée 1",
+          "ga": ["1/1/1", "1/4/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw2",
+          "name": "Commutation entrée 2",
+          "ga": ["1/1/2", "1/4/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "dim2",
+          "name": "Variation entrée 2",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "in2",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mv3",
+          "name": "Montée/descente entrée 3",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "st3",
+          "name": "Arrêt/pas entrée 3",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in3",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc4",
+          "name": "Scène entrée 4",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "value",
+          "channel": "in4",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Entrée 1",
+          "keyLabel": "Entrée 1 · Lumière",
+          "parameters": { "ledShown": true },
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Entrée 2",
+          "keyLabel": "Entrée 2 · Variation",
+          "parameters": { "function": "dim" },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Entrée 3",
+          "keyLabel": "Entrée 3 · Store",
+          "parameters": { "function": "blind" },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Entrée 4",
+          "keyLabel": "Entrée 4 · Scène",
+          "parameters": { "function": "scene", "sceneStore": true },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Commutation",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "État",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc",
+          "name": "Scène",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "a", "label": "L1", "equipment": { "type": "lamp" }, "scenes": { "1": 1 } }
+      ]
+    },
+    {
+      "id": "dimmerActuator",
+      "name": "Actionneur de variation",
+      "address": "1.1.3",
+      "kind": "dimmerActuator",
+      "behavior": "dimmerActuator/v1",
+      "objects": [
+        {
+          "id": "sw",
+          "name": "Commutation",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "dim",
+          "name": "Variation relative",
+          "ga": "1/2/2",
+          "dpt": "3.007",
+          "port": "dim",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "État",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "d1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc",
+          "name": "Scène",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "d1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "d1",
+          "label": "L2",
+          "parameters": { "dimTimeMs": 4000 },
+          "equipment": { "type": "dimmableLamp" },
+          "scenes": { "1": 60 }
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Actionneur de volets",
+      "address": "1.1.4",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "mv",
+          "name": "Montée/descente",
+          "ga": "1/3/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "Arrêt/pas",
+          "ga": "1/3/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sc",
+          "name": "Scène",
+          "ga": "1/5/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "s1",
+          "label": "Store",
+          "parameters": { "estimatedTravelTimeMs": 20000 },
+          "equipment": { "type": "shutter", "parameters": { "actualTravelTimeMs": 20000 } },
+          "scenes": { "1": 0 }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Interface de boutons-poussoirs : variation et store sur une touche, mémorisation de scène"</span>,
+  <span class="k">"description"</span>: <span class="s">"Chaque entrée de l'interface est câblée à un bouton-poussoir conventionnel et a une fonction. L'interface mesure elle-même les appuis courts et longs : maintenez une touche puis relâchez-la. L'entrée 2 fait varier sur une seule touche (un appui court inverse, un appui long fait varier tour à tour plus clair ou plus sombre, le relâchement arrête) ; l'entrée 3 commande le store sur une seule touche (un appui long le déplace, le sens alterne, un appui court l'arrête) ; l'entrée 4 rappelle la scène 1 par un appui court et la mémorise par un appui long (DPT 18.001) : chaque actionneur garde alors son état actuel comme nouvelle scène."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Ligne d'exemple"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/2/2"</span>, <span class="k">"name"</span>: <span class="s">"Variation relative L2"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Store montée/descente"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/2"</span>, <span class="k">"name"</span>: <span class="s">"Store arrêt/pas"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"État de commutation L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"État de commutation L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/5/1"</span>, <span class="k">"name"</span>: <span class="s">"Commande de scène"</span>, <span class="k">"dpt"</span>: <span class="s">"18.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation entrée 1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation entrée 2"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/2"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"dim2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Variation entrée 2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mv3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Montée/descente entrée 3"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt/pas entrée 3"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène entrée 4"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 1 · Lumière"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 2 · Variation"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 3 · Store"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 4 · Scène"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"scene"</span>, <span class="k">"sceneStore"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"État"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"a"</span>, <span class="k">"label"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"dimmerActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de variation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"dimmerActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"dimmerActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"dim"</span>,
+          <span class="k">"name"</span>: <span class="s">"Variation relative"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"État"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"d1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"d1"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"dimTimeMs"</span>: <span class="n">4000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">60</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de volets"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"mv"</span>,
+          <span class="k">"name"</span>: <span class="s">"Montée/descente"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt/pas"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Store"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">20000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">20000</span> } },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/tunable-white.html">← Blanc variable</a>
+<a href="../../fr/examples/scenes.html">Scènes →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

@@ -22,9 +22,8 @@ import { isBroadcastGA, parseGA } from "./address";
 import { configWarnings } from "./consistency";
 import { EventQueue } from "./clock";
 import type { Scheduled } from "./clock";
-import { canonical, checkValue, decode, encode } from "./dpt";
-import { Network } from "./network";
-import type { TransportPlan } from "./network";
+import { canonical, checkValue, decodeOrInvalid, encode } from "./dpt";
+import { Network, behindCut, type TransportPlan } from "./network";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
 import type {
@@ -558,6 +557,26 @@ export class Simulation {
         );
         if (!a || !c) return;
         const cpl = this.network.coupler(c.couplerId)!;
+        // Behind a coupler that could not forward: the telegram never gets here.
+        if (behindCut(a.tel.plan, c.path)) {
+          a.tel.plan.cut.push(c.couplerId);
+          this.settle(item.telegramId);
+          break;
+        }
+        // The voltage was cut on a side since the emission: the coupler cannot forward.
+        if (
+          c.pass &&
+          !(
+            this.network.powered(cpl[c.from].seg) &&
+            this.network.powered(cpl[c.from === "A" ? "B" : "A"].seg)
+          )
+        ) {
+          c.pass = false;
+          c.noVoltage = true;
+          c.tag = "block";
+          c.rcAfter = c.rcBefore;
+          a.tel.plan.cut.push(c.couplerId);
+        }
         this.log("coupler-decision", a.tel.eventId, {
           telegramId: a.tel.id,
           couplerId: c.couplerId,
@@ -1019,6 +1038,22 @@ export class Simulation {
     if (!a || !rt) return;
     const tel = a.tel;
     const d = rt.device;
+    // Behind a coupler that could not forward (voltage cut on the way): not reached.
+    const route = internal
+      ? undefined
+      : tel.plan.deliveries.find((x) => x.deviceId === deviceId);
+    if (route && behindCut(tel.plan, route.path)) {
+      this.log("telegram-received", tel.eventId, {
+        deviceId,
+        telegramId,
+        ga: tel.ga,
+        value: tel.value,
+        message: this.t`no bus voltage on the way: not received`,
+        data: { internal, associated: 0 },
+      });
+      this.settle(telegramId);
+      return;
+    }
     if (rt.down) {
       // Sent before the voltage was cut: the device is off and does not receive it.
       this.log("telegram-received", tel.eventId, {
@@ -1072,10 +1107,25 @@ export class Simulation {
         reception.objects.push({ objectId: o.id, result: "ignored" });
         continue;
       }
+      // A payload that the object's DPT declares invalid (0x7FFF in DPT 9.xxx, sent by an
+      // object of another DPT on the same address): the value stays as it was.
+      const decoded = decodeOrInvalid(o.dpt, tel.raw);
+      if (decoded.invalid) {
+        this.log("object-write-ignored", rec.id, {
+          deviceId,
+          objectId: o.id,
+          telegramId,
+          ga: tel.ga,
+          value: tel.value,
+          message: this.t`payload invalid for DPT ${o.dpt}: value unchanged`,
+        });
+        reception.objects.push({ objectId: o.id, result: "ignored" });
+        continue;
+      }
       const allowed = response ? o.flags.U : o.flags.W;
       if (internal && !allowed) {
         const cur = this.objects.get(o.key)!;
-        cur.value = decode(o.dpt, tel.raw);
+        cur.value = decoded.value;
         cur.updatedAtMs = this.timeMs;
         this.log("object-write-accepted", rec.id, {
           deviceId,
@@ -1119,7 +1169,7 @@ export class Simulation {
       }
       const cur = this.objects.get(o.key)!;
       const oldValue = cur.value;
-      const newValue = decode(o.dpt, tel.raw);
+      const newValue = decoded.value;
       cur.value = newValue;
       cur.updatedAtMs = this.timeMs;
       const acc = this.log("object-write-accepted", rec.id, {

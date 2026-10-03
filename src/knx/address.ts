@@ -1,8 +1,12 @@
 // KNX addresses: individual (area.line.device), line and group 3 levels.
 
-const IA = /^(\d{1,2})\.(\d{1,2})\.(\d{1,3})$/;
-const GA = /^(\d{1,2})\/(\d{1,2})\/(\d{1,3})$/;
-const LINE = /^(\d{1,2})\.(\d{1,2})$/;
+// Canonical decimal forms only, as in the authoring schema: "01.1.1" would be the same
+// two-byte address as "1.1.1" under another spelling, so it is refused.
+const N2 = "(0|[1-9]\\d?)";
+const N3 = "(0|[1-9]\\d{0,2})";
+const IA = new RegExp(`^${N2}\\.${N2}\\.${N3}$`);
+const GA = new RegExp(`^${N2}/${N2}/${N3}$`);
+const LINE = new RegExp(`^${N2}\\.${N2}$`);
 
 /** Individual address bounded (area 0–15, line 0–15, device 0–255). */
 export function parseIA(ia: string): [number, number, number] | null {

@@ -16,11 +16,13 @@ function initPromptGenerator() {
   const result = $("pg-result");
   const correction = $("pg-correction");
   const open = $("pg-open");
+  // Messages of this page in French on the French documentation.
+  const fr = document.documentElement.lang === "fr";
 
   Object.entries(data.examples).forEach(([id, ex]) => {
     const o = document.createElement("option");
     o.value = id;
-    o.textContent = ex.title;
+    o.textContent = (fr && ex.titleFr) || ex.title;
     example.append(o);
   });
 
@@ -38,7 +40,13 @@ function initPromptGenerator() {
         "\n\nThe complete catalogs of behaviors, equipment types, and DPTs are omitted from this request; use only the behaviors shown in the example.\n";
 
   function build() {
-    const ex = data.examples[example.value];
+    const found = data.examples[example.value];
+    // French display text: the example is given with its French texts.
+    const french = names.value === "fr" || (names.value === "same" && fr);
+    const ex = found && {
+      title: (french && found.titleFr) || found.title,
+      json: (french && found.jsonFr) || found.json,
+    };
     const request = description.value.trim();
     const parts = [
       "You are writing a BusDiagram scenario: a JSON document (format 2) that describes a KNX installation for an instructional diagram. Follow the reference below exactly. Answer with one JSON object only, without comments or explanations.",
@@ -70,16 +78,18 @@ function initPromptGenerator() {
         "```",
       );
     prompt.value = parts.filter((p) => p !== null).join("\n");
-    size.textContent = `${prompt.value.length.toLocaleString("en")} characters`;
+    size.textContent = fr
+      ? `${prompt.value.length.toLocaleString("fr")} caractères`
+      : `${prompt.value.length.toLocaleString("en")} characters`;
   }
 
   async function copy(field, button) {
     try {
       await navigator.clipboard.writeText(field.value);
-      button.textContent = "Copied";
+      button.textContent = fr ? "Copié" : "Copied";
     } catch {
       field.select();
-      button.textContent = "Press Ctrl+C";
+      button.textContent = fr ? "Appuyez sur Ctrl+C" : "Press Ctrl+C";
     }
     setTimeout(() => (button.textContent = button.dataset.label), 1600);
   }
@@ -120,15 +130,19 @@ function initPromptGenerator() {
     const status = document.createElement("p");
     status.className = problems.length ? "pg-bad" : "pg-ok";
     status.textContent = problems.length
-      ? `${problems.length} problem(s) found.`
-      : "Valid scenario.";
+      ? fr
+        ? `${problems.length} problème(s) trouvé(s).`
+        : `${problems.length} problem(s) found.`
+      : fr
+        ? "Scénario valide."
+        : "Valid scenario.";
     result.append(status);
     if (problems.length) {
       const list = document.createElement("ul");
       problems.forEach((p) => {
         const li = document.createElement("li");
         const code = document.createElement("code");
-        code.textContent = p.path || "(root)";
+        code.textContent = p.path || (fr ? "(racine)" : "(root)");
         li.append(code, ` ${p.message}`);
         list.append(li);
       });
@@ -146,7 +160,10 @@ function initPromptGenerator() {
     }
     if (json !== undefined) {
       const fragment = `json=${encodeURIComponent(JSON.stringify(json))}`;
-      open.href = `../designer/index.html#${fragment}`;
+      // Path to the site root, given by the documentation script (also from fr/).
+      const base =
+        document.querySelector("script[data-base]")?.dataset.base ?? "../";
+      open.href = `${base}designer/index.html#${fragment}`;
       open.hidden = false;
     }
   }

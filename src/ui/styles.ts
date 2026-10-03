@@ -91,6 +91,23 @@ export const styles = css`
     font-size: 13px;
     color: ${unsafeCSS(C.ink)};
   }
+  .mini a.ico {
+    width: 30px;
+    height: 28px;
+    border-radius: 8px;
+    border: 1.5px solid #cfccc1;
+    background: rgba(255, 255, 255, 0.92);
+    color: ${unsafeCSS(C.ink)};
+  }
+  a.ico {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+  }
+  .btn.ico {
+    padding: 5px 8px;
+  }
   .mini button.on {
     background: ${unsafeCSS(C.ink)};
     border-color: ${unsafeCSS(C.ink)};

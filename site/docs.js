@@ -47,7 +47,8 @@
     if (q.length < 2 || !window.BUSDIAGRAM_SEARCH) return (list.hidden = true);
     const hits = [];
     // On a French page: the French pages, then the English pages not translated yet.
-    const fr = document.documentElement.lang === "fr" && window.BUSDIAGRAM_SEARCH_FR;
+    const fr =
+      document.documentElement.lang === "fr" && window.BUSDIAGRAM_SEARCH_FR;
     const translated = new Set((fr || []).map((p) => p.o));
     const pages = fr
       ? [...fr, ...window.BUSDIAGRAM_SEARCH.filter((p) => !translated.has(p.u))]
@@ -104,3 +105,9 @@
     (e) => !e.target.closest(".search") && (list.hidden = true),
   );
 })();
+
+// The pages of both languages share their anchors: switching language keeps the place.
+document.querySelector("header .lang")?.addEventListener("click", (e) => {
+  if (location.hash)
+    e.currentTarget.href = e.currentTarget.href.split("#")[0] + location.hash;
+});

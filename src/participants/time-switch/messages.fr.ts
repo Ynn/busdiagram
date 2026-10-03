@@ -4,7 +4,6 @@ export const timeSwitchFr: Record<string, string> = {
     "Programmateur : le programme de {0} s'applique ({1})",
   "Time switch: the scenario declares no clock":
     "Programmateur : le scénario ne déclare pas d'horloge",
-  "Time switch: entries ignored: {0}": "Programmateur : entrées ignorées : {0}",
   "Time switch: {0} → {1}": "Programmateur : {0} → {1}",
   "Weekly time switch: sends the programmed value on its output objects at the programmed times of the simulated clock.":
     "Programmateur hebdomadaire : émet la valeur programmée sur ses objets de sortie aux heures programmées de l'horloge simulée.",
@@ -26,4 +25,8 @@ export const timeSwitchFr: Record<string, string> = {
   Override: "Dérogation",
   "Timed override": "Dérogation temporaire",
   "Duration of the timed override": "Durée de la dérogation temporaire",
+  "{0}: program entry “{1}” cannot be read; it is ignored.":
+    "{0} : l'entrée de programme « {1} » est illisible ; elle est ignorée.",
+  "{0}: program value {1}: {2}; the entry is ignored.":
+    "{0} : valeur de programme {1} : {2} ; l'entrée est ignorée.",
 };

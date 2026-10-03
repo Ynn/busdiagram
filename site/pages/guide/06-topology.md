@@ -35,7 +35,7 @@ Each twisted-pair line, and each segment behind a line repeater or segment coupl
 ]
 ```
 
-`currentMa` is the rated current (common values are 160, 320, 640, and 1280 mA); both fields are optional. The supply has no individual address. BusDiagram does not compute the bus load: the consumption of each device is not modeled. The designer sets the supply of each line in its **Topology** section.
+`currentMa` is the rated current (common values are 160, 320, 640, and 1280 mA); both fields are optional. The modeled supply has no individual address and no communication objects (some supplies with diagnostics are KNX devices in their own right). BusDiagram does not compute the bus load: the consumption of each device is not modeled. The designer sets the supply of each line in its **Topology** section.
 
 ## KNXnet/IP routers
 

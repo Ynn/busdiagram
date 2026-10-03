@@ -1,0 +1,562 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chauffage pièce par pièce · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/hvac.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li class="cur"><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="room-by-room-heating"><a class="anchor" href="#room-by-room-heating">#</a>Chauffage pièce par pièce</h1><p>Cet exemple chauffe deux pièces de deux façons différentes :</p>
+<ul>
+<li><strong>Séjour :</strong> un thermostat PI envoie une grandeur de commande DPT 5.001 sur 3/0/1 à un actionneur de chauffage. L&#39;actionneur commande en MLI une vanne thermoélectrique. La température circule en DPT 9.001 sur 3/4/1 ; ouvrez le détail d&#39;un télégramme pour examiner sa valeur sur deux octets.</li>
+<li><strong>Chambre :</strong> une régulation tout ou rien envoie une commande sur un bit sur 3/0/2 à un actionneur de commutation.</li>
+</ul>
+<p>Essayez ces manipulations :</p>
+<ul>
+<li>Ouvrez la fenêtre du séjour dans le panneau <strong>Pièces</strong>. Le contact envoie 1 sur 3/3/1 ; le thermostat passe en protection hors gel à 7 °C et ferme la vanne. La pièce refroidit alors.</li>
+<li>Dans le panneau de l&#39;interface USB, écrivez 3 (mode économie) sur l&#39;adresse du mode central 3/2/0. Les deux consignes baissent de 4 K. Appuyez sur la touche <strong>Présence</strong> du thermostat du séjour pour revenir au mode confort.</li>
+<li>Réglez le thermostat du séjour sur 22,5 °C et suivez sa consigne actuelle sur 3/4/2.</li>
+<li>Baissez la température extérieure et observez la vanne s&#39;ouvrir davantage pour maintenir la consigne.</li>
+</ul>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Régulation du chauffage pièce par pièce","description":"Deux pièces sont chauffées. Dans le séjour, un thermostat PI envoie une grandeur de commande DPT 5.001 à un actionneur de chauffage, qui commande une vanne thermoélectrique en MLI. La chambre utilise une régulation tout ou rien (un bit) par un actionneur de commutation. Ouvrez la fenêtre du séjour dans le panneau Pièces : le contact passe le thermostat en protection hors gel. Écrivez le mode central 3/2/0 (DPT 20.102) depuis le panneau de l'interface USB ; la touche Présence du thermostat rétablit le mode confort.","lines":[{"address":"1.1","name":"Exemple de chauffage","powerSupply":{"currentMa":640}}],"rooms":[{"id":"livingRoom","name":"Séjour","temperatureC":18},{"id":"bedroom","name":"Chambre","temperatureC":17}],"groupAddresses":[{"address":"3/0/1","name":"Commande de chauffage séjour","dpt":"5.001"},{"address":"3/0/2","name":"Commande de chauffage chambre","dpt":"1.001"},{"address":"3/1/1","name":"Consigne de base séjour","dpt":"9.001"},{"address":"3/2/0","name":"Mode central","dpt":"20.102"},{"address":"3/2/1","name":"Présence séjour","dpt":"1.018"},{"address":"3/3/1","name":"Fenêtre séjour","dpt":"1.019"},{"address":"3/4/1","name":"Température séjour","dpt":"9.001"},{"address":"3/4/2","name":"Consigne actuelle séjour","dpt":"9.001"},{"address":"3/4/3","name":"Mode actuel séjour","dpt":"20.102"},{"address":"3/4/4","name":"État de la vanne séjour","dpt":"5.001"},{"address":"3/4/5","name":"Température chambre","dpt":"9.001"}],"devices":[{"id":"usbInterface","name":"Interface USB","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"livingThermostat","name":"Thermostat du séjour","address":"1.1.1","kind":"thermostat","behavior":"roomThermostat/v1","room":"livingRoom","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/1","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"base","name":"Consigne de base","ga":"3/1/1","dpt":"9.001","port":"baseSetpoint","flags":{"W":true,"T":false}},{"id":"mode","name":"Mode (présélection)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"presence","name":"Présence","ga":"3/2/1","dpt":"1.018","port":"presence","flags":{"W":true,"T":true}},{"id":"win","name":"Fenêtre","ga":"3/3/1","dpt":"1.019","port":"window","flags":{"W":true,"T":false}},{"id":"sp","name":"Consigne actuelle","ga":"3/4/2","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"ms","name":"Mode actuel","ga":"3/4/3","dpt":"20.102","port":"hvacModeStatus","flags":{"W":false,"T":true}},{"id":"val","name":"Commande de chauffage","ga":"3/0/1","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}}],"buttons":[{"id":"presence","label":"Présence","icon":"presence","press":{"object":"presence","value":"toggle"},"led":"presence"}],"inputs":[{"id":"setpoint","type":"number","label":"Consigne °C","object":"base","min":15,"max":28,"step":0.5}]},{"id":"windowContact","name":"Contact de fenêtre du séjour","address":"1.1.2","kind":"binaryInput","behavior":"windowContact/v1","room":"livingRoom","objects":[{"id":"c","name":"Fenêtre séjour","ga":"3/3/1","dpt":"1.019","port":"contact","flags":{"W":false,"T":true}}]},{"id":"heatingActuator","name":"Actionneur de chauffage","address":"1.1.3","kind":"heatingActuator","behavior":"heatingActuator/v1","objects":[{"id":"v1","name":"Grandeur de commande H1","ga":"3/0/1","dpt":"5.001","port":"value","channel":"h1","flags":{"W":true,"T":false}},{"id":"s1","name":"État de la commande H1","ga":"3/4/4","dpt":"5.001","port":"valueStatus","channel":"h1","flags":{"W":false,"T":true}}],"channels":[{"id":"h1","label":"H1 séjour","equipment":{"type":"radiator","room":"livingRoom"}}]},{"id":"bedroomThermostat","name":"Thermostat de la chambre","address":"1.1.4","kind":"thermostat","behavior":"roomThermostat/v1","parameters":{"controlType":"twoPoint","comfortC":19},"room":"bedroom","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/5","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"mode","name":"Mode (présélection)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"sw","name":"Commande de chauffage sur un bit","ga":"3/0/2","dpt":"1.001","port":"heatingSwitch","flags":{"W":false,"T":true}}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.1.5","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"a","name":"Radiateur de la chambre","ga":"3/0/2","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"Actionneur de la chambre","equipment":{"type":"radiator","room":"bedroom","parameters":{"powerK":20}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=room-heating" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Régulation du chauffage pièce par pièce",
+  "description": "Deux pièces sont chauffées. Dans le séjour, un thermostat PI envoie une grandeur de commande DPT 5.001 à un actionneur de chauffage, qui commande une vanne thermoélectrique en MLI. La chambre utilise une régulation tout ou rien (un bit) par un actionneur de commutation. Ouvrez la fenêtre du séjour dans le panneau Pièces : le contact passe le thermostat en protection hors gel. Écrivez le mode central 3/2/0 (DPT 20.102) depuis le panneau de l'interface USB ; la touche Présence du thermostat rétablit le mode confort.",
+  "lines": [
+    { "address": "1.1", "name": "Exemple de chauffage", "powerSupply": { "currentMa": 640 } }
+  ],
+  "rooms": [
+    { "id": "livingRoom", "name": "Séjour", "temperatureC": 18 },
+    { "id": "bedroom", "name": "Chambre", "temperatureC": 17 }
+  ],
+  "groupAddresses": [
+    { "address": "3/0/1", "name": "Commande de chauffage séjour", "dpt": "5.001" },
+    { "address": "3/0/2", "name": "Commande de chauffage chambre", "dpt": "1.001" },
+    { "address": "3/1/1", "name": "Consigne de base séjour", "dpt": "9.001" },
+    { "address": "3/2/0", "name": "Mode central", "dpt": "20.102" },
+    { "address": "3/2/1", "name": "Présence séjour", "dpt": "1.018" },
+    { "address": "3/3/1", "name": "Fenêtre séjour", "dpt": "1.019" },
+    { "address": "3/4/1", "name": "Température séjour", "dpt": "9.001" },
+    { "address": "3/4/2", "name": "Consigne actuelle séjour", "dpt": "9.001" },
+    { "address": "3/4/3", "name": "Mode actuel séjour", "dpt": "20.102" },
+    { "address": "3/4/4", "name": "État de la vanne séjour", "dpt": "5.001" },
+    { "address": "3/4/5", "name": "Température chambre", "dpt": "9.001" }
+  ],
+  "devices": [
+    {
+      "id": "usbInterface",
+      "name": "Interface USB",
+      "address": "1.1.255",
+      "kind": "interface",
+      "behavior": "usbInterface/v1",
+      "objects": []
+    },
+    {
+      "id": "livingThermostat",
+      "name": "Thermostat du séjour",
+      "address": "1.1.1",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "room": "livingRoom",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Température mesurée",
+          "ga": "3/4/1",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "base",
+          "name": "Consigne de base",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "baseSetpoint",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "mode",
+          "name": "Mode (présélection)",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "hvacMode",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "presence",
+          "name": "Présence",
+          "ga": "3/2/1",
+          "dpt": "1.018",
+          "port": "presence",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "win",
+          "name": "Fenêtre",
+          "ga": "3/3/1",
+          "dpt": "1.019",
+          "port": "window",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sp",
+          "name": "Consigne actuelle",
+          "ga": "3/4/2",
+          "dpt": "9.001",
+          "port": "setpointStatus",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "ms",
+          "name": "Mode actuel",
+          "ga": "3/4/3",
+          "dpt": "20.102",
+          "port": "hvacModeStatus",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "val",
+          "name": "Commande de chauffage",
+          "ga": "3/0/1",
+          "dpt": "5.001",
+          "port": "heatingValue",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "buttons": [
+        {
+          "id": "presence",
+          "label": "Présence",
+          "icon": "presence",
+          "press": { "object": "presence", "value": "toggle" },
+          "led": "presence"
+        }
+      ],
+      "inputs": [
+        {
+          "id": "setpoint",
+          "type": "number",
+          "label": "Consigne °C",
+          "object": "base",
+          "min": 15,
+          "max": 28,
+          "step": 0.5
+        }
+      ]
+    },
+    {
+      "id": "windowContact",
+      "name": "Contact de fenêtre du séjour",
+      "address": "1.1.2",
+      "kind": "binaryInput",
+      "behavior": "windowContact/v1",
+      "room": "livingRoom",
+      "objects": [
+        {
+          "id": "c",
+          "name": "Fenêtre séjour",
+          "ga": "3/3/1",
+          "dpt": "1.019",
+          "port": "contact",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "heatingActuator",
+      "name": "Actionneur de chauffage",
+      "address": "1.1.3",
+      "kind": "heatingActuator",
+      "behavior": "heatingActuator/v1",
+      "objects": [
+        {
+          "id": "v1",
+          "name": "Grandeur de commande H1",
+          "ga": "3/0/1",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "h1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "s1",
+          "name": "État de la commande H1",
+          "ga": "3/4/4",
+          "dpt": "5.001",
+          "port": "valueStatus",
+          "channel": "h1",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "h1",
+          "label": "H1 séjour",
+          "equipment": { "type": "radiator", "room": "livingRoom" }
+        }
+      ]
+    },
+    {
+      "id": "bedroomThermostat",
+      "name": "Thermostat de la chambre",
+      "address": "1.1.4",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "parameters": { "controlType": "twoPoint", "comfortC": 19 },
+      "room": "bedroom",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Température mesurée",
+          "ga": "3/4/5",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mode",
+          "name": "Mode (présélection)",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "hvacMode",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sw",
+          "name": "Commande de chauffage sur un bit",
+          "ga": "3/0/2",
+          "dpt": "1.001",
+          "port": "heatingSwitch",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation",
+      "address": "1.1.5",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "a",
+          "name": "Radiateur de la chambre",
+          "ga": "3/0/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "Actionneur de la chambre",
+          "equipment": { "type": "radiator", "room": "bedroom", "parameters": { "powerK": 20 } }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Régulation du chauffage pièce par pièce"</span>,
+  <span class="k">"description"</span>: <span class="s">"Deux pièces sont chauffées. Dans le séjour, un thermostat PI envoie une grandeur de commande DPT 5.001 à un actionneur de chauffage, qui commande une vanne thermoélectrique en MLI. La chambre utilise une régulation tout ou rien (un bit) par un actionneur de commutation. Ouvrez la fenêtre du séjour dans le panneau Pièces : le contact passe le thermostat en protection hors gel. Écrivez le mode central 3/2/0 (DPT 20.102) depuis le panneau de l'interface USB ; la touche Présence du thermostat rétablit le mode confort."</span>,
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Exemple de chauffage"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
+  <span class="k">"rooms"</span>: [
+    { <span class="k">"id"</span>: <span class="s">"livingRoom"</span>, <span class="k">"name"</span>: <span class="s">"Séjour"</span>, <span class="k">"temperatureC"</span>: <span class="n">18</span> },
+    { <span class="k">"id"</span>: <span class="s">"bedroom"</span>, <span class="k">"name"</span>: <span class="s">"Chambre"</span>, <span class="k">"temperatureC"</span>: <span class="n">17</span> }
+  ],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"3/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Commande de chauffage séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Commande de chauffage chambre"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Consigne de base séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/0"</span>, <span class="k">"name"</span>: <span class="s">"Mode central"</span>, <span class="k">"dpt"</span>: <span class="s">"20.102"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Présence séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"1.018"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Fenêtre séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"1.019"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Température séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/2"</span>, <span class="k">"name"</span>: <span class="s">"Consigne actuelle séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/3"</span>, <span class="k">"name"</span>: <span class="s">"Mode actuel séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"20.102"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/4"</span>, <span class="k">"name"</span>: <span class="s">"État de la vanne séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/4/5"</span>, <span class="k">"name"</span>: <span class="s">"Température chambre"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"usbInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface USB"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.255"</span>,
+      <span class="k">"kind"</span>: <span class="s">"interface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"usbInterface/v1"</span>,
+      <span class="k">"objects"</span>: []
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"livingThermostat"</span>,
+      <span class="k">"name"</span>: <span class="s">"Thermostat du séjour"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"thermostat"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"roomThermostat/v1"</span>,
+      <span class="k">"room"</span>: <span class="s">"livingRoom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"temp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température mesurée"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"actualTemp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"base"</span>,
+          <span class="k">"name"</span>: <span class="s">"Consigne de base"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"baseSetpoint"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode (présélection)"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacMode"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"name"</span>: <span class="s">"Présence"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.018"</span>,
+          <span class="k">"port"</span>: <span class="s">"presence"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"win"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fenêtre"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.019"</span>,
+          <span class="k">"port"</span>: <span class="s">"window"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Consigne actuelle"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"setpointStatus"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"ms"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode actuel"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacModeStatus"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"val"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commande de chauffage"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatingValue"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"buttons"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"presence"</span>,
+          <span class="k">"label"</span>: <span class="s">"Présence"</span>,
+          <span class="k">"icon"</span>: <span class="s">"presence"</span>,
+          <span class="k">"press"</span>: { <span class="k">"object"</span>: <span class="s">"presence"</span>, <span class="k">"value"</span>: <span class="s">"toggle"</span> },
+          <span class="k">"led"</span>: <span class="s">"presence"</span>
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"setpoint"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Consigne °C"</span>,
+          <span class="k">"object"</span>: <span class="s">"base"</span>,
+          <span class="k">"min"</span>: <span class="n">15</span>,
+          <span class="k">"max"</span>: <span class="n">28</span>,
+          <span class="k">"step"</span>: <span class="n">0.5</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"windowContact"</span>,
+      <span class="k">"name"</span>: <span class="s">"Contact de fenêtre du séjour"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"binaryInput"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"windowContact/v1"</span>,
+      <span class="k">"room"</span>: <span class="s">"livingRoom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fenêtre séjour"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.019"</span>,
+          <span class="k">"port"</span>: <span class="s">"contact"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"heatingActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de chauffage"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"heatingActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"heatingActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"v1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Grandeur de commande H1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"name"</span>: <span class="s">"État de la commande H1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"valueStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"h1"</span>,
+          <span class="k">"label"</span>: <span class="s">"H1 séjour"</span>,
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"livingRoom"</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"bedroomThermostat"</span>,
+      <span class="k">"name"</span>: <span class="s">"Thermostat de la chambre"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"thermostat"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"roomThermostat/v1"</span>,
+      <span class="k">"parameters"</span>: { <span class="k">"controlType"</span>: <span class="s">"twoPoint"</span>, <span class="k">"comfortC"</span>: <span class="n">19</span> },
+      <span class="k">"room"</span>: <span class="s">"bedroom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"temp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température mesurée"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"actualTemp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode (présélection)"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"hvacMode"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commande de chauffage sur un bit"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatingSwitch"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.5"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"name"</span>: <span class="s">"Radiateur de la chambre"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"label"</span>: <span class="s">"Actionneur de la chambre"</span>,
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"bedroom"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerK"</span>: <span class="n">20</span> } }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/dali.html">← Passerelle DALI</a>
+<a href="../../fr/examples/weather-protection.html">Protection météo →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

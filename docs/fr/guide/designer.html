@@ -1,0 +1,175 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Designer · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/designer.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li class="cur"><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="designer"><a class="anchor" href="#designer">#</a>Designer</h1><p>Le <a href="../../designer/index.html">designer</a> est l&#39;outil principal pour rédiger des schémas. C&#39;est une application web autonome qui fonctionne hors ligne. Les outils d&#39;édition sont à gauche et un aperçu en direct à droite ; faites glisser le séparateur entre les deux (ou donnez-lui le focus et utilisez les flèches) pour répartir la largeur, et <strong>Masquer l&#39;aperçu</strong> pour donner toute la fenêtre à l&#39;éditeur. Le navigateur mémorise la disposition. Vous pouvez préparer un scénario sans écrire de JSON, modifier directement le JSON, et exporter le résultat pour une page ou une présentation.</p>
+<p>Les deux modes d&#39;édition travaillent sur le même scénario. Les changements faits dans les formulaires guidés mettent à jour le JSON ; les modifications valides du JSON mettent à jour les formulaires. Le navigateur enregistre le brouillon localement et le restaure à votre retour.</p>
+<h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Commencer un scénario</h2><p>Partez d&#39;une installation vide, de l&#39;un des exemples interactifs ou d&#39;un modèle d&#39;appareil ou de topologie. Vous pouvez aussi ouvrir un fichier <code>.json</code> existant, ou suivre l&#39;icône au bout de la barre d&#39;outils de n&#39;importe quel schéma, qui ouvre ce schéma ici.</p>
+<h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Éditeur guidé</h2><p>L&#39;éditeur guidé suit la logique de travail enseignée dans les formations KNX : des panneaux avec une arborescence et une liste, un catalogue, des adresses de groupe reliées aux objets de groupe par glisser-déposer. L&#39;aperçu à droite montre aussitôt le résultat.</p>
+<h3 id="panels"><a class="anchor" href="#panels">#</a>Panneaux</h3><p>Deux panneaux sont superposés. Le sélecteur de la barre de titre de chaque panneau choisit son contenu : <strong>Topologie</strong>, <strong>Adresses de groupe</strong>, <strong>Catalogue</strong> ou <strong>Installation</strong> (titre, description, horloge simulée, pièces chauffées). <strong>+ Panneau</strong> ouvre le second panneau, et <strong>×</strong> le ferme. Chaque panneau a une arborescence à gauche et une liste à droite ; les onglets en bas de la liste changent son contenu. Faites glisser les séparateurs (ou donnez-leur le focus et utilisez les flèches) pour redimensionner l&#39;arborescence, la liste et les deux panneaux ; le navigateur mémorise les tailles.</p>
+<p>Dans l&#39;arborescence Topologie, une ligne avec un répéteur de ligne ou un coupleur de segment montre ses deux segments, et chaque appareil se trouve dans son segment. Une ligne sans extension montre directement ses appareils. Les appareils sont repliés : ouvrez-en un (▸) pour afficher ses objets de groupe dans l&#39;arborescence. Le champ <strong>Filtrer</strong> au-dessus de chaque arborescence garde les nœuds dont l&#39;adresse ou le nom contient le texte, avec leurs parents.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Sélection dans l&#39;arborescence</th>
+<th>Onglets de la liste</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Topologie (racine)</td>
+<td>Vue d&#39;ensemble : réseau IP, ligne de zone, lignes principales, zones et lignes avec leurs appareils, coupleurs et tables de filtrage.</td>
+</tr>
+<tr>
+<td>Zone</td>
+<td>Lignes de la zone ; nom de la zone ; <strong>Ajouter une ligne</strong>.</td>
+</tr>
+<tr>
+<td>Ligne</td>
+<td>Appareils de la ligne ; nom, alimentation et extension de ligne.</td>
+</tr>
+<tr>
+<td>Appareil</td>
+<td><strong>Objets de groupe</strong> (numéro, nom, canal, fonction de l&#39;objet, adresses de groupe avec l&#39;adresse d&#39;émission marquée <strong>S</strong>, longueur, DPT, indicateurs C, R, W, T, U et I) et <strong>Paramètres</strong> (voir plus bas).</td>
+</tr>
+<tr>
+<td>Objet de groupe</td>
+<td><strong>Associations</strong> (adresses de groupe de l&#39;objet ; <strong>Définir comme émission</strong> ; <strong>Supprimer</strong> ; <strong>Lier à…</strong>) et <strong>Propriétés</strong> (nom, indicateurs, priorité, DPT).</td>
+</tr>
+<tr>
+<td>Adresses de groupe (racine), groupe principal, groupe médian</td>
+<td>Groupes principaux, groupes médians ou adresses, avec <strong>Ajouter un groupe principal</strong>, <strong>Ajouter un groupe médian</strong> et <strong>Ajouter une adresse de groupe</strong> ; nommez les groupes.</td>
+</tr>
+<tr>
+<td>Adresse de groupe</td>
+<td><strong>Associations</strong> (objets liés à l&#39;adresse, avec celui qui émet ; leurs indicateurs C, R, W, T, U et I se modifient ici ; <strong>Lier à…</strong>) et <strong>Propriétés</strong> (adresse, nom, DPT et édition groupée des objets liés).</td>
+</tr>
+<tr>
+<td>Catalogue</td>
+<td>Les types d&#39;appareils que le simulateur modélise, par catégorie, avec leur application et leurs objets de groupe ; <strong>Nombre</strong> … <strong>sur la ligne</strong> … <strong>Ajouter</strong> insère des appareils.</td>
+</tr>
+</tbody></table>
+</div><p>Sélectionner un appareil sur le schéma l&#39;affiche dans le panneau Topologie.</p>
+<p><strong>Numéros des objets de groupe.</strong> Comme dans la table des objets d&#39;un produit KNX, chaque entrée d&#39;une interface de boutons-poussoirs et chaque sortie d&#39;un actionneur a un bloc de numéros de taille fixe : un par fonction de l&#39;entrée ou de la sortie, dans l&#39;ordre des fonctions de l&#39;appareil (sept par entrée d&#39;une interface de boutons-poussoirs ; pour un actionneur de commutation : commutation, état, scène, forçage, verrouillage, logique, puissance, énergie). Les objets de l&#39;appareil entier suivent les blocs. Une entrée ou une sortie garde donc ses numéros quand une autre gagne ou perd des objets, et les places inutilisées laissent des trous. Ajouter ou supprimer une entrée ou une sortie renumérote les blocs qui la suivent. Les modifications guidées gardent les objets du scénario, et les lignes du schéma, dans l&#39;ordre de leurs numéros ; pour un scénario écrit à la main, <strong>Ordonner les objets de groupe par numéro</strong> dans le menu contextuel de l&#39;appareil s&#39;en charge.</p>
+<p>Un clic droit sur un nœud de l&#39;arborescence ou une ligne de liste (ou la touche de menu contextuel, ou Maj+F10 dans une arborescence) ouvre les commandes de cet élément ; un même élément a les mêmes commandes partout où il apparaît, et une ligne de liste propose aussi <strong>Ouvrir</strong>. Un clic droit sur la partie vide d&#39;une liste ouvre les commandes de l&#39;élément qu&#39;elle montre. Les commandes comprennent : ajouter une zone, une ligne, ou des appareils du catalogue ; ajouter ou retirer une extension de ligne ; ouvrir les objets de groupe ou les paramètres d&#39;un appareil ; <strong>Lier à…</strong> ; <strong>Renommer</strong> ; délier toutes les adresses d&#39;un objet ; ajouter ou supprimer des groupes et des adresses ; supprimer l&#39;élément ; ajouter une entrée du catalogue sur une ligne.</p>
+<p><strong>Renommez</strong> une zone, une ligne, un appareil, un objet de groupe, un groupe ou une adresse de groupe en double-cliquant sur son nom (dans une arborescence ou une liste), avec <strong>F2</strong> dans une arborescence, ou avec <strong>Renommer</strong> dans le menu contextuel. <strong>Entrée</strong> valide, <strong>Échap</strong> annule.</p>
+<h3 id="device-parameters"><a class="anchor" href="#device-parameters">#</a>Paramètres de l&#39;appareil</h3><p>L&#39;onglet <strong>Paramètres</strong> est organisé comme le dialogue de paramètres d&#39;un produit KNX : une arborescence de pages à gauche, la page choisie à droite avec un paramètre par ligne, le libellé à gauche et la valeur à droite. Une page de paramètres n&#39;affiche jamais d&#39;adresse de groupe : trois niveaux restent séparés.</p>
+<ol>
+<li><strong>Paramètres de l&#39;appareil.</strong> <strong>Général</strong> donne le nom, la ligne et l&#39;adresse individuelle. <strong>Configuration</strong> fixe le nombre de sorties (ou d&#39;entrées) et les liste dans un tableau avec leurs charges raccordées et les fonctions qu&#39;elles activent. Chaque type d&#39;appareil organise ses paramètres par fonction : pour un actionneur de commutation, une page pour le comptage et le délestage, puis pour chaque sortie un groupe (<strong>+</strong> / <strong>−</strong>) avec <strong>Fonction</strong>, <strong>Temporisations</strong>, <strong>Minuterie</strong>, <strong>Forçage et verrouillage</strong>, <strong>Liaison logique</strong>, <strong>Scènes</strong>, <strong>Tension du bus</strong>, <strong>Comptage</strong> et <strong>Charges raccordées</strong>. Les réglages dépendants n&#39;apparaissent que lorsqu&#39;ils s&#39;appliquent : les options de la minuterie une fois une durée réglée, la fin du forçage une fois l&#39;objet de forçage activé.</li>
+<li><strong>Objets de groupe activés par les paramètres.</strong> <strong>Activer l&#39;objet de groupe « … »</strong> crée l&#39;objet, comme le paramètre correspondant d&#39;un produit ; décocher la case supprime l&#39;objet. Les objets activés apparaissent dans l&#39;onglet <strong>Objets de groupe</strong>, où on les relie aux adresses de groupe (ou par glisser-déposer, ou depuis une adresse de groupe avec <strong>Lier à…</strong>).</li>
+<li><strong>Charges câblées sur les sorties</strong>, qui relèvent de la simulation et non de la configuration de l&#39;appareil. Une sortie est un relais ou un canal de l&#39;actionneur : elle a ses propres réglages et objets de groupe, et se commande seule. La page <strong>Charges raccordées</strong> d&#39;une sortie liste les charges qui y sont câblées, en parallèle : la sortie les commute toutes ensemble, et un actionneur avec mesure mesure la somme de leurs puissances. <strong>Raccorder une charge…</strong> en ajoute une ; chaque charge a un type, un nom facultatif affiché sur le schéma, ses paramètres et, pour un radiateur, sa pièce chauffée. Une sortie de volet commande un seul moteur.</li>
+</ol>
+<p>Un appareil dont les fonctions appartiennent à des canaux sans commander de charge, comme les circuits mesurés d&#39;un compteur d&#39;énergie, a la même page Configuration (nombre de canaux) et un groupe par canal, sans charges raccordées. Une interface de boutons-poussoirs compte des <strong>entrées</strong> : chaque entrée a ses pages <strong>Fonction</strong>, <strong>Verrouillage</strong>, <strong>LED</strong> et <strong>Tension du bus et émission cyclique</strong>, puis <strong>Bouton-poussoir raccordé</strong>, qui donne le texte écrit sur le bouton-poussoir câblé à l&#39;entrée, dessiné sur sa touche (l&#39;entrée garde son nom).</p>
+<p><strong>Pages de l&#39;installation.</strong> Ce qui appartient à l&#39;installation simulée autour d&#39;un appareil, et non à ses paramètres, est affiché dans l&#39;orange du câblage 230 V, avec une icône de prise, sous un séparateur <strong>Installation</strong> dans l&#39;arborescence des pages : les <strong>Charges raccordées</strong> d&#39;une sortie, le <strong>Bouton-poussoir raccordé</strong> d&#39;une entrée, les <strong>Saisies dans le schéma</strong> d&#39;un appareil. Tout le reste se règle comme dans le dialogue de paramètres du produit. La fonction choisie dans la page <strong>Fonction</strong> crée ses objets de groupe, comme dans le dialogue de paramètres d&#39;un produit : la commutation donne un objet de commutation, la variation un objet de commutation et un objet de variation, un store un objet montée/descente et un objet arrêt/pas ; choisir une autre fonction les remplace, et un objet conservé d&#39;une fonction à l&#39;autre garde ses adresses. Les objets de verrouillage et de LED s&#39;activent dans leurs pages.</p>
+<p><strong>Saisies dans le schéma</strong>, autre niveau de la simulation, liste les objets de l&#39;appareil pour lesquels le lecteur peut saisir une valeur sur le schéma : les mesures d&#39;une station météo ou d&#39;un capteur de qualité de l&#39;air, la puissance d&#39;un circuit mesuré, une valeur d&#39;une passerelle. Cochez <strong>Saisie</strong>, puis donnez le libellé, le minimum, le maximum et le pas du champ ; la valeur est écrite dans l&#39;objet et envoyée sur son adresse de groupe : l&#39;objet en a donc besoin d&#39;une.</p>
+<p>Un clic droit sur une sortie ou une touche, dans l&#39;arborescence des pages ou dans le tableau Configuration, ouvre ses commandes : réglages, charges raccordées, renommer, copier les réglages vers d&#39;autres sorties, ajouter, supprimer. Un clic droit sur une charge la monte ou la descend, ou la débranche.</p>
+<p><strong>Tableaux.</strong> Cliquez sur l&#39;en-tête d&#39;une colonne pour trier selon cette colonne (une deuxième fois pour l&#39;ordre décroissant, une troisième pour l&#39;ordre d&#39;origine) ; faites glisser le bord droit d&#39;un en-tête pour redimensionner la colonne, et double-cliquez sur ce bord pour revenir aux largeurs automatiques. Le navigateur mémorise les largeurs. Le tableau Objets de groupe montre le canal de chaque objet : la sortie d&#39;un actionneur ou la touche d&#39;un bouton-poussoir.</p>
+<h3 id="programming-gestures"><a class="anchor" href="#programming-gestures">#</a>Gestes de programmation</h3><ul>
+<li><strong>Ajouter un appareil :</strong> faites glisser une entrée du catalogue sur une ligne de l&#39;arborescence Topologie ou sur la liste des appareils d&#39;une ligne, double-cliquez sur l&#39;entrée, ou utilisez <strong>Ajouter</strong> en bas du panneau Catalogue. L&#39;appareil reçoit la première adresse individuelle libre de la ligne.</li>
+<li><strong>Relier une adresse de groupe et un objet de groupe :</strong> faites glisser l&#39;adresse du panneau Adresses de groupe sur un objet de groupe (dans l&#39;arborescence, ou sur une ligne de l&#39;onglet Objets de groupe ou Associations), ou faites glisser l&#39;objet de groupe sur l&#39;adresse. Quand un panneau montre une adresse de groupe, un objet de groupe, un groupe médian ou une ligne, toute la liste de ce panneau accepte le dépôt : inutile de viser une ligne. La première adresse d&#39;un objet est son adresse d&#39;émission ; les suivantes sont seulement écoutées. <strong>Définir comme émission</strong>, dans l&#39;onglet Associations de l&#39;objet, change l&#39;adresse d&#39;émission.</li>
+<li><strong>Activer un objet de groupe :</strong> dans la page Réglages d&#39;une sortie, cochez <strong>Activer l&#39;objet de groupe « … »</strong> (Forçage, Retour d&#39;état, …). L&#39;objet apparaît dans l&#39;arborescence et dans l&#39;onglet Objets de groupe sans adresse, prêt à être glissé sur une adresse de groupe ; retirer sa dernière adresse le laisse activé. Décochez la case pour supprimer l&#39;objet.</li>
+<li><strong>Nouvelle adresse pour un objet :</strong> faites glisser un objet de groupe sur un groupe médian : une adresse de groupe y est créée et reliée à l&#39;objet.</li>
+<li><strong>Déplacer un appareil :</strong> faites-le glisser sur une autre ligne ; il reçoit une adresse libre de cette ligne et garde ses objets et ses liaisons.</li>
+</ul>
+<p>Pendant un glisser, la barre d&#39;état en bas explique le geste (« Lier à 1 : Touche 1 »). Seuls des objets et des adresses de même taille de données peuvent être reliés : une cible incompatible s&#39;affiche en rouge et le dépôt est refusé. Chaque geste, et le bouton équivalent, est une étape de l&#39;historique d&#39;annulation.</p>
+<p>Dans l&#39;onglet <strong>Propriétés</strong> d&#39;une adresse de groupe, l&#39;éditeur des objets associés regroupe les objets par appareil et permet d&#39;ajouter ou de retirer une adresse de plusieurs objets à la fois. Avant d&#39;appliquer le changement, il liste les effets sur les adresses d&#39;émission et les liaisons des objets. L&#39;opération entière s&#39;annule en une étape.</p>
+<p><strong>À propos</strong>, dans la barre de titre, donne la version, la licence et l&#39;adresse du code source. BusDiagram est un projet pédagogique indépendant, non affilié à KNX Association ; KNX et ETS sont des marques de KNX Association.</p>
+<h3 id="validation-and-undo"><a class="anchor" href="#validation-and-undo">#</a>Validation et annulation</h3><p>Le designer ne propose, autant que possible, que des choix compatibles : par exemple, les adresses de groupe et les objets doivent avoir des tailles de DPT compatibles. Les modifications invalides sont refusées avec une explication, et le scénario garde sa valeur valide précédente. Les modifications destructrices demandent une confirmation. Les modifications guidées et JSON partagent un même historique d&#39;annulation.</p>
+<p>Les erreurs de validation sont listées sous l&#39;éditeur. Sélectionnez une erreur pour ouvrir l&#39;appareil ou le champ concerné.</p>
+<h2 id="json-editor"><a class="anchor" href="#json-editor">#</a>Éditeur JSON</h2><p>L&#39;onglet JSON modifie le scénario complet. Il propose des modèles d&#39;insertion, la mise en forme et la conversion au format 2. La complétion suggère les champs, les ports des comportements, les DPT, les adresses de groupe déclarées, et les objets et canaux existants à la position du curseur. Les erreurs sont mises en évidence sur place. Tant que le JSON est invalide, l&#39;aperçu continue d&#39;afficher le dernier scénario valide.</p>
+<h2 id="preview-and-export"><a class="anchor" href="#preview-and-export">#</a>Aperçu et export</h2><p>L&#39;onglet <strong>Simulation</strong>, à côté de <strong>Guidé</strong> et <strong>JSON</strong>, affiche le schéma seul sur toute la largeur de la fenêtre, avec son moniteur ; les autres onglets ramènent les éditeurs.</p>
+<p>L&#39;aperçu peut afficher une barre d&#39;outils complète ou compacte, masquer le moniteur ou la description, et adapter le schéma à une diapositive 16:9. L&#39;export utilise les options d&#39;affichage choisies.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Export</th>
+<th>Usage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Code à coller dans une page</td>
+<td>Intégrer le schéma dans du HTML, une sortie Markdown ou une diapositive reveal.js. Le code charge la version de la bibliothèque du designer depuis un CDN, figée par son empreinte d&#39;intégrité ; voir <a href="versions.html">versions</a>. Voir <a href="embedding.html">Intégration</a>.</td>
+</tr>
+<tr>
+<td>Page autonome (.html)</td>
+<td>Un seul fichier hors ligne contenant la bibliothèque, le scénario et les extensions chargées.</td>
+</tr>
+<tr>
+<td>Fichier JSON</td>
+<td>Enregistrer le scénario pour la gestion de versions ou le charger avec <code>src</code>.</td>
+</tr>
+<tr>
+<td>Lien de lecture</td>
+<td>Mettre un scénario compressé dans le fragment d&#39;une URL pour une iframe ou une autre visionneuse web. Voir <a href="viewer.html">Visionneuse</a>.</td>
+</tr>
+<tr>
+<td>Bibliothèque</td>
+<td>Télécharger <code>bus-diagram.js</code> pour l&#39;héberger à côté de votre page.</td>
+</tr>
+</tbody></table>
+</div><h2 id="extensions"><a class="anchor" href="#extensions">#</a>Extensions</h2><p>Le gestionnaire d&#39;extensions charge, remplace et retire des fichiers <code>.js</code>. Une extension peut ajouter un comportement, des champs de formulaire et une vue personnalisée. Le designer mémorise les extensions chargées dans le navigateur.</p>
+<p>Une mise à jour n&#39;est acceptée que si toutes les extensions chargées, dépendances comprises, peuvent encore se charger ensemble. Le designer les vérifie dans un environnement isolé équivalent à la page autonome exportée. Si une mise à jour échoue, les définitions existantes et les sources enregistrées restent en place. Les scripts d&#39;extension s&#39;exécutent dans leurs propres portées de fonction : ils peuvent réutiliser des noms de variables internes.</p>
+<p>Les paramètres obligatoires et les états initiaux se saisissent avant l&#39;ajout d&#39;un nouvel appareil d&#39;extension. L&#39;éditeur distingue une valeur omise, une chaîne vide et <code>null</code> là où le schéma les permet.</p>
+<p>Ne chargez que des scripts de confiance : une extension s&#39;exécute comme une partie de la page. Les pages autonomes incluent les extensions chargées. Les codes à coller référencent des fichiers d&#39;extension que vous devez héberger à côté de la page ; les liens de lecture ne transportent pas le code des extensions.</p>
+<h2 id="languages"><a class="anchor" href="#languages">#</a>Langues</h2><p>Le menu des langues fait passer le designer et l&#39;aperçu de l&#39;anglais au français. Les pages exportées et les liens de lecture conservent la langue choisie. Les titres, noms et descriptions des scénarios restent le texte de leur auteur. Voir <a href="languages.html">Langues</a>.</p>
+
+<nav class="pager">
+<a href="../../fr/guide/couplers.html">← Coupleurs et répéteurs</a>
+<a href="../../fr/guide/usb-interface.html">Outil interface USB →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#start-a-scenario">Commencer un scénario</a></li><li><a href="#guided-editor">Éditeur guidé</a></li><li><a href="#json-editor">Éditeur JSON</a></li><li><a href="#preview-and-export">Aperçu et export</a></li><li><a href="#extensions">Extensions</a></li><li><a href="#languages">Langues</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

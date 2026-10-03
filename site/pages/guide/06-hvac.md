@@ -6,7 +6,7 @@ order: 6.3
 
 # Heating and air conditioning (HVAC)
 
-This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler, heat pump, or water circuit. Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.
+This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler or water circuit; a heat pump is a load that heats or cools its room (see [model limits](#model-limits)). Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.
 
 ## Rooms and thermal model
 

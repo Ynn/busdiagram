@@ -32,7 +32,10 @@ function send(ctx: Ctx, port: string, value: number) {
     });
 }
 
-/** Two-level alarm: set at the threshold, reset below threshold − hysteresis. */
+/**
+ * Two-level alarm: set at the threshold, reset strictly below threshold − hysteresis, so
+ * that a value at the threshold stays set even with no hysteresis.
+ */
 function alarm(
   ctx: Ctx,
   key: "co2Alarm" | "humidityAlarm",
@@ -43,7 +46,7 @@ function alarm(
   if (value === null) return;
   const before = ctx.state[key];
   const after = before
-    ? value <= limit - hysteresis
+    ? value < limit - hysteresis
       ? 0
       : 1
     : value >= limit
@@ -248,6 +251,7 @@ export const airQualitySensor: BehaviorDefinition<AirState> = {
   },
   ports: {
     temperature: {
+      single: true,
       defaultFlags: { R: true },
       dpts: ["9.001"],
       channel: "none",
@@ -256,6 +260,7 @@ export const airQualitySensor: BehaviorDefinition<AirState> = {
       description: "measured temperature (°C), sent when entered",
     },
     humidity: {
+      single: true,
       defaultFlags: { R: true },
       dpts: ["9.007", "5.001"],
       channel: "none",
@@ -265,6 +270,7 @@ export const airQualitySensor: BehaviorDefinition<AirState> = {
         "measured relative humidity (%), sent when entered: 2-byte float with 9.007, one byte with 5.001",
     },
     co2: {
+      single: true,
       defaultFlags: { R: true },
       dpts: ["9.008"],
       channel: "none",
@@ -313,6 +319,10 @@ export const airQualitySensor: BehaviorDefinition<AirState> = {
   },
   onTimer(ctx, key) {
     if (key === "step") control(ctx);
+  },
+  // A step change waiting for its minimum time was lost with the timers: check it again.
+  onBusRecovery(ctx) {
+    control(ctx);
   },
   deviceState(state) {
     return {

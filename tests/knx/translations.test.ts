@@ -32,6 +32,19 @@ function structure(text: string) {
   return { headings, blocks, tables };
 }
 
+/** Code spans of each heading: identifiers, the same in every language. */
+function headingCode(text: string) {
+  const body = text.replace(/^---\n[\s\S]*?\n---\n/, "");
+  const out: string[] = [];
+  let inCode = false;
+  for (const line of body.split("\n")) {
+    if (/^\s*```/.test(line)) inCode = !inCode;
+    else if (!inCode && /^#{1,6}\s/.test(line))
+      out.push((line.match(/`[^`]+`/g) ?? []).join(" "));
+  }
+  return out;
+}
+
 describe("French documentation", () => {
   const pages = frenchPages();
 
@@ -53,6 +66,11 @@ describe("French documentation", () => {
         readFileSync(join(pagesDir, p.translationOf), "utf8"),
       );
       expect(fr).toEqual(en);
+      // A translated page takes the anchors of its source by position: the headings must
+      // stay in the same order; their code spans (identifiers) show it.
+      expect(headingCode(readFileSync(join(pagesDir, p.file), "utf8"))).toEqual(
+        headingCode(readFileSync(join(pagesDir, p.translationOf), "utf8")),
+      );
     },
   );
 });

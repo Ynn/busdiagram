@@ -21,7 +21,7 @@ Each validation problem has a JSON `path`, a `code`, and a localized `message`.
 | `address` | Malformed or out-of-range individual, line, or group address. |
 | `duplicate` | Duplicate identifier or address. |
 | `reference` | Reference to a missing line, channel, object, coupler, or topology level. |
-| `port` | Port not accepted by a behavior, or an invalid channel association. |
+| `port` | Port not accepted by a behavior, an invalid channel association, or a second object on a port that takes only one. |
 | `dpt` | Unsupported DPT or DPT incompatible with a port. |
 | `association` | Incompatible payload sizes on one group address. |
 | `toggle` | `"toggle"` used with an object that is not one bit. |
@@ -53,6 +53,7 @@ These warnings do not stop the simulation. They are shown above the diagram, and
 | `config-contact` | The window contact type (`contactType`) and the input inversion (`invert`) disagree, or the contact of a push-button wired to a push-button interface (`keyContact`) and the contact its input expects when actuated (`actuatedContact`) disagree; open and closed, or presses and releases, are seen the wrong way round. |
 | `config-value-range` | A value of a push-button interface input (`shortValue`, `longValue`) is outside the range of its object’s DPT; the value sent is limited to that range. |
 | `config-no-power-supply` | A TP line, or the segment behind its extension, declares no bus power supply (`powerSupply`). Each TP segment needs its own supply with its choke; the simulation still runs. |
-| `config-segment-size` | More than 64 devices on one TP1 segment (a line, or the segment behind its extension). The KNX TP1 specification allows 64 devices per segment, or 256 with TP1-256 devices; otherwise use a line repeater or a segment coupler. |
+| `config-segment-size` | More than 64 connections on one TP1 segment (a line, a main line, the backbone, or the segment behind an extension): devices, and couplers, routers, or line extensions, which have a TP1 connection on each of their segments. The KNX TP1 specification allows 64 devices per segment, or 256 with TP1-256 devices; otherwise use a line repeater or a segment coupler. |
 | `config-datatype` | A group address links DPTs of the same size but different meaning, such as a scene number (17.001) and a percentage (5.001), or 5.001 and 5.004. One-bit DPTs are not compared. A scene number (17.001) and a scene control (18.001) agree on recalls; the warning then notes that a 17.001 object reads a storing telegram as a recall. |
+| `config-program` | A weekly program entry of a time switch cannot be read (days, time, value), or its value does not suit the DPT of the output objects; the entry is ignored. |
 | `config-polarity` | A group address links DPT 1.009 (1 = closed) and DPT 1.019 (1 = open), whose values have opposite meanings. |

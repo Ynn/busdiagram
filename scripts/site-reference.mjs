@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { cdnTag, cdnUrl } from "../site/shared/cdn.js";
 // Reference blocks generated from code and inserted into Markdown pages :
@@ -20,6 +20,9 @@ const DEFS = {
   powerSupply: ["Power supply", "power-supply"],
 };
 
+// Translation of the generated texts (identity in English); set by expand().
+let t = (s) => s;
+
 const cell = (s) =>
   String(s ?? "")
     .replace(/\|/g, "\\|")
@@ -32,7 +35,7 @@ function typeText(n, depth = 0) {
     const name = n.$ref.replace("#/$defs/", "");
     if (name === "dpt") return "[DPT](dpt.html)";
     const [label, anchor] = DEFS[name] ?? [name, name];
-    return `[${label}](#${anchor})`;
+    return `[${t(label)}](#${anchor})`;
   }
   if ("const" in n) return code(JSON.stringify(n.const));
   if (n.enum) return n.enum.map((v) => code(JSON.stringify(v))).join(", ");
@@ -49,9 +52,9 @@ function typeText(n, depth = 0) {
     return n.anyOf
       .map((x) => typeText(x, depth + 1))
       .filter(Boolean)
-      .join(" or ");
-  const t = Array.isArray(n.type) ? n.type.join(" or ") : n.type;
-  const fr = {
+      .join(t(" or "));
+  const type = Array.isArray(n.type) ? n.type.join(" or ") : n.type;
+  const names = {
     string: "string",
     number: "number",
     integer: "integer",
@@ -60,14 +63,14 @@ function typeText(n, depth = 0) {
     array: "array",
     null: "null",
   };
-  if (t === "array")
-    return `list of ${typeText(n.items, depth + 1) || "values"}`;
-  if (typeof t === "string")
+  if (type === "array")
+    return `${t("list of")} ${typeText(n.items, depth + 1) || t("values")}`;
+  if (typeof type === "string")
     return (
-      t
+      type
         .split(" or ")
-        .map((x) => fr[x] ?? x)
-        .join(" or ") + (n.pattern ? " (validated format)" : "")
+        .map((x) => t(names[x] ?? x))
+        .join(t(" or ")) + (n.pattern ? t(" (validated format)") : "")
     );
   return "";
 }
@@ -77,28 +80,28 @@ function fields(schema, def) {
   const req = node.required ?? [];
   const rows = Object.entries(node.properties ?? {}).map(
     ([k, p]) =>
-      `| ${code(k)} | ${cell(typeText(p))} | ${req.includes(k) ? "yes" : ""} | ${cell(p.description ?? "")} |`,
+      `| ${code(k)} | ${cell(typeText(p))} | ${req.includes(k) ? t("yes") : ""} | ${cell(t(p.description ?? ""))} |`,
   );
-  return `${node.description ? `${node.description}\n\n` : ""}| Field | Type | Required | Description |\n| --- | --- | --- | --- |\n${rows.join("\n")}\n`;
+  return `${node.description ? `${t(node.description)}\n\n` : ""}| ${t("Field")} | ${t("Type")} | ${t("Required")} | ${t("Description")} |\n| --- | --- | --- | --- |\n${rows.join("\n")}\n`;
 }
 
 function paramTable(list, empty) {
   if (!list.length) return `_${empty}_\n`;
-  return `| Parameter | Type | Default | Constraints | Description |\n| --- | --- | --- | --- | --- |\n${list
+  return `| ${t("Parameter")} | ${t("Type")} | ${t("Default")} | ${t("Constraints")} | ${t("Description")} |\n| --- | --- | --- | --- | --- |\n${list
     .map(
       (p) =>
-        `| ${code(p.name)}${p.required ? " (required)" : ""} | ${p.type} | ${p.default ? code(p.default) : ""} | ${cell(p.constraints)} | ${cell(p.description)} |`,
+        `| ${code(p.name)}${p.required ? t(" (required)") : ""} | ${p.type} | ${p.default ? code(p.default) : ""} | ${cell(constraints(p.constraints))} | ${cell(t(p.description))} |`,
     )
     .join("\n")}\n`;
 }
 
 function optionalTables(list) {
   const shown = list.filter(([, , rows]) => rows.length);
-  if (!shown.length) return "_No parameters._\n";
+  if (!shown.length) return `_${t("No parameters.")}_\n`;
   return shown
     .map(
       ([title, path, rows]) =>
-        `**${title}** (${code(path)})\n\n${paramTable(rows, "")}`,
+        `**${t(title)}** (${code(path)})\n\n${paramTable(rows, "")}`,
     )
     .join("\n");
 }
@@ -143,15 +146,31 @@ function frontMatter(text) {
   );
 }
 
-/** {{examples}}: one list of cards per group, built from the example pages' front matter. */
-function examplesIndex(root) {
+/**
+ * {{examples}}: one list of cards per group, built from the example pages' front matter.
+ * In French, each card uses the translated page when it exists, else the English one.
+ */
+function examplesIndex(root, lang) {
   const dir = resolve(root, "site/pages/examples");
+  const frDir = resolve(root, "site/pages/fr/examples");
+  const french = lang === "fr" && existsSync(frDir) ? readdirSync(frDir) : [];
   const pages = readdirSync(dir)
     .filter((f) => f.endsWith(".md") && !f.startsWith("00-"))
-    .map((f) => ({
-      href: `${f.replace(/\.md$/, "").replace(/^\d+-/, "")}.html`,
-      ...frontMatter(readFileSync(resolve(dir, f), "utf8")),
-    }))
+    .map((f) => {
+      const href = `${f.replace(/\.md$/, "").replace(/^\d+-/, "")}.html`;
+      const en = frontMatter(readFileSync(resolve(dir, f), "utf8"));
+      if (lang !== "fr") return { href, ...en };
+      const fr = french.includes(f)
+        ? frontMatter(readFileSync(resolve(frDir, f), "utf8"))
+        : null;
+      return {
+        // From fr/examples/index.html: a page not translated is the English one.
+        href: fr ? href : `../../examples/${href}`,
+        ...en,
+        ...(fr ? { title: fr.title, summary: fr.summary } : {}),
+        group: t(en.group ?? ""),
+      };
+    })
     .sort((a, b) => Number(a.order ?? 99) - Number(b.order ?? 99));
   const groups = [...new Set(pages.map((p) => p.group ?? ""))];
   return groups
@@ -180,7 +199,21 @@ function release(root) {
   return { version, integrity };
 }
 
-export function expand(body, data, root) {
+/** Constraints of a parameter: "≥ 0 ; ≤ 100", enumerations with their titles. */
+const constraints = (text) =>
+  String(text ?? "")
+    .split(" ; ")
+    .map((part) =>
+      part.replace(/\(([^()]+)\)/g, (_m, title) => `(${t(title)})`),
+    )
+    .join(" ; ");
+
+/**
+ * Expands the generated blocks of a page. `lang` and `translate` give the language of the
+ * page and the translation of the generated texts (English when no translation exists).
+ */
+export function expand(body, data, root, lang = "en", translate = (s) => s) {
+  t = translate;
   const lib = /\{\{(version|cdn-url|cdn-tag)\}\}/.test(body)
     ? release(root)
     : undefined;
@@ -188,7 +221,7 @@ export function expand(body, data, root) {
     .replace(/\{\{version\}\}/g, () => lib.version)
     .replace(/\{\{cdn-url\}\}/g, () => cdnUrl(lib.version))
     .replace(/\{\{cdn-tag\}\}/g, () => cdnTag(lib.version, lib.integrity))
-    .replace(/\{\{examples\}\}/g, () => examplesIndex(root))
+    .replace(/\{\{examples\}\}/g, () => examplesIndex(root, lang))
     .replace(/\{\{include:([^}]+)\}\}/g, (_m, spec) =>
       include(root, spec.trim()),
     )
@@ -197,11 +230,11 @@ export function expand(body, data, root) {
         .map(
           (o) => `### ${o.name}
 
-| HTML attribute | JavaScript option | Type | Default |
+| ${t("HTML attribute")} | ${t("JavaScript option")} | ${t("Type")} | ${t("Default")} |
 | --- | --- | --- | --- |
-| ${code(o.attribute)} | ${code(o.name)} | ${cell(o.type)} | ${cell(o.default)} |
+| ${code(o.attribute)} | ${code(o.name)} | ${cell(t(o.type))} | ${cell(t(o.default))} |
 
-${o.summary} ${o.details}
+${t(o.summary)} ${t(o.details)}
 
 \`\`\`html
 ${o.example}
@@ -216,13 +249,13 @@ ${o.example}
         .map(
           (b) => `### ${b.id}
 
-${b.description}${b.output ? ` Output command: ${code(b.output)}.` : ""}${b.acceptsInputs ? " Uses buttons and inputs." : ""}
+${t(b.description)}${b.output ? ` ${t("Output command:")} ${code(b.output)}.` : ""}${b.acceptsInputs ? ` ${t("Uses buttons and inputs.")}` : ""}
 
-**Ports**
+**${t("Ports")}**
 
-| Port | DPT | Channel | Role |
+| ${t("Port")} | DPT | ${t("Channel")} | ${t("Role")} |
 | --- | --- | --- | --- |
-${b.ports.map((p) => `| ${code(p.name)} | ${p.dpts} | ${CHANNEL[p.channel] ?? p.channel} | ${cell(p.description || data.schema.$defs.object.properties.port.oneOf.find((x) => x.const === p.name)?.description || "")} |`).join("\n")}
+${b.ports.map((p) => `| ${code(p.name)} | ${p.dpts === "any" ? t("any") : p.dpts} | ${t(CHANNEL[p.channel] ?? p.channel)} | ${cell(t(p.description || data.schema.$defs.object.properties.port.oneOf.find((x) => x.const === p.name)?.description || ""))} |`).join("\n")}
 
 ${optionalTables([
   ["Device parameters", "parameters", b.parameters],
@@ -237,7 +270,7 @@ ${optionalTables([
         .map(
           (e) => `### ${e.id}
 
-${e.description} Accepted commands: ${code(e.accepts)}.
+${t(e.description)} ${t("Accepted commands:")} ${code(e.accepts)}.
 
 ${optionalTables([
   ["Parameters", "equipment.parameters", e.parameters],
@@ -249,10 +282,10 @@ ${optionalTables([
     .replace(
       /\{\{dpts\}\}/g,
       () =>
-        `| DPT | Name | Size | Range | Examples: value → encoded bytes → display |\n| --- | --- | --- | --- | --- |\n${data.dpts
+        `| DPT | ${t("Name")} | ${t("Size")} | ${t("Range")} | ${t("Examples: value → encoded bytes → display")} |\n| --- | --- | --- | --- | --- |\n${data.dpts
           .map(
             (d) =>
-              `| ${code(d.id)} | ${d.name} | ${d.bits >= 8 ? `${d.bits / 8} byte${d.bits > 8 ? "s" : ""}` : `${d.bits} bit${d.bits > 1 ? "s" : ""}`} | ${d.range} | ${d.samples
+              `| ${code(d.id)} | ${t(d.name)} | ${d.bits >= 8 ? `${d.bits / 8} ${t(d.bits > 8 ? "bytes" : "byte")}` : `${d.bits} ${t(d.bits > 1 ? "bits" : "bit")}`} | ${d.range} | ${d.samples
                 .map(
                   (s) =>
                     `${s.value} → ${code(
@@ -273,10 +306,10 @@ ${optionalTables([
           .filter((b) => b.ports.some((p) => p.name === name))
           .map((b) => code(b.id))
           .join(", ");
-      return `| Port | Description | Behaviors |\n| --- | --- | --- |\n${data.schema.$defs.object.properties.port.oneOf
+      return `| ${t("Port")} | ${t("Description")} | ${t("Behaviors")} |\n| --- | --- | --- |\n${data.schema.$defs.object.properties.port.oneOf
         .map(
           (p) =>
-            `| ${code(p.const)} | ${cell(p.description)} | ${users(p.const)} |`,
+            `| ${code(p.const)} | ${cell(t(p.description))} | ${users(p.const)} |`,
         )
         .join("\n")}\n`;
     });

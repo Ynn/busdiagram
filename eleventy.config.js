@@ -3,7 +3,7 @@ import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import { loadData } from "./scripts/site-data.mjs";
 import { renderPage } from "./site/markdown.mjs";
-import { frenchPages } from "./scripts/translations.mjs";
+import { frenchPages, translations } from "./scripts/translations.mjs";
 
 const root = resolve(import.meta.dirname);
 const siteData = loadData(root);
@@ -30,31 +30,9 @@ const sectionPages = (docs, section) =>
         a.url.localeCompare(b.url),
     );
 
-// Labels of the documentation interface, in French (English is the source).
-const FR = {
-  Guide: "Guide",
-  Examples: "Exemples",
-  Reference: "Référence",
-  Designer: "Designer",
-  "Getting started": "Premiers pas",
-  "Write a scenario": "Écrire un scénario",
-  Installations: "Installations",
-  "Simulation model": "Modèle de simulation",
-  Integrate: "Intégrer",
-  Integration: "Intégration",
-  "For developers": "Pour les développeurs",
-  Tools: "Outils",
-  "Systems and mechanisms": "Systèmes et mécanismes",
-  "Search…": "Rechercher…",
-  "Search documentation": "Rechercher dans la documentation",
-  Download: "Télécharger",
-  "On this page": "Sur cette page",
-  "offline documentation": "documentation hors ligne",
-  "Source code (GitHub)": "Code source (GitHub)",
-  Changes: "Modifications",
-  "Third-party notices": "Mentions des tiers",
-};
-const tr = (text, lang) => (lang === "fr" ? (FR[text] ?? text) : text);
+// Labels of the documentation interface (English is the source).
+const FR = translations(root, "fr").interface;
+const tr = (text, lang) => (lang === "fr" ? FR(text) : text);
 
 /**
  * Pages of a section in a language: the English order; in French, each page translated
@@ -94,7 +72,7 @@ export default function (eleventyConfig) {
   );
   eleventyConfig.addFilter("sectionTitle", (section, lang) =>
     tr(
-      ({ guide: "Guide", examples: "Examples", reference: "Reference" })[
+      { guide: "Guide", examples: "Examples", reference: "Reference" }[
         section
       ] ?? "",
       lang,
@@ -124,8 +102,7 @@ export default function (eleventyConfig) {
   // to the designer goes to the English site: same path without "fr/".
   const frenchOutputs = new Set(
     frenchPages().map(
-      (p) =>
-        `${p.file.replace(/\.md$/, "").replace(/(^|\/)\d+-/, "$1")}.html`,
+      (p) => `${p.file.replace(/\.md$/, "").replace(/(^|\/)\d+-/, "$1")}.html`,
     ),
   );
   eleventyConfig.addTransform("french-links", function (content) {
@@ -142,7 +119,8 @@ export default function (eleventyConfig) {
           else if (seg !== ".") parts.push(seg);
         }
         const target = parts.join("/");
-        if (!target.startsWith("fr/") || frenchOutputs.has(target)) return match;
+        if (!target.startsWith("fr/") || frenchOutputs.has(target))
+          return match;
         const english = target.slice(3);
         const up = "../".repeat(dir.length);
         return `${attr}="${up}${english}${rest}"`;

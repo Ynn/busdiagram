@@ -1,0 +1,514 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Variation et DALI · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/dali.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li class="cur"><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="dimming-and-dali"><a class="anchor" href="#dimming-and-dali">#</a>Variation et DALI</h1><p>Ce chapitre traite des actionneurs de variation KNX et d&#39;une passerelle KNX/DALI. Il s&#39;intéresse à la commande de groupe et aux télégrammes échangés avec leurs objets de communication.</p>
+<h2 id="dimming-actuator-ports"><a class="anchor" href="#dimming-actuator-ports">#</a>Ports de l&#39;actionneur de variation</h2><p>Un canal <code>dimmerActuator/v1</code> accepte trois sortes de commandes :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>Allumer au niveau configuré, ou éteindre.</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>Variation relative : sens, pas ou arrêt.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>Luminosité absolue de 0 à 100 %.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>État marche/arrêt réel après une transition.</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>Luminosité réelle après une transition.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001</td>
+<td>Rappeler un préréglage de luminosité du canal.</td>
+</tr>
+</tbody></table>
+</div><p>Les paramètres de canal comprennent <code>onLevel</code> (<code>&quot;fixed&quot;</code> ou <code>&quot;last&quot;</code>), <code>onLevelPct</code>, <code>dimTimeMs</code>, <code>switchFadeMs</code>, <code>valueFadeMs</code>, <code>minLevelPct</code>, <code>maxLevelPct</code>, <code>dimSwitchesOn</code> et <code>dimSwitchesOff</code> pour la variation relative, et <code>valueSwitchesOn</code> et <code>valueSwitchesOff</code> pour les valeurs de luminosité. Avec <code>valueSwitchesOn: false</code>, une valeur reçue quand le canal est éteint est ignorée ; avec <code>valueSwitchesOff: false</code>, une valeur de 0 fait descendre au niveau minimal au lieu d&#39;éteindre. Les deux options existent dans les manuels d&#39;actionneurs de variation ; par défaut, les deux sont permises. Le niveau d&#39;allumage reste entre les niveaux minimal et maximal. À la coupure de la tension bus, le niveau reste inchangé, passe à l&#39;arrêt ou à <code>busFailureLevelPct</code> (<code>busFailure</code>) ; au retour, il revient au niveau d&#39;avant la coupure, ou passe à l&#39;arrêt ou en marche (<code>busRecovery</code>), et l&#39;état est renvoyé. Les objets facultatifs de forçage et de verrouillage de la description KNX des actionneurs de variation ne sont pas modélisés. Voir la <a href="../reference/behaviors.html">référence des comportements</a>.</p>
+<pre class="code"><code>{
+  <span class="k">"id"</span>: <span class="s">"dimmer"</span>,
+  <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+  <span class="k">"kind"</span>: <span class="s">"dimmerActuator"</span>,
+  <span class="k">"behavior"</span>: <span class="s">"dimmerActuator/v1"</span>,
+  <span class="k">"objects"</span>: [
+    { <span class="k">"id"</span>: <span class="s">"switch"</span>, <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span>, <span class="k">"port"</span>: <span class="s">"switch"</span>, <span class="k">"channel"</span>: <span class="s">"s1"</span>, <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> } },
+    { <span class="k">"id"</span>: <span class="s">"dim"</span>, <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span>, <span class="k">"port"</span>: <span class="s">"dim"</span>, <span class="k">"channel"</span>: <span class="s">"s1"</span>, <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> } }
+  ],
+  <span class="k">"channels"</span>: [{ <span class="k">"id"</span>: <span class="s">"s1"</span>, <span class="k">"label"</span>: <span class="s">"Ceiling light"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"dimmableLamp"</span> } }]
+}</code></pre><h2 id="tunable-white"><a class="anchor" href="#tunable-white">#</a>Blanc variable</h2><p>Un canal d&#39;actionneur de variation qui a un objet <code>colourTemperature</code> (DPT 7.600, K) commande aussi la température de couleur d&#39;un éclairage à blanc variable. Les demandes sont ramenées à la plage du canal (de <code>minColourK</code>, 2700 K, à <code>maxColourK</code>, 6500 K, par défaut), et <code>colourTemperatureStatus</code> renvoie la valeur appliquée. La valeur initiale est <code>initialState.colourTemperatureK</code> (4000 K). Une charge <code>dimmableLamp</code> montre la couleur de sa lumière. Voir l&#39;<a href="../examples/tunable-white.html">exemple du blanc variable</a>.</p>
+<h2 id="push-button-dimming"><a class="anchor" href="#push-button-dimming">#</a>Variation par bouton-poussoir</h2><p>Une entrée d&#39;interface de boutons-poussoirs avec la fonction de variation utilise un appui court pour commuter, un appui long pour la variation continue, et le relâchement pour l&#39;arrêter. Avec une paire de touches, une entrée fait varier plus clair et l&#39;autre plus sombre :</p>
+<pre class="code"><code>{
+  <span class="k">"id"</span>: <span class="s">"key1"</span>,
+  <span class="k">"label"</span>: <span class="s">"Key 1 brighter"</span>,
+  <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span>, <span class="k">"dimStep"</span>: <span class="n">1</span> }
+}</code></pre><p>L&#39;appui long envoie la valeur 9 du DPT 3.007 : augmentation de la luminosité avec le plus grand pas (100 %). L&#39;actionneur fait varier à sa vitesse configurée jusqu&#39;à l&#39;arrivée d&#39;une valeur d&#39;arrêt ; le temps de trajet des télégrammes peut donc influer sur le niveau final.</p>
+<h2 id="knx-dali-gateway"><a class="anchor" href="#knx-dali-gateway">#</a>Passerelle KNX/DALI</h2><p>Une ligne DALI compte jusqu&#39;à 64 appareillages adressés individuellement, 16 groupes et des commandes de diffusion générale. Dans ce modèle, chaque canal <code>daliGateway/v1</code> représente un groupe DALI (jusqu&#39;à 16 par passerelle). Son équipement <code>daliGroup</code> contient les ballasts modélisés et leurs adresses courtes :</p>
+<pre class="code"><code><span class="k">"channels"</span>: [{
+  <span class="k">"id"</span>: <span class="s">"g1"</span>,
+  <span class="k">"label"</span>: <span class="s">"Office"</span>,
+  <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"daliGroup"</span>, <span class="k">"parameters"</span>: { <span class="k">"ballasts"</span>: <span class="n">4</span>, <span class="k">"firstAddress"</span>: <span class="n">0</span> } }
+}]</code></pre><p>La passerelle ajoute ces ports aux commandes de variation :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>error</code></td>
+<td>1.005</td>
+<td>Défaut dans un groupe.</td>
+</tr>
+<tr>
+<td><code>broadcastSwitch</code></td>
+<td>1.001</td>
+<td>Commuter tous les groupes.</td>
+</tr>
+<tr>
+<td><code>broadcastValue</code></td>
+<td>5.001</td>
+<td>Régler la valeur de tous les groupes.</td>
+</tr>
+<tr>
+<td><code>generalError</code></td>
+<td>1.005</td>
+<td>Défaut n&#39;importe où sur la ligne DALI.</td>
+</tr>
+</tbody></table>
+</div><p>Chaque commande KNX produit une action DALI affichée dans le journal des événements et en mode pas à pas :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Commande KNX</th>
+<th>Action DALI modélisée</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Allumage</td>
+<td><code>RECALL MAX LEVEL</code> ou <code>DAPC</code> au niveau d&#39;allumage configuré.</td>
+</tr>
+<tr>
+<td>Extinction</td>
+<td><code>OFF</code>.</td>
+</tr>
+<tr>
+<td>Valeur DPT 5.001</td>
+<td>Niveau de puissance d&#39;arc <code>DAPC</code>.</td>
+</tr>
+<tr>
+<td>Variation DPT 3.007</td>
+<td><code>UP</code> ou <code>DOWN</code>, suivi d&#39;un arrêt.</td>
+</tr>
+<tr>
+<td>Scène DPT 17.001</td>
+<td>La scène KNX 1 à 16 correspond à <code>GO TO SCENE 0</code> à <code>15</code> en DALI.</td>
+</tr>
+</tbody></table>
+</div><p>La passerelle accepte jusqu&#39;à 16 canaux de groupe. Dans ce modèle, les scènes KNX 1 à 16 correspondent directement aux scènes DALI 0 à 15 : configurez donc seulement les préréglages des scènes 1 à 16 ; les autres valeurs de scène KNX n&#39;ont pas de préréglage et laissent la sortie inchangée. C&#39;est une simplification : la description d&#39;application KNX des passerelles DALI prend en charge jusqu&#39;à 64 scènes KNX, que la configuration de la passerelle associe à ses canaux DALI, et laisse au fabricant la traduction des valeurs KNX en commandes DALI.</p>
+<p>La passerelle interroge les ballasts toutes les <code>pollMs</code> (2 secondes par défaut). Cliquez sur un luminaire pour simuler un défaut de ballast ; la lampe s&#39;éteint et la passerelle active les objets <code>error</code> de son groupe et <code>generalError</code>. Cliquez à nouveau pour le réparer. Les objets d&#39;état et de défaut peuvent répondre aux lectures du <a href="usb-interface.html">panneau de l&#39;interface USB</a>.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Passerelle KNX/DALI : groupes, variation et défauts","description":"Un appui court allume ou éteint l'éclairage ; un appui long le fait varier avec le DPT 3.007 jusqu'au relâchement. La passerelle traduit chaque télégramme en commande DALI pour ses deux groupes : bureau (ballasts A0–A3) et couloir (A4–A5). Cliquez sur un luminaire pour simuler un défaut de ballast ; la passerelle le détecte à sa prochaine interrogation et le signale sur 1/7/x. Utilisez le panneau de l'interface USB pour écrire l'adresse de groupe 1/1/0, que la passerelle traduit en commande DALI de diffusion générale, ou pour lire les états et les défauts.","lines":[{"address":"1.1","name":"Ligne d'exemple","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/0","name":"Tout l'éclairage (diffusion DALI)","dpt":"1.001"},{"address":"1/1/1","name":"Commutation bureau","dpt":"1.001"},{"address":"1/1/2","name":"Commutation couloir","dpt":"1.001"},{"address":"1/2/1","name":"Variation bureau","dpt":"3.007"},{"address":"1/2/2","name":"Variation couloir","dpt":"3.007"},{"address":"1/3/1","name":"Niveau bureau","dpt":"5.001"},{"address":"1/3/2","name":"Niveau couloir","dpt":"5.001"},{"address":"1/4/1","name":"État bureau","dpt":"1.001"},{"address":"1/4/2","name":"État couloir","dpt":"1.001"},{"address":"1/5/1","name":"État du niveau bureau","dpt":"5.001"},{"address":"1/5/2","name":"État du niveau couloir","dpt":"5.001"},{"address":"1/7/0","name":"Défaut DALI général","dpt":"1.005"},{"address":"1/7/1","name":"Défaut bureau","dpt":"1.005"},{"address":"1/7/2","name":"Défaut couloir","dpt":"1.005"}],"devices":[{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"s1","name":"Touche 1 bureau marche","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key1","flags":{"W":true,"T":true}},{"id":"d1","name":"Touche 1 bureau plus clair","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key1","flags":{"W":false,"T":true}},{"id":"s2","name":"Touche 2 bureau arrêt","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"key2","flags":{"W":true,"T":true}},{"id":"d2","name":"Touche 2 bureau plus sombre","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"key2","flags":{"W":false,"T":true}},{"id":"s3","name":"Touche 3 couloir marche","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"key3","flags":{"W":true,"T":true}},{"id":"d3","name":"Touche 3 couloir plus clair","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"key3","flags":{"W":false,"T":true}},{"id":"s4","name":"Touche 4 couloir arrêt","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"key4","flags":{"W":true,"T":true}},{"id":"d4","name":"Touche 4 couloir plus sombre","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"key4","flags":{"W":false,"T":true}}],"channels":[{"id":"key1","label":"Entrée 1","keyLabel":"Touche 1 · Bureau plus clair","parameters":{"function":"dim","dimMode":"brighter"},"equipment":null},{"id":"key2","label":"Entrée 2","keyLabel":"Touche 2 · Bureau plus sombre","parameters":{"function":"dim","dimMode":"darker"},"equipment":null},{"id":"key3","label":"Entrée 3","keyLabel":"Touche 3 · Couloir plus clair","parameters":{"function":"dim","dimMode":"brighter"},"equipment":null},{"id":"key4","label":"Entrée 4","keyLabel":"Touche 4 · Couloir plus sombre","parameters":{"function":"dim","dimMode":"darker"},"equipment":null}]},{"id":"gw","name":"Passerelle DALI","address":"1.1.2","kind":"daliGateway","behavior":"daliGateway/v1","objects":[{"id":"g1s","name":"Commutation bureau","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1d","name":"Variation bureau","ga":"1/2/1","dpt":"3.007","port":"dim","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1v","name":"Niveau bureau","ga":"1/3/1","dpt":"5.001","port":"value","channel":"g1","flags":{"W":true,"T":false}},{"id":"g1e","name":"État bureau","ga":"1/4/1","dpt":"1.001","port":"status","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1ev","name":"État du niveau bureau","ga":"1/5/1","dpt":"5.001","port":"valueStatus","channel":"g1","flags":{"W":false,"T":true}},{"id":"g1err","name":"Défaut bureau","ga":"1/7/1","dpt":"1.005","port":"error","channel":"g1","flags":{"W":false,"T":true}},{"id":"g2s","name":"Commutation couloir","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2d","name":"Variation couloir","ga":"1/2/2","dpt":"3.007","port":"dim","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2v","name":"Niveau couloir","ga":"1/3/2","dpt":"5.001","port":"value","channel":"g2","flags":{"W":true,"T":false}},{"id":"g2e","name":"État couloir","ga":"1/4/2","dpt":"1.001","port":"status","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2ev","name":"État du niveau couloir","ga":"1/5/2","dpt":"5.001","port":"valueStatus","channel":"g2","flags":{"W":false,"T":true}},{"id":"g2err","name":"Défaut couloir","ga":"1/7/2","dpt":"1.005","port":"error","channel":"g2","flags":{"W":false,"T":true}},{"id":"bc","name":"Commutation générale","ga":"1/1/0","dpt":"1.001","port":"broadcastSwitch","flags":{"W":true,"T":false}},{"id":"gerr","name":"Défaut général","ga":"1/7/0","dpt":"1.005","port":"generalError","flags":{"W":false,"T":true}}],"channels":[{"id":"g1","label":"Bureau","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"ballasts":4}}},{"id":"g2","label":"Couloir","parameters":{"dimTimeMs":4000},"equipment":{"type":"daliGroup","parameters":{"firstAddress":4}}}]},{"id":"usbInterface","name":"Interface USB","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"panel","name":"Visualisation","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"v1","name":"Consigne bureau","ga":"1/3/1","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"inputs":[{"id":"setpoint","type":"number","label":"Bureau %","object":"v1","min":0,"max":100,"step":10}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=dali-gateway" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-json"><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Passerelle KNX/DALI : groupes, variation et défauts"</span>,
+  <span class="k">"description"</span>: <span class="s">"Un appui court allume ou éteint l'éclairage ; un appui long le fait varier avec le DPT 3.007 jusqu'au relâchement. La passerelle traduit chaque télégramme en commande DALI pour ses deux groupes : bureau (ballasts A0–A3) et couloir (A4–A5). Cliquez sur un luminaire pour simuler un défaut de ballast ; la passerelle le détecte à sa prochaine interrogation et le signale sur 1/7/x. Utilisez le panneau de l'interface USB pour écrire l'adresse de groupe 1/1/0, que la passerelle traduit en commande DALI de diffusion générale, ou pour lire les états et les défauts."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Ligne d'exemple"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/0"</span>, <span class="k">"name"</span>: <span class="s">"Tout l'éclairage (diffusion DALI)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Commutation bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Commutation couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Variation bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/2/2"</span>, <span class="k">"name"</span>: <span class="s">"Variation couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"3.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/1"</span>, <span class="k">"name"</span>: <span class="s">"Niveau bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/3/2"</span>, <span class="k">"name"</span>: <span class="s">"Niveau couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"État bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"État couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/5/1"</span>, <span class="k">"name"</span>: <span class="s">"État du niveau bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/5/2"</span>, <span class="k">"name"</span>: <span class="s">"État du niveau couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/7/0"</span>, <span class="k">"name"</span>: <span class="s">"Défaut DALI général"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/7/1"</span>, <span class="k">"name"</span>: <span class="s">"Défaut bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/7/2"</span>, <span class="k">"name"</span>: <span class="s">"Défaut couloir"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"s1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 bureau marche"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"d1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 bureau plus clair"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 bureau arrêt"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"d2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 bureau plus sombre"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 3 couloir marche"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"d3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 3 couloir plus clair"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"s4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 4 couloir arrêt"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"d4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 4 couloir plus sombre"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1 · Bureau plus clair"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 2 · Bureau plus sombre"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"darker"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 3 · Couloir plus clair"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"brighter"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 4 · Couloir plus sombre"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"dim"</span>, <span class="k">"dimMode"</span>: <span class="s">"darker"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"gw"</span>,
+      <span class="k">"name"</span>: <span class="s">"Passerelle DALI"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"daliGateway"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"daliGateway/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"g1s"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g1d"</span>,
+          <span class="k">"name"</span>: <span class="s">"Variation bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g1v"</span>,
+          <span class="k">"name"</span>: <span class="s">"Niveau bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g1e"</span>,
+          <span class="k">"name"</span>: <span class="s">"État bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g1ev"</span>,
+          <span class="k">"name"</span>: <span class="s">"État du niveau bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"valueStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g1err"</span>,
+          <span class="k">"name"</span>: <span class="s">"Défaut bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/7/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"error"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2s"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2d"</span>,
+          <span class="k">"name"</span>: <span class="s">"Variation couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/2/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"3.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"dim"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2v"</span>,
+          <span class="k">"name"</span>: <span class="s">"Niveau couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2e"</span>,
+          <span class="k">"name"</span>: <span class="s">"État couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2ev"</span>,
+          <span class="k">"name"</span>: <span class="s">"État du niveau couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/5/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"valueStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2err"</span>,
+          <span class="k">"name"</span>: <span class="s">"Défaut couloir"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/7/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"error"</span>,
+          <span class="k">"channel"</span>: <span class="s">"g2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"bc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation générale"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"broadcastSwitch"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"gerr"</span>,
+          <span class="k">"name"</span>: <span class="s">"Défaut général"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/7/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"generalError"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"g1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Bureau"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"dimTimeMs"</span>: <span class="n">4000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"daliGroup"</span>, <span class="k">"parameters"</span>: { <span class="k">"ballasts"</span>: <span class="n">4</span> } }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"g2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Couloir"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"dimTimeMs"</span>: <span class="n">4000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"daliGroup"</span>, <span class="k">"parameters"</span>: { <span class="k">"firstAddress"</span>: <span class="n">4</span> } }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"usbInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface USB"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.255"</span>,
+      <span class="k">"kind"</span>: <span class="s">"interface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"usbInterface/v1"</span>,
+      <span class="k">"objects"</span>: []
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualisation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"v1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Consigne bureau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/3/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"setpoint"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Bureau %"</span>,
+          <span class="k">"object"</span>: <span class="s">"v1"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Limites du modèle</h2><p>La mise en service DALI, l&#39;attribution des adresses courtes et l&#39;appartenance aux groupes sont fournies par le scénario au lieu d&#39;être simulées. Le modèle accepte au plus 16 ballasts par groupe modélisé et exige des plages d&#39;adresses courtes disjointes entre les groupes d&#39;une même passerelle ; un appareillage DALI réel peut appartenir à plusieurs groupes, mais cet état partagé est hors du modèle. Le modèle gère la commande de groupe et la diffusion générale, mais pas les objets de ballast individuels, la commande de couleur, l&#39;éclairage de sécurité ni la mesure d&#39;énergie. Le schéma affiche les valeurs de puissance d&#39;arc DALI comme données explicatives ; le niveau d&#39;éclairement simulé suit le pourcentage configuré.</p>
+
+<nav class="pager">
+<a href="../../fr/guide/shutters.html">← Volets</a>
+<a href="../../fr/guide/hvac.html">Chauffage →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#dimming-actuator-ports">Ports de l&#39;actionneur de variation</a></li><li><a href="#tunable-white">Blanc variable</a></li><li><a href="#push-button-dimming">Variation par bouton-poussoir</a></li><li><a href="#knx-dali-gateway">Passerelle KNX/DALI</a></li><li><a href="#model-limits">Limites du modèle</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

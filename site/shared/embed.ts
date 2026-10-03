@@ -1,4 +1,3 @@
-import { hostTranslator } from "../../src/i18n";
 // Integration codes produced by the designer: tag to paste, standalone page, read link.
 import type { ViewOptions } from "../../src/ui/options";
 import { DEFAULT_OPTIONS, OPTION_DOCS } from "../../src/ui/options";
@@ -87,59 +86,5 @@ ${embedSnippet(scenario, options)}
 `;
 }
 
-// ── Share link: JSON compressed into the URL fragment (never sent to the server) ──
-
-const b64url = (bytes: Uint8Array) => {
-  let s = "";
-  bytes.forEach((b) => (s += String.fromCharCode(b)));
-  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
-};
-const fromB64url = (s: string): Uint8Array<ArrayBuffer> => {
-  const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"));
-  return Uint8Array.from(bin, (c) => c.charCodeAt(0));
-};
-
-async function pipe(
-  bytes: Uint8Array<ArrayBuffer>,
-  stream: CompressionStream | DecompressionStream,
-) {
-  const out = new Blob([bytes]).stream().pipeThrough(stream);
-  return new Uint8Array(await new Response(out).arrayBuffer());
-}
-
-export async function encodeShare(
-  scenario: unknown,
-  options: Partial<ViewOptions> = {},
-  lang?: string,
-): Promise<string> {
-  const json = new TextEncoder().encode(
-    JSON.stringify({ s: scenario, o: options, l: lang }),
-  );
-  return `d=${b64url(await pipe(json, new CompressionStream("deflate-raw")))}`;
-}
-
-export async function decodeShare(hash: string): Promise<{
-  scenario: unknown;
-  options: Partial<ViewOptions>;
-  lang?: string;
-}> {
-  // Uncompressed form for hand-written or generated links: #json=<percent-encoded JSON>.
-  const inline = /(?:^#|&)json=([^&]*)/.exec(hash)?.[1];
-  if (inline !== undefined)
-    return { scenario: JSON.parse(decodeURIComponent(inline)), options: {} };
-  const d = new URLSearchParams(hash.replace(/^#/, "")).get("d");
-  if (!d)
-    throw new Error(
-      hostTranslator()`Link without a scenario (parameter “d” missing).`,
-    );
-  const bytes = await pipe(
-    fromB64url(d),
-    new DecompressionStream("deflate-raw"),
-  );
-  const { s, o, l } = JSON.parse(new TextDecoder().decode(bytes)) as {
-    s: unknown;
-    o: Partial<ViewOptions>;
-    l?: string;
-  };
-  return { scenario: s, options: o ?? {}, lang: l };
-}
+// Share links (compressed scenario in the URL fragment): shared with the component.
+export { decodeShare, encodeShare } from "../../src/share";

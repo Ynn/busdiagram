@@ -82,8 +82,8 @@ L'appareil a une seule adresse individuelle, quel que soit son nombre d'entrées
 }
 ```
 
-La première adresse de `ga` est l'adresse d'émission de l'objet ; il écoute aussi les adresses suivantes. La voie `s1` est une sortie de l'actionneur, et l'équipement qui y est raccordé est la lampe dessinée sur le schéma. Le scénario complet déclare les autres objets et voies.
+La première adresse de `ga` est l'adresse d'émission de l'objet ; il écoute aussi les adresses suivantes. Le canal `s1` est une sortie de l'actionneur, et l'équipement qui y est raccordé est la lampe dessinée sur le schéma. Le scénario complet déclare les autres objets et voies.
 
 ## 5. Manipuler le schéma
 
-Le schéma est dessiné à partir de ces déclarations. Pour suivre son comportement, appuyez sur la touche 1. Un télégramme va de l'interface de boutons-poussoirs à l'actionneur sur 1/1/1. Les voies 1 et 2 l'acceptent et allument L1 et L2. Le moniteur de bus affiche le télégramme ; sélectionnez sa ligne pour examiner la trame. Ouvrez le [designer](../designer/index.html) pour modifier le scénario.
+Le schéma est dessiné à partir de ces déclarations. Pour suivre son comportement, appuyez sur la touche 1. Un télégramme va de l'interface de boutons-poussoirs à l'actionneur sur 1/1/1. Les canaux 1 et 2 l'acceptent et allument L1 et L2. Le moniteur de bus affiche le télégramme ; sélectionnez sa ligne pour examiner la trame. Ouvrez le [designer](../designer/index.html) pour modifier le scénario.

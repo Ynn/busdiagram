@@ -87,6 +87,18 @@ export const windowContact: BehaviorDefinition<null> = {
     if (ctx.device.parameters.sendOnStart !== false)
       ctx.schedule("start", num(ctx.device.parameters.startDelayMs, 1000));
   },
+  // When the bus voltage returns, the binary input reads its contact again (the window may
+  // have moved meanwhile) and sends it after its start delay, as at start-up.
+  onBusRecovery(ctx) {
+    const room = ctx.readRoom();
+    ctx.device.objects
+      .filter((o) => o.port === "contact")
+      .forEach((o) =>
+        ctx.setObject(o.id, contactValue(ctx, o.dpt, !!room?.windowOpen)),
+      );
+    if (ctx.device.parameters.sendOnStart !== false)
+      ctx.schedule("start", num(ctx.device.parameters.startDelayMs, 1000));
+  },
   onTimer(ctx, key) {
     if (key !== "start") return;
     ctx.device.objects

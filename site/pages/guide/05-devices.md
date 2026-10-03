@@ -71,7 +71,8 @@ Click the **PSU** label of a line or segment on the diagram to cut its bus volta
 
 - each device first runs its bus failure behavior (`busFailure` of a switch actuator, a dimmer or DALI channel, or a shutter actuator, which stops its motors by default), then stops: its timers are cancelled, it neither receives nor sends, and its keys do nothing;
 - couplers do not forward telegrams to the segment; the journal notes why;
-- when the voltage returns, each device runs its recovery behavior (`busRecovery` of a switch actuator, a dimmer or DALI channel, a shutter actuator, or a push-button interface) and restarts; actuators send their status again.
+- couplers check the voltage when a telegram reaches them: a telegram already on its way does not cross a segment cut before it gets there, and does not reach what lies behind it;
+- when the voltage returns, each device runs its recovery behavior (`busRecovery` of a switch actuator, a dimmer or DALI channel, a shutter actuator, or a push-button interface) and restarts; actuators send their status again. A device keeps what it stores (stored alarms, commands received, meter index, learned scenes): its periodic tasks start again (cyclic sending, clock broadcast, PWM, metering), a pending deadline runs a whole period again (presence hold time, comfort extension, rain delay), a time switch applies a switching point passed during the failure, and a forcing, a lock, or an alarm still active acts on its output again. These reactions are choices of the model: the KNX application description of shutter actuators, for example, leaves the behavior at bus voltage failure and recovery to the manufacturer.
 
 The simulation starts with the installation already in operation: recovery reactions run only after a failure cut in the diagram, not at start. See the [bus voltage example](../examples/bus-voltage.html).
 
@@ -99,13 +100,13 @@ A `brightness` object (DPT 9.004) sends the brightness measured by the detector,
 
 ## Weather station: `weatherStation/v1`
 
-A weather station sends outdoor measurements entered in its numeric `inputs`: wind speed on a `wind` object (DPT 9.005 in m/s, or 9.028 in km/h; thresholds stay in m/s), brightness on `brightness` (DPT 9.004, lux), and temperature on `outdoorTemp` (DPT 9.001). Two one-bit outputs follow thresholds with hysteresis:
+A weather station sends outdoor measurements entered in its numeric `inputs`: wind speed on a `wind` object (DPT 9.005 in m/s, or 9.028 in km/h; thresholds stay in m/s; the KNX description of weather data encodes wind speed in 9.005 and allows 9.028 only as an extra datapoint next to it), brightness on `brightness` (DPT 9.004, lux), and temperature on `outdoorTemp` (DPT 9.001). Two one-bit outputs follow thresholds with hysteresis; an output is reset only strictly beyond threshold and hysteresis, so that a value at the threshold keeps it set even with no hysteresis:
 
 | Output port | Set when | Reset when | Parameters |
 | --- | --- | --- | --- |
-| `windAlarm` | wind ≥ `windThreshold` (10 m/s) | wind ≤ threshold − `windHysteresis` (2 m/s) | `windThreshold`, `windHysteresis` |
-| `sunProtection` | brightness ≥ `brightnessThreshold` (40,000 lx) | brightness ≤ threshold − `brightnessHysteresis` (5,000 lx) | `brightnessThreshold`, `brightnessHysteresis` |
-| `frostAlarm` | outdoor temperature ≤ `frostThresholdC` (3 °C) | temperature ≥ threshold + `frostHysteresisK` (2 K) | `frostThresholdC`, `frostHysteresisK` |
+| `windAlarm` | wind ≥ `windThreshold` (10 m/s) | wind < threshold − `windHysteresis` (2 m/s) | `windThreshold`, `windHysteresis` |
+| `sunProtection` | brightness ≥ `brightnessThreshold` (40,000 lx) | brightness < threshold − `brightnessHysteresis` (5,000 lx) | `brightnessThreshold`, `brightnessHysteresis` |
+| `frostAlarm` | outdoor temperature ≤ `frostThresholdC` (3 °C) | temperature > threshold + `frostHysteresisK` (2 K) | `frostThresholdC`, `frostHysteresisK` |
 | `rainAlarm` | rain entered for `rainOnDelayMs` (20 s) | `rainOffDelayMs` (5 min) after the rain stops | `rainOnDelayMs`, `rainOffDelayMs` |
 
 Rain is entered on the numeric input of the `rainAlarm` object (0 or 1): the delays avoid reporting a short shower or a short break, as on common rain sensors. An output is transmitted when its state changes; with `alarmCyclicMs`, the wind, rain, and frost alarms are also sent again at that period, for actuators that monitor them (`alarmMonitoringMs` of a shutter actuator). Link the alarms to the `windAlarm`, `rainAlarm`, and `frostAlarm` ports of a [shutter actuator](shutters.html).
@@ -136,7 +137,7 @@ An optional `enable` object (DPT 1.003) blocks the output while it is 0 (`enable
 
 ## Clock master: `clockMaster/v1`
 
-A clock master sends the time of day on a `time` object (DPT 10.001: day of week and time) and the date on a `date` object (DPT 11.001), from the scenario's [simulated clock](time.html#simulated-clock). It sends shortly after start (`sendOnStart`, `startDelayMs`), every `sendPeriodMin` clock minutes aligned on the clock (1 by default; 0 disables periodic sending), and after the clock is set. Its objects have the R flag by default, so that other devices can read the current time, as on the clocks of training kits.
+A clock master sends the time of day on a `time` object (DPT 10.001: day of week and time) and the date on a `date` object (DPT 11.001), from the scenario's [simulated clock](time.html#simulated-clock). It sends shortly after start (`sendOnStart`, `startDelayMs`), every `sendPeriodMin` clock minutes (10 by default, the standard heartbeat of a KNX system clock; 0 disables periodic sending), at second 30 of the minute, as the KNX system clock requires so that the time received does not jump at a minute boundary, and after the clock is set. Its objects have the R flag by default, so that other devices can read the current time, as on the clocks of training kits.
 
 ## Alarm module: `alarmModule/v1`
 

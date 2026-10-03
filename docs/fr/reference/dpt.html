@@ -1,0 +1,340 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DPT · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/dpt.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li class="cur"><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="supported-dpts"><a class="anchor" href="#supported-dpts">#</a>DPT pris en charge</h1><p>Un télégramme ne transmet <strong>pas</strong> son DPT. Chaque objet récepteur interprète les données selon son propre DPT. L&#39;état d&#39;un objet mémorise la valeur décodée : pour le DPT 5.001, une valeur saisie de 50 % se code en octet <code>0x80</code> et se décode en environ 50,196 %. Le schéma l&#39;arrondit, tandis que l&#39;inspecteur affiche plus de précision.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>DPT</th>
+<th>Nom</th>
+<th>Taille</th>
+<th>Plage</th>
+<th>Exemples : valeur → octets codés → affichage</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>1.001</code></td>
+<td>Commutation</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Off ; 1 → <code>0x01</code> → On</td>
+</tr>
+<tr>
+<td><code>1.002</code></td>
+<td>Booléen</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → False ; 1 → <code>0x01</code> → True</td>
+</tr>
+<tr>
+<td><code>1.003</code></td>
+<td>Validation</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Disabled ; 1 → <code>0x01</code> → Enabled</td>
+</tr>
+<tr>
+<td><code>1.005</code></td>
+<td>Alarme</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → No alarm ; 1 → <code>0x01</code> → Alarm</td>
+</tr>
+<tr>
+<td><code>1.007</code></td>
+<td>Pas</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Step decrease ; 1 → <code>0x01</code> → Step increase</td>
+</tr>
+<tr>
+<td><code>1.008</code></td>
+<td>Montée/descente</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Up ; 1 → <code>0x01</code> → Down</td>
+</tr>
+<tr>
+<td><code>1.009</code></td>
+<td>Ouvert/fermé</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Open ; 1 → <code>0x01</code> → Closed</td>
+</tr>
+<tr>
+<td><code>1.010</code></td>
+<td>Marche/arrêt</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Stop ; 1 → <code>0x01</code> → Start</td>
+</tr>
+<tr>
+<td><code>1.011</code></td>
+<td>État</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Inactive ; 1 → <code>0x01</code> → Active</td>
+</tr>
+<tr>
+<td><code>1.012</code></td>
+<td>Inversion</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Not inverted ; 1 → <code>0x01</code> → Inverted</td>
+</tr>
+<tr>
+<td><code>1.015</code></td>
+<td>Réinitialisation</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → No action ; 1 → <code>0x01</code> → Reset</td>
+</tr>
+<tr>
+<td><code>1.017</code></td>
+<td>Déclenchement</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Triggered ; 1 → <code>0x01</code> → Triggered</td>
+</tr>
+<tr>
+<td><code>1.018</code></td>
+<td>Occupation</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Vacant ; 1 → <code>0x01</code> → Occupied</td>
+</tr>
+<tr>
+<td><code>1.019</code></td>
+<td>Fenêtre/Porte</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Closed ; 1 → <code>0x01</code> → Open</td>
+</tr>
+<tr>
+<td><code>1.022</code></td>
+<td>Scène A/B</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → 0 ; 1 → <code>0x01</code> → 1</td>
+</tr>
+<tr>
+<td><code>1.100</code></td>
+<td>Chauffage/refroidissement</td>
+<td>1 bit</td>
+<td>0 … 1</td>
+<td>0 → <code>0x00</code> → Cooling ; 1 → <code>0x01</code> → Heating</td>
+</tr>
+<tr>
+<td><code>2.001</code></td>
+<td>Commande prioritaire</td>
+<td>2 bits</td>
+<td>0 … 3</td>
+<td>0 → <code>0x00</code> → No forcing ; 2 → <code>0x02</code> → Forced off ; 3 → <code>0x03</code> → Forced on</td>
+</tr>
+<tr>
+<td><code>2.008</code></td>
+<td>Commande de direction</td>
+<td>2 bits</td>
+<td>0 … 3</td>
+<td>0 → <code>0x00</code> → 0 ; 3 → <code>0x03</code> → 3</td>
+</tr>
+<tr>
+<td><code>3.007</code></td>
+<td>Variation relative</td>
+<td>4 bits</td>
+<td>0 … 15</td>
+<td>0 → <code>0x00</code> → Stop dimming ; 15 → <code>0x0F</code> → Increase by 1.6 %</td>
+</tr>
+<tr>
+<td><code>5.001</code></td>
+<td>Pourcentage</td>
+<td>1 octet</td>
+<td>0 … 100</td>
+<td>0 → <code>0x00</code> → 0 % ; 50 → <code>0x80</code> → 50 % ; 100 → <code>0xFF</code> → 100 %</td>
+</tr>
+<tr>
+<td><code>5.004</code></td>
+<td>Pourcentage (0–255)</td>
+<td>1 octet</td>
+<td>0 … 255</td>
+<td>0 → <code>0x00</code> → 0 % ; 100 → <code>0x64</code> → 100 % ; 255 → <code>0xFF</code> → 255 %</td>
+</tr>
+<tr>
+<td><code>5.010</code></td>
+<td>Compteur</td>
+<td>1 octet</td>
+<td>0 … 255</td>
+<td>0 → <code>0x00</code> → 0 ; 255 → <code>0xFF</code> → 255</td>
+</tr>
+<tr>
+<td><code>7.600</code></td>
+<td>Température de couleur</td>
+<td>2 octets</td>
+<td>0 … 65535</td>
+<td>2700 → <code>0x0A8C</code> → 2700 K ; 6500 → <code>0x1964</code> → 6500 K</td>
+</tr>
+<tr>
+<td><code>9.001</code></td>
+<td>Température</td>
+<td>2 octets</td>
+<td>-273 … 670433.28</td>
+<td>21 → <code>0x0C1A</code> → 21.0 °C ; -5.5 → <code>0x85DA</code> → -5.5 °C ; 45.2 → <code>0x146A</code> → 45.2 °C</td>
+</tr>
+<tr>
+<td><code>9.002</code></td>
+<td>Différence de température</td>
+<td>2 octets</td>
+<td>-671088.64 … 670433.28</td>
+<td>-2 → <code>0x8738</code> → -2.0 K ; 0.5 → <code>0x0032</code> → +0.5 K</td>
+</tr>
+<tr>
+<td><code>9.004</code></td>
+<td>Lux</td>
+<td>2 octets</td>
+<td>0 … 670433.28</td>
+<td>350 → <code>0x2C46</code> → 350 lx ; 42000 → <code>0x6401</code> → 41,984 lx</td>
+</tr>
+<tr>
+<td><code>9.005</code></td>
+<td>Vitesse du vent</td>
+<td>2 octets</td>
+<td>0 … 670433.28</td>
+<td>3.5 → <code>0x015E</code> → 3.5 m/s ; 14.2 → <code>0x058C</code> → 14.2 m/s</td>
+</tr>
+<tr>
+<td><code>9.007</code></td>
+<td>Humidité</td>
+<td>2 octets</td>
+<td>0 … 670433.28</td>
+<td>45 → <code>0x1465</code> → 45.0 % ; 72.5 → <code>0x1715</code> → 72.52 %</td>
+</tr>
+<tr>
+<td><code>9.008</code></td>
+<td>Qualité de l&#39;air</td>
+<td>2 octets</td>
+<td>0 … 670433.28</td>
+<td>650 → <code>0x2FEF</code> → 650 ppm ; 1400 → <code>0x3C46</code> → 1,400 ppm</td>
+</tr>
+<tr>
+<td><code>9.024</code></td>
+<td>Puissance (kW)</td>
+<td>2 octets</td>
+<td>-671088.64 … 670433.28</td>
+<td>0.06 → <code>0x0006</code> → 0.06 kW ; 3.5 → <code>0x015E</code> → 3.5 kW</td>
+</tr>
+<tr>
+<td><code>9.028</code></td>
+<td>Vitesse du vent (km/h)</td>
+<td>2 octets</td>
+<td>0 … 670433.28</td>
+<td>12.6 → <code>0x04EC</code> → 12.6 km/h ; 51.1 → <code>0x14FE</code> → 51.12 km/h</td>
+</tr>
+<tr>
+<td><code>10.001</code></td>
+<td>Heure</td>
+<td>3 octets</td>
+<td>0 … 691199 (00:00:00 … Sun 23:59:59)</td>
+<td>114900 → <code>0x273700</code> → Mon 07:55:00 ; 81000 → <code>0x161E00</code> → 22:30:00</td>
+</tr>
+<tr>
+<td><code>11.001</code></td>
+<td>Date</td>
+<td>3 octets</td>
+<td>19900101 … 20891231 (1990-01-01 … 2089-12-31)</td>
+<td>20260928 → <code>0x1C091A</code> → 2026-09-28 ; 19991231 → <code>0x1F0C63</code> → 1999-12-31</td>
+</tr>
+<tr>
+<td><code>13.010</code></td>
+<td>Énergie active</td>
+<td>4 octets</td>
+<td>-2147483648 … 2147483647</td>
+<td>0 → <code>0x00000000</code> → 0 Wh ; 12500 → <code>0x000030D4</code> → 12,500 Wh</td>
+</tr>
+<tr>
+<td><code>13.013</code></td>
+<td>Énergie active (kWh)</td>
+<td>4 octets</td>
+<td>-2147483648 … 2147483647</td>
+<td>0 → <code>0x00000000</code> → 0 kWh ; 4210 → <code>0x00001072</code> → 4,210 kWh</td>
+</tr>
+<tr>
+<td><code>14.056</code></td>
+<td>Puissance</td>
+<td>4 octets</td>
+<td>-3.4e+38 … 3.4e+38</td>
+<td>60 → <code>0x42700000</code> → 60 W ; 1250.5 → <code>0x449C5000</code> → 1,250.5 W</td>
+</tr>
+<tr>
+<td><code>17.001</code></td>
+<td>Numéro de scène</td>
+<td>1 octet</td>
+<td>0 … 63</td>
+<td>0 → <code>0x00</code> → Scene 1 ; 63 → <code>0x3F</code> → Scene 64</td>
+</tr>
+<tr>
+<td><code>18.001</code></td>
+<td>Commande de scène</td>
+<td>1 octet</td>
+<td>0 … 191</td>
+<td>0 → <code>0x00</code> → Scene 1 ; 191 → <code>0xBF</code> → Store scene 64</td>
+</tr>
+<tr>
+<td><code>20.102</code></td>
+<td>Mode de fonctionnement HVAC</td>
+<td>1 octet</td>
+<td>0 … 4</td>
+<td>1 → <code>0x01</code> → Comfort ; 3 → <code>0x03</code> → Economy ; 4 → <code>0x04</code> → Protection</td>
+</tr>
+</tbody></table>
+</div><p>Les valeurs de 1, 2 ou 4 bits occupent les bits de poids faible de l&#39;octet APCI. Les valeurs plus longues le suivent sur 1 à 4 octets de données supplémentaires, comme l&#39;indique la colonne Taille ; la longueur de la trame augmente d&#39;autant.</p>
+<p>D&#39;autres DPT standard peuvent être utilisés sur les objets des appareils passifs et des afficheurs, qui les affichent sans les simuler : voir les <a href="../guide/devices.html#passive-device-and-visualization-panel-passive-v1">appareils passifs</a>.</p>
+<p>En JSON, une heure (10.001) est un nombre de secondes comptées depuis 00:00 du jour donné par le jour de la semaine : 0 signifie aucun jour, 86400 × n + secondes signifie le jour n (1 = lundi, 7 = dimanche). Une date (11.001) s&#39;écrit sous la forme du nombre <code>AAAAMMJJ</code>.</p>
+<p>Une commande de scène (18.001) s&#39;écrit comme l&#39;octet du bus : 0 à 63 rappelle les scènes 1 à 64, et ajouter 128 (le bit d&#39;apprentissage) mémorise la scène à la place ; le bit 6 est réservé.</p>
+
+<nav class="pager">
+<a href="../../fr/reference/ports.html">← Ports</a>
+<a href="../../fr/reference/api.html">API JavaScript →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

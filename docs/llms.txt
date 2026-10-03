@@ -209,12 +209,12 @@ Drives channel outputs with `motor` commands; connect a compatible equipment typ
 | `slatCommand` | 5.001 | required | in | slat angle (0 % open, 100 % closed) of a venetian blind |
 | `slatStatus` | 5.001 | required | out | estimated slat angle, sent after stopping |
 | `windAlarm` | 1.005, 1.001 | optional | in | 1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels |
-| `lock` | 1.001 | required | in | 1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority. |
+| `lock` | 1.001 | required | in | 1 locks the output: commands are ignored, with the reactions lockStart and afterLock; by default, weather alarms keep priority (safetyPriority). |
 | `rainAlarm` | 1.005, 1.001 | optional | in | 1 starts the rain alarm (rainReaction); 0 ends it |
 | `frostAlarm` | 1.005, 1.001 | optional | in | 1 starts the frost alarm (frostReaction); 0 ends it |
-| `forced` | 2.001 | required | in | 3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority. |
-| `recallPosition12` | 1.001, 1.002 | required | in | 0 moves to the stored position 1, 1 to the stored position 2 |
-| `recallPosition34` | 1.001, 1.002 | required | in | 0 moves to the stored position 3, 1 to the stored position 4 |
+| `forced` | 2.008, 2.001 | required | in | 3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). By default, weather alarms and the lock keep priority (safetyPriority). |
+| `recallPosition12` | 1.022, 1.001, 1.002 | required | in | 0 moves to the stored position 1, 1 to the stored position 2 |
+| `recallPosition34` | 1.022, 1.001, 1.002 | required | in | 0 moves to the stored position 3, 1 to the stored position 4 |
 | `storePosition12` | 1.001, 1.002 | required | in | 0 stores the current position as position 1, 1 as position 2 |
 | `storePosition34` | 1.001, 1.002 | required | in | 0 stores the current position as position 3, 1 as position 4 |
 | `upperLimit` | 1.002, 1.001 | required | out | 1 when the shutter is estimated at the top (0 %), sent on change |
@@ -531,7 +531,7 @@ Device `parameters`:
 - `windHysteresis` (number, default 2; ≥ 0): The alarm is reset when the wind speed falls below threshold − hysteresis (m/s).
 - `brightnessThreshold` (number, default 40000; ≥ 0): Brightness (lux) at which sun protection is requested.
 - `frostThresholdC` (number, default 3; ≥ -20 ; ≤ 10): Outdoor temperature (°C) at or below which the frost alarm is set.
-- `frostHysteresisK` (number, default 2; ≥ 0): The frost alarm is reset once the temperature reaches threshold + hysteresis (K).
+- `frostHysteresisK` (number, default 2; ≥ 0): The frost alarm is reset once the temperature rises above threshold + hysteresis (K).
 - `rainOnDelayMs` (integer, default 20000; ≥ 0): Rain must last this long before the rain alarm is set, so that a short shower is not reported.
 - `rainOffDelayMs` (integer, default 300000; ≥ 0): The rain alarm is reset this long after the rain stops, so that a short break is not reported.
 - `alarmCyclicMs` (integer, default 0; ≥ 0): Period at which the wind, rain, and frost alarms are sent again, for actuators that monitor them (0: on change only).
@@ -578,7 +578,7 @@ Clock master: sends the time of day (10.001) and the date (11.001) of the simula
 | `date` | 11.001 | none | out | date of the simulated clock |
 
 Device `parameters`:
-- `sendPeriodMin` (integer, default 1; ≥ 0 ; ≤ 1440): Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set.
+- `sendPeriodMin` (integer, default 10; ≥ 0 ; ≤ 1440): Clock minutes between two broadcasts, at second 30 of the minute (10 minutes is the standard heartbeat of a KNX system clock); 0 sends only at start and after the clock is set.
 - `sendOnStart` (boolean, default true): Send time and date shortly after the simulation starts.
 - `startDelayMs` (integer, default 1000; ≥ 0): Delay after the simulation starts before time and date are sent.
 
@@ -638,7 +638,7 @@ Push-button interface: each channel is a contact input with a function (switchin
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `switch` | 1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.100 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
+| `switch` | 1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.022, 1.100 | required | both | switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state |
 | `dim` | 3.007 | required | out | Relative dimming sent by the input (3.007): a step to dim up or down, then a stop on release. |
 | `move` | 1.008 | required | both | blind movement; with W set, a one-key input takes the direction of the last movement received |
 | `stopStep` | 1.007 | required | out | Stop or step sent by the input (1.007). |
@@ -815,10 +815,12 @@ Alarm sounder with flash light: sounds while its output is on, for at most its r
 | `1.012` | Invert | 1 | 0 … 1 |
 | `1.015` | Reset | 1 | 0 … 1 |
 | `1.017` | Trigger | 1 | 0 … 1 |
-| `1.018` | Occupation | 1 | 0 … 1 |
+| `1.018` | Occupancy | 1 | 0 … 1 |
 | `1.019` | Window/Door | 1 | 0 … 1 |
+| `1.022` | Scene A/B | 1 | 0 … 1 |
 | `1.100` | Heating/Cooling | 1 | 0 … 1 |
 | `2.001` | Priority control | 2 | 0 … 3 |
+| `2.008` | Direction control | 2 | 0 … 3 |
 | `3.007` | Relative dimming | 4 | 0 … 15 |
 | `5.001` | Percentage | 8 | 0 … 100 |
 | `5.004` | Percentage (0–255) | 8 | 0 … 255 |

@@ -1,0 +1,469 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Store à lamelles · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/venetian-blind.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li class="cur"><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="venetian-blind"><a class="anchor" href="#venetian-blind">#</a>Store à lamelles</h1><p>Un store à lamelles utilise un seul moteur pour deux choses : il oriente d&#39;abord les lamelles, puis déplace le store. En descente, les lamelles se ferment avant que le store commence à descendre ; en montée, elles s&#39;ouvrent avant qu&#39;il monte.</p>
+<ul>
+<li>Un appui long sur la touche 1 ou 2 déplace le store (DPT 1.008 sur 2/1/1).</li>
+<li>Un appui court à l&#39;arrêt oriente les lamelles d&#39;un pas (DPT 1.007 sur 2/1/2) ; pendant un mouvement, il arrête le store.</li>
+<li>Les champs numériques du panneau de visualisation envoient une position (2/1/3) et un angle de lamelles (2/1/4), tous deux en DPT 5.001 : 0 % signifie ouvert ou en haut, 100 % fermé ou en bas.</li>
+</ul>
+<p>L&#39;actionneur n&#39;a pas de capteur : il estime la position et l&#39;angle des lamelles d&#39;après ses durées configurées de course et d&#39;orientation, et les renvoie sur 2/1/5 et 2/1/6 après chaque arrêt. Sélectionnez l&#39;actionneur pour comparer l&#39;estimation avec le store réel.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Store à lamelles : course et angle des lamelles","description":"Un appui long déplace le store ; le moteur oriente d'abord les lamelles (fermées en descente, ouvertes en montée), puis déplace le store. Un appui court à l'arrêt oriente les lamelles d'un pas, et un appui court pendant un mouvement l'arrête. Les champs numériques envoient une position et un angle de lamelles (DPT 5.001 : 0 % ouvert, 100 % fermé). L'actionneur estime les deux d'après ses durées configurées et les renvoie après chaque arrêt.","lines":[{"address":"1.1","name":"Bureau","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"2/1/1","name":"Mouvement du store","dpt":"1.008"},{"address":"2/1/2","name":"Arrêt du store / pas des lamelles","dpt":"1.007"},{"address":"2/1/3","name":"Position du store","dpt":"5.001"},{"address":"2/1/4","name":"Angle des lamelles","dpt":"5.001"},{"address":"2/1/5","name":"État de la position du store","dpt":"5.001"},{"address":"2/1/6","name":"État de l'angle des lamelles","dpt":"5.001"}],"devices":[{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"move","name":"Mouvement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"key1","flags":{"W":false,"T":true}},{"id":"stop","name":"Arrêt / pas des lamelles","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"key1","flags":{"W":false,"T":true}},{"id":"move_key2","name":"Mouvement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"key2","flags":{"W":false,"T":true}},{"id":"stop_key2","name":"Arrêt / pas des lamelles","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"key2","flags":{"W":false,"T":true}}],"channels":[{"id":"key1","label":"Entrée 1","keyLabel":"Touche 1 · Monter","parameters":{"function":"blind","blindMode":"up"},"equipment":null},{"id":"key2","label":"Entrée 2","keyLabel":"Touche 2 · Descendre","parameters":{"function":"blind","blindMode":"down"},"equipment":null}]},{"id":"blindActuator","name":"Actionneur de stores","address":"1.1.2","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"move","name":"Mouvement","ga":"2/1/1","dpt":"1.008","port":"move","channel":"b1","flags":{"W":true,"T":false}},{"id":"stop","name":"Arrêt / pas des lamelles","ga":"2/1/2","dpt":"1.007","port":"stopStep","channel":"b1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"positionCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"slat","name":"Angle des lamelles","ga":"2/1/4","dpt":"5.001","port":"slatCommand","channel":"b1","flags":{"W":true,"T":false}},{"id":"posStatus","name":"État de la position","ga":"2/1/5","dpt":"5.001","port":"positionStatus","channel":"b1","flags":{"W":false,"T":true}},{"id":"slatStatus","name":"État de l'angle des lamelles","ga":"2/1/6","dpt":"5.001","port":"slatStatus","channel":"b1","flags":{"W":false,"T":true}}],"channels":[{"id":"b1","label":"Store S1","parameters":{"estimatedTravelTimeMs":20000,"slatTravelMs":2000},"equipment":{"type":"shutter","view":"venetianBlind","parameters":{"actualTravelTimeMs":20000,"slatTravelMs":2000}}}]},{"id":"panel","name":"Visualisation","address":"1.1.3","kind":"visualization","behavior":"passive/v1","objects":[{"id":"pos","name":"Position","ga":"2/1/3","dpt":"5.001","port":"input","flags":{"W":false,"T":true}},{"id":"slat","name":"Angle des lamelles","ga":"2/1/4","dpt":"5.001","port":"input","flags":{"W":false,"T":true}}],"inputs":[{"id":"pos","type":"number","label":"Position (%)","object":"pos","min":0,"max":100,"step":10},{"id":"slat","type":"number","label":"Lamelles (%)","object":"slat","min":0,"max":100,"step":10}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=venetian-blind" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Store à lamelles : course et angle des lamelles",
+  "description": "Un appui long déplace le store ; le moteur oriente d'abord les lamelles (fermées en descente, ouvertes en montée), puis déplace le store. Un appui court à l'arrêt oriente les lamelles d'un pas, et un appui court pendant un mouvement l'arrête. Les champs numériques envoient une position et un angle de lamelles (DPT 5.001 : 0 % ouvert, 100 % fermé). L'actionneur estime les deux d'après ses durées configurées et les renvoie après chaque arrêt.",
+  "lines": [{ "address": "1.1", "name": "Bureau", "powerSupply": { "currentMa": 640 } }],
+  "groupAddresses": [
+    { "address": "2/1/1", "name": "Mouvement du store", "dpt": "1.008" },
+    { "address": "2/1/2", "name": "Arrêt du store / pas des lamelles", "dpt": "1.007" },
+    { "address": "2/1/3", "name": "Position du store", "dpt": "5.001" },
+    { "address": "2/1/4", "name": "Angle des lamelles", "dpt": "5.001" },
+    { "address": "2/1/5", "name": "État de la position du store", "dpt": "5.001" },
+    { "address": "2/1/6", "name": "État de l'angle des lamelles", "dpt": "5.001" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Interface de boutons-poussoirs",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Mouvement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "stop",
+          "name": "Arrêt / pas des lamelles",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "move_key2",
+          "name": "Mouvement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "key2",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "stop_key2",
+          "name": "Arrêt / pas des lamelles",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "key2",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "key1",
+          "label": "Entrée 1",
+          "keyLabel": "Touche 1 · Monter",
+          "parameters": { "function": "blind", "blindMode": "up" },
+          "equipment": null
+        },
+        {
+          "id": "key2",
+          "label": "Entrée 2",
+          "keyLabel": "Touche 2 · Descendre",
+          "parameters": { "function": "blind", "blindMode": "down" },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "blindActuator",
+      "name": "Actionneur de stores",
+      "address": "1.1.2",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Mouvement",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "stop",
+          "name": "Arrêt / pas des lamelles",
+          "ga": "2/1/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "positionCommand",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "slat",
+          "name": "Angle des lamelles",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "slatCommand",
+          "channel": "b1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "posStatus",
+          "name": "État de la position",
+          "ga": "2/1/5",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "b1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "slatStatus",
+          "name": "État de l'angle des lamelles",
+          "ga": "2/1/6",
+          "dpt": "5.001",
+          "port": "slatStatus",
+          "channel": "b1",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "b1",
+          "label": "Store S1",
+          "parameters": { "estimatedTravelTimeMs": 20000, "slatTravelMs": 2000 },
+          "equipment": {
+            "type": "shutter",
+            "view": "venetianBlind",
+            "parameters": { "actualTravelTimeMs": 20000, "slatTravelMs": 2000 }
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualisation",
+      "address": "1.1.3",
+      "kind": "visualization",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "pos",
+          "name": "Position",
+          "ga": "2/1/3",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "slat",
+          "name": "Angle des lamelles",
+          "ga": "2/1/4",
+          "dpt": "5.001",
+          "port": "input",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "pos",
+          "type": "number",
+          "label": "Position (%)",
+          "object": "pos",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        },
+        {
+          "id": "slat",
+          "type": "number",
+          "label": "Lamelles (%)",
+          "object": "slat",
+          "min": 0,
+          "max": 100,
+          "step": 10
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Store à lamelles : course et angle des lamelles"</span>,
+  <span class="k">"description"</span>: <span class="s">"Un appui long déplace le store ; le moteur oriente d'abord les lamelles (fermées en descente, ouvertes en montée), puis déplace le store. Un appui court à l'arrêt oriente les lamelles d'un pas, et un appui court pendant un mouvement l'arrête. Les champs numériques envoient une position et un angle de lamelles (DPT 5.001 : 0 % ouvert, 100 % fermé). L'actionneur estime les deux d'après ses durées configurées et les renvoie après chaque arrêt."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Bureau"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Mouvement du store"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Arrêt du store / pas des lamelles"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/3"</span>, <span class="k">"name"</span>: <span class="s">"Position du store"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/4"</span>, <span class="k">"name"</span>: <span class="s">"Angle des lamelles"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/5"</span>, <span class="k">"name"</span>: <span class="s">"État de la position du store"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/6"</span>, <span class="k">"name"</span>: <span class="s">"État de l'angle des lamelles"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"move"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mouvement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt / pas des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"move_key2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mouvement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop_key2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt / pas des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"key2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1 · Monter"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"up"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 2 · Descendre"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"down"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"blindActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de stores"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"move"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mouvement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt / pas des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionCommand"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"name"</span>: <span class="s">"Angle des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"slatCommand"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"posStatus"</span>,
+          <span class="k">"name"</span>: <span class="s">"État de la position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slatStatus"</span>,
+          <span class="k">"name"</span>: <span class="s">"État de l'angle des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/6"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"slatStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"b1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Store S1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">20000</span>, <span class="k">"slatTravelMs"</span>: <span class="n">2000</span> },
+          <span class="k">"equipment"</span>: {
+            <span class="k">"type"</span>: <span class="s">"shutter"</span>,
+            <span class="k">"view"</span>: <span class="s">"venetianBlind"</span>,
+            <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">20000</span>, <span class="k">"slatTravelMs"</span>: <span class="n">2000</span> }
+          }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"panel"</span>,
+      <span class="k">"name"</span>: <span class="s">"Visualisation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"visualization"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"passive/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"name"</span>: <span class="s">"Angle des lamelles"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/4"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"input"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Position (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"pos"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"slat"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Lamelles (%)"</span>,
+          <span class="k">"object"</span>: <span class="s">"slat"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">100</span>,
+          <span class="k">"step"</span>: <span class="n">10</span>
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/shutter-control.html">← Commande de volets</a>
+<a href="../../fr/examples/dimming.html">Variation →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

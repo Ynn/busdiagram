@@ -30,6 +30,7 @@ import {
   escapeScript,
   standalonePage,
   wrapExtension,
+  decodeShare,
 } from "../shared/embed";
 import { cdnTag } from "../shared/cdn.js";
 import { formatJson } from "../shared/format-json";
@@ -53,7 +54,9 @@ function pickLanguage(): string {
   } catch {
     // Storage unavailable.
   }
-  return "en";
+  // Without a choice of the user: the language of the diagram that opened the designer.
+  const fromLink = new URLSearchParams(location.hash.slice(1)).get("lang");
+  return fromLink && availableLanguages().includes(fromLink) ? fromLink : "en";
 }
 const language = pickLanguage();
 setDesignerLanguage(language);
@@ -987,3 +990,10 @@ try {
 showTab(startTab);
 applyOptions();
 refresh();
+
+// A scenario passed compressed in the link (#d=…): from the “Open in the designer” icon of
+// a diagram, or a player link.
+if (/(?:^#|&)d=/.test(location.hash))
+  void decodeShare(location.hash)
+    .then(({ scenario }) => setText(formatJson(scenario)))
+    .catch((e) => toast(t`Unreadable link: ${String((e as Error).message)}`));

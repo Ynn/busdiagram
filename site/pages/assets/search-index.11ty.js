@@ -20,9 +20,21 @@ function headingsFromMarkdown(path) {
       .replace(/[̀-ͯ]/g, "")
       .replace(/[^\w]+/g, "-")
       .replace(/^-|-$/g, "");
-    headings.push([text, id]);
+    headings.push([text, id, match[1].length]);
   }
   return headings;
+}
+
+/** Headings of a page; a translation takes the anchors of its source, heading by heading. */
+function pageHeadings(item) {
+  const own = headingsFromMarkdown(item.inputPath);
+  const source = item.data.translationOf;
+  if (source) {
+    const en = headingsFromMarkdown(`site/pages/${source}`);
+    if (en.length === own.length && en.every((h, i) => h[2] === own[i][2]))
+      return own.map(([text], i) => [text, en[i][1]]);
+  }
+  return own.map(([text, id]) => [text, id]);
 }
 
 export default class SearchIndex {
@@ -35,7 +47,7 @@ export default class SearchIndex {
       u: item.url.replace(/^\//, "").replace(/(^|\/)$/, "$1index.html"),
       s: item.data.section ?? "",
       o: item.data.otherLanguage ?? undefined,
-      h: headingsFromMarkdown(item.inputPath),
+      h: pageHeadings(item),
     }));
     return `window.BUSDIAGRAM_SEARCH=${JSON.stringify(search)};\n`;
   }

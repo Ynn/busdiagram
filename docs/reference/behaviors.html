@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -24,9 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
-  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
+  <a class="lang" href="../fr/reference/behaviors.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -397,7 +397,7 @@
 <td><code>lock</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority.</td>
+<td>1 locks the output: commands are ignored, with the reactions lockStart and afterLock; by default, weather alarms keep priority (safetyPriority).</td>
 </tr>
 <tr>
 <td><code>rainAlarm</code></td>
@@ -413,19 +413,19 @@
 </tr>
 <tr>
 <td><code>forced</code></td>
-<td>2.001</td>
+<td>2.008, 2.001</td>
 <td>required</td>
-<td>3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority.</td>
+<td>3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). By default, weather alarms and the lock keep priority (safetyPriority).</td>
 </tr>
 <tr>
 <td><code>recallPosition12</code></td>
-<td>1.001, 1.002</td>
+<td>1.022, 1.001, 1.002</td>
 <td>required</td>
 <td>0 moves to the stored position 1, 1 to the stored position 2</td>
 </tr>
 <tr>
 <td><code>recallPosition34</code></td>
-<td>1.001, 1.002</td>
+<td>1.022, 1.001, 1.002</td>
 <td>required</td>
 <td>0 moves to the stored position 3, 1 to the stored position 4</td>
 </tr>
@@ -2049,7 +2049,7 @@
 <td>number</td>
 <td><code>2</code></td>
 <td>≥ 0</td>
-<td>The frost alarm is reset once the temperature reaches threshold + hysteresis (K).</td>
+<td>The frost alarm is reset once the temperature rises above threshold + hysteresis (K).</td>
 </tr>
 <tr>
 <td><code>rainOnDelayMs</code></td>
@@ -2276,9 +2276,9 @@
 <tbody><tr>
 <td><code>sendPeriodMin</code></td>
 <td>integer</td>
-<td><code>1</code></td>
+<td><code>10</code></td>
 <td>≥ 0 ; ≤ 1440</td>
-<td>Clock minutes between two broadcasts, aligned on the clock (1 = every full minute); 0 sends only at start and after the clock is set.</td>
+<td>Clock minutes between two broadcasts, at second 30 of the minute (10 minutes is the standard heartbeat of a KNX system clock); 0 sends only at start and after the clock is set.</td>
 </tr>
 <tr>
 <td><code>sendOnStart</code></td>
@@ -2509,7 +2509,7 @@
 </thead>
 <tbody><tr>
 <td><code>switch</code></td>
-<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.100</td>
+<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.022, 1.100</td>
 <td>required</td>
 <td>switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state</td>
 </tr>

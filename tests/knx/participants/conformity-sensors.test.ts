@@ -25,7 +25,10 @@ describe("weather station", () => {
     expect(alarm()).toBe(1);
     enter(sim, "weatherStation", "wind", 8);
     expect(alarm()).toBe(1);
+    // Reset strictly below threshold − hysteresis: 7 m/s keeps the alarm.
     enter(sim, "weatherStation", "wind", 7);
+    expect(alarm()).toBe(1);
+    enter(sim, "weatherStation", "wind", 6);
     expect(alarm()).toBe(0);
   });
 
@@ -62,6 +65,8 @@ describe("air quality sensor", () => {
     enter(sim, "airSensor", "hum", 55);
     expect(v(sim, "humAlarm")).toBe(1);
     enter(sim, "airSensor", "hum", 50);
+    expect(v(sim, "humAlarm")).toBe(1);
+    enter(sim, "airSensor", "hum", 49);
     expect(v(sim, "humAlarm")).toBe(0);
   });
 
@@ -72,6 +77,8 @@ describe("air quality sensor", () => {
     enter(sim, "airSensor", "co2", 1300);
     expect(v(sim, "co2Alarm")).toBe(1);
     enter(sim, "airSensor", "co2", 1200);
+    expect(v(sim, "co2Alarm")).toBe(1);
+    enter(sim, "airSensor", "co2", 1100);
     expect(v(sim, "co2Alarm")).toBe(0);
   });
 
@@ -269,7 +276,7 @@ describe("weather station: rain, frost, and cyclic alarms", () => {
     expect(v(sim, "rain")).toBe(0);
   });
 
-  it("frost: set at or below the threshold, reset at threshold + hysteresis", () => {
+  it("frost: set at or below the threshold, reset above threshold + hysteresis", () => {
     const sim = station({ frostThresholdC: 3, frostHysteresisK: 2 });
     enter(sim, "weatherStation", "tempIn", 4);
     expect(v(sim, "frost")).toBe(0);
@@ -278,6 +285,8 @@ describe("weather station: rain, frost, and cyclic alarms", () => {
     enter(sim, "weatherStation", "tempIn", 4);
     expect(v(sim, "frost")).toBe(1);
     enter(sim, "weatherStation", "tempIn", 5);
+    expect(v(sim, "frost")).toBe(1);
+    enter(sim, "weatherStation", "tempIn", 6);
     expect(v(sim, "frost")).toBe(0);
   });
 

@@ -1,0 +1,649 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pompe à chaleur derrière une passerelle · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/boiler-room.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li class="cur"><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="heat-pump-and-hot-water-behind-a-gateway"><a class="anchor" href="#heat-pump-and-hot-water-behind-a-gateway">#</a>Pompe à chaleur et eau chaude derrière une passerelle</h1><p>Dans de nombreux bâtiments, la pompe à chaleur, le ballon d&#39;eau chaude et le plancher chauffant sont commandés par leur propre système, relié à KNX par une passerelle (Modbus, BACnet ou M-Bus). KNX ne voit alors que les valeurs et les commandes que la passerelle échange. Le schéma montre cette frontière ; l&#39;autre système n&#39;est pas simulé.</p>
+<ul>
+<li>Saisissez les températures du ballon, de départ et de retour sur la passerelle : elles viennent de Modbus et sont envoyées sur 3/1/x (DPT 9.001). L&#39;afficheur les montre.</li>
+<li>Les touches envoient le mode de chauffage (3/2/0, DPT 20.102) et une relance de l&#39;eau chaude (3/2/1). La passerelle les reçoit et les transmet à Modbus ; le journal des événements le montre, mais la réaction de la pompe à chaleur n&#39;est pas modélisée.</li>
+<li>Le compteur d&#39;énergie mesure deux circuits qu&#39;il ne commute pas. La pompe à chaleur utilise les kW et kWh (DPT 9.024 et 13.013), le chauffe-eau les W et Wh (DPT 14.056 et 13.010) : les mêmes grandeurs dans des unités différentes. Saisissez une puissance mesurée pour la modifier ; l&#39;énergie est comptée 60 fois plus vite que le temps réel.</li>
+</ul>
+<p>La ligne affiche son alimentation (640 mA) à côté de son nom.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Pompe à chaleur et eau chaude derrière une passerelle","description":"La pompe à chaleur et le ballon d'eau chaude sont commandés par leur propre système, relié à KNX par une passerelle Modbus. Saisissez les températures du ballon, de départ et de retour sur la passerelle : elles sont envoyées sur KNX et affichées sur l'afficheur. Les touches choisissent le mode de chauffage et demandent une relance de l'eau chaude ; la passerelle transmet ces commandes à Modbus, qui n'est pas simulé. Le compteur d'énergie mesure la pompe à chaleur en kW et kWh et le chauffe-eau en W et Wh ; saisissez une puissance mesurée pour la modifier.","lines":[{"address":"1.1","name":"Local technique","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"3/1/0","name":"Température du ballon d'eau chaude","dpt":"9.001"},{"address":"3/1/1","name":"Température de départ chauffage","dpt":"9.001"},{"address":"3/1/2","name":"Température de retour chauffage","dpt":"9.001"},{"address":"3/2/0","name":"Mode de chauffage","dpt":"20.102"},{"address":"3/2/1","name":"Relance eau chaude","dpt":"1.001"},{"address":"9/0/1","name":"Puissance pompe à chaleur","dpt":"9.024"},{"address":"9/1/1","name":"Énergie pompe à chaleur","dpt":"13.013"},{"address":"9/0/2","name":"Puissance chauffe-eau","dpt":"14.056"},{"address":"9/1/2","name":"Énergie chauffe-eau","dpt":"13.010"}],"devices":[{"id":"keys","name":"Interface de boutons-poussoirs · local technique","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"mode","name":"Mode de chauffage","ga":"3/2/0","dpt":"20.102","port":"value","channel":"comfort","flags":{"W":false,"T":true}},{"id":"mode_economy","name":"Mode de chauffage","ga":"3/2/0","dpt":"20.102","port":"value","channel":"economy","flags":{"W":false,"T":true}},{"id":"boost","name":"Relance eau chaude","ga":"3/2/1","dpt":"1.001","port":"switch","channel":"boostKey","flags":{"W":false,"T":true}}],"channels":[{"id":"comfort","label":"Entrée 1","keyLabel":"Confort","parameters":{"function":"value","shortValue":1},"equipment":null},{"id":"economy","label":"Entrée 2","keyLabel":"Économie","parameters":{"function":"value","shortValue":3},"equipment":null},{"id":"boostKey","label":"Entrée 3","keyLabel":"Relance eau chaude","parameters":{"ledShown":true},"equipment":null}]},{"id":"gateway","name":"Passerelle pompe à chaleur","address":"1.1.10","kind":"gateway","behavior":"systemGateway/v1","objects":[{"id":"tank","name":"Température du ballon","ga":"3/1/0","dpt":"9.001","port":"value","flags":{"W":false,"T":true}},{"id":"flow","name":"Température de départ","ga":"3/1/1","dpt":"9.001","port":"value","flags":{"W":false,"T":true}},{"id":"return","name":"Température de retour","ga":"3/1/2","dpt":"9.001","port":"value","flags":{"W":false,"T":true}},{"id":"mode","name":"Mode de chauffage","ga":"3/2/0","dpt":"20.102","port":"command","flags":{"W":true,"T":false}},{"id":"boost","name":"Relance eau chaude","ga":"3/2/1","dpt":"1.001","port":"command","flags":{"W":true,"T":false}}],"inputs":[{"id":"tank","type":"number","label":"Ballon (°C)","object":"tank","min":10,"max":80,"step":1},{"id":"flow","type":"number","label":"Départ (°C)","object":"flow","min":20,"max":60,"step":1},{"id":"return","type":"number","label":"Retour (°C)","object":"return","min":15,"max":50,"step":1}]},{"id":"meter","name":"Compteur d'énergie","address":"1.1.11","kind":"energyMeter","behavior":"energyMeter/v1","objects":[{"id":"hpPower","name":"Puissance pompe à chaleur","ga":"9/0/1","dpt":"9.024","port":"power","channel":"hp","flags":{"W":false,"T":true}},{"id":"hpEnergy","name":"Énergie pompe à chaleur","ga":"9/1/1","dpt":"13.013","port":"energy","channel":"hp","flags":{"W":false,"T":true}},{"id":"whPower","name":"Puissance chauffe-eau","ga":"9/0/2","dpt":"14.056","port":"power","channel":"wh","flags":{"W":false,"T":true}},{"id":"whEnergy","name":"Énergie chauffe-eau","ga":"9/1/2","dpt":"13.010","port":"energy","channel":"wh","flags":{"W":false,"T":true}}],"inputs":[{"id":"hp","type":"number","label":"Pompe à chaleur (kW)","object":"hpPower","min":0,"max":6,"step":0.1},{"id":"wh","type":"number","label":"Chauffe-eau (W)","object":"whPower","min":0,"max":3000,"step":100}],"channels":[{"id":"hp","label":"Pompe à chaleur","initialState":{"powerW":1800,"energyWh":4210000},"equipment":null},{"id":"wh","label":"Chauffe-eau","equipment":null}]},{"id":"display","name":"Afficheur du local technique","address":"1.1.20","kind":"display","behavior":"display/v1","objects":[{"id":"tank","name":"Ballon d'eau chaude","ga":"3/1/0","dpt":"9.001","port":"display","flags":{"W":true,"T":false}},{"id":"flow","name":"Départ","ga":"3/1/1","dpt":"9.001","port":"display","flags":{"W":true,"T":false}},{"id":"return","name":"Retour","ga":"3/1/2","dpt":"9.001","port":"display","flags":{"W":true,"T":false}},{"id":"hpPower","name":"Pompe à chaleur","ga":"9/0/1","dpt":"9.024","port":"display","flags":{"W":true,"T":false}},{"id":"hpEnergy","name":"Énergie pompe à chaleur","ga":"9/1/1","dpt":"13.013","port":"display","flags":{"W":true,"T":false}},{"id":"whPower","name":"Chauffe-eau","ga":"9/0/2","dpt":"14.056","port":"display","flags":{"W":true,"T":false}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=boiler-room" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Pompe à chaleur et eau chaude derrière une passerelle",
+  "description": "La pompe à chaleur et le ballon d'eau chaude sont commandés par leur propre système, relié à KNX par une passerelle Modbus. Saisissez les températures du ballon, de départ et de retour sur la passerelle : elles sont envoyées sur KNX et affichées sur l'afficheur. Les touches choisissent le mode de chauffage et demandent une relance de l'eau chaude ; la passerelle transmet ces commandes à Modbus, qui n'est pas simulé. Le compteur d'énergie mesure la pompe à chaleur en kW et kWh et le chauffe-eau en W et Wh ; saisissez une puissance mesurée pour la modifier.",
+  "lines": [{ "address": "1.1", "name": "Local technique", "powerSupply": { "currentMa": 640 } }],
+  "groupAddresses": [
+    { "address": "3/1/0", "name": "Température du ballon d'eau chaude", "dpt": "9.001" },
+    { "address": "3/1/1", "name": "Température de départ chauffage", "dpt": "9.001" },
+    { "address": "3/1/2", "name": "Température de retour chauffage", "dpt": "9.001" },
+    { "address": "3/2/0", "name": "Mode de chauffage", "dpt": "20.102" },
+    { "address": "3/2/1", "name": "Relance eau chaude", "dpt": "1.001" },
+    { "address": "9/0/1", "name": "Puissance pompe à chaleur", "dpt": "9.024" },
+    { "address": "9/1/1", "name": "Énergie pompe à chaleur", "dpt": "13.013" },
+    { "address": "9/0/2", "name": "Puissance chauffe-eau", "dpt": "14.056" },
+    { "address": "9/1/2", "name": "Énergie chauffe-eau", "dpt": "13.010" }
+  ],
+  "devices": [
+    {
+      "id": "keys",
+      "name": "Interface de boutons-poussoirs · local technique",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "mode",
+          "name": "Mode de chauffage",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "value",
+          "channel": "comfort",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mode_economy",
+          "name": "Mode de chauffage",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "value",
+          "channel": "economy",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "boost",
+          "name": "Relance eau chaude",
+          "ga": "3/2/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "boostKey",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "comfort",
+          "label": "Entrée 1",
+          "keyLabel": "Confort",
+          "parameters": { "function": "value", "shortValue": 1 },
+          "equipment": null
+        },
+        {
+          "id": "economy",
+          "label": "Entrée 2",
+          "keyLabel": "Économie",
+          "parameters": { "function": "value", "shortValue": 3 },
+          "equipment": null
+        },
+        {
+          "id": "boostKey",
+          "label": "Entrée 3",
+          "keyLabel": "Relance eau chaude",
+          "parameters": { "ledShown": true },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "gateway",
+      "name": "Passerelle pompe à chaleur",
+      "address": "1.1.10",
+      "kind": "gateway",
+      "behavior": "systemGateway/v1",
+      "objects": [
+        {
+          "id": "tank",
+          "name": "Température du ballon",
+          "ga": "3/1/0",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "flow",
+          "name": "Température de départ",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "return",
+          "name": "Température de retour",
+          "ga": "3/1/2",
+          "dpt": "9.001",
+          "port": "value",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "mode",
+          "name": "Mode de chauffage",
+          "ga": "3/2/0",
+          "dpt": "20.102",
+          "port": "command",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "boost",
+          "name": "Relance eau chaude",
+          "ga": "3/2/1",
+          "dpt": "1.001",
+          "port": "command",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "tank",
+          "type": "number",
+          "label": "Ballon (°C)",
+          "object": "tank",
+          "min": 10,
+          "max": 80,
+          "step": 1
+        },
+        {
+          "id": "flow",
+          "type": "number",
+          "label": "Départ (°C)",
+          "object": "flow",
+          "min": 20,
+          "max": 60,
+          "step": 1
+        },
+        {
+          "id": "return",
+          "type": "number",
+          "label": "Retour (°C)",
+          "object": "return",
+          "min": 15,
+          "max": 50,
+          "step": 1
+        }
+      ]
+    },
+    {
+      "id": "meter",
+      "name": "Compteur d'énergie",
+      "address": "1.1.11",
+      "kind": "energyMeter",
+      "behavior": "energyMeter/v1",
+      "objects": [
+        {
+          "id": "hpPower",
+          "name": "Puissance pompe à chaleur",
+          "ga": "9/0/1",
+          "dpt": "9.024",
+          "port": "power",
+          "channel": "hp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "hpEnergy",
+          "name": "Énergie pompe à chaleur",
+          "ga": "9/1/1",
+          "dpt": "13.013",
+          "port": "energy",
+          "channel": "hp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "whPower",
+          "name": "Puissance chauffe-eau",
+          "ga": "9/0/2",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "wh",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "whEnergy",
+          "name": "Énergie chauffe-eau",
+          "ga": "9/1/2",
+          "dpt": "13.010",
+          "port": "energy",
+          "channel": "wh",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "hp",
+          "type": "number",
+          "label": "Pompe à chaleur (kW)",
+          "object": "hpPower",
+          "min": 0,
+          "max": 6,
+          "step": 0.1
+        },
+        {
+          "id": "wh",
+          "type": "number",
+          "label": "Chauffe-eau (W)",
+          "object": "whPower",
+          "min": 0,
+          "max": 3000,
+          "step": 100
+        }
+      ],
+      "channels": [
+        {
+          "id": "hp",
+          "label": "Pompe à chaleur",
+          "initialState": { "powerW": 1800, "energyWh": 4210000 },
+          "equipment": null
+        },
+        { "id": "wh", "label": "Chauffe-eau", "equipment": null }
+      ]
+    },
+    {
+      "id": "display",
+      "name": "Afficheur du local technique",
+      "address": "1.1.20",
+      "kind": "display",
+      "behavior": "display/v1",
+      "objects": [
+        {
+          "id": "tank",
+          "name": "Ballon d'eau chaude",
+          "ga": "3/1/0",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "flow",
+          "name": "Départ",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "return",
+          "name": "Retour",
+          "ga": "3/1/2",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "hpPower",
+          "name": "Pompe à chaleur",
+          "ga": "9/0/1",
+          "dpt": "9.024",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "hpEnergy",
+          "name": "Énergie pompe à chaleur",
+          "ga": "9/1/1",
+          "dpt": "13.013",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "whPower",
+          "name": "Chauffe-eau",
+          "ga": "9/0/2",
+          "dpt": "14.056",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Pompe à chaleur et eau chaude derrière une passerelle"</span>,
+  <span class="k">"description"</span>: <span class="s">"La pompe à chaleur et le ballon d'eau chaude sont commandés par leur propre système, relié à KNX par une passerelle Modbus. Saisissez les températures du ballon, de départ et de retour sur la passerelle : elles sont envoyées sur KNX et affichées sur l'afficheur. Les touches choisissent le mode de chauffage et demandent une relance de l'eau chaude ; la passerelle transmet ces commandes à Modbus, qui n'est pas simulé. Le compteur d'énergie mesure la pompe à chaleur en kW et kWh et le chauffe-eau en W et Wh ; saisissez une puissance mesurée pour la modifier."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Local technique"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"3/1/0"</span>, <span class="k">"name"</span>: <span class="s">"Température du ballon d'eau chaude"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Température de départ chauffage"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Température de retour chauffage"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/0"</span>, <span class="k">"name"</span>: <span class="s">"Mode de chauffage"</span>, <span class="k">"dpt"</span>: <span class="s">"20.102"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Relance eau chaude"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"9/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Puissance pompe à chaleur"</span>, <span class="k">"dpt"</span>: <span class="s">"9.024"</span> },
+    { <span class="k">"address"</span>: <span class="s">"9/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Énergie pompe à chaleur"</span>, <span class="k">"dpt"</span>: <span class="s">"13.013"</span> },
+    { <span class="k">"address"</span>: <span class="s">"9/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Puissance chauffe-eau"</span>, <span class="k">"dpt"</span>: <span class="s">"14.056"</span> },
+    { <span class="k">"address"</span>: <span class="s">"9/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Énergie chauffe-eau"</span>, <span class="k">"dpt"</span>: <span class="s">"13.010"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"keys"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs · local technique"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode de chauffage"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"comfort"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode_economy"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode de chauffage"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"economy"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"boost"</span>,
+          <span class="k">"name"</span>: <span class="s">"Relance eau chaude"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"boostKey"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"comfort"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Confort"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">1</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"economy"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Économie"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"value"</span>, <span class="k">"shortValue"</span>: <span class="n">3</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"boostKey"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Relance eau chaude"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"gateway"</span>,
+      <span class="k">"name"</span>: <span class="s">"Passerelle pompe à chaleur"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.10"</span>,
+      <span class="k">"kind"</span>: <span class="s">"gateway"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"systemGateway/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"tank"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température du ballon"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"flow"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température de départ"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"return"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température de retour"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"mode"</span>,
+          <span class="k">"name"</span>: <span class="s">"Mode de chauffage"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"20.102"</span>,
+          <span class="k">"port"</span>: <span class="s">"command"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"boost"</span>,
+          <span class="k">"name"</span>: <span class="s">"Relance eau chaude"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"command"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"tank"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Ballon (°C)"</span>,
+          <span class="k">"object"</span>: <span class="s">"tank"</span>,
+          <span class="k">"min"</span>: <span class="n">10</span>,
+          <span class="k">"max"</span>: <span class="n">80</span>,
+          <span class="k">"step"</span>: <span class="n">1</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"flow"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Départ (°C)"</span>,
+          <span class="k">"object"</span>: <span class="s">"flow"</span>,
+          <span class="k">"min"</span>: <span class="n">20</span>,
+          <span class="k">"max"</span>: <span class="n">60</span>,
+          <span class="k">"step"</span>: <span class="n">1</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"return"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Retour (°C)"</span>,
+          <span class="k">"object"</span>: <span class="s">"return"</span>,
+          <span class="k">"min"</span>: <span class="n">15</span>,
+          <span class="k">"max"</span>: <span class="n">50</span>,
+          <span class="k">"step"</span>: <span class="n">1</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"meter"</span>,
+      <span class="k">"name"</span>: <span class="s">"Compteur d'énergie"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.11"</span>,
+      <span class="k">"kind"</span>: <span class="s">"energyMeter"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"energyMeter/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"hpPower"</span>,
+          <span class="k">"name"</span>: <span class="s">"Puissance pompe à chaleur"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.024"</span>,
+          <span class="k">"port"</span>: <span class="s">"power"</span>,
+          <span class="k">"channel"</span>: <span class="s">"hp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"hpEnergy"</span>,
+          <span class="k">"name"</span>: <span class="s">"Énergie pompe à chaleur"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"13.013"</span>,
+          <span class="k">"port"</span>: <span class="s">"energy"</span>,
+          <span class="k">"channel"</span>: <span class="s">"hp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"whPower"</span>,
+          <span class="k">"name"</span>: <span class="s">"Puissance chauffe-eau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"14.056"</span>,
+          <span class="k">"port"</span>: <span class="s">"power"</span>,
+          <span class="k">"channel"</span>: <span class="s">"wh"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"whEnergy"</span>,
+          <span class="k">"name"</span>: <span class="s">"Énergie chauffe-eau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"13.010"</span>,
+          <span class="k">"port"</span>: <span class="s">"energy"</span>,
+          <span class="k">"channel"</span>: <span class="s">"wh"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"inputs"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"hp"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Pompe à chaleur (kW)"</span>,
+          <span class="k">"object"</span>: <span class="s">"hpPower"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">6</span>,
+          <span class="k">"step"</span>: <span class="n">0.1</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"wh"</span>,
+          <span class="k">"type"</span>: <span class="s">"number"</span>,
+          <span class="k">"label"</span>: <span class="s">"Chauffe-eau (W)"</span>,
+          <span class="k">"object"</span>: <span class="s">"whPower"</span>,
+          <span class="k">"min"</span>: <span class="n">0</span>,
+          <span class="k">"max"</span>: <span class="n">3000</span>,
+          <span class="k">"step"</span>: <span class="n">100</span>
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"hp"</span>,
+          <span class="k">"label"</span>: <span class="s">"Pompe à chaleur"</span>,
+          <span class="k">"initialState"</span>: { <span class="k">"powerW"</span>: <span class="n">1800</span>, <span class="k">"energyWh"</span>: <span class="n">4210000</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        { <span class="k">"id"</span>: <span class="s">"wh"</span>, <span class="k">"label"</span>: <span class="s">"Chauffe-eau"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"display"</span>,
+      <span class="k">"name"</span>: <span class="s">"Afficheur du local technique"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.20"</span>,
+      <span class="k">"kind"</span>: <span class="s">"display"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"display/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"tank"</span>,
+          <span class="k">"name"</span>: <span class="s">"Ballon d'eau chaude"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"flow"</span>,
+          <span class="k">"name"</span>: <span class="s">"Départ"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"return"</span>,
+          <span class="k">"name"</span>: <span class="s">"Retour"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"hpPower"</span>,
+          <span class="k">"name"</span>: <span class="s">"Pompe à chaleur"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.024"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"hpEnergy"</span>,
+          <span class="k">"name"</span>: <span class="s">"Énergie pompe à chaleur"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"13.013"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"whPower"</span>,
+          <span class="k">"name"</span>: <span class="s">"Chauffe-eau"</span>,
+          <span class="k">"ga"</span>: <span class="s">"9/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"14.056"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/energy-metering.html">← Mesure d&#39;énergie</a>
+<a href="../../fr/examples/time-schedule.html">Programme horaire →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

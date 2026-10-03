@@ -50,6 +50,8 @@ export interface ThermostatState {
   warned: boolean;
   /** Time of the last externalTemp value received, ms; null before the first one. */
   externalAtMs: number | null;
+  /** Start of the wait for a first externalTemp value (start-up, bus voltage return). */
+  externalWaitFromMs: number;
   /** The external temperature is older than externalTempTimeoutMs. */
   externalStale: boolean;
   /** No usable temperature: the sensor fault is reported. */
@@ -144,10 +146,11 @@ function measure(ctx: TCtx): number | null {
     .map((o) => ctx.getObject(o.id))
     .find((v) => v !== null);
   const timeout = num(P(ctx).externalTempTimeoutMs, 0);
+  // Monitored from the last value, or, before a first one, from start-up.
   const stale =
     timeout > 0 &&
-    st.externalAtMs !== null &&
-    ctx.timeMs - st.externalAtMs > timeout;
+    objectsOf(ctx, "externalTemp").length > 0 &&
+    ctx.timeMs - (st.externalAtMs ?? st.externalWaitFromMs) > timeout;
   if (stale !== st.externalStale) {
     st.externalStale = stale;
     ctx.note(
@@ -171,22 +174,24 @@ function control(ctx: TCtx, dtMs: number) {
         ctx.t`thermostat: no temperature (room or “externalTemp” object): no control`,
       );
     st.warned = true;
-    // Sensor fault: a temperature was lost, or the device has no source at all. It is
-    // reported, and the control value set to its fault value.
+    // Sensor fault: a temperature was lost, the external temperature never came within
+    // its monitoring time, or the device has no source at all. It is reported, and the
+    // control value set to its fault value.
     const noSource =
       ctx.readRoom() === null && !objectsOf(ctx, "externalTemp").length;
-    if (!st.sensorFault && (st.measuredC !== null || noSource)) {
+    if (
+      !st.sensorFault &&
+      (st.measuredC !== null || noSource || st.externalStale)
+    ) {
       st.sensorFault = true;
       publish(ctx, "sensorFault", 1);
-      if (st.measuredC !== null) {
-        ctx.note(
-          ctx.t`thermostat: sensor fault, control value ${num(p.sensorFaultValuePct, 0)} %`,
-        );
-        st.valuePct = num(p.sensorFaultValuePct, 0);
-        st.switchOn = st.valuePct > 0;
-        sendValue(ctx);
-        pwm(ctx);
-      }
+      ctx.note(
+        ctx.t`thermostat: sensor fault, control value ${num(p.sensorFaultValuePct, 0)} %`,
+      );
+      st.valuePct = num(p.sensorFaultValuePct, 0);
+      st.switchOn = st.valuePct > 0;
+      sendValue(ctx);
+      pwm(ctx);
     }
     return;
   }
@@ -302,6 +307,10 @@ function apply(ctx: TCtx, port: string, value: number, dpt = "") {
   const st = ctx.state;
   const p = P(ctx);
   switch (port) {
+    case "externalTemp":
+      // Received from the bus or entered on the device: the measurement is renewed.
+      st.externalAtMs = ctx.timeMs;
+      break;
     case "baseSetpoint":
       st.baseC = clamp(value, num(p.minSetpointC, 5), num(p.maxSetpointC, 35));
       break;
@@ -595,6 +604,7 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       telegram: "state",
     },
     externalTemp: {
+      single: true,
       dpts: ["9.001"],
       channel: "none",
       title: "External temperature",
@@ -725,11 +735,13 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       warned: false,
       sensorFault: false,
       externalAtMs: null,
+      externalWaitFromMs: 0,
       externalStale: false,
     };
   },
   onInit(ctx) {
     const st = ctx.state;
+    st.externalWaitFromMs = ctx.timeMs;
     // Initial values reported on input objects.
     ctx.device.objects.forEach((o) => {
       const v = ctx.getObject(o.id);
@@ -761,6 +773,15 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       objectsOf(ctx, "actualTemp").forEach((o) => ctx.setObject(o.id, t));
     }
   },
+  // The timers stop with the bus voltage. When it returns, a comfort extension still on
+  // runs a whole extension again, and the external temperature is awaited again from now.
+  onBusRecovery(ctx) {
+    const st = ctx.state;
+    st.externalAtMs = null;
+    st.externalWaitFromMs = ctx.timeMs;
+    if (P(ctx).presenceType === "button" && st.presence)
+      ctx.schedule("presenceEnd", num(P(ctx).comfortExtensionMs, 7_200_000));
+  },
   onTimer(ctx, key) {
     if (key !== "presenceEnd") return;
     ctx.state.presence = false;
@@ -781,7 +802,6 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
   },
   onObjectWrite(ctx, e) {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
-    if (o?.port === "externalTemp") ctx.state.externalAtMs = ctx.timeMs;
     if (o) apply(ctx, o.port, e.newValue, o.dpt);
   },
   onInput(ctx, input) {

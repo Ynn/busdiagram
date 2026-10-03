@@ -7,7 +7,12 @@ const bundlePath = resolve(import.meta.dirname, "../dist/bus-diagram.js");
 const bundle = await readFile(bundlePath, "utf8");
 const size = (await stat(bundlePath)).size;
 const gzipSize = gzipSync(bundle).byteLength;
-const allowedUrls = new Set(["https://json-schema.org/draft/2020-12/schema"]);
+const allowedUrls = new Set([
+  "https://json-schema.org/draft/2020-12/schema",
+  // Address of the published designer: only the href of the “Open in the designer” link,
+  // followed when the reader clicks it; nothing is loaded from it.
+  "https://ynn.github.io/busdiagram/designer/index.html",
+]);
 // The code must not reach the network; the banner comment may cite the source address.
 const code = bundle.slice(bundle.indexOf("*/") + 2);
 const urls = code.match(/https?:\/\/[^\s"'`]+/g) ?? [];

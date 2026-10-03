@@ -59,6 +59,14 @@ attrs: toolbar="compact" monitor="false" description="false"
 tabs: html
 ```
 
+## Open in the designer
+
+The toolbar of a diagram ends with an icon that opens the diagram in the [designer](designer.html), in a new tab, to inspect or modify it. The scenario travels compressed in the link, after `#`, so it is not sent to any server. By default the icon opens the published designer; the `designer` attribute gives another address, such as a copy of the designer next to your pages to work offline, and `designer="none"` hides the icon:
+
+```html
+<bus-diagram designer="designer/index.html"></bus-diagram>
+```
+
 ## Several diagrams
 
 A page can show several instances, even with the same scenario. Each has an independent clock and state. See the [two-instance example](../examples/two-instances.html).

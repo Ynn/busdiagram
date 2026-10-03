@@ -21,7 +21,7 @@ A `dimmerActuator/v1` channel accepts three kinds of control:
 | `valueStatus` | 5.001 | Actual brightness after a transition. |
 | `scene` | 17.001 | Recall a channel brightness preset. |
 
-Channel parameters include `onLevel` (`"fixed"` or `"last"`), `onLevelPct`, `dimTimeMs`, `switchFadeMs`, `valueFadeMs`, `minLevelPct`, `maxLevelPct`, `dimSwitchesOn`, and `dimSwitchesOff` for relative dimming, and `valueSwitchesOn` and `valueSwitchesOff` for brightness values. With `valueSwitchesOn: false`, a value received while the channel is off is ignored; with `valueSwitchesOff: false`, a value of 0 dims to the minimum level instead of switching off. Both options exist in dimming actuator manuals; by default both are allowed. The switch-on level stays within the minimum and maximum levels. On a bus voltage failure the level is unchanged, or set to off or `busFailureLevelPct` (`busFailure`); on recovery it returns to the level before the failure, or is set off or on (`busRecovery`), and the status is sent again. See the [behavior reference](../reference/behaviors.html).
+Channel parameters include `onLevel` (`"fixed"` or `"last"`), `onLevelPct`, `dimTimeMs`, `switchFadeMs`, `valueFadeMs`, `minLevelPct`, `maxLevelPct`, `dimSwitchesOn`, and `dimSwitchesOff` for relative dimming, and `valueSwitchesOn` and `valueSwitchesOff` for brightness values. With `valueSwitchesOn: false`, a value received while the channel is off is ignored; with `valueSwitchesOff: false`, a value of 0 dims to the minimum level instead of switching off. Both options exist in dimming actuator manuals; by default both are allowed. The switch-on level stays within the minimum and maximum levels. On a bus voltage failure the level is unchanged, or set to off or `busFailureLevelPct` (`busFailure`); on recovery it returns to the level before the failure, or is set off or on (`busRecovery`), and the status is sent again. The optional forcing and lock objects of the KNX dimming actuator description are not modeled. See the [behavior reference](../reference/behaviors.html).
 
 ```json
 {
@@ -86,7 +86,7 @@ Each KNX command produces a DALI action shown in the event log and step mode:
 | DPT 3.007 dim | `UP` or `DOWN`, followed by stop. |
 | DPT 17.001 scene | KNX scene 1–16 maps to DALI `GO TO SCENE 0`–`15`. |
 
-The gateway accepts up to 16 group channels. Configure KNX scene presets 1–16 only; they map directly to DALI command numbers 0–15. Other KNX scene values have no configured DALI preset and leave the output unchanged.
+The gateway accepts up to 16 group channels. In this model, KNX scenes 1–16 map directly to the DALI scenes 0–15, so configure presets for scenes 1–16 only; other KNX scene values have no preset and leave the output unchanged. This is a simplification: the KNX application description of DALI gateways supports up to 64 KNX scenes, which the configuration of the gateway maps to its DALI channels, and leaves the translation of KNX values into DALI commands to the manufacturer.
 
 The gateway polls ballasts every `pollMs` (2 seconds by default). Click a luminaire to simulate a ballast fault; the lamp goes dark and the gateway sets its group `error` and `generalError` objects. Click again to repair it. Status and fault objects can answer reads from the [USB interface panel](usb-interface.html).
 

@@ -6,6 +6,7 @@ import type { Translate } from "../i18n";
 import { dptTitle } from "./dpt";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
+import { buildTopology } from "./network";
 import type { Scenario } from "./scenario";
 
 export interface ConfigWarning {
@@ -41,24 +42,25 @@ export function configWarnings(
         });
   }
 
-  // A TP1 segment takes up to 64 devices (KNX TP1 specification, TP1-64 devices); more
-  // need TP1-256 devices or a line extension (repeater or segment coupler).
-  const perSegment = new Map<string, number>();
-  for (const d of s.devices)
-    if (d.medium === "TP" && d.line) {
-      const key = `${d.line}${d.downstream ? " · 2" : ""}`;
-      perSegment.set(key, (perSegment.get(key) ?? 0) + 1);
-    }
-  perSegment.forEach((n, key) => {
-    if (n > 64)
-      out.push({
-        code: "config-segment-size",
-        deviceId: s.devices.find(
-          (d) => `${d.line}${d.downstream ? " · 2" : ""}` === key,
-        )!.id,
-        message: t`segment ${key}: ${n} devices, more than the 64 of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler`,
-      });
-  });
+  // A TP1 segment takes up to 64 connected devices (KNX TP1 specification, TP1-64
+  // devices); a coupler, a router, or a line extension has a TP1 connection on each of its
+  // TP segments and counts on both. More need TP1-256 devices or a line extension.
+  for (const sg of buildTopology(s).segments.values()) {
+    if (sg.kind === "ip" || sg.points.length <= 64) continue;
+    const devices = sg.points.filter((p) => p.deviceId).length;
+    const couplers = sg.points.length - devices;
+    const name =
+      sg.kind === "line"
+        ? `${sg.ref}${sg.downstream ? " · 2" : ""}`
+        : sg.kind === "main"
+          ? `${sg.ref}.0`
+          : "0.0";
+    out.push({
+      code: "config-segment-size",
+      deviceId: sg.points.find((p) => p.deviceId)?.deviceId,
+      message: t`segment ${name}: ${devices} devices and ${couplers} couplers or repeaters, more than the 64 connections of a TP1 segment; use TP1-256 devices or a line repeater or segment coupler`,
+    });
+  }
 
   // Group addresses linking one-bit DPTs with opposite meanings for the same state.
   const opposite: [string, string][] = [["1.009", "1.019"]];

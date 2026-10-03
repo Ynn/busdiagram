@@ -472,6 +472,18 @@ function updateControl(ctx: Ctx, ch: string) {
     st.beforeControlPct = null;
     return;
   }
+  holdReaction(ctx, ch);
+}
+
+/**
+ * Movement of the cause that holds the output (forcing, lock, or weather alarm): when it
+ * starts, and again when the bus voltage returns while it still holds.
+ */
+function holdReaction(ctx: Ctx, ch: string) {
+  const st = ctx.state.channels[ch]!;
+  const p = ctx.device.channels.find((c) => c.id === ch)?.parameters ?? {};
+  const now = st.control;
+  if (now === null) return;
   if (now === "forced") {
     ctx.note(
       st.forced === "up"
@@ -948,7 +960,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       title: "Lock",
       direction: "in",
       description:
-        "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority.",
+        "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; by default, weather alarms keep priority (safetyPriority).",
     },
     rainAlarm: {
       dpts: ["1.005", "1.001"],
@@ -965,15 +977,15 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       description: "1 starts the frost alarm (frostReaction); 0 ends it",
     },
     forced: {
-      dpts: ["2.001"],
+      dpts: ["2.008", "2.001"],
       channel: "required",
       title: "Forcing",
       direction: "in",
       description:
-        "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority.",
+        "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). By default, weather alarms and the lock keep priority (safetyPriority).",
     },
     recallPosition12: {
-      dpts: ["1.001", "1.002"],
+      dpts: ["1.022", "1.001", "1.002"],
       channel: "required",
       title: "Positions 1/2",
       direction: "in",
@@ -981,7 +993,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         "0 moves to the stored position 1, 1 to the stored position 2",
     },
     recallPosition34: {
-      dpts: ["1.001", "1.002"],
+      dpts: ["1.022", "1.001", "1.002"],
       channel: "required",
       title: "Positions 3/4",
       direction: "in",
@@ -1092,12 +1104,23 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
     if (o.port === "lock" || o.port === "forced") {
       if (!ch) return;
       const st = ctx.state.channels[ch]!;
+      const forcedBefore = st.forced;
       if (o.port === "lock") st.locked = e.newValue === 1;
-      // 2.001: control bit and value; 3 forces down, 2 forces up, 0 or 1 ends forcing.
+      // 2.008 or 2.001: control bit and value; 3 forces down, 2 forces up, 0 or 1 ends
+      // the forcing.
       else st.forced = e.newValue & 2 ? (e.newValue & 1 ? "down" : "up") : null;
       if (o.port === "lock" && !st.locked && st.control !== "lock")
         ctx.note(ctx.t`${ch}: lock ended`);
-      updateControl(ctx, ch);
+      // Forced the other way while forcing holds the output: it moves to the new position.
+      if (
+        o.port === "forced" &&
+        st.control === "forced" &&
+        st.forced &&
+        forcedBefore &&
+        st.forced !== forcedBefore
+      )
+        holdReaction(ctx, ch);
+      else updateControl(ctx, ch);
       return;
     }
     if (o.port === "storePosition12" || o.port === "storePosition34") {
@@ -1207,7 +1230,12 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       else motor(ctx, c.id, null);
       st.targetPct = null;
       watchAlarms(ctx, c.id);
-      if (st.control !== null) return publish(ctx, c.id);
+      // A forcing, a lock, or an alarm kept through the failure moves the shutter again:
+      // the movement it started was stopped with the voltage.
+      if (st.control !== null) {
+        holdReaction(ctx, c.id);
+        return publish(ctx, c.id);
+      }
       if (c.parameters.busRecovery && c.parameters.busRecovery !== "none")
         react(
           ctx,

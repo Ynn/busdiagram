@@ -1,0 +1,366 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Coupure de la tension bus · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/bus-voltage.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li class="cur"><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="bus-voltage-failure-lock-and-delays"><a class="anchor" href="#bus-voltage-failure-lock-and-delays">#</a>Coupure de la tension bus, verrouillage et temporisations</h1><p>L&#39;interface de boutons-poussoirs est sur la ligne 1.1, l&#39;actionneur de commutation sur la ligne 1.2. Chaque ligne a sa propre alimentation.</p>
+<ul>
+<li>Allumez L1 avec l&#39;entrée 1, puis cliquez sur <strong>Alim. 640 mA</strong> sur la ligne 1.2. L&#39;actionneur éteint L1, comme réglé pour une coupure de la tension bus (<code>busFailure: &quot;off&quot;</code>). La ligne devient grise : ses appareils ne reçoivent ni n&#39;envoient plus rien, et le coupleur de ligne ne lui transmet plus de télégrammes.</li>
+<li>Cliquez à nouveau sur l&#39;étiquette. L1 revient à son état d&#39;avant la coupure (<code>busRecovery: &quot;previous&quot;</code>) et l&#39;actionneur envoie son état.</li>
+<li>Coupez plutôt la tension de la ligne 1.1 : l&#39;entrée 1 renvoie sa valeur actuelle 2 secondes après le retour de la tension (<code>busRecovery: &quot;update&quot;</code>).</li>
+<li>L&#39;entrée 2 verrouille L1, comme pour le ménage : L1 s&#39;éteint et ignore les commandes jusqu&#39;à la fin du verrouillage ; la dernière commande reçue est alors appliquée.</li>
+<li>L&#39;entrée 3 commute L2 avec une temporisation à l&#39;enclenchement de 2 secondes et une temporisation au déclenchement de 5 secondes.</li>
+</ul>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Coupure de la tension bus, verrouillage et temporisations","description":"Cliquez sur l'étiquette Alim. de la ligne 1.2 pour couper sa tension bus : l'actionneur de commutation éteint la sortie L1, comme réglé pour une coupure de la tension bus, sa carte devient grise, et le coupleur de ligne ne transmet plus de télégrammes vers la ligne. Cliquez à nouveau pour rétablir la tension : L1 revient à son état d'avant la coupure et l'actionneur envoie son état. L'entrée 2 verrouille L1 (verrouillage pour le ménage) : pendant le verrouillage, L1 reste éteinte et les commandes sont mémorisées. L'entrée 3 commute L2 avec une temporisation à l'enclenchement de 2 secondes et une temporisation au déclenchement de 5 secondes.","lines":[{"address":"1.1","name":"Commandes","powerSupply":{"currentMa":320}},{"address":"1.2","name":"Actionneurs","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"Commutation L1","dpt":"1.001"},{"address":"1/1/2","name":"Commutation L2","dpt":"1.001"},{"address":"1/4/1","name":"État de commutation L1","dpt":"1.001"},{"address":"1/4/2","name":"État de commutation L2","dpt":"1.001"},{"address":"1/6/1","name":"Verrouillage L1","dpt":"1.001"}],"devices":[{"id":"buttonInterface","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Commutation entrée 1","ga":["1/1/1","1/4/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"lk2","name":"Verrouillage entrée 2","ga":"1/6/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"sw3","name":"Commutation entrée 3","ga":["1/1/2","1/4/2"],"dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Entrée 1 · L1","parameters":{"busRecovery":"update","busRecoveryDelayMs":2000,"ledShown":true},"equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"Entrée 2 · Verrouiller L1","parameters":{"ledShown":true},"equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Entrée 3 · L2","parameters":{"ledShown":true},"equipment":null}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.2.1","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"sw1","name":"Commutation L1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"st1","name":"État L1","ga":"1/4/1","dpt":"1.001","port":"status","channel":"a","flags":{"W":false,"T":true}},{"id":"lk1","name":"Verrouillage L1","ga":"1/6/1","dpt":"1.001","port":"lock","channel":"a","flags":{"W":true,"T":false}},{"id":"sw2","name":"Commutation L2","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"b","flags":{"W":true,"T":false}},{"id":"st2","name":"État L2","ga":"1/4/2","dpt":"1.001","port":"status","channel":"b","flags":{"W":false,"T":true}}],"channels":[{"id":"a","label":"L1","parameters":{"lockStart":"off","busFailure":"off"},"equipment":{"type":"lamp"}},{"id":"b","label":"L2","parameters":{"onDelayMs":2000,"offDelayMs":5000},"equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=bus-voltage" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Coupure de la tension bus, verrouillage et temporisations",
+  "description": "Cliquez sur l'étiquette Alim. de la ligne 1.2 pour couper sa tension bus : l'actionneur de commutation éteint la sortie L1, comme réglé pour une coupure de la tension bus, sa carte devient grise, et le coupleur de ligne ne transmet plus de télégrammes vers la ligne. Cliquez à nouveau pour rétablir la tension : L1 revient à son état d'avant la coupure et l'actionneur envoie son état. L'entrée 2 verrouille L1 (verrouillage pour le ménage) : pendant le verrouillage, L1 reste éteinte et les commandes sont mémorisées. L'entrée 3 commute L2 avec une temporisation à l'enclenchement de 2 secondes et une temporisation au déclenchement de 5 secondes.",
+  "lines": [
+    { "address": "1.1", "name": "Commandes", "powerSupply": { "currentMa": 320 } },
+    { "address": "1.2", "name": "Actionneurs", "powerSupply": { "currentMa": 640 } }
+  ],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "Commutation L1", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "Commutation L2", "dpt": "1.001" },
+    { "address": "1/4/1", "name": "État de commutation L1", "dpt": "1.001" },
+    { "address": "1/4/2", "name": "État de commutation L2", "dpt": "1.001" },
+    { "address": "1/6/1", "name": "Verrouillage L1", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "buttonInterface",
+      "name": "Interface de boutons-poussoirs",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Commutation entrée 1",
+          "ga": ["1/1/1", "1/4/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "lk2",
+          "name": "Verrouillage entrée 2",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw3",
+          "name": "Commutation entrée 3",
+          "ga": ["1/1/2", "1/4/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Entrée 1",
+          "keyLabel": "Entrée 1 · L1",
+          "parameters": { "busRecovery": "update", "busRecoveryDelayMs": 2000, "ledShown": true },
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Entrée 2",
+          "keyLabel": "Entrée 2 · Verrouiller L1",
+          "parameters": { "ledShown": true },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Entrée 3",
+          "keyLabel": "Entrée 3 · L2",
+          "parameters": { "ledShown": true },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation",
+      "address": "1.2.1",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Commutation L1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st1",
+          "name": "État L1",
+          "ga": "1/4/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "a",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "lk1",
+          "name": "Verrouillage L1",
+          "ga": "1/6/1",
+          "dpt": "1.001",
+          "port": "lock",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sw2",
+          "name": "Commutation L2",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st2",
+          "name": "État L2",
+          "ga": "1/4/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "b",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "a",
+          "label": "L1",
+          "parameters": { "lockStart": "off", "busFailure": "off" },
+          "equipment": { "type": "lamp" }
+        },
+        {
+          "id": "b",
+          "label": "L2",
+          "parameters": { "onDelayMs": 2000, "offDelayMs": 5000 },
+          "equipment": { "type": "lamp" }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Coupure de la tension bus, verrouillage et temporisations"</span>,
+  <span class="k">"description"</span>: <span class="s">"Cliquez sur l'étiquette Alim. de la ligne 1.2 pour couper sa tension bus : l'actionneur de commutation éteint la sortie L1, comme réglé pour une coupure de la tension bus, sa carte devient grise, et le coupleur de ligne ne transmet plus de télégrammes vers la ligne. Cliquez à nouveau pour rétablir la tension : L1 revient à son état d'avant la coupure et l'actionneur envoie son état. L'entrée 2 verrouille L1 (verrouillage pour le ménage) : pendant le verrouillage, L1 reste éteinte et les commandes sont mémorisées. L'entrée 3 commute L2 avec une temporisation à l'enclenchement de 2 secondes et une temporisation au déclenchement de 5 secondes."</span>,
+  <span class="k">"lines"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Commandes"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">320</span> } },
+    { <span class="k">"address"</span>: <span class="s">"1.2"</span>, <span class="k">"name"</span>: <span class="s">"Actionneurs"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }
+  ],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/1"</span>, <span class="k">"name"</span>: <span class="s">"État de commutation L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/4/2"</span>, <span class="k">"name"</span>: <span class="s">"État de commutation L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/6/1"</span>, <span class="k">"name"</span>: <span class="s">"Verrouillage L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation entrée 1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"1/4/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Verrouillage entrée 2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation entrée 3"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/2"</span>, <span class="s">"1/4/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 1 · L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"busRecovery"</span>: <span class="s">"update"</span>, <span class="k">"busRecoveryDelayMs"</span>: <span class="n">2000</span>, <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 2 · Verrouiller L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Entrée 3 · L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"ledShown"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.2.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st1"</span>,
+          <span class="k">"name"</span>: <span class="s">"État L1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"lk1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Verrouillage L1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/6/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"lock"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st2"</span>,
+          <span class="k">"name"</span>: <span class="s">"État L2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/4/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"a"</span>,
+          <span class="k">"label"</span>: <span class="s">"L1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"lockStart"</span>: <span class="s">"off"</span>, <span class="k">"busFailure"</span>: <span class="s">"off"</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"b"</span>,
+          <span class="k">"label"</span>: <span class="s">"L2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onDelayMs"</span>: <span class="n">2000</span>, <span class="k">"offDelayMs"</span>: <span class="n">5000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/usb-interface.html">← Outil interface USB</a>
+<a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

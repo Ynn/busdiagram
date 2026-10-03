@@ -43,6 +43,8 @@ import { equipmentView } from "./equipment";
 import type { Translate } from "../i18n";
 import { translator } from "../i18n";
 import { resolveOptions } from "./options";
+import { toV2 } from "../knx/export";
+import { encodeShare } from "../share";
 import type { ViewOptions } from "./options";
 import { C, hexA, styles } from "./styles";
 
@@ -142,6 +144,7 @@ export class BusDiagram extends LitElement {
     minScaleAttr: { type: String, attribute: "min-scale" },
     speedAttr: { type: String, attribute: "speed" },
     stepModeAttr: { type: String, attribute: "step-mode" },
+    designerAttr: { type: String, attribute: "designer" },
   };
 
   declare scenario: string;
@@ -196,6 +199,8 @@ export class BusDiagram extends LitElement {
   private selId: number | null = null;
   private seenTels = 0;
   private loadToken = 0;
+  /** Link to the scenario in the designer, prepared when the scenario loads. */
+  private designerLink: string | null = null;
   private ro: ResizeObserver | null = null;
   private stageRo: ResizeObserver | null = null;
   private stageBox = { w: 0, h: 0 };
@@ -351,6 +356,7 @@ export class BusDiagram extends LitElement {
       this.error = "";
       this.sim = new Simulation(model, { lang: this.language });
       this.attach(this.sim);
+      this.prepareDesignerLink(model);
       this.clearUi();
       this.requestUpdate();
       // A simulated clock runs without waiting for an input.
@@ -465,6 +471,62 @@ export class BusDiagram extends LitElement {
       offTel();
       offJournal();
     };
+  }
+
+  /**
+   * Link of the toolbar icon: the scenario, compressed into the fragment of the designer's
+   * address. Prepared in advance, so that the click is a plain link (new tab, no pop-up
+   * blocking, middle click).
+   */
+  private prepareDesignerLink(model: Scenario) {
+    this.designerLink = null;
+    const token = this.loadToken;
+    let scenario: unknown;
+    try {
+      scenario = toV2(model);
+    } catch {
+      return;
+    }
+    void encodeShare(scenario, {}, this.language)
+      .then((fragment) => {
+        if (token !== this.loadToken) return;
+        this.designerLink = fragment;
+        this.requestUpdate();
+      })
+      .catch(() => {
+        // No link: the icon stays hidden.
+      });
+  }
+
+  /** Address opened by the icon, or null when it is hidden. */
+  private designerHref(): string | null {
+    const base = this.view.designer;
+    if (!this.designerLink || !base || base === "none") return null;
+    // The language, readable without decompressing, opens the designer in that language.
+    return `${base.split("#")[0]}#${this.designerLink}&lang=${encodeURIComponent(this.language)}`;
+  }
+
+  private designerIcon(cls: string) {
+    const href = this.designerHref();
+    if (!href) return nothing;
+    const label = this.tr`Open in the designer`;
+    return html`<a
+      class=${cls}
+      href=${href}
+      target="_blank"
+      rel="noopener"
+      title=${label}
+      aria-label=${label}
+      ><svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+        <path
+          d="M9.5 2.5h4v4M13.5 2.5 8 8M12 9.5v3.5a.5.5 0 0 1-.5.5h-9a.5.5 0 0 1-.5-.5v-9a.5.5 0 0 1 .5-.5H6"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="1.6"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        /></svg
+    ></a>`;
   }
 
   private teardown() {
@@ -967,6 +1029,7 @@ export class BusDiagram extends LitElement {
       >
         ↺
       </button>
+      ${this.designerIcon("ico")}
     </div>`;
   }
 
@@ -1036,6 +1099,7 @@ export class BusDiagram extends LitElement {
       <button class="btn" @click=${() => this.reset()}>
         ${this.tr`Reset`}
       </button>
+      ${this.designerIcon("btn ico")}
     </div>`;
   }
 

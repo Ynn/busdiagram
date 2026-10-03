@@ -1,0 +1,230 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>API JavaScript · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/api.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li class="cur"><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="javascript-api"><a class="anchor" href="#javascript-api">#</a>API JavaScript</h1><p>Chargez <code>bus-diagram.js</code> pour exposer <code>window.BusDiagram</code>.</p>
+<h2 id="global-functions"><a class="anchor" href="#global-functions">#</a>Fonctions globales</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Fonction</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>version</code></td>
+<td>Version de la bibliothèque, par exemple <code>&quot;0.3.1&quot;</code> ; voir <a href="../guide/versions.html">versions</a>.</td>
+</tr>
+<tr>
+<td><code>create(target, scenario?, options?)</code></td>
+<td>Créer ou réutiliser un <code>&lt;bus-diagram&gt;</code> sur un sélecteur ou un élément ; renvoie le composant.</td>
+</tr>
+<tr>
+<td><code>registerBehavior(id, definition)</code></td>
+<td>Enregistrer un comportement d&#39;extension ; les identifiants en double sont refusés.</td>
+</tr>
+<tr>
+<td><code>registerEquipment(id, definition)</code></td>
+<td>Enregistrer un modèle d&#39;équipement.</td>
+</tr>
+<tr>
+<td><code>registerEquipmentView(id, { size, render })</code></td>
+<td>Enregistrer le dessin d&#39;un équipement.</td>
+</tr>
+<tr>
+<td><code>buildScenario(json, registry?, t?)</code></td>
+<td>Valider et normaliser un JSON ; lève une <code>ScenarioError</code> avec des détails <code>{ path, code, message }</code> en cas d&#39;échec.</td>
+</tr>
+<tr>
+<td><code>toV2(scenario)</code></td>
+<td>Écrire un scénario normalisé en JSON minimal au format 2 (les valeurs égales à leur valeur par défaut sont omises).</td>
+</tr>
+<tr>
+<td><code>createSimulator(json, options?)</code></td>
+<td>Créer une simulation sans composant DOM.</td>
+</tr>
+<tr>
+<td><code>registerMessages(language, messages)</code></td>
+<td>Ajouter ou compléter un catalogue de langue ; voir <a href="../guide/languages.html">langues</a>.</td>
+</tr>
+<tr>
+<td><code>availableLanguages()</code></td>
+<td>Lister les codes de langue disponibles.</td>
+</tr>
+<tr>
+<td><code>translator(language)</code></td>
+<td>Obtenir une fonction de traduction pour les messages de validation et du moteur.</td>
+</tr>
+<tr>
+<td><code>html</code>, <code>svg</code>, <code>nothing</code></td>
+<td>Utilitaires Lit pour les vues d&#39;extension.</td>
+</tr>
+<tr>
+<td><code>OPTION_DOCS</code>, <code>DEFAULT_OPTIONS</code></td>
+<td>Métadonnées et valeurs par défaut des options d&#39;affichage.</td>
+</tr>
+</tbody></table>
+</div><h2 id="bus-diagram-element"><a class="anchor" href="#bus-diagram-element">#</a>Élément <code>&lt;bus-diagram&gt;</code></h2><h3 id="attributes-and-properties"><a class="anchor" href="#attributes-and-properties">#</a>Attributs et propriétés</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Nom</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Attribut <code>scenario</code></td>
+<td>Choisir un bloc JSON <code>&lt;script&gt;</code> par <code>#id</code>.</td>
+</tr>
+<tr>
+<td>Attribut <code>src</code></td>
+<td>Charger un fichier JSON par son URL, en HTTP.</td>
+</tr>
+<tr>
+<td>Propriété <code>options</code></td>
+<td>Options d&#39;affichage JavaScript, qui l&#39;emportent sur les attributs.</td>
+</tr>
+<tr>
+<td>Propriété <code>view</code></td>
+<td>Options d&#39;affichage effectives.</td>
+</tr>
+<tr>
+<td>Propriété <code>simulation</code></td>
+<td>Simulation sous-jacente, pour un usage avancé.</td>
+</tr>
+</tbody></table>
+</div><h3 id="methods"><a class="anchor" href="#methods">#</a>Méthodes</h3><div class="table"><table>
+<thead>
+<tr>
+<th>Méthode</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>load(json)</code></td>
+<td>Valider et remplacer le scénario, ou afficher ses erreurs.</td>
+</tr>
+<tr>
+<td><code>reset()</code></td>
+<td>Rétablir l&#39;état initial et le temps zéro.</td>
+</tr>
+<tr>
+<td><code>play()</code>, <code>pause()</code></td>
+<td>Reprendre ou mettre en pause le temps simulé.</td>
+</tr>
+<tr>
+<td><code>advance(ms)</code></td>
+<td>Avancer d&#39;un nombre positif ou nul de millisecondes simulées, même en pause.</td>
+</tr>
+<tr>
+<td><code>stepToNextEvent()</code></td>
+<td>Avancer jusqu&#39;au prochain événement explicatif ; renvoie <code>{ timeMs, events }</code> ou <code>null</code>.</td>
+</tr>
+<tr>
+<td><code>setSpeed(n)</code></td>
+<td>Fixer une vitesse de simulation positive.</td>
+</tr>
+<tr>
+<td><code>getState()</code></td>
+<td>Renvoyer une copie sérialisable de l&#39;état actuel.</td>
+</tr>
+<tr>
+<td><code>on(name, handler)</code></td>
+<td>S&#39;abonner à <code>telegram</code>, <code>ready</code> ou <code>error</code> ; renvoie une fonction de désabonnement.</td>
+</tr>
+<tr>
+<td><code>groupWrite(address, value, interface?)</code></td>
+<td>Écrire une valeur de groupe par l&#39;interface USB du scénario.</td>
+</tr>
+<tr>
+<td><code>groupRead(address, interface?)</code></td>
+<td>Lire une valeur de groupe par l&#39;interface USB.</td>
+</tr>
+<tr>
+<td><code>roomAction(roomId, action, value)</code></td>
+<td>Régler l&#39;état de la fenêtre ou la température extérieure d&#39;une pièce.</td>
+</tr>
+<tr>
+<td><code>setClock(value)</code></td>
+<td>Régler l&#39;horloge simulée sur une date et une heure locales (<code>YYYY-MM-DDTHH:MM[:SS]</code>).</td>
+</tr>
+<tr>
+<td><code>setBusVoltage(segment, on)</code></td>
+<td>Couper (<code>false</code>) ou rétablir (<code>true</code>) la tension bus d&#39;un segment de ligne : <code>L1.1</code>, ou <code>L1.1b</code> derrière son extension.</td>
+</tr>
+</tbody></table>
+</div><h3 id="getstate-example"><a class="anchor" href="#getstate-example">#</a>Exemple de <code>getState()</code></h3><pre class="code"><code>{
+  <span class="k">"timeMs"</span>: <span class="n">11639</span>,
+  <span class="k">"paused"</span>: <span class="kw">false</span>,
+  <span class="k">"faulted"</span>: <span class="kw">false</span>,
+  <span class="k">"objects"</span>: {
+    <span class="k">"panel/feedback"</span>: {
+      <span class="k">"value"</span>: <span class="n">50.19607843137255</span>,
+      <span class="k">"updatedAtMs"</span>: <span class="n">11939</span>,
+      <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span>, <span class="k">"R"</span>: <span class="kw">false</span>, <span class="k">"U"</span>: <span class="kw">true</span> }
+    }
+  },
+  <span class="k">"channels"</span>: {
+    <span class="k">"shutter/s1"</span>: {
+      <span class="k">"output"</span>: { <span class="k">"type"</span>: <span class="s">"motor"</span>, <span class="k">"direction"</span>: <span class="s">"stop"</span> },
+      <span class="k">"state"</span>: { <span class="k">"estimatedPositionPct"</span>: <span class="n">50.19607843137255</span>, <span class="k">"phase"</span>: <span class="s">"idle"</span> }
+    }
+  },
+  <span class="k">"equipment"</span>: {
+    <span class="k">"shutter/s1"</span>: {
+      <span class="k">"type"</span>: <span class="s">"shutter"</span>,
+      <span class="k">"state"</span>: { <span class="k">"positionPct"</span>: <span class="n">33.46</span>, <span class="k">"drive"</span>: <span class="s">"stop"</span>, <span class="k">"moving"</span>: <span class="kw">false</span>, <span class="k">"limit"</span>: <span class="kw">null</span> }
+    }
+  },
+  <span class="k">"rooms"</span>: {
+    <span class="k">"living"</span>: { <span class="k">"temperatureC"</span>: <span class="n">20.8</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span>, <span class="k">"windowOpen"</span>: <span class="kw">false</span> }
+  },
+  <span class="k">"telegramsInFlight"</span>: <span class="n">0</span>,
+  <span class="k">"unpoweredSegments"</span>: [],
+  <span class="k">"diagnostics"</span>: []
+}</code></pre><p>La table <code>objects</code> utilise des identifiants <code>deviceId/objectId</code>. <code>channels</code> et <code>equipment</code> utilisent <code>deviceId/channelId</code> ; <code>rooms</code> utilise les identifiants des pièces. <code>unpoweredSegments</code> liste les segments dont la tension bus est coupée. Les valeurs inconnues valent <code>null</code>.</p>
+
+<nav class="pager">
+<a href="../../fr/reference/dpt.html">← DPT</a>
+<a href="../../fr/reference/events.html">Événements →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#global-functions">Fonctions globales</a></li><li><a href="#bus-diagram-element">Élément &lt;bus-diagram&gt;</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

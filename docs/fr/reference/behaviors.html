@@ -1,0 +1,3331 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comportements et équipements · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/behaviors.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li class="cur"><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="behaviors-and-equipment"><a class="anchor" href="#behaviors-and-equipment">#</a>Comportements et équipements</h1><p>Ces tableaux sont générés à partir des définitions enregistrées. Une extension peut enregistrer d&#39;autres comportements ou équipements ; voir le <a href="../guide/extensions.html">guide des extensions</a>.</p>
+<h2 id="behaviors"><a class="anchor" href="#behaviors">#</a>Comportements</h2><h3 id="switchactuator-v1"><a class="anchor" href="#switchactuator-v1">#</a>switchActuator/v1</h3><p>Actionneur de commutation : chaque canal commande un relais ; minuterie, retour d&#39;état et mesure de puissance et d&#39;énergie facultatifs. Commande de sortie : <code>switch</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>Commande de commutation de la sortie (0 = arrêt, 1 = marche).</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>État du relais, envoyé après chaque changement effectif.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001, 18.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>numéro de scène (17.001), ou commande de scène (18.001) dont le bit d&#39;apprentissage mémorise l&#39;état actuel</td>
+</tr>
+<tr>
+<td><code>forced</code></td>
+<td>2.001</td>
+<td>obligatoire</td>
+<td>Forçage prioritaire (2 = forcer à l&#39;arrêt, 3 = forcer en marche, 0 ou 1 = fin du forçage).</td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>1 verrouille la sortie dans l&#39;état défini par lockStart, 0 la déverrouille (afterLock)</td>
+</tr>
+<tr>
+<td><code>logic</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>combiné avec la commande de commutation par logicOperation (ET ou OU)</td>
+</tr>
+<tr>
+<td><code>power</code></td>
+<td>14.056, 9.024</td>
+<td>obligatoire</td>
+<td>puissance électrique consommée par la charge du canal : W avec 14.056, kW avec 9.024</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>13.010, 13.013</td>
+<td>obligatoire</td>
+<td>énergie active comptée pour le canal, envoyée cycliquement : Wh avec 13.010, kWh avec 13.013</td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>14.056, 9.024</td>
+<td>aucune</td>
+<td>somme des puissances de tous les canaux : W avec 14.056, kW avec 9.024</td>
+</tr>
+<tr>
+<td><code>powerLimit</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand la puissance totale atteint powerLimitW, 0 après l&#39;hystérésis (délestage)</td>
+</tr>
+<tr>
+<td><code>intrusionAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>1 fait clignoter la sortie et ignorer les commandes ; 0 termine l&#39;alarme (afterAlarm). Sans canal, s&#39;applique à tous les canaux.</td>
+</tr>
+<tr>
+<td><code>fireAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>1 force la sortie en marche et ignore les commandes, en priorité sur l&#39;intrusion ; 0 termine l&#39;alarme. Sans canal, s&#39;applique à tous les canaux.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>meterIntervalMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>≥ 1000</td>
+<td>Envoi cyclique des valeurs de puissance et d&#39;énergie (ms), pour les canaux qui ont des objets de mesure.</td>
+</tr>
+<tr>
+<td><code>powerSendDeltaW</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Envoyer une valeur de puissance quand elle change d&#39;au moins ce nombre de watts.</td>
+</tr>
+<tr>
+<td><code>energyTimeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>&gt; 0</td>
+<td>Vitesse de comptage de l&#39;énergie : 60 compte une seconde simulée comme une minute, pour que le compteur avance visiblement ; 1 compte en temps réel.</td>
+</tr>
+<tr>
+<td><code>powerLimitW</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Puissance totale (W) des sorties de l&#39;actionneur à partir de laquelle l&#39;objet powerLimit est activé, pour le délestage (0 le désactive).</td>
+</tr>
+<tr>
+<td><code>sheddingTimeMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 0</td>
+<td>Une sortie délestée est réenclenchée après ce délai si sa commande le demande toujours ; elle est délestée à nouveau si la limite est toujours dépassée.</td>
+</tr>
+<tr>
+<td><code>powerLimitHysteresisW</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0</td>
+<td>L&#39;objet powerLimit est remis à zéro sous limite − hystérésis (W).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>timerMs</code></td>
+<td>integer</td>
+<td>null</td>
+<td><code>null</code></td>
+<td>&gt; 0</td>
+</tr>
+<tr>
+<td><code>timerRetrigger</code></td>
+<td>string</td>
+<td><code>&quot;restart&quot;</code></td>
+<td>&quot;restart&quot; (Relance), &quot;none&quot; (Sans effet), &quot;add&quot; (Prolonge)</td>
+<td>Quand 1 est reçu pendant une minuterie : restart relance une période complète, none l&#39;ignore, et add prolonge la période (jusqu&#39;à cinq fois).</td>
+</tr>
+<tr>
+<td><code>timerWarningMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Durée avant la fin de la minuterie à laquelle la sortie s&#39;ouvre brièvement pendant une seconde, en guise d&#39;avertissement (0 désactive l&#39;avertissement).</td>
+</tr>
+<tr>
+<td><code>timerOffAllowed</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Autoriser une écriture de 0 à éteindre avant la fin de la minuterie ; sinon l&#39;ignorer.</td>
+</tr>
+<tr>
+<td><code>loadShedding</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Éteindre cette sortie tant que la limite de puissance totale de l&#39;actionneur est dépassée (délestage).</td>
+</tr>
+<tr>
+<td><code>relayMode</code></td>
+<td>string</td>
+<td><code>&quot;normallyOpen&quot;</code></td>
+<td>&quot;normallyOpen&quot; (Normalement ouvert), &quot;normallyClosed&quot; (Normalement fermé)</td>
+<td>normallyOpen ferme le contact quand le canal est en marche ; normallyClosed le ferme quand le canal est à l&#39;arrêt, si bien que la charge est alimentée quand l&#39;état de commutation vaut 0. Le retour d&#39;état renvoie l&#39;état de commutation, pas celui du contact.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Délai avant l&#39;envoi du retour d&#39;état (ms).</td>
+</tr>
+<tr>
+<td><code>onDelayMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Délai entre un 1 sur l&#39;objet de commutation et l&#39;enclenchement (0 : immédiat). Un 0 reçu entre-temps l&#39;annule ; scènes, forçage et verrouillage agissent immédiatement.</td>
+</tr>
+<tr>
+<td><code>offDelayMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Délai entre un 0 sur l&#39;objet de commutation et le déclenchement (0 : immédiat). Un 1 reçu entre-temps l&#39;annule.</td>
+</tr>
+<tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Inchangé), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
+<td>État de la sortie quand l&#39;objet de verrouillage reçoit 1 ; pendant le verrouillage, les commandes sont mémorisées sans effet. Le forçage est prioritaire sur le verrouillage.</td>
+</tr>
+<tr>
+<td><code>afterLock</code></td>
+<td>string</td>
+<td><code>&quot;lastCommand&quot;</code></td>
+<td>&quot;lastCommand&quot; (Dernière commande), &quot;previous&quot; (État précédent), &quot;unchanged&quot; (Inchangé), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser)</td>
+<td>État quand l&#39;objet de verrouillage reçoit 0 : suivre la dernière commande reçue pendant le verrouillage, rétablir l&#39;état d&#39;avant le verrouillage, garder l&#39;état actuel, enclencher, déclencher ou inverser.</td>
+</tr>
+<tr>
+<td><code>logicOperation</code></td>
+<td>string</td>
+<td><code>&quot;and&quot;</code></td>
+<td>&quot;and&quot; (ET : en marche quand la commande et l&#39;objet logique valent 1), &quot;or&quot; (OU : en marche quand la commande ou l&#39;objet logique vaut 1)</td>
+<td>Combinaison de la commande de commutation avec l&#39;objet logique (par exemple une validation venant d&#39;un détecteur de présence). Tant que l&#39;objet logique n&#39;a reçu aucune valeur, la commande agit seule.</td>
+</tr>
+<tr>
+<td><code>sceneLearning</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Un télégramme de commande de scène avec le bit d&#39;apprentissage (DPT 18.001) mémorise l&#39;état actuel de la sortie comme scène ; il remplace le préréglage configuré jusqu&#39;au redémarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Inchangé), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>État de la sortie à la coupure de la tension bus ; le relais reste ensuite tel quel jusqu&#39;au retour de la tension.</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;previous&quot;</code></td>
+<td>&quot;previous&quot; (État avant la coupure), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>État de la sortie au retour de la tension bus ; le retour d&#39;état est alors envoyé.</td>
+</tr>
+<tr>
+<td><code>blinkMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 1000</td>
+<td>Durée pendant laquelle le contact reste fermé, puis ouvert, quand l&#39;alarme intrusion fait clignoter la sortie ; attention à la durée de vie du relais en commutation.</td>
+</tr>
+<tr>
+<td><code>afterAlarm</code></td>
+<td>string</td>
+<td><code>&quot;lastCommand&quot;</code></td>
+<td>&quot;lastCommand&quot; (Dernière commande), &quot;previous&quot; (État précédent), &quot;unchanged&quot; (Inchangé), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
+<td>État à la fin de la dernière alarme (incendie, intrusion) : suivre la dernière commande reçue pendant l&#39;alarme, rétablir l&#39;état d&#39;avant, rester en marche, enclencher ou déclencher.</td>
+</tr>
+<tr>
+<td><code>afterForcing</code></td>
+<td>string</td>
+<td><code>&quot;lastCommand&quot;</code></td>
+<td>&quot;lastCommand&quot; (Dernière commande), &quot;previous&quot; (État précédent), &quot;unchanged&quot; (Inchangé), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser)</td>
+<td>État à la fin d&#39;un forçage prioritaire : suivre la dernière commande reçue pendant le forçage, rétablir l&#39;état précédent, garder l&#39;état forcé, enclencher, déclencher ou inverser l&#39;état forcé.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial du canal</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>État de commutation du canal au démarrage de la simulation.</td>
+</tr>
+</tbody></table>
+</div><h3 id="shutteractuator-v1"><a class="anchor" href="#shutteractuator-v1">#</a>shutterActuator/v1</h3><p>Actionneur de volets sans capteur : position estimée d&#39;après la durée de course configurée. Commande de sortie : <code>motor</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>move</code></td>
+<td>1.008</td>
+<td>obligatoire</td>
+<td>Montée/descente : 0 monte vers 0 %, 1 descend vers 100 %.</td>
+</tr>
+<tr>
+<td><code>stopStep</code></td>
+<td>1.007</td>
+<td>obligatoire</td>
+<td>Arrêt pendant un mouvement ; sinon un pas de stepPct (0 vers le haut, 1 vers le bas).</td>
+</tr>
+<tr>
+<td><code>positionCommand</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Position cible en pourcentage.</td>
+</tr>
+<tr>
+<td><code>positionStatus</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Position estimée, envoyée après l&#39;arrêt.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001, 18.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>numéro de scène (17.001), ou commande de scène (18.001) dont le bit d&#39;apprentissage mémorise la position actuelle</td>
+</tr>
+<tr>
+<td><code>slatCommand</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>angle des lamelles (0 % ouvert, 100 % fermé) d&#39;un store à lamelles</td>
+</tr>
+<tr>
+<td><code>slatStatus</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>angle des lamelles estimé, envoyé après l&#39;arrêt</td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>1 déclenche l&#39;alarme vent (windReaction, montée par défaut) : les commandes sont ignorées jusqu&#39;à 0 ; sans canal, s&#39;applique à tous les canaux</td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>1 verrouille la sortie : les commandes sont ignorées, avec les réactions lockStart et afterLock ; par défaut, les alarmes météo restent prioritaires (safetyPriority).</td>
+</tr>
+<tr>
+<td><code>rainAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>1 déclenche l&#39;alarme pluie (rainReaction) ; 0 la termine</td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>1 déclenche l&#39;alarme gel (frostReaction) ; 0 la termine</td>
+</tr>
+<tr>
+<td><code>forced</code></td>
+<td>2.008, 2.001</td>
+<td>obligatoire</td>
+<td>3 force la descente, 2 force la montée ; 0 ou 1 termine le forçage (afterForcing). Par défaut, les alarmes météo et le verrouillage restent prioritaires (safetyPriority).</td>
+</tr>
+<tr>
+<td><code>recallPosition12</code></td>
+<td>1.022, 1.001, 1.002</td>
+<td>obligatoire</td>
+<td>0 va à la position mémorisée 1, 1 à la position mémorisée 2</td>
+</tr>
+<tr>
+<td><code>recallPosition34</code></td>
+<td>1.022, 1.001, 1.002</td>
+<td>obligatoire</td>
+<td>0 va à la position mémorisée 3, 1 à la position mémorisée 4</td>
+</tr>
+<tr>
+<td><code>storePosition12</code></td>
+<td>1.001, 1.002</td>
+<td>obligatoire</td>
+<td>0 mémorise la position actuelle comme position 1, 1 comme position 2</td>
+</tr>
+<tr>
+<td><code>storePosition34</code></td>
+<td>1.001, 1.002</td>
+<td>obligatoire</td>
+<td>0 mémorise la position actuelle comme position 3, 1 comme position 4</td>
+</tr>
+<tr>
+<td><code>upperLimit</code></td>
+<td>1.002, 1.001</td>
+<td>obligatoire</td>
+<td>1 quand le volet est estimé en haut (0 %), envoyé à chaque changement</td>
+</tr>
+<tr>
+<td><code>lowerLimit</code></td>
+<td>1.002, 1.001</td>
+<td>obligatoire</td>
+<td>1 quand le volet est estimé en bas (100 %), envoyé à chaque changement</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>estimatedTravelTimeMs</code> (obligatoire)</td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Durée de course configurée dans l&#39;actionneur (ms) : en descente, et en montée sauf si estimatedTravelTimeUpMs est défini.</td>
+</tr>
+<tr>
+<td><code>estimatedTravelTimeUpMs</code></td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Durée de course en montée configurée dans l&#39;actionneur (ms), quand elle diffère de la descente ; beaucoup d&#39;actionneurs prennent des durées séparées car un volet monte plus lentement qu&#39;il ne descend.</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Délai avant de démarrer ou d&#39;inverser le mouvement (ms).</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Délai avant l&#39;envoi du retour de position (ms).</td>
+</tr>
+<tr>
+<td><code>slatTravelMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Store à lamelles : durée configurée pour que les lamelles passent d&#39;ouvertes à fermées (ms). Un mouvement oriente d&#39;abord les lamelles ; un appui court à l&#39;arrêt les oriente de slatStepPct. 0 pour un volet roulant sans lamelles.</td>
+</tr>
+<tr>
+<td><code>slatStepPct</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Variation de l&#39;angle des lamelles pour un appui court à l&#39;arrêt (%).</td>
+</tr>
+<tr>
+<td><code>stepPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Pas de position pour une commande arrêt/pas reçue à l&#39;arrêt par un volet sans lamelles (%). 0 (par défaut) : aucun mouvement, comme dans la fonction arrêt/pas de KNX, où le pas oriente les lamelles ; certains actionneurs déplacent plutôt un volet roulant de cette valeur.</td>
+</tr>
+<tr>
+<td><code>endSupplementPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Durée de course supplémentaire vers 0 % ou 100 %, en pourcentage de la course complète. Le moteur tourne même si l&#39;estimation est déjà en butée ; la fin de course recale l&#39;estimation (souvent 5 à 10 % sur un vrai actionneur).</td>
+</tr>
+<tr>
+<td><code>invertOutput</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser les sorties montée et descente pour compenser un moteur câblé à l&#39;envers (paramètre wiringReversed du volet). Sans un tel câblage, l&#39;activer fait aller le volet à l&#39;inverse des commandes.</td>
+</tr>
+<tr>
+<td><code>sceneLearning</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Un télégramme de commande de scène avec le bit d&#39;apprentissage (DPT 18.001) mémorise la position estimée actuelle comme scène ; il remplace le préréglage configuré jusqu&#39;au redémarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>windReaction</code></td>
+<td>string</td>
+<td><code>&quot;up&quot;</code></td>
+<td>&quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;stop&quot; (Arrêt), &quot;none&quot; (Aucun mouvement)</td>
+<td>Mouvement au début de l&#39;alarme vent ; les commandes sont ensuite ignorées jusqu&#39;à sa fin.</td>
+</tr>
+<tr>
+<td><code>rainReaction</code></td>
+<td>string</td>
+<td><code>&quot;up&quot;</code></td>
+<td>&quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;stop&quot; (Arrêt), &quot;none&quot; (Aucun mouvement)</td>
+<td>Mouvement au début de l&#39;alarme pluie (un store banne ou un store est généralement remonté).</td>
+</tr>
+<tr>
+<td><code>frostReaction</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;stop&quot; (Arrêt), &quot;none&quot; (Aucun mouvement)</td>
+<td>Mouvement au début de l&#39;alarme gel ; un volet gelé est généralement laissé où il est.</td>
+</tr>
+<tr>
+<td><code>alarmPriority</code></td>
+<td>string</td>
+<td><code>&quot;wind,rain,frost&quot;</code></td>
+<td>&quot;wind,rain,frost&quot; (Vent &gt; Pluie &gt; Gel), &quot;wind,frost,rain&quot; (Vent &gt; Gel &gt; Pluie), &quot;rain,wind,frost&quot; (Pluie &gt; Vent &gt; Gel), &quot;rain,frost,wind&quot; (Pluie &gt; Gel &gt; Vent), &quot;frost,wind,rain&quot; (Gel &gt; Vent &gt; Pluie), &quot;frost,rain,wind&quot; (Gel &gt; Pluie &gt; Vent)</td>
+<td>Ordre des alarmes météo quand plusieurs sont actives : la première active s&#39;applique.</td>
+</tr>
+<tr>
+<td><code>safetyPriority</code></td>
+<td>string</td>
+<td><code>&quot;alarms,lock,forced&quot;</code></td>
+<td>&quot;alarms,lock,forced&quot; (Alarmes météo &gt; Verrouillage &gt; Forçage), &quot;alarms,forced,lock&quot; (Alarmes météo &gt; Forçage &gt; Verrouillage), &quot;lock,alarms,forced&quot; (Verrouillage &gt; Alarmes météo &gt; Forçage), &quot;lock,forced,alarms&quot; (Verrouillage &gt; Forçage &gt; Alarmes météo), &quot;forced,lock,alarms&quot; (Forçage &gt; Verrouillage &gt; Alarmes météo), &quot;forced,alarms,lock&quot; (Forçage &gt; Alarmes météo &gt; Verrouillage)</td>
+<td>Ordre des alarmes météo, du verrouillage et du forçage quand plusieurs sont actifs : le premier actif tient la sortie, et les commandes sont ignorées.</td>
+</tr>
+<tr>
+<td><code>alarmMonitoringMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Les capteurs météo envoient leur alarme cycliquement : sans télégramme sur un objet d&#39;alarme dans ce délai, l&#39;alarme est supposée (0 : pas de surveillance).</td>
+</tr>
+<tr>
+<td><code>afterAlarm</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucun mouvement), &quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;restore&quot; (Position avant l&#39;alarme)</td>
+<td>Mouvement à la fin de la dernière alarme météo.</td>
+</tr>
+<tr>
+<td><code>afterForcing</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucun mouvement), &quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;restore&quot; (Position avant le forçage)</td>
+<td>Mouvement à la fin du forçage (0 ou 1 sur l&#39;objet de forçage).</td>
+</tr>
+<tr>
+<td><code>preset1Pct</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position rappelée par 0 sur l&#39;objet des positions 1/2.</td>
+</tr>
+<tr>
+<td><code>preset2Pct</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position rappelée par 1 sur l&#39;objet des positions 1/2.</td>
+</tr>
+<tr>
+<td><code>preset3Pct</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position rappelée par 0 sur l&#39;objet des positions 3/4.</td>
+</tr>
+<tr>
+<td><code>preset4Pct</code></td>
+<td>number</td>
+<td><code>80</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position rappelée par 1 sur l&#39;objet des positions 3/4.</td>
+</tr>
+<tr>
+<td><code>presetStoring</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Les objets de mémorisation remplacent une position mémorisée par la position estimée actuelle, jusqu&#39;au redémarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;stop&quot; (Arrêt), &quot;position&quot; (Position)</td>
+<td>Mouvement quand l&#39;objet de verrouillage reçoit 1 ; l&#39;alarme vent reste prioritaire.</td>
+</tr>
+<tr>
+<td><code>lockPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position atteinte au début du verrouillage, avec « Position ».</td>
+</tr>
+<tr>
+<td><code>afterLock</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;restore&quot; (Position avant le verrouillage)</td>
+<td>Mouvement quand l&#39;objet de verrouillage reçoit 0.</td>
+</tr>
+<tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;stop&quot;</code></td>
+<td>&quot;stop&quot; (Arrêt), &quot;up&quot; (Montée), &quot;down&quot; (Descente)</td>
+<td>Moteur à la coupure de la tension bus : arrêté, ou entraîné vers une fin de course jusqu&#39;au retour de la tension ; la position estimée suit le temps écoulé.</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucun mouvement), &quot;up&quot; (Montée), &quot;down&quot; (Descente), &quot;position&quot; (Position)</td>
+<td>Mouvement au retour de la tension bus ; la position estimée est envoyée dans tous les cas.</td>
+</tr>
+<tr>
+<td><code>busRecoveryPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position atteinte au retour du bus, avec « Position ».</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial du canal</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>estimatedPositionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position que l&#39;actionneur suppose au démarrage (0 = entièrement ouvert, 100 = entièrement fermé) ; le volet raccordé démarre à sa propre position.</td>
+</tr>
+<tr>
+<td><code>estimatedSlatPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Angle des lamelles que l&#39;actionneur suppose au démarrage (stores à lamelles).</td>
+</tr>
+</tbody></table>
+</div><h3 id="display-v1"><a class="anchor" href="#display-v1">#</a>display/v1</h3><p>Afficheur / superviseur : reçoit et affiche des valeurs, sans sortie ni réémission.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>display</code></td>
+<td>tous</td>
+<td>aucune</td>
+<td>Valeur reçue et affichée, comme par un voyant ou un superviseur.</td>
+</tr>
+</tbody></table>
+</div><p><em>Aucun paramètre.</em></p>
+<h3 id="passive-v1"><a class="anchor" href="#passive-v1">#</a>passive/v1</h3><p>Appareil sans logique : il garde les valeurs de ses objets et envoie les valeurs saisies dans le schéma, comme un panneau de visualisation. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>input</code></td>
+<td>tous</td>
+<td>aucune</td>
+<td>Objet écrit par une entrée numérique du schéma, puis transmis.</td>
+</tr>
+<tr>
+<td><code>display</code></td>
+<td>tous</td>
+<td>aucune</td>
+<td>Valeur reçue et conservée, telle qu&#39;une visualisation l&#39;affiche.</td>
+</tr>
+</tbody></table>
+</div><p><em>Aucun paramètre.</em></p>
+<h3 id="presencedetector-v1"><a class="anchor" href="#presencedetector-v1">#</a>presenceDetector/v1</h3><p>Détecteur de présence : envoie 1 à la première détection, 0 à la fin de sa temporisation (relancée à chaque détection). Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>input</code></td>
+<td>1.001, 1.018</td>
+<td>aucune</td>
+<td>objet de sortie : 1 à la détection, 0 à l&#39;expiration de la temporisation</td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>1 verrouille le détecteur : ses détections (et celles de ses esclaves) sont ignorées ; 0 le déverrouille</td>
+</tr>
+<tr>
+<td><code>slaveTrigger</code></td>
+<td>1.001, 1.018</td>
+<td>aucune</td>
+<td>1 envoyé par un détecteur esclave de la même pièce : compte comme une détection (fonctionnement maître/esclave)</td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>9.004</td>
+<td>aucune</td>
+<td>luminosité mesurée (lx), saisie par le lecteur et envoyée ; il n&#39;y a pas de modèle d&#39;éclairement</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucun télégramme), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>Télégramme quand l&#39;objet de verrouillage reçoit 1 : aucun (la temporisation s&#39;écoule normalement), 0 immédiatement, ou 1 maintenu pendant le verrouillage. Pendant le verrouillage, les détections sont ignorées.</td>
+</tr>
+<tr>
+<td><code>lockEnd</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucun télégramme), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>Télégramme quand l&#39;objet de verrouillage reçoit 0 : aucun, 0, ou 1 suivi de la temporisation.</td>
+</tr>
+<tr>
+<td><code>slave</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Envoie 1 à chaque détection, pour l&#39;objet slaveTrigger d&#39;un détecteur maître de la même pièce ; le maître garde la temporisation, le seuil de luminosité et le 0 final.</td>
+</tr>
+<tr>
+<td><code>holdMs</code></td>
+<td>integer</td>
+<td><code>10000</code></td>
+<td>&gt; 0</td>
+<td>Durée sans présence détectée avant l&#39;envoi de 0 (ms) ; relancée à chaque détection.</td>
+</tr>
+<tr>
+<td><code>retrigger</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Chaque activation relance la temporisation ; sinon elle court depuis la première activation.</td>
+</tr>
+<tr>
+<td><code>sendOnEnd</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Envoyer 0 à l&#39;expiration de la temporisation ; sinon le détecteur n&#39;envoie que 1 et l&#39;actionneur gère l&#39;extinction.</td>
+</tr>
+<tr>
+<td><code>brightnessThresholdLux</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Une détection n&#39;allume que tant que la luminosité saisie est inférieure à cette valeur (lx) ; une présence active est quand même prolongée. 0 désactive le seuil.</td>
+</tr>
+</tbody></table>
+</div><h3 id="usbinterface-v1"><a class="anchor" href="#usbinterface-v1">#</a>usbInterface/v1</h3><p>Interface USB : écrit et lit des adresses de groupe depuis le panneau de l&#39;interface USB du schéma.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+</table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>groupAddresses</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Adresses de groupe affectées à cette interface dans le projet, séparées par des espaces ou des virgules. Les tables de filtrage des coupleurs les incluent : les télégrammes sur ces adresses traversent les coupleurs vers l&#39;interface et depuis elle. Sans elles, un coupleur filtre une adresse qui n&#39;est pas utilisée du côté de l&#39;interface.</td>
+</tr>
+</tbody></table>
+</div><h3 id="dimmeractuator-v1"><a class="anchor" href="#dimmeractuator-v1">#</a>dimmerActuator/v1</h3><p>Variateur : commutation, variation relative (3.007) et absolue (5.001), blanc variable (7.600), retour d&#39;état. Commande de sortie : <code>dim</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>Commande de commutation du canal (0 = arrêt, 1 = marche).</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>obligatoire</td>
+<td>Variation relative (3.007) : bit de sens et pas de 1 à 7 ; 0 arrête la variation.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Valeur de luminosité en pourcentage (5.001) ; zéro éteint.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>État de commutation du canal, envoyé après chaque changement.</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Valeur de luminosité (5.001), envoyée après une transition.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001, 18.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>numéro de scène (17.001), ou commande de scène (18.001) dont le bit d&#39;apprentissage mémorise le niveau actuel</td>
+</tr>
+<tr>
+<td><code>colourTemperature</code></td>
+<td>7.600</td>
+<td>obligatoire</td>
+<td>consigne de température de couleur (K) d&#39;un canal à blanc variable</td>
+</tr>
+<tr>
+<td><code>colourTemperatureStatus</code></td>
+<td>7.600</td>
+<td>obligatoire</td>
+<td>température de couleur appliquée (K)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onLevel</code></td>
+<td>string</td>
+<td><code>&quot;fixed&quot;</code></td>
+<td>&quot;fixed&quot; (Valeur réglée), &quot;last&quot; (Dernière valeur)</td>
+<td>Niveau à l&#39;allumage : fixed utilise onLevelPct ; last rétablit le niveau d&#39;avant l&#39;extinction.</td>
+</tr>
+<tr>
+<td><code>onLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Niveau atteint quand une valeur 1 est reçue (mode fixe).</td>
+</tr>
+<tr>
+<td><code>dimTimeMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>&gt; 0</td>
+<td>Durée d&#39;une variation relative de 0 à 100 % (DPT 3.007) ; des pas plus petits prennent moins de temps.</td>
+</tr>
+<tr>
+<td><code>switchFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Durée de transition à l&#39;allumage ou à l&#39;extinction (0 signifie immédiat).</td>
+</tr>
+<tr>
+<td><code>sceneLearning</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Un télégramme de commande de scène avec le bit d&#39;apprentissage (DPT 18.001) mémorise le niveau actuel comme scène ; il remplace le préréglage configuré jusqu&#39;au redémarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>valueFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Durée de transition vers une valeur reçue (5.001) ou un préréglage de scène.</td>
+</tr>
+<tr>
+<td><code>minLevelPct</code></td>
+<td>number</td>
+<td><code>1</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Niveau minimal de la variation relative.</td>
+</tr>
+<tr>
+<td><code>maxLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 50 ; ≤ 100</td>
+<td>Limite haute pour la variation relative et les valeurs reçues.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une commande d&#39;augmentation allume un canal éteint.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Une commande de diminution peut faire varier jusqu&#39;à l&#39;extinction ; sinon elle s&#39;arrête au niveau minimal.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une valeur de luminosité supérieure à 0 allume un canal éteint ; sinon la valeur est ignorée tant que le canal est éteint.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une valeur de luminosité de 0 éteint le canal ; sinon le canal descend à son niveau minimal.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Délai avant l&#39;envoi du retour d&#39;état (ms), une fois une transition terminée.</td>
+</tr>
+<tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Inchangé), &quot;off&quot; (Arrêt), &quot;level&quot; (Niveau fixe)</td>
+<td>Niveau du canal à la coupure de la tension bus ; il est ensuite gardé jusqu&#39;au retour de la tension.</td>
+</tr>
+<tr>
+<td><code>busFailureLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Niveau appliqué à la coupure de la tension bus, avec « Niveau fixe ».</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;previous&quot;</code></td>
+<td>&quot;previous&quot; (Niveau avant la coupure), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>Niveau du canal au retour de la tension bus (marche : le niveau d&#39;allumage) ; le retour d&#39;état est alors envoyé.</td>
+</tr>
+<tr>
+<td><code>minColourK</code></td>
+<td>integer</td>
+<td><code>2700</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur la plus basse (K) d&#39;un canal à blanc variable ; les demandes inférieures y sont ramenées.</td>
+</tr>
+<tr>
+<td><code>maxColourK</code></td>
+<td>integer</td>
+<td><code>6500</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur la plus haute (K) d&#39;un canal à blanc variable ; les demandes supérieures y sont ramenées.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial du canal</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Niveau de la sortie au démarrage de la simulation ; 0 signifie éteinte.</td>
+</tr>
+<tr>
+<td><code>colourTemperatureK</code></td>
+<td>integer</td>
+<td><code>4000</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur (K) au démarrage, pour un canal qui a un objet colourTemperature.</td>
+</tr>
+</tbody></table>
+</div><h3 id="daligateway-v1"><a class="anchor" href="#daligateway-v1">#</a>daliGateway/v1</h3><p>Passerelle KNX/DALI : chaque canal est un groupe DALI de ballasts ; diffusion générale, scènes et signalement des défauts. Commande de sortie : <code>dim</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>Commande de commutation du canal (0 = arrêt, 1 = marche).</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>obligatoire</td>
+<td>Variation relative (3.007) : bit de sens et pas de 1 à 7 ; 0 arrête la variation.</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Valeur de luminosité en pourcentage (5.001) ; zéro éteint.</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>État de commutation du canal, envoyé après chaque changement.</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Valeur de luminosité (5.001), envoyée après une transition.</td>
+</tr>
+<tr>
+<td><code>scene</code></td>
+<td>17.001, 18.001</td>
+<td>facultatif (tous les canaux s&#39;il est omis)</td>
+<td>numéro de scène (17.001), ou commande de scène (18.001) dont le bit d&#39;apprentissage mémorise le niveau actuel</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>1.005</td>
+<td>obligatoire</td>
+<td>défaut de lampe ou de ballast dans le groupe</td>
+</tr>
+<tr>
+<td><code>broadcastSwitch</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>Commute tous les groupes par une diffusion générale DALI.</td>
+</tr>
+<tr>
+<td><code>broadcastValue</code></td>
+<td>5.001</td>
+<td>aucune</td>
+<td>Règle le niveau de tous les groupes par une diffusion générale DALI.</td>
+</tr>
+<tr>
+<td><code>generalError</code></td>
+<td>1.005</td>
+<td>aucune</td>
+<td>Défaut sur la ligne DALI, tous groupes confondus (1.005).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>pollMs</code></td>
+<td>integer</td>
+<td><code>2000</code></td>
+<td>≥ 500</td>
+<td>Intervalle entre les interrogations de l&#39;état des ballasts pour détecter les défauts.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onLevel</code></td>
+<td>string</td>
+<td><code>&quot;fixed&quot;</code></td>
+<td>&quot;fixed&quot; (Valeur réglée), &quot;last&quot; (Dernière valeur)</td>
+<td>Niveau à l&#39;allumage : fixed utilise onLevelPct ; last rétablit le niveau d&#39;avant l&#39;extinction.</td>
+</tr>
+<tr>
+<td><code>onLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 1 ; ≤ 100</td>
+<td>Niveau atteint quand une valeur 1 est reçue (mode fixe).</td>
+</tr>
+<tr>
+<td><code>dimTimeMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>&gt; 0</td>
+<td>Durée d&#39;une variation relative de 0 à 100 % (DPT 3.007) ; des pas plus petits prennent moins de temps.</td>
+</tr>
+<tr>
+<td><code>switchFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Durée de transition à l&#39;allumage ou à l&#39;extinction (0 signifie immédiat).</td>
+</tr>
+<tr>
+<td><code>sceneLearning</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Un télégramme de commande de scène avec le bit d&#39;apprentissage (DPT 18.001) mémorise le niveau actuel comme scène ; il remplace le préréglage configuré jusqu&#39;au redémarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>valueFadeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Durée de transition vers une valeur reçue (5.001) ou un préréglage de scène.</td>
+</tr>
+<tr>
+<td><code>minLevelPct</code></td>
+<td>number</td>
+<td><code>1</code></td>
+<td>≥ 0 ; ≤ 50</td>
+<td>Niveau minimal de la variation relative.</td>
+</tr>
+<tr>
+<td><code>maxLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 50 ; ≤ 100</td>
+<td>Limite haute pour la variation relative et les valeurs reçues.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une commande d&#39;augmentation allume un canal éteint.</td>
+</tr>
+<tr>
+<td><code>dimSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Une commande de diminution peut faire varier jusqu&#39;à l&#39;extinction ; sinon elle s&#39;arrête au niveau minimal.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOn</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une valeur de luminosité supérieure à 0 allume un canal éteint ; sinon la valeur est ignorée tant que le canal est éteint.</td>
+</tr>
+<tr>
+<td><code>valueSwitchesOff</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une valeur de luminosité de 0 éteint le canal ; sinon le canal descend à son niveau minimal.</td>
+</tr>
+<tr>
+<td><code>statusDelayMs</code></td>
+<td>integer</td>
+<td><code>300</code></td>
+<td>≥ 0</td>
+<td>Délai avant l&#39;envoi du retour d&#39;état (ms), une fois une transition terminée.</td>
+</tr>
+<tr>
+<td><code>busFailure</code></td>
+<td>string</td>
+<td><code>&quot;unchanged&quot;</code></td>
+<td>&quot;unchanged&quot; (Inchangé), &quot;off&quot; (Arrêt), &quot;level&quot; (Niveau fixe)</td>
+<td>Niveau du canal à la coupure de la tension bus ; il est ensuite gardé jusqu&#39;au retour de la tension.</td>
+</tr>
+<tr>
+<td><code>busFailureLevelPct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Niveau appliqué à la coupure de la tension bus, avec « Niveau fixe ».</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;previous&quot;</code></td>
+<td>&quot;previous&quot; (Niveau avant la coupure), &quot;off&quot; (Arrêt), &quot;on&quot; (Marche)</td>
+<td>Niveau du canal au retour de la tension bus (marche : le niveau d&#39;allumage) ; le retour d&#39;état est alors envoyé.</td>
+</tr>
+<tr>
+<td><code>minColourK</code></td>
+<td>integer</td>
+<td><code>2700</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur la plus basse (K) d&#39;un canal à blanc variable ; les demandes inférieures y sont ramenées.</td>
+</tr>
+<tr>
+<td><code>maxColourK</code></td>
+<td>integer</td>
+<td><code>6500</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur la plus haute (K) d&#39;un canal à blanc variable ; les demandes supérieures y sont ramenées.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial du canal</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Niveau de la sortie au démarrage de la simulation ; 0 signifie éteinte.</td>
+</tr>
+<tr>
+<td><code>colourTemperatureK</code></td>
+<td>integer</td>
+<td><code>4000</code></td>
+<td>≥ 1000 ; ≤ 10000</td>
+<td>Température de couleur (K) au démarrage, pour un canal qui a un objet colourTemperature.</td>
+</tr>
+</tbody></table>
+</div><h3 id="roomthermostat-v1"><a class="anchor" href="#roomthermostat-v1">#</a>roomThermostat/v1</h3><p>Thermostat d&#39;ambiance : modes confort / veille / économie / protection (20.102), fenêtre et présence, régulation PI (5.001 ou MLI) ou tout ou rien, chauffage et refroidissement. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>actualTemp</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>Température mesurée (9.001), envoyée à chaque changement.</td>
+</tr>
+<tr>
+<td><code>sensorFault</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand aucune température n&#39;est utilisable (température externe trop ancienne et pas de sonde d&#39;ambiance) ; 0 quand une température revient</td>
+</tr>
+<tr>
+<td><code>externalTemp</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>remplace la sonde interne dès qu&#39;une valeur est reçue</td>
+</tr>
+<tr>
+<td><code>baseSetpoint</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>Consigne de base de confort en chauffage (9.001).</td>
+</tr>
+<tr>
+<td><code>setpointShift</code></td>
+<td>9.002</td>
+<td>aucune</td>
+<td>consigne de base = consigne configurée + décalage</td>
+</tr>
+<tr>
+<td><code>setpointStatus</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>Consigne actuelle (9.001).</td>
+</tr>
+<tr>
+<td><code>hvacMode</code></td>
+<td>20.102</td>
+<td>aucune</td>
+<td>Mode choisi (20.102 : 0 auto, 1 confort, 2 veille, 3 économie, 4 protection).</td>
+</tr>
+<tr>
+<td><code>hvacModeStatus</code></td>
+<td>20.102</td>
+<td>aucune</td>
+<td>Mode actuel (20.102).</td>
+</tr>
+<tr>
+<td><code>presence</code></td>
+<td>1.018, 1.001</td>
+<td>aucune</td>
+<td>1 = présence : mode confort</td>
+</tr>
+<tr>
+<td><code>window</code></td>
+<td>1.019, 1.001, 1.009</td>
+<td>aucune</td>
+<td>fenêtre ouverte (1.019 / 1.001 : 1 = ouverte ; 1.009 : 0 = ouverte) : mode protection, priorité la plus haute</td>
+</tr>
+<tr>
+<td><code>heatCool</code></td>
+<td>1.100</td>
+<td>aucune</td>
+<td>1 = chauffage, 0 = refroidissement</td>
+</tr>
+<tr>
+<td><code>heatCoolStatus</code></td>
+<td>1.100</td>
+<td>aucune</td>
+<td>Mode actuel : 1 chauffage, 0 refroidissement (1.100).</td>
+</tr>
+<tr>
+<td><code>heatingValue</code></td>
+<td>5.001</td>
+<td>aucune</td>
+<td>grandeur de commande continue de 0 à 100 %</td>
+</tr>
+<tr>
+<td><code>heatingSwitch</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>régulation tout ou rien, ou MLI en régulation PI</td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>5.001</td>
+<td>aucune</td>
+<td>Grandeur de commande continue de refroidissement (5.001).</td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>Commande de refroidissement sur un bit.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>presenceType</code></td>
+<td>string</td>
+<td><code>&quot;detector&quot;</code></td>
+<td>&quot;detector&quot; (Détecteur de présence), &quot;button&quot; (Poussoir de présence)</td>
+<td>détecteur : confort tant que l&#39;objet de présence vaut 1 ; poussoir : chaque 1 prolonge le mode confort de comfortExtensionMs.</td>
+</tr>
+<tr>
+<td><code>comfortExtensionMs</code></td>
+<td>integer</td>
+<td><code>7200000</code></td>
+<td>≥ 60000</td>
+<td>Durée du mode confort lancé par le poussoir de présence (2 h par défaut).</td>
+</tr>
+<tr>
+<td><code>controlType</code></td>
+<td>string</td>
+<td><code>&quot;pi&quot;</code></td>
+<td>&quot;pi&quot; (PI (continue ou MLI)), &quot;twoPoint&quot; (Tout ou rien)</td>
+<td>pi utilise une régulation proportionnelle-intégrale avec une valeur continue (5.001) ou en MLI (1 bit) ; twoPoint utilise une régulation tout ou rien avec hystérésis.</td>
+</tr>
+<tr>
+<td><code>comfortC</code></td>
+<td>number</td>
+<td><code>21</code></td>
+<td>≥ 5 ; ≤ 35</td>
+<td>Consigne initiale de confort en chauffage (°C) ; l&#39;objet baseSetpoint peut la remplacer.</td>
+</tr>
+<tr>
+<td><code>standbyShiftK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0 ; ≤ 10</td>
+<td>Décalage de la consigne de veille (K) : plus bas en chauffage, plus haut en refroidissement.</td>
+</tr>
+<tr>
+<td><code>economyShiftK</code></td>
+<td>number</td>
+<td><code>4</code></td>
+<td>≥ 0 ; ≤ 15</td>
+<td>Décalage de la consigne d&#39;économie ou de nuit (K) : plus bas en chauffage, plus haut en refroidissement.</td>
+</tr>
+<tr>
+<td><code>frostProtectionC</code></td>
+<td>number</td>
+<td><code>7</code></td>
+<td>≥ 3 ; ≤ 15</td>
+<td>Consigne de chauffage en mode protection (°C).</td>
+</tr>
+<tr>
+<td><code>heatProtectionC</code></td>
+<td>number</td>
+<td><code>35</code></td>
+<td>≥ 25 ; ≤ 45</td>
+<td>Consigne de refroidissement en mode protection (°C).</td>
+</tr>
+<tr>
+<td><code>deadZoneK</code></td>
+<td>number</td>
+<td><code>3</code></td>
+<td>≥ 0 ; ≤ 10</td>
+<td>Écart entre les consignes de confort en chauffage et en refroidissement (K), par exemple 21 °C et 24 °C.</td>
+</tr>
+<tr>
+<td><code>minSetpointC</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 0 ; ≤ 30</td>
+<td>Consigne de base la plus basse acceptée (°C) ; les valeurs reçues ou saisies inférieures y sont ramenées.</td>
+</tr>
+<tr>
+<td><code>maxSetpointC</code></td>
+<td>number</td>
+<td><code>35</code></td>
+<td>≥ 10 ; ≤ 50</td>
+<td>Consigne de base la plus haute acceptée (°C) ; les valeurs reçues ou saisies supérieures y sont ramenées.</td>
+</tr>
+<tr>
+<td><code>hysteresisK</code></td>
+<td>number</td>
+<td><code>0.5</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>La régulation tout ou rien se réenclenche quand la température s&#39;écarte de la consigne de cette valeur (K).</td>
+</tr>
+<tr>
+<td><code>proportionalBandK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0.5 ; ≤ 10</td>
+<td>Écart de température (K) qui produit une sortie de 100 % par le terme proportionnel.</td>
+</tr>
+<tr>
+<td><code>integralTimeMs</code></td>
+<td>integer</td>
+<td><code>120000</code></td>
+<td>≥ 0</td>
+<td>Temps d&#39;intégration PI : une erreur constante double la réponse proportionnelle après cette durée (0 choisit une régulation P). Les installations réelles utilisent 60 à 240 minutes ; la valeur par défaut suit le temps compressé de la pièce simulée.</td>
+</tr>
+<tr>
+<td><code>pwmCycleMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 1000</td>
+<td>Période du cycle MLI pour un objet de commande sur 1 bit (les installations réelles utilisent généralement 10 à 20 minutes).</td>
+</tr>
+<tr>
+<td><code>controlPeriodMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 100</td>
+<td>Intervalle auquel le régulateur recalcule sa grandeur de commande à partir de la température mesurée.</td>
+</tr>
+<tr>
+<td><code>valueSendDeltaPct</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 1 ; ≤ 50</td>
+<td>Envoyer la grandeur de commande quand elle change d&#39;au moins ce nombre de points de pourcentage.</td>
+</tr>
+<tr>
+<td><code>sensorFaultValuePct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande envoyée quand aucune température n&#39;est utilisable (température externe trop ancienne, pas de sonde d&#39;ambiance), jusqu&#39;au retour d&#39;une température.</td>
+</tr>
+<tr>
+<td><code>externalTempTimeoutMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Si aucune valeur externalTemp n&#39;arrive dans ce délai, la régulation revient à la sonde interne jusqu&#39;à l&#39;arrivée d&#39;une nouvelle valeur (0 désactive la surveillance).</td>
+</tr>
+<tr>
+<td><code>valueCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Renvoyer périodiquement la grandeur de commande (0 le désactive) ; nécessaire quand l&#39;actionneur surveille les valeurs reçues.</td>
+</tr>
+<tr>
+<td><code>temperatureSendDeltaK</code></td>
+<td>number</td>
+<td><code>0.2</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>Envoyer la température mesurée quand elle change d&#39;au moins cette valeur (K).</td>
+</tr>
+<tr>
+<td><code>temperatureCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Envoyer aussi la température mesurée à cet intervalle, même sans changement ; 0 désactive l&#39;envoi cyclique.</td>
+</tr>
+</tbody></table>
+</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Actionneur de chauffage : chaque sortie commande une vanne électrothermique ; grandeur de commande continue (5.001) convertie en MLI, ou commande directe sur 1 bit, surveillance et mode de secours. Commande de sortie : <code>switch</code>.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>value</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Grandeur de commande continue de la vanne (5.001), appliquée par modulation de largeur d&#39;impulsion sur cycleMs.</td>
+</tr>
+<tr>
+<td><code>switch</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>régulation tout ou rien ou MLI du thermostat</td>
+</tr>
+<tr>
+<td><code>valueStatus</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Grandeur de commande appliquée à la vanne (5.001).</td>
+</tr>
+<tr>
+<td><code>fault</code></td>
+<td>1.005</td>
+<td>obligatoire</td>
+<td>grandeur de commande absente : programme de secours</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>valveType</code></td>
+<td>string</td>
+<td><code>&quot;normallyClosed&quot;</code></td>
+<td>&quot;normallyClosed&quot; (Fermée hors tension), &quot;normallyOpen&quot; (Ouverte hors tension)</td>
+<td>normallyClosed : vanne fermée hors tension (courant) ; normallyOpen : vanne ouverte hors tension, la sortie est donc inversée.</td>
+</tr>
+<tr>
+<td><code>cycleMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 1000</td>
+<td>Période MLI pour une grandeur de commande continue : durée alimentée = valeur × période (les installations réelles utilisent généralement 10 à 20 minutes).</td>
+</tr>
+<tr>
+<td><code>monitoringMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Si aucune grandeur de commande n&#39;arrive dans ce délai, passer en mode de secours et signaler un défaut (0 désactive la surveillance).</td>
+</tr>
+<tr>
+<td><code>emergencyPct</code></td>
+<td>number</td>
+<td><code>30</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande appliquée en mode de secours.</td>
+</tr>
+</tbody></table>
+</div><h3 id="windowcontact-v1"><a class="anchor" href="#windowcontact-v1">#</a>windowContact/v1</h3><p>Contact de fenêtre (entrée binaire) : envoie l&#39;ouverture et la fermeture de la fenêtre de sa pièce.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>contact</code></td>
+<td>1.019, 1.001, 1.009</td>
+<td>aucune</td>
+<td>1.019 / 1.001 : 1 signifie ouverte ; 1.009 : 1 signifie fermée</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>contactType</code></td>
+<td>string</td>
+<td><code>&quot;normallyOpen&quot;</code></td>
+<td>&quot;normallyOpen&quot; (Normalement ouvert), &quot;normallyClosed&quot; (Normalement fermé)</td>
+<td>Contact physique : un contact normalement ouvert est fermé tant que la fenêtre est fermée ; un contact normalement fermé est ouvert tant que la fenêtre est fermée.</td>
+</tr>
+<tr>
+<td><code>invert</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Interpréter l&#39;entrée électrique pour un contact normalement fermé. La valeur transmise suit toujours le DPT (1.019 : 1 = ouverte ; 1.009 : 1 = fermée).</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Envoyer l&#39;état du contact au démarrage de la simulation, comme au retour de la tension bus, pour qu&#39;un thermostat puisse détecter une fenêtre déjà ouverte.</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 0</td>
+<td>Délai après le démarrage de la simulation avant l&#39;envoi de l&#39;état du contact.</td>
+</tr>
+</tbody></table>
+</div><h3 id="temperaturesensor-v1"><a class="anchor" href="#temperaturesensor-v1">#</a>temperatureSensor/v1</h3><p>Sonde de température d&#39;ambiance : envoie la température de sa pièce à chaque changement et cycliquement.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>temperature</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>Température ambiante (9.001).</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sendDeltaK</code></td>
+<td>number</td>
+<td><code>0.2</code></td>
+<td>≥ 0.1 ; ≤ 5</td>
+<td>Variation de température (K) qui déclenche un envoi.</td>
+</tr>
+<tr>
+<td><code>cyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Réémission périodique (0 la désactive).</td>
+</tr>
+</tbody></table>
+</div><h3 id="logicgate-v1"><a class="anchor" href="#logicgate-v1">#</a>logicGate/v1</h3><p>Module logique : combine des entrées sur un bit (ET, OU, OU exclusif, NON) et envoie le résultat ; un objet de validation facultatif bloque la sortie.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>logicIn</code></td>
+<td>1.001, 1.002, 1.003, 1.005, 1.018, 1.019</td>
+<td>aucune</td>
+<td>entrée sur un bit de la fonction logique</td>
+</tr>
+<tr>
+<td><code>enable</code></td>
+<td>1.003, 1.001</td>
+<td>aucune</td>
+<td>0 bloque la sortie ; 1 la valide à nouveau et envoie le résultat actuel</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>10.001</td>
+<td>aucune</td>
+<td>heure reçue d&#39;une horloge maître, utilisée par la plage horaire</td>
+</tr>
+<tr>
+<td><code>logicOut</code></td>
+<td>1.001, 1.002, 1.003, 1.005, 1.008, 1.009</td>
+<td>aucune</td>
+<td>résultat de la fonction logique</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>operation</code></td>
+<td>string</td>
+<td><code>&quot;and&quot;</code></td>
+<td>&quot;and&quot; (ET), &quot;or&quot; (OU), &quot;xor&quot; (OU exclusif), &quot;not&quot; (NOT (première entrée))</td>
+<td>Fonction logique appliquée aux entrées ; une entrée qui n&#39;a encore reçu aucune valeur compte pour 0.</td>
+</tr>
+<tr>
+<td><code>activeFrom</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Début d&#39;une plage horaire quotidienne (HH:MM). Avec activeTo et un objet d&#39;heure, la sortie ne vaut 1 qu&#39;à l&#39;intérieur de la plage ; la plage peut passer minuit.</td>
+</tr>
+<tr>
+<td><code>activeTo</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Fin de la plage horaire quotidienne (HH:MM), exclue.</td>
+</tr>
+<tr>
+<td><code>invertOutput</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Envoyer l&#39;inverse de l&#39;opération : NON-ET, NON-OU ou NON-OU exclusif. Hors d&#39;une plage horaire, la sortie reste à 0.</td>
+</tr>
+<tr>
+<td><code>invertInput1</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 1, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput2</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 2, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput3</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 3, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput4</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 4, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput5</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 5, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput6</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 6, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput7</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 7, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>invertInput8</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Inverser la valeur de l&#39;objet d&#39;entrée logique numéro 8, dans l&#39;ordre des objets.</td>
+</tr>
+<tr>
+<td><code>enableAtStart</code></td>
+<td>string</td>
+<td><code>&quot;enabled&quot;</code></td>
+<td>&quot;enabled&quot; (Validée), &quot;blocked&quot; (Bloquée)</td>
+<td>État de la sortie avant que l&#39;objet de validation reçoive un premier télégramme.</td>
+</tr>
+<tr>
+<td><code>enablePolarity</code></td>
+<td>string</td>
+<td><code>&quot;normal&quot;</code></td>
+<td>&quot;normal&quot; (0 = bloquée, 1 = validée), &quot;inverted&quot; (0 = validée, 1 = bloquée)</td>
+<td>Valeur de l&#39;objet de validation qui bloque la sortie.</td>
+</tr>
+<tr>
+<td><code>sendOnChangeOnly</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>N&#39;envoyer le résultat que lorsqu&#39;il diffère de la dernière valeur transmise.</td>
+</tr>
+</tbody></table>
+</div><h3 id="weatherstation-v1"><a class="anchor" href="#weatherstation-v1">#</a>weatherStation/v1</h3><p>Station météo : envoie la vitesse du vent, la luminosité et la température mesurées ; active des sorties sur un bit quand les seuils de vent ou de luminosité sont atteints. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>wind</code></td>
+<td>9.005, 9.028</td>
+<td>aucune</td>
+<td>vitesse du vent mesurée, envoyée à la saisie : m/s avec 9.005, km/h avec 9.028 (les seuils restent en m/s)</td>
+</tr>
+<tr>
+<td><code>brightness</code></td>
+<td>9.004</td>
+<td>aucune</td>
+<td>luminosité mesurée (lux), envoyée à la saisie</td>
+</tr>
+<tr>
+<td><code>outdoorTemp</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>température extérieure mesurée (°C), envoyée à la saisie</td>
+</tr>
+<tr>
+<td><code>windAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand le seuil de vent est atteint, 0 après l&#39;hystérésis</td>
+</tr>
+<tr>
+<td><code>rainAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand la pluie a duré rainOnDelayMs, 0 rainOffDelayMs après son arrêt ; la pluie se saisit sur l&#39;entrée numérique de cet objet (0 ou 1)</td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand la température extérieure est inférieure ou égale à frostThresholdC, 0 au-dessus de ce seuil plus l&#39;hystérésis</td>
+</tr>
+<tr>
+<td><code>sunProtection</code></td>
+<td>1.001, 1.002</td>
+<td>aucune</td>
+<td>1 quand le seuil de luminosité est atteint, 0 après l&#39;hystérésis</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>windThreshold</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Vitesse du vent (m/s) à partir de laquelle l&#39;alarme vent est activée.</td>
+</tr>
+<tr>
+<td><code>windHysteresis</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0</td>
+<td>L&#39;alarme est désactivée quand la vitesse du vent descend sous seuil − hystérésis (m/s).</td>
+</tr>
+<tr>
+<td><code>brightnessThreshold</code></td>
+<td>number</td>
+<td><code>40000</code></td>
+<td>≥ 0</td>
+<td>Luminosité (lux) à partir de laquelle la protection solaire est demandée.</td>
+</tr>
+<tr>
+<td><code>frostThresholdC</code></td>
+<td>number</td>
+<td><code>3</code></td>
+<td>≥ -20 ; ≤ 10</td>
+<td>Température extérieure (°C) en dessous de laquelle (ou à laquelle) l&#39;alarme gel est activée.</td>
+</tr>
+<tr>
+<td><code>frostHysteresisK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0</td>
+<td>L&#39;alarme gel est désactivée dès que la température dépasse seuil + hystérésis (K).</td>
+</tr>
+<tr>
+<td><code>rainOnDelayMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 0</td>
+<td>La pluie doit durer ce temps avant que l&#39;alarme pluie soit activée, pour qu&#39;une courte averse ne soit pas signalée.</td>
+</tr>
+<tr>
+<td><code>rainOffDelayMs</code></td>
+<td>integer</td>
+<td><code>300000</code></td>
+<td>≥ 0</td>
+<td>L&#39;alarme pluie est désactivée ce temps après l&#39;arrêt de la pluie, pour qu&#39;une courte interruption ne soit pas signalée.</td>
+</tr>
+<tr>
+<td><code>alarmCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Période de réémission des alarmes vent, pluie et gel, pour les actionneurs qui les surveillent (0 : seulement aux changements).</td>
+</tr>
+<tr>
+<td><code>setsRoomOutdoorTemperature</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Une température extérieure saisie devient aussi la température extérieure de toutes les pièces du modèle thermique, pour que le bâtiment y réagisse.</td>
+</tr>
+<tr>
+<td><code>brightnessHysteresis</code></td>
+<td>number</td>
+<td><code>5000</code></td>
+<td>≥ 0</td>
+<td>La demande est désactivée quand la luminosité descend sous seuil − hystérésis (lux).</td>
+</tr>
+</tbody></table>
+</div><h3 id="airqualitysensor-v1"><a class="anchor" href="#airqualitysensor-v1">#</a>airQualitySensor/v1</h3><p>Capteur de qualité de l&#39;air : envoie la température, l&#39;humidité relative et le CO₂ mesurés ; active des alarmes aux seuils et commande la ventilation en trois paliers. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>temperature</code></td>
+<td>9.001</td>
+<td>aucune</td>
+<td>température mesurée (°C), envoyée à la saisie</td>
+</tr>
+<tr>
+<td><code>humidity</code></td>
+<td>9.007, 5.001</td>
+<td>aucune</td>
+<td>humidité relative mesurée (%), envoyée à la saisie : flottant sur 2 octets avec 9.007, un octet avec 5.001</td>
+</tr>
+<tr>
+<td><code>co2</code></td>
+<td>9.008</td>
+<td>aucune</td>
+<td>concentration de CO₂ mesurée (ppm), envoyée à la saisie</td>
+</tr>
+<tr>
+<td><code>co2Alarm</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand le seuil d&#39;alarme CO₂ est atteint, 0 après l&#39;hystérésis</td>
+</tr>
+<tr>
+<td><code>humidityAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>aucune</td>
+<td>1 quand le seuil d&#39;alarme d&#39;humidité est atteint, 0 après l&#39;hystérésis</td>
+</tr>
+<tr>
+<td><code>ventilation</code></td>
+<td>5.001</td>
+<td>aucune</td>
+<td>grandeur de commande (%) du palier de ventilation actuel</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>co2AlarmPpm</code></td>
+<td>number</td>
+<td><code>1500</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>Concentration de CO₂ (ppm) à partir de laquelle l&#39;alarme CO₂ est activée.</td>
+</tr>
+<tr>
+<td><code>co2AlarmHysteresisPpm</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>L&#39;alarme CO₂ est désactivée sous seuil − hystérésis (ppm).</td>
+</tr>
+<tr>
+<td><code>humidityAlarmPct</code></td>
+<td>number</td>
+<td><code>70</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Humidité relative (%) à partir de laquelle l&#39;alarme d&#39;humidité est activée.</td>
+</tr>
+<tr>
+<td><code>humidityAlarmHysteresisPct</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>L&#39;alarme d&#39;humidité est désactivée sous seuil − hystérésis (%).</td>
+</tr>
+<tr>
+<td><code>step1Ppm</code></td>
+<td>number</td>
+<td><code>800</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>Concentration de CO₂ (ppm) entre les paliers de ventilation 0 et 1.</td>
+</tr>
+<tr>
+<td><code>step2Ppm</code></td>
+<td>number</td>
+<td><code>1000</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>Concentration de CO₂ (ppm) entre les paliers de ventilation 1 et 2.</td>
+</tr>
+<tr>
+<td><code>step3Ppm</code></td>
+<td>number</td>
+<td><code>1200</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>Concentration de CO₂ (ppm) entre les paliers de ventilation 2 et 3.</td>
+</tr>
+<tr>
+<td><code>stepHysteresisPpm</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0 ; ≤ 10000</td>
+<td>Un palier ne change qu&#39;au-dessus de seuil + hystérésis ou en dessous de seuil − hystérésis (ppm).</td>
+</tr>
+<tr>
+<td><code>step0Pct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande de ventilation (%) envoyée au palier 0.</td>
+</tr>
+<tr>
+<td><code>step1Pct</code></td>
+<td>number</td>
+<td><code>33</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande de ventilation (%) envoyée au palier 1.</td>
+</tr>
+<tr>
+<td><code>step2Pct</code></td>
+<td>number</td>
+<td><code>66</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande de ventilation (%) envoyée au palier 2.</td>
+</tr>
+<tr>
+<td><code>step3Pct</code></td>
+<td>number</td>
+<td><code>100</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Grandeur de commande de ventilation (%) envoyée au palier 3.</td>
+</tr>
+<tr>
+<td><code>minStepTimeMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Un palier est gardé au moins ce temps avant le changement suivant (0 le désactive).</td>
+</tr>
+</tbody></table>
+</div><h3 id="clockmaster-v1"><a class="anchor" href="#clockmaster-v1">#</a>clockMaster/v1</h3><p>Horloge maître : envoie l&#39;heure (10.001) et la date (11.001) de l&#39;horloge simulée à période fixe et après le réglage de l&#39;horloge.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>time</code></td>
+<td>10.001</td>
+<td>aucune</td>
+<td>jour de la semaine et heure de l&#39;horloge simulée</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>11.001</td>
+<td>aucune</td>
+<td>date de l&#39;horloge simulée</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>sendPeriodMin</code></td>
+<td>integer</td>
+<td><code>10</code></td>
+<td>≥ 0 ; ≤ 1440</td>
+<td>Minutes d&#39;horloge entre deux envois, à la seconde 30 de la minute (10 minutes est la période standard d&#39;une horloge système KNX) ; 0 n&#39;envoie qu&#39;au démarrage et après le réglage de l&#39;horloge.</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Envoyer l&#39;heure et la date peu après le démarrage de la simulation.</td>
+</tr>
+<tr>
+<td><code>startDelayMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 0</td>
+<td>Délai après le démarrage de la simulation avant l&#39;envoi de l&#39;heure et de la date.</td>
+</tr>
+</tbody></table>
+</div><h3 id="timeswitch-v1"><a class="anchor" href="#timeswitch-v1">#</a>timeSwitch/v1</h3><p>Programmateur hebdomadaire : envoie la valeur programmée sur ses objets de sortie aux heures programmées de l&#39;horloge simulée.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>output</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>aucune</td>
+<td>objet qui reçoit les valeurs programmées</td>
+</tr>
+<tr>
+<td><code>override</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>aucune</td>
+<td>Valeur envoyée immédiatement sur la sortie, maintenue jusqu&#39;au prochain point de commutation du programme</td>
+</tr>
+<tr>
+<td><code>overrideTimed</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>aucune</td>
+<td>Valeur envoyée immédiatement sur la sortie, maintenue pendant overrideDurationMin minutes d&#39;horloge ; la valeur du programme s&#39;applique ensuite</td>
+</tr>
+<tr>
+<td><code>overridePermanent</code></td>
+<td>1.001, 1.003</td>
+<td>aucune</td>
+<td>1 suspend le programme (points de commutation ignorés) ; 0 le reprend et envoie sa valeur actuelle</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>program</code></td>
+<td>string</td>
+<td><code>&quot;&quot;</code></td>
+<td></td>
+<td>Points de commutation séparés par des points-virgules : jours, heure et valeur, par exemple « Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0 ». Jours : Mon … Sun, intervalles (Mon-Fri), listes (Sat,Sun) ou Daily.</td>
+</tr>
+<tr>
+<td><code>overrideDurationMin</code></td>
+<td>integer</td>
+<td><code>60</code></td>
+<td>≥ 15 ; ≤ 4320</td>
+<td>Minutes d&#39;horloge pendant lesquelles une valeur reçue sur l&#39;objet de dérogation temporisée est maintenue (15 min à 72 h).</td>
+</tr>
+<tr>
+<td><code>sendOnStart</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>Au démarrage, et après le réglage de l&#39;horloge, envoyer la valeur du point de commutation le plus récent.</td>
+</tr>
+</tbody></table>
+</div><h3 id="systemgateway-v1"><a class="anchor" href="#systemgateway-v1">#</a>systemGateway/v1</h3><p>Passerelle vers un autre système du bâtiment (Modbus, BACnet…) : les valeurs de ce système sont saisies et envoyées sur KNX ; les commandes KNX sont reçues et lui sont transmises, sans simuler l&#39;autre protocole. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>value</code></td>
+<td>tous</td>
+<td>aucune</td>
+<td>valeur lue dans l&#39;autre système (température, état, compteur…), envoyée sur KNX à la saisie</td>
+</tr>
+<tr>
+<td><code>command</code></td>
+<td>tous</td>
+<td>aucune</td>
+<td>valeur reçue de KNX et transmise à l&#39;autre système (mode, consigne, relance…)</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>system</code></td>
+<td>string</td>
+<td><code>&quot;Modbus&quot;</code></td>
+<td></td>
+<td>Nom du système de l&#39;autre côté de la passerelle, affiché sur la carte de l&#39;appareil et dans le journal des événements, comme Modbus, BACnet ou M-Bus.</td>
+</tr>
+</tbody></table>
+</div><h3 id="energymeter-v1"><a class="anchor" href="#energymeter-v1">#</a>energyMeter/v1</h3><p>Compteur d&#39;énergie : mesure plusieurs circuits que d&#39;autres appareils commutent ou qui sont toujours alimentés ; envoie leur puissance et leur énergie intégrée. Utilise des touches et des entrées.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>power</code></td>
+<td>14.056, 9.024</td>
+<td>obligatoire</td>
+<td>puissance mesurée sur le circuit : W avec 14.056, kW avec 9.024 ; une entrée numérique sur cet objet saisit la puissance mesurée</td>
+</tr>
+<tr>
+<td><code>energy</code></td>
+<td>13.010, 13.013</td>
+<td>obligatoire</td>
+<td>énergie comptée sur le circuit, envoyée cycliquement : Wh avec 13.010, kWh avec 13.013</td>
+</tr>
+<tr>
+<td><code>totalPower</code></td>
+<td>14.056, 9.024</td>
+<td>aucune</td>
+<td>somme des circuits mesurés : W avec 14.056, kW avec 9.024</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>meterIntervalMs</code></td>
+<td>integer</td>
+<td><code>5000</code></td>
+<td>≥ 1000</td>
+<td>Envoi cyclique des valeurs de puissance et d&#39;énergie (ms).</td>
+</tr>
+<tr>
+<td><code>powerSendDeltaW</code></td>
+<td>number</td>
+<td><code>10</code></td>
+<td>≥ 0</td>
+<td>Envoyer une valeur de puissance quand elle change d&#39;au moins ce nombre de watts.</td>
+</tr>
+<tr>
+<td><code>energyTimeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>&gt; 0</td>
+<td>Vitesse de comptage de l&#39;énergie : 60 compte une seconde simulée comme une minute, pour que le compteur avance visiblement ; 1 compte en temps réel.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial du canal</strong> (<code>channels[].initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 1000000</td>
+<td>Puissance (W) consommée par le circuit au démarrage de la simulation ; une entrée numérique sur l&#39;objet de puissance la modifie.</td>
+</tr>
+<tr>
+<td><code>energyWh</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Énergie (Wh) déjà comptée au démarrage de la simulation.</td>
+</tr>
+</tbody></table>
+</div><h3 id="buttoninterface-v1"><a class="anchor" href="#buttoninterface-v1">#</a>buttonInterface/v1</h3><p>Interface de boutons-poussoirs : chaque canal est une entrée de contact avec une fonction (commutation, variation, store, valeur, scène), avec appuis courts et longs ; verrouillage, retour de la tension bus et envoi cyclique.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>switch</code></td>
+<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.022, 1.100</td>
+<td>obligatoire</td>
+<td>télégrammes de commutation ; avec W activé, l&#39;objet suit l&#39;état de la charge pour que la bascule et la variation sur une touche partent de l&#39;état réel</td>
+</tr>
+<tr>
+<td><code>dim</code></td>
+<td>3.007</td>
+<td>obligatoire</td>
+<td>Variation relative envoyée par l&#39;entrée (3.007) : un pas pour monter ou baisser, puis un arrêt au relâchement.</td>
+</tr>
+<tr>
+<td><code>move</code></td>
+<td>1.008</td>
+<td>obligatoire</td>
+<td>mouvement du store ; avec W activé, une entrée sur une touche prend le sens du dernier mouvement reçu</td>
+</tr>
+<tr>
+<td><code>stopStep</code></td>
+<td>1.007</td>
+<td>obligatoire</td>
+<td>Arrêt ou pas envoyé par l&#39;entrée (1.007).</td>
+</tr>
+<tr>
+<td><code>value</code></td>
+<td>2.001, 5.001, 5.004, 5.010, 7.600, 9.001, 17.001, 18.001, 20.102</td>
+<td>obligatoire</td>
+<td>valeur envoyée par la fonction Valeur, ou numéro de scène (17.001) ou commande de scène avec mémorisation (18.001) pour la fonction Scène</td>
+</tr>
+<tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>1 verrouille l&#39;entrée (les appuis sont ignorés), 0 la déverrouille</td>
+</tr>
+<tr>
+<td><code>led</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>état affiché par la LED de la touche</td>
+</tr>
+</tbody></table>
+</div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>function</code></td>
+<td>string</td>
+<td><code>&quot;switch&quot;</code></td>
+<td>&quot;switch&quot; (Commutation), &quot;dim&quot; (Variation), &quot;blind&quot; (Store), &quot;value&quot; (Valeur), &quot;scene&quot; (Scène)</td>
+<td>Ce que l&#39;entrée commande ; les objets de groupe et les réglages en dépendent.</td>
+</tr>
+<tr>
+<td><code>longPressMs</code></td>
+<td>integer</td>
+<td><code>500</code></td>
+<td>≥ 100 ; ≤ 10000</td>
+<td>Un appui maintenu au moins ce temps est un appui long.</td>
+</tr>
+<tr>
+<td><code>switchLongPress</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Distinguer appuis courts et longs, avec une action pour chacun ; sinon une action à l&#39;appui et une au relâchement.</td>
+</tr>
+<tr>
+<td><code>onPress</code></td>
+<td>string</td>
+<td><code>&quot;toggle&quot;</code></td>
+<td>&quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser), &quot;none&quot; (Aucune action)</td>
+<td>Télégramme de commutation à la fermeture du contact.</td>
+</tr>
+<tr>
+<td><code>onRelease</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser), &quot;none&quot; (Aucune action)</td>
+<td>Télégramme de commutation à l&#39;ouverture du contact.</td>
+</tr>
+<tr>
+<td><code>onShort</code></td>
+<td>string</td>
+<td><code>&quot;toggle&quot;</code></td>
+<td>&quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser), &quot;none&quot; (Aucune action)</td>
+<td>Télégramme de commutation après un appui court, au relâchement de la touche.</td>
+</tr>
+<tr>
+<td><code>onLong</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;on&quot; (Marche), &quot;off&quot; (Arrêt), &quot;toggle&quot; (Inverser), &quot;none&quot; (Aucune action)</td>
+<td>Télégramme de commutation quand la durée d&#39;appui long est atteinte.</td>
+</tr>
+<tr>
+<td><code>dimMode</code></td>
+<td>string</td>
+<td><code>&quot;single&quot;</code></td>
+<td>&quot;single&quot; (Une touche : marche/arrêt, plus clair et plus sombre tour à tour), &quot;brighter&quot; (Deux touches : cette touche allume et éclaircit), &quot;darker&quot; (Deux touches : cette touche éteint et assombrit)</td>
+<td>Une touche commute par un appui court et fait varier par un appui long, plus clair quand l&#39;éclairage est éteint et sinon dans le sens inverse de la fois précédente ; deux touches se partagent le travail, l&#39;une plus clair et l&#39;autre plus sombre. Le relâchement de la touche arrête la variation.</td>
+</tr>
+<tr>
+<td><code>dimStep</code></td>
+<td>integer</td>
+<td><code>1</code></td>
+<td>1 (100 %), 2 (50 %), 3 (25 %), 4 (12.5 %), 5 (6 %), 6 (3 %), 7 (1.5 %)</td>
+<td>Code de pas du télégramme de variation relative (DPT 3.007) ; 100 % fait varier jusqu&#39;au relâchement de la touche.</td>
+</tr>
+<tr>
+<td><code>blindMode</code></td>
+<td>string</td>
+<td><code>&quot;single&quot;</code></td>
+<td>&quot;single&quot; (Une touche : montée et descente tour à tour), &quot;up&quot; (Deux touches : cette touche monte), &quot;down&quot; (Deux touches : cette touche descend)</td>
+<td>Un appui long déplace le store et un appui court l&#39;arrête ou fait un pas ; avec une touche, le sens change à chaque mouvement, et suit l&#39;objet montée/descente quand il reçoit un télégramme.</td>
+</tr>
+<tr>
+<td><code>stopOnRelease</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Relâcher la touche après un appui long arrête le store (maintenir pour déplacer) ; sinon le store va jusqu&#39;en fin de course à moins qu&#39;un appui court ne l&#39;arrête.</td>
+</tr>
+<tr>
+<td><code>shortValue</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td></td>
+<td>Valeur envoyée par un appui court (par tout appui quand il n&#39;y a pas de valeur d&#39;appui long), dans l&#39;unité du DPT de l&#39;objet.</td>
+</tr>
+<tr>
+<td><code>longValue</code></td>
+<td>number</td>
+<td>null</td>
+<td><code>null</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>sceneNumber</code></td>
+<td>integer</td>
+<td><code>1</code></td>
+<td>≥ 1 ; ≤ 64</td>
+<td>Scène rappelée par un appui court.</td>
+</tr>
+<tr>
+<td><code>sceneStore</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Un appui long demande aux actionneurs de mémoriser leur état actuel comme scène (DPT 18.001, bit d&#39;apprentissage) ; un appui court la rappelle.</td>
+</tr>
+<tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
+<td>Télégramme de commutation envoyé quand l&#39;objet de verrouillage reçoit 1.</td>
+</tr>
+<tr>
+<td><code>lockEnd</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;update&quot; (Envoyer la valeur actuelle), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
+<td>Télégramme de commutation envoyé quand l&#39;objet de verrouillage reçoit 0.</td>
+</tr>
+<tr>
+<td><code>blindLockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;up&quot; (Montée), &quot;down&quot; (Descente)</td>
+<td>Mouvement envoyé quand l&#39;objet de verrouillage reçoit 1.</td>
+</tr>
+<tr>
+<td><code>blindLockEnd</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;up&quot; (Montée), &quot;down&quot; (Descente)</td>
+<td>Mouvement envoyé quand l&#39;objet de verrouillage reçoit 0.</td>
+</tr>
+<tr>
+<td><code>busRecovery</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;update&quot; (Envoyer la valeur actuelle), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
+<td>Télégramme de commutation envoyé au retour de la tension bus après une coupure.</td>
+</tr>
+<tr>
+<td><code>blindBusRecovery</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (Aucune réaction), &quot;up&quot; (Montée), &quot;down&quot; (Descente)</td>
+<td>Mouvement envoyé au retour de la tension bus après une coupure.</td>
+</tr>
+<tr>
+<td><code>busRecoveryDelayMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Délai avant la réaction au retour du bus, pour que les appareils d&#39;une ligne n&#39;émettent pas tous en même temps.</td>
+</tr>
+<tr>
+<td><code>cyclicMs</code></td>
+<td>integer</td>
+<td>null</td>
+<td><code>null</code></td>
+<td>&gt; 0</td>
+</tr>
+<tr>
+<td><code>cyclicWhen</code></td>
+<td>string</td>
+<td><code>&quot;always&quot;</code></td>
+<td>&quot;always&quot; (Les deux valeurs), &quot;on&quot; (Only 1 (marche)), &quot;off&quot; (Only 0 (arrêt))</td>
+<td>Valeur de l&#39;objet de commutation envoyée cycliquement.</td>
+</tr>
+<tr>
+<td><code>actuatedContact</code></td>
+<td>string</td>
+<td><code>&quot;closed&quot;</code></td>
+<td>&quot;closed&quot; (Contact fermé), &quot;open&quot; (Contact ouvert)</td>
+<td>État du contact d&#39;entrée quand le bouton-poussoir est actionné : fermé pour un bouton-poussoir normalement ouvert, ouvert pour un bouton normalement fermé.</td>
+</tr>
+<tr>
+<td><code>ledShown</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>La touche a une LED : elle affiche l&#39;objet LED quand il est activé, sinon l&#39;objet de commutation d&#39;une entrée de commutation ou de variation.</td>
+</tr>
+<tr>
+<td><code>ledInverted</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>La LED est allumée tant que son objet vaut 0 et éteinte tant qu&#39;il vaut 1.</td>
+</tr>
+</tbody></table>
+</div><h3 id="alarmmodule-v1"><a class="anchor" href="#alarmmodule-v1">#</a>alarmModule/v1</h3><p>Module d&#39;alarme : pour chaque zone, une alarme intrusion et une alarme incendie activées par un déclencheur, mémorisées jusqu&#39;à une réinitialisation acceptée une fois le déclencheur revenu à 0.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Canal</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>intrusionTrigger</code></td>
+<td>1.005, 1.001</td>
+<td>obligatoire</td>
+<td>1 venant d&#39;un contact ou d&#39;un détecteur d&#39;intrusion active l&#39;alarme intrusion mémorisée</td>
+</tr>
+<tr>
+<td><code>intrusionReset</code></td>
+<td>1.015, 1.001</td>
+<td>obligatoire</td>
+<td>1 réinitialise l&#39;alarme mémorisée, seulement une fois son déclencheur revenu à 0</td>
+</tr>
+<tr>
+<td><code>intrusionState</code></td>
+<td>1.005, 1.001</td>
+<td>obligatoire</td>
+<td>Alarme intrusion mémorisée, envoyée à chaque changement ; reliez-la aux objets d&#39;intrusion des actionneurs</td>
+</tr>
+<tr>
+<td><code>fireTrigger</code></td>
+<td>1.005, 1.001</td>
+<td>obligatoire</td>
+<td>1 venant d&#39;un détecteur d&#39;incendie active l&#39;alarme incendie mémorisée</td>
+</tr>
+<tr>
+<td><code>fireReset</code></td>
+<td>1.015, 1.001</td>
+<td>obligatoire</td>
+<td>1 réinitialise l&#39;alarme mémorisée, seulement une fois son déclencheur revenu à 0</td>
+</tr>
+<tr>
+<td><code>fireState</code></td>
+<td>1.005, 1.001</td>
+<td>obligatoire</td>
+<td>Alarme incendie mémorisée, envoyée à chaque changement ; reliez-la aux objets d&#39;incendie des actionneurs</td>
+</tr>
+</tbody></table>
+</div><p><em>Aucun paramètre.</em></p>
+<h2 id="equipment"><a class="anchor" href="#equipment">#</a>Équipements</h2><h3 id="lamp"><a class="anchor" href="#lamp">#</a>lamp</h3><p>Lampe : allumée tant que la sortie du relais est fermée. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Puissance électrique (W) consommée quand la lampe est allumée ; utilisée par les actionneurs avec mesure. Toute charge commutée peut être représentée avec une puissance correspondante.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="shutter"><a class="anchor" href="#shutter">#</a>shutter</h3><p>Volet roulant : reçoit des commandes montée/descente/arrêt et parcourt sa course réelle, limitée à 0–100 %. Commandes acceptées : <code>motor</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>actualTravelTimeMs</code> (obligatoire)</td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Durée réelle d&#39;une course complète (ms) : en descente, et en montée sauf si actualTravelTimeUpMs est défini.</td>
+</tr>
+<tr>
+<td><code>actualTravelTimeUpMs</code></td>
+<td>integer</td>
+<td></td>
+<td>&gt; 0</td>
+<td>Durée réelle d&#39;une course complète en montée (ms), quand elle diffère de la descente.</td>
+</tr>
+<tr>
+<td><code>slatTravelMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Store à lamelles : durée pour que les lamelles passent d&#39;ouvertes à fermées (ms). Le moteur oriente d&#39;abord les lamelles, puis déplace le store. 0 décrit un volet roulant sans lamelles.</td>
+</tr>
+<tr>
+<td><code>wiringReversed</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Câblage physique avec les fils de montée et de descente inversés : le moteur tourne à l&#39;inverse de la commande. Le paramètre « Câblage inversé » de l&#39;actionneur le compense.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>positionPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>slatPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="dimmablelamp"><a class="anchor" href="#dimmablelamp">#</a>dimmableLamp</h3><p>Lampe à variation : suit le niveau commandé avec la transition demandée ; une lampe à blanc variable suit aussi la température de couleur commandée. Commandes acceptées : <code>dim</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Puissance électrique (W) au niveau maximal ; la puissance consommée est proportionnelle au niveau.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="daligroup"><a class="anchor" href="#daligroup">#</a>daliGroup</h3><p>Ballasts DALI d&#39;un groupe : chacun a une adresse courte (0–63) et suit le niveau commandé. Commandes acceptées : <code>dim</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ballasts</code></td>
+<td>integer</td>
+<td><code>2</code></td>
+<td>≥ 1 ; ≤ 16</td>
+<td>Nombre de ballasts (luminaires) du groupe.</td>
+</tr>
+<tr>
+<td><code>firstAddress</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 63</td>
+<td>Adresse courte DALI du premier ballast ; les ballasts suivants utilisent des adresses consécutives.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+<tr>
+<td><code>failed</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 16</td>
+<td>Nombre de ballasts qui signalent au départ un défaut de lampe ou de ballast.</td>
+</tr>
+</tbody></table>
+</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiateur avec vanne thermoélectrique : ouverture progressive tant qu&#39;elle est alimentée ; l&#39;apport de chaleur ou de froid est proportionnel à l&#39;ouverture de la vanne. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openingTimeMs</code></td>
+<td>integer</td>
+<td><code>8000</code></td>
+<td>≥ 1000</td>
+<td>Durée d&#39;ouverture complète de la vanne (ms). Les vraies vannes mettent environ 3 minutes ; cette durée est compressée comme le temps de la pièce et doit rester courte par rapport à la période MLI.</td>
+</tr>
+<tr>
+<td><code>normallyOpen</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Vanne normalement ouverte : l&#39;alimenter la ferme.</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>25</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Écart de température (K) avec l&#39;extérieur que ce radiateur peut maintenir seul, vanne entièrement ouverte.</td>
+</tr>
+<tr>
+<td><code>emitter</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Chauffage), &quot;cooling&quot; (Refroidissement)</td>
+<td>heating réchauffe la pièce ; cooling la refroidit, par exemple un ventilo-convecteur avec évacuation des condensats. L&#39;humidité et la condensation ne sont pas modélisées.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="fan"><a class="anchor" href="#fan">#</a>fan</h3><p>Ventilateur de ventilation : tourne à la vitesse commandée (0–100 %) après une courte rampe. Commandes acceptées : <code>dim</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>50</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Puissance électrique (W) à pleine vitesse ; la puissance consommée est proportionnelle à la vitesse.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>levelPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="appliance"><a class="anchor" href="#appliance">#</a>appliance</h3><p>Appareil électrique sur une sortie commutée (four, chauffe-eau, prise) : consomme sa puissance nominale tant qu&#39;il est alimenté. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>2000</code></td>
+<td>≥ 0 ; ≤ 100000</td>
+<td>Puissance électrique (W) consommée tant que l&#39;appareil est alimenté.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>on</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="waterheater"><a class="anchor" href="#waterheater">#</a>waterHeater</h3><p>Ballon d&#39;eau chaude électrique : sa résistance chauffe l&#39;eau jusqu&#39;à la consigne de son propre thermostat tant que la sortie l&#39;alimente ; l&#39;eau refroidit lentement, et puiser de l&#39;eau chaude la refroidit. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>2000</code></td>
+<td>≥ 100 ; ≤ 12000</td>
+<td>Puissance électrique (W) de la résistance pendant qu&#39;elle chauffe.</td>
+</tr>
+<tr>
+<td><code>volumeL</code></td>
+<td>number</td>
+<td><code>200</code></td>
+<td>≥ 10 ; ≤ 1000</td>
+<td>Volume d&#39;eau du ballon (litres).</td>
+</tr>
+<tr>
+<td><code>setpointC</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 30 ; ≤ 80</td>
+<td>Température (°C) à laquelle le thermostat de la résistance coupe le chauffage.</td>
+</tr>
+<tr>
+<td><code>hysteresisK</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 1 ; ≤ 20</td>
+<td>La résistance chauffe à nouveau dès que l&#39;eau est descendue de cette valeur sous la consigne (K).</td>
+</tr>
+<tr>
+<td><code>lossKPerH</code></td>
+<td>number</td>
+<td><code>0.5</code></td>
+<td>≥ 0 ; ≤ 5</td>
+<td>Refroidissement de l&#39;eau sans puisage (K par heure).</td>
+</tr>
+<tr>
+<td><code>timeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 1 ; ≤ 3600</td>
+<td>L&#39;eau chauffe et refroidit ce nombre de fois plus vite que le temps réel, pour qu&#39;un cycle de chauffe de plusieurs heures dure quelques minutes (comme la mesure d&#39;énergie).</td>
+</tr>
+<tr>
+<td><code>drawL</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 1 ; ≤ 200</td>
+<td>Volume d&#39;eau chaude puisé par un clic sur le ballon (litres), remplacé par de l&#39;eau froide à 10 °C.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tempC</code></td>
+<td>number</td>
+<td><code>45</code></td>
+<td>≥ 5 ; ≤ 80</td>
+<td></td>
+</tr>
+<tr>
+<td><code>powered</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="heatpump"><a class="anchor" href="#heatpump">#</a>heatPump</h3><p>Pompe à chaleur desservant une pièce : tant que la sortie la valide, son compresseur tourne (après une durée minimale d&#39;arrêt) et chauffe ou refroidit la pièce ; elle consomme sa puissance électrique, la chaleur fournie étant cette puissance multipliée par son coefficient de performance. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>mode</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Chauffage), &quot;cooling&quot; (Refroidissement)</td>
+<td>heating réchauffe la pièce ; cooling la refroidit (appareil réversible).</td>
+</tr>
+<tr>
+<td><code>electricPowerW</code></td>
+<td>number</td>
+<td><code>1500</code></td>
+<td>≥ 100 ; ≤ 20000</td>
+<td>Puissance électrique (W) consommée tant que le compresseur tourne.</td>
+</tr>
+<tr>
+<td><code>cop</code></td>
+<td>number</td>
+<td><code>3.5</code></td>
+<td>≥ 1 ; ≤ 8</td>
+<td>Chaleur fournie divisée par la puissance électrique consommée (affichée sur l&#39;appareil ; le modèle de la pièce utilise powerK).</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>25</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Écart de température (K) avec l&#39;extérieur que l&#39;appareil peut maintenir seul quand il tourne.</td>
+</tr>
+<tr>
+<td><code>minOffMs</code></td>
+<td>integer</td>
+<td><code>10000</code></td>
+<td>≥ 0</td>
+<td>Durée pendant laquelle le compresseur reste arrêté après un arrêt avant de pouvoir redémarrer (protection anti-court-cycle) ; les vrais appareils attendent quelques minutes, compressées ici comme le temps de la pièce.</td>
+</tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>enabled</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="siren"><a class="anchor" href="#siren">#</a>siren</h3><p>Sirène avec flash : sonne tant que sa sortie est en marche, au plus pendant sa durée maximale de sonnerie. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ringLimitMs</code></td>
+<td>integer</td>
+<td><code>180000</code></td>
+<td>≥ 0</td>
+<td>La sirène s&#39;arrête après cette durée même si elle est encore alimentée ; le flash reste allumé (0 : pas de limite). Les sirènes extérieures sont souvent limitées à 3 minutes.</td>
+</tr>
+<tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>15</code></td>
+<td>≥ 0 ; ≤ 1000</td>
+<td>Puissance électrique (W) consommée tant qu&#39;elle est alimentée.</td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../../fr/reference/json.html">← Scénario JSON</a>
+<a href="../../fr/reference/ports.html">Ports →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#behaviors">Comportements</a></li><li><a href="#equipment">Équipements</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

@@ -14,7 +14,13 @@ export interface ViewOptions {
   minScale: number;
   speed: number | null;
   stepMode: boolean;
+  /** Address of the designer opened by the toolbar icon, or "none" to hide the icon. */
+  designer: string;
 }
+
+/** The published designer, which keeps up with the latest version of the format. */
+export const PUBLISHED_DESIGNER =
+  "https://ynn.github.io/busdiagram/designer/index.html";
 
 export const DEFAULT_OPTIONS: ViewOptions = {
   toolbar: "full",
@@ -26,6 +32,7 @@ export const DEFAULT_OPTIONS: ViewOptions = {
   minScale: 0.7,
   speed: null,
   stepMode: false,
+  designer: PUBLISHED_DESIGNER,
 };
 
 export interface OptionDoc {
@@ -128,6 +135,16 @@ export const OPTION_DOCS: OptionDoc[] = [
       "Pause at each transmission, coupler decision, reception, output change, and scheduled event, with an explanation and a Next button.",
     example: "<bus-diagram step-mode>",
   },
+  {
+    name: "designer",
+    attribute: "designer",
+    type: 'URL | "none"',
+    default: "the published designer",
+    summary: "Designer opened by the icon of the toolbar.",
+    details:
+      "The icon opens the designer in a new tab with the scenario, carried compressed in the link after #, which is not sent to the server. Give the address of a copy of the designer (for example a relative path, to work offline), or none to hide the icon. Hidden when the toolbar is.",
+    example: '<bus-diagram designer="designer/index.html">',
+  },
 ];
 
 const BOOL_TRUE = ["", "true", "1", "yes", "oui"];
@@ -156,6 +173,10 @@ function parseAttr(doc: OptionDoc, raw: string | null): unknown {
     return ["full", "compact", "none"].includes(raw) ? raw : undefined;
   if (doc.name === "fit")
     return ["width", "contain"].includes(raw) ? raw : undefined;
+  if (doc.name === "designer") {
+    const v = raw.trim();
+    return v ? (BOOL_FALSE.includes(v.toLowerCase()) ? "none" : v) : undefined;
+  }
   return undefined;
 }
 

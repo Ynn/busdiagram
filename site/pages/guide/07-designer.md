@@ -12,7 +12,7 @@ Both editing modes use the same scenario. Changes made in the guided forms updat
 
 ## Start a scenario
 
-Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing `.json` file.
+Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing `.json` file, or follow the icon at the end of the toolbar of any diagram, which opens that diagram here.
 
 ## Guided editor
 

@@ -39,8 +39,7 @@ function evaluate(ctx: BehaviorContext<WeatherState>) {
   const p = ctx.device.parameters;
   for (const th of THRESHOLDS) {
     const src = ctx.device.objects.find((o) => o.port === th.source);
-    const out = ctx.device.objects.find((o) => o.port === th.out);
-    if (!src || !out) continue;
+    if (!src || !ctx.device.objects.some((o) => o.port === th.out)) continue;
     const raw = ctx.getObject(src.id);
     if (raw === null) continue;
     // Thresholds are in m/s; a wind object in km/h (9.028) is converted.
@@ -48,28 +47,27 @@ function evaluate(ctx: BehaviorContext<WeatherState>) {
     const limit = num(p[th.on], th.defaults[0]);
     const hyst = num(p[th.hyst], th.defaults[1]);
     const before = ctx.state.alarms[th.out] ?? 0;
-    // Set at the threshold; reset only below threshold − hysteresis.
+    // Set at the threshold; reset only below threshold − hysteresis (strictly, so that
+    // a value at the threshold stays set even with no hysteresis).
     const after = before
-      ? value <= limit - hyst
+      ? value < limit - hyst
         ? 0
         : 1
       : value >= limit
         ? 1
         : 0;
     if (after === before) continue;
-    ctx.state.alarms[th.out] = after;
     ctx.note(
       after
         ? ctx.t`${value} reaches the threshold ${limit}: output set`
         : ctx.t`${value} is below ${limit - hyst} (threshold − hysteresis): output reset`,
     );
-    ctx.setObject(out.id, after);
-    ctx.transmit(out.id);
+    setAlarm(ctx, th.out, after);
   }
   frost(ctx);
 }
 
-/** Frost alarm: set at or below frostThresholdC, reset above it plus the hysteresis. */
+/** Frost alarm: set at or below frostThresholdC, reset strictly above it plus the hysteresis. */
 function frost(ctx: BehaviorContext<WeatherState>) {
   const src = ctx.device.objects.find((o) => o.port === "outdoorTemp");
   const raw = src ? ctx.getObject(src.id) : null;
@@ -79,12 +77,12 @@ function frost(ctx: BehaviorContext<WeatherState>) {
   const limit = num(p.frostThresholdC, 3);
   const hyst = num(p.frostHysteresisK, 2);
   const before = ctx.state.alarms.frostAlarm ?? 0;
-  const after = before ? (raw >= limit + hyst ? 0 : 1) : raw <= limit ? 1 : 0;
+  const after = before ? (raw > limit + hyst ? 0 : 1) : raw <= limit ? 1 : 0;
   if (after === before) return;
   ctx.note(
     after
       ? ctx.t`${raw} °C at or below ${limit} °C: frost alarm set`
-      : ctx.t`${raw} °C at or above ${limit + hyst} °C: frost alarm reset`,
+      : ctx.t`${raw} °C above ${limit + hyst} °C: frost alarm reset`,
   );
   setAlarm(ctx, "frostAlarm", after);
 }
@@ -145,7 +143,7 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
         minimum: 0,
         default: 2,
         description:
-          "The frost alarm is reset once the temperature reaches threshold + hysteresis (K).",
+          "The frost alarm is reset once the temperature rises above threshold + hysteresis (K).",
       },
       rainOnDelayMs: {
         title: "Delay of the rain alarm",
@@ -195,6 +193,7 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
   },
   ports: {
     wind: {
+      single: true,
       dpts: ["9.005", "9.028"],
       channel: "none",
       title: "Wind speed",
@@ -203,6 +202,7 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
         "measured wind speed, sent when entered: m/s with 9.005, km/h with 9.028 (thresholds stay in m/s)",
     },
     brightness: {
+      single: true,
       dpts: ["9.004"],
       channel: "none",
       title: "Brightness",
@@ -210,6 +210,7 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
       description: "measured brightness (lux), sent when entered",
     },
     outdoorTemp: {
+      single: true,
       dpts: ["9.001"],
       channel: "none",
       title: "Outdoor temperature",
@@ -253,6 +254,19 @@ export const weatherStation: BehaviorDefinition<WeatherState> = {
   onInit(ctx) {
     const ms = num(ctx.device.parameters.alarmCyclicMs, 0);
     if (ms > 0) ctx.schedule("cyclic", ms);
+  },
+  // The timers stop with the bus voltage. When it returns, the cyclic sending of the
+  // alarms starts again, and rain still to be confirmed waits for its whole delay again.
+  onBusRecovery(ctx) {
+    const p = ctx.device.parameters;
+    const ms = num(p.alarmCyclicMs, 0);
+    if (ms > 0) ctx.schedule("cyclic", ms);
+    const raining = ctx.state.raining;
+    if ((ctx.state.alarms.rainAlarm ?? 0) !== (raining ? 1 : 0))
+      ctx.schedule(
+        raining ? "rainOn" : "rainOff",
+        raining ? num(p.rainOnDelayMs, 20000) : num(p.rainOffDelayMs, 300000),
+      );
   },
   onTimer(ctx, key) {
     if (key === "rainOn" || key === "rainOff") {

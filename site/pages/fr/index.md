@@ -104,7 +104,7 @@ Cet exemple relie une interface de boutons-poussoirs (une touche qui inverse l'�
 
 - **Topologie :** lignes, lignes principales, ligne de zone (backbone), répéteurs, coupleurs de segment et routeurs KNXnet/IP, disposés d'après les adresses individuelles.
 - **Appareils :** boutons-poussoirs, actionneurs, passerelles, thermostats, stations météo, modules logiques et superviseurs, avec leurs objets de communication, adresses de groupe et indicateurs.
-- **Charges raccordées :** lampes, éclairages à blanc variable, volets roulants et stores à lamelles, ventilateurs, appareils électriques, ballons d'eau chaude, pompes à chaleur, sirènes, groupes DALI et radiateurs reliés aux voies des actionneurs.
+- **Charges raccordées :** lampes, éclairages à blanc variable, volets roulants et stores à lamelles, ventilateurs, appareils électriques, ballons d'eau chaude, pompes à chaleur, sirènes, groupes DALI et radiateurs reliés aux canaux des actionneurs.
 
 ## Ce que l'on peut simuler
 

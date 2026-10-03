@@ -1,0 +1,213 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Codes d&#39;erreur · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="reference">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html" class="cur">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../reference/errors.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li class="cur"><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Référence</p>
+
+<h1 id="error-codes"><a class="anchor" href="#error-codes">#</a>Codes d&#39;erreur</h1><p>Chaque problème de validation a un <code>path</code> JSON, un <code>code</code> et un <code>message</code> traduit.</p>
+<h2 id="scenario-validation"><a class="anchor" href="#scenario-validation">#</a>Validation du scénario</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>type</code></td>
+<td>Type de valeur incorrect.</td>
+</tr>
+<tr>
+<td><code>required</code></td>
+<td>Champ ou paramètre obligatoire manquant.</td>
+</tr>
+<tr>
+<td><code>unknown-field</code></td>
+<td>Champ du format 2 ou paramètre de comportement inconnu.</td>
+</tr>
+<tr>
+<td><code>enum</code></td>
+<td>Valeur hors des choix permis.</td>
+</tr>
+<tr>
+<td><code>range</code></td>
+<td>Nombre hors de sa plage permise.</td>
+</tr>
+<tr>
+<td><code>version</code></td>
+<td><code>formatVersion</code> non pris en charge (seul 2 est pris en charge).</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td>Syntaxe d&#39;identifiant invalide.</td>
+</tr>
+<tr>
+<td><code>address</code></td>
+<td>Adresse individuelle, de ligne ou de groupe mal formée ou hors plage.</td>
+</tr>
+<tr>
+<td><code>duplicate</code></td>
+<td>Identifiant ou adresse en double.</td>
+</tr>
+<tr>
+<td><code>reference</code></td>
+<td>Référence à une ligne, un canal, un objet, un coupleur ou un niveau de topologie absent.</td>
+</tr>
+<tr>
+<td><code>port</code></td>
+<td>Port non accepté par un comportement, association de canal invalide, ou second objet sur un port qui n&#39;en accepte qu&#39;un.</td>
+</tr>
+<tr>
+<td><code>dpt</code></td>
+<td>DPT non pris en charge ou incompatible avec un port.</td>
+</tr>
+<tr>
+<td><code>association</code></td>
+<td>Tailles de données incompatibles sur une même adresse de groupe.</td>
+</tr>
+<tr>
+<td><code>toggle</code></td>
+<td><code>&quot;toggle&quot;</code> utilisé avec un objet qui n&#39;est pas sur un bit.</td>
+</tr>
+<tr>
+<td><code>conflict</code></td>
+<td>Actions ou réglages de topologie incompatibles entre eux.</td>
+</tr>
+<tr>
+<td><code>incompatible</code></td>
+<td>Touche, entrée ou équipement incompatible avec son comportement.</td>
+</tr>
+<tr>
+<td><code>unknown-behavior</code></td>
+<td>L&#39;identifiant du comportement n&#39;a pas été enregistré.</td>
+</tr>
+<tr>
+<td><code>unknown-equipment</code></td>
+<td>Le type d&#39;équipement n&#39;a pas été enregistré.</td>
+</tr>
+<tr>
+<td><code>unknown-room</code></td>
+<td>La pièce désignée n&#39;est pas déclarée dans <code>rooms</code>.</td>
+</tr>
+<tr>
+<td><code>format</code></td>
+<td>Une valeur texte n&#39;a pas le format attendu, comme <code>clock.start</code>.</td>
+</tr>
+</tbody></table>
+</div><h2 id="during-simulation"><a class="anchor" href="#during-simulation">#</a>Pendant la simulation</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>extension-error</code></td>
+<td>Une extension a levé une exception ; la simulation se met en pause.</td>
+</tr>
+<tr>
+<td><code>cascade</code></td>
+<td>Trop d&#39;événements au même instant simulé.</td>
+</tr>
+<tr>
+<td><code>incompatible-command</code></td>
+<td>Un équipement ne peut pas appliquer la commande de sortie d&#39;un comportement.</td>
+</tr>
+<tr>
+<td><code>no-ga</code></td>
+<td>Un envoi a été demandé pour un objet sans adresse de groupe et a été ignoré.</td>
+</tr>
+<tr>
+<td><code>view-error</code></td>
+<td>La vue d&#39;un équipement a échoué ; un cadre d&#39;avertissement la remplace pendant que la simulation continue.</td>
+</tr>
+</tbody></table>
+</div><h2 id="configuration-warnings"><a class="anchor" href="#configuration-warnings">#</a>Avertissements de configuration</h2><p>Ces avertissements n&#39;arrêtent pas la simulation. Ils s&#39;affichent au-dessus du schéma, et dans <code>getState().diagnostics</code>, quand un paramètre qui compense une propriété de la charge ne concorde pas avec cette propriété. Un scénario peut garder volontairement une telle discordance pour illustrer une erreur de mise en service.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Signification</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>config-valve</code></td>
+<td>La sortie de l&#39;actionneur de chauffage (<code>valveType</code>) et la vanne du radiateur raccordé (<code>normallyOpen</code>) ne concordent pas ; la vanne s&#39;ouvre quand aucune chaleur n&#39;est demandée.</td>
+</tr>
+<tr>
+<td><code>config-wiring</code></td>
+<td>L&#39;inversion de sortie de l&#39;actionneur de volets (<code>invertOutput</code>) et le câblage du moteur du volet (<code>wiringReversed</code>) ne concordent pas ; le volet va à l&#39;inverse des commandes.</td>
+</tr>
+<tr>
+<td><code>config-contact</code></td>
+<td>Le type de contact de fenêtre (<code>contactType</code>) et l&#39;inversion de l&#39;entrée (<code>invert</code>) ne concordent pas, ou le contact d&#39;un bouton-poussoir câblé sur une interface de boutons-poussoirs (<code>keyContact</code>) et le contact que son entrée attend à l&#39;appui (<code>actuatedContact</code>) ne concordent pas ; ouvert et fermé, ou appuis et relâchements, sont vus à l&#39;envers.</td>
+</tr>
+<tr>
+<td><code>config-value-range</code></td>
+<td>Une valeur d&#39;une entrée d&#39;interface de boutons-poussoirs (<code>shortValue</code>, <code>longValue</code>) est hors de la plage du DPT de son objet ; la valeur envoyée est ramenée à cette plage.</td>
+</tr>
+<tr>
+<td><code>config-no-power-supply</code></td>
+<td>Une ligne TP, ou le segment derrière son extension, ne déclare pas d&#39;alimentation bus (<code>powerSupply</code>). Chaque segment TP a besoin de sa propre alimentation avec self ; la simulation fonctionne quand même.</td>
+</tr>
+<tr>
+<td><code>config-segment-size</code></td>
+<td>Plus de 64 raccordements sur un segment TP1 (une ligne, une ligne principale, la ligne de zone ou le segment derrière une extension) : les appareils, ainsi que les coupleurs, routeurs ou extensions de ligne, qui ont un raccordement TP1 sur chacun de leurs segments. La spécification KNX TP1 permet 64 appareils par segment, ou 256 avec des appareils TP1-256 ; sinon, utilisez un répéteur de ligne ou un coupleur de segment.</td>
+</tr>
+<tr>
+<td><code>config-datatype</code></td>
+<td>Une adresse de groupe relie des DPT de même taille mais de sens différent, comme un numéro de scène (17.001) et un pourcentage (5.001), ou 5.001 et 5.004. Les DPT sur un bit ne sont pas comparés. Un numéro de scène (17.001) et une commande de scène (18.001) concordent pour les rappels ; l&#39;avertissement signale alors qu&#39;un objet 17.001 lit un télégramme de mémorisation comme un rappel.</td>
+</tr>
+<tr>
+<td><code>config-program</code></td>
+<td>Une entrée du programme hebdomadaire d&#39;un programmateur est illisible (jours, heure, valeur), ou sa valeur ne convient pas au DPT des objets de sortie ; l&#39;entrée est ignorée.</td>
+</tr>
+<tr>
+<td><code>config-polarity</code></td>
+<td>Une adresse de groupe relie le DPT 1.009 (1 = fermé) et le DPT 1.019 (1 = ouvert), dont les valeurs ont des sens opposés.</td>
+</tr>
+</tbody></table>
+</div>
+<nav class="pager">
+<a href="../../fr/reference/events.html">← Événements</a>
+
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#scenario-validation">Validation du scénario</a></li><li><a href="#during-simulation">Pendant la simulation</a></li><li><a href="#configuration-warnings">Avertissements de configuration</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

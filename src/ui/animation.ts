@@ -2,7 +2,12 @@
 // Geometry does not change timing; it only determines marker positions.
 import type { Geometry, Pt, Seg } from "../knx/layout";
 import { segLength, segPoint, segPos, segSlice } from "../knx/layout";
-import type { DeliveryPlan, Topology, TransportPlan } from "../knx/network";
+import {
+  behindCut,
+  type DeliveryPlan,
+  type Topology,
+  type TransportPlan,
+} from "../knx/network";
 import { TIMING } from "../knx/network";
 
 export interface Pill {
@@ -103,7 +108,7 @@ export function animate(
 
   // 2. Propagating fronts on each segment, in both directions
   plan.fronts.forEach((fr) => {
-    if (t < fr.tStartMs) return;
+    if (t < fr.tStartMs || behindCut(plan, fr.path)) return;
     const S = g.segs.get(fr.segId);
     const sg = topo.segments.get(fr.segId);
     if (!S || !sg) return;
@@ -157,7 +162,7 @@ export function animate(
 
   // 3. Crossing of couplers: input, analysis (masked tablet), output if transmitted
   plan.couplers.forEach((c) => {
-    if (t < c.tArriveMs) return;
+    if (t < c.tArriveMs || behindCut(plan, c.path)) return;
     const cg = g.couplers.find((x) => x.id === c.couplerId);
     if (!cg) return;
     const to = c.from === "A" ? "B" : "A";
@@ -178,7 +183,12 @@ export function animate(
 
   // 4. Upstairs: bus → receiver object; applicative effect occurs upon arrival
   plan.deliveries.forEach((r) => {
-    if (!r.objectIds.length || t < r.tArriveMs || t >= r.tDeliverMs + 150)
+    if (
+      !r.objectIds.length ||
+      t < r.tArriveMs ||
+      t >= r.tDeliverMs + 150 ||
+      behindCut(plan, r.path)
+    )
       return;
     const to = recvTo(r);
     const rg = g.devices.get(r.deviceId);

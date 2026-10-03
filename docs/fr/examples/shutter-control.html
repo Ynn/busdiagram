@@ -1,0 +1,549 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commande de volets · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/shutter-control.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li class="cur"><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="shutter-control"><a class="anchor" href="#shutter-control">#</a>Commande de volets</h1><p>Un appui long envoie montée/descente sur 2/1/1 ; un appui court envoie arrêt/pas sur 2/2/1. La touche 1 commande les deux sens depuis une seule touche. La touche 4 descend le volet et allume L1 avec un seul télégramme, parce que des objets compatibles en DPT 1.008 et 1.001 partagent une adresse. Un superviseur sur le réseau IP observe le retour de position à travers le routeur KNXnet/IP 1.1.0.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Commander des volets roulants","description":"Un volet utilise deux objets : montée/descente pour un appui long et arrêt/pas pour un appui court. La touche 4 descend le volet et allume L1 avec un seul télégramme. Le superviseur affiche la position renvoyée.","lines":[{"address":"1.1","name":"Ligne d'exemple","powerSupply":{"currentMa":640}}],"topology":{"ip":"lineCouplers"},"groupAddresses":[{"address":"2/1/1","name":"Volet 1 montée/descente","dpt":"1.008"},{"address":"2/2/1","name":"Volet 1 arrêt/pas","dpt":"1.007"},{"address":"2/1/2","name":"Volet 1 descente + lumière","dpt":"1.008"},{"address":"2/4/1","name":"Position volet 1","dpt":"5.001"},{"address":"1/1/1","name":"Éclairage L1","dpt":"1.001"}],"devices":[{"id":"sup","name":"Superviseur","kind":"supervisor","behavior":"display/v1","medium":"IP","description":"Le superviseur ne commande pas l'actionneur ; il observe les commandes et affiche le retour de position.","objects":[{"id":"md","name":"Sens volet 1","ga":"2/1/1","dpt":"1.008","port":"display","flags":{"W":true,"T":false}},{"id":"pos","name":"Position volet 1","ga":"2/4/1","dpt":"5.001","port":"display","flags":{"W":true,"T":false}}]},{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"Chaque touche a ses propres objets, même quand elles partagent une adresse de groupe. La touche 1 commande le volet sur une seule touche (un appui long inverse le sens, un appui court arrête). La touche 2 le monte et la touche 3 le descend (un appui long le déplace, un appui court l'arrête ou fait un pas). La touche 4 descend le volet et allume la lumière.","objects":[{"id":"key1Long","name":"Touche 1 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in1","flags":{"W":true,"T":true}},{"id":"key1Short","name":"Touche 1 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2Long","name":"Touche 2 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in2","flags":{"W":true,"T":true}},{"id":"key2Short","name":"Touche 2 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3Long","name":"Touche 3 appui long","ga":"2/1/1","dpt":"1.008","port":"move","channel":"in3","flags":{"W":true,"T":true}},{"id":"key3Short","name":"Touche 3 appui court","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"in3","flags":{"W":true,"T":true}},{"id":"key4","name":"Touche 4","ga":"2/1/2","dpt":"1.008","port":"switch","channel":"in4","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"function":"blind"},"equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"Touche 2","parameters":{"function":"blind","blindMode":"up"},"equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Touche 3","parameters":{"function":"blind","blindMode":"down"},"equipment":null},{"id":"in4","label":"Entrée 4","keyLabel":"Touche 4","parameters":{"onPress":"on"},"equipment":null}]},{"id":"shutterActuator","name":"Actionneur de volets","address":"1.1.3","kind":"shutterActuator","behavior":"shutterActuator/v1","objects":[{"id":"md","name":"MD 1","ga":["2/1/1","2/1/2"],"dpt":"1.008","port":"move","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"st","name":"Arrêt 1","ga":"2/2/1","dpt":"1.007","port":"stopStep","channel":"shutter1","flags":{"W":true,"T":false}},{"id":"pos","name":"Position 1","ga":"2/4/1","dpt":"5.001","port":"positionStatus","channel":"shutter1","flags":{"W":true,"T":true}}],"channels":[{"id":"shutter1","label":"Volet 1","parameters":{"estimatedTravelTimeMs":10000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":10000}}}]},{"id":"switchActuator","name":"Actionneur de commutation à quatre sorties","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Canal 1","ga":["1/1/1","2/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Canal 2","ga":[],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Canal 3","ga":[],"dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Canal 4","ga":[],"dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=shutter-control" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Commander des volets roulants",
+  "description": "Un volet utilise deux objets : montée/descente pour un appui long et arrêt/pas pour un appui court. La touche 4 descend le volet et allume L1 avec un seul télégramme. Le superviseur affiche la position renvoyée.",
+  "lines": [{ "address": "1.1", "name": "Ligne d'exemple", "powerSupply": { "currentMa": 640 } }],
+  "topology": { "ip": "lineCouplers" },
+  "groupAddresses": [
+    { "address": "2/1/1", "name": "Volet 1 montée/descente", "dpt": "1.008" },
+    { "address": "2/2/1", "name": "Volet 1 arrêt/pas", "dpt": "1.007" },
+    { "address": "2/1/2", "name": "Volet 1 descente + lumière", "dpt": "1.008" },
+    { "address": "2/4/1", "name": "Position volet 1", "dpt": "5.001" },
+    { "address": "1/1/1", "name": "Éclairage L1", "dpt": "1.001" }
+  ],
+  "devices": [
+    {
+      "id": "sup",
+      "name": "Superviseur",
+      "kind": "supervisor",
+      "behavior": "display/v1",
+      "medium": "IP",
+      "description": "Le superviseur ne commande pas l'actionneur ; il observe les commandes et affiche le retour de position.",
+      "objects": [
+        {
+          "id": "md",
+          "name": "Sens volet 1",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "pos",
+          "name": "Position volet 1",
+          "ga": "2/4/1",
+          "dpt": "5.001",
+          "port": "display",
+          "flags": { "W": true, "T": false }
+        }
+      ]
+    },
+    {
+      "id": "pushButton",
+      "name": "Interface de boutons-poussoirs",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "description": "Chaque touche a ses propres objets, même quand elles partagent une adresse de groupe. La touche 1 commande le volet sur une seule touche (un appui long inverse le sens, un appui court arrête). La touche 2 le monte et la touche 3 le descend (un appui long le déplace, un appui court l'arrête ou fait un pas). La touche 4 descend le volet et allume la lumière.",
+      "objects": [
+        {
+          "id": "key1Long",
+          "name": "Touche 1 appui long",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key1Short",
+          "name": "Touche 1 appui court",
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key2Long",
+          "name": "Touche 2 appui long",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key2Short",
+          "name": "Touche 2 appui court",
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key3Long",
+          "name": "Touche 3 appui long",
+          "ga": "2/1/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key3Short",
+          "name": "Touche 3 appui court",
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "key4",
+          "name": "Touche 4",
+          "ga": "2/1/2",
+          "dpt": "1.008",
+          "port": "switch",
+          "channel": "in4",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Entrée 1",
+          "keyLabel": "Touche 1",
+          "parameters": { "function": "blind" },
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Entrée 2",
+          "keyLabel": "Touche 2",
+          "parameters": { "function": "blind", "blindMode": "up" },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Entrée 3",
+          "keyLabel": "Touche 3",
+          "parameters": { "function": "blind", "blindMode": "down" },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Entrée 4",
+          "keyLabel": "Touche 4",
+          "parameters": { "onPress": "on" },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Actionneur de volets",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "objects": [
+        {
+          "id": "md",
+          "name": "MD 1",
+          "ga": ["2/1/1", "2/1/2"],
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "shutter1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "st",
+          "name": "Arrêt 1",
+          "ga": "2/2/1",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "shutter1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "pos",
+          "name": "Position 1",
+          "ga": "2/4/1",
+          "dpt": "5.001",
+          "port": "positionStatus",
+          "channel": "shutter1",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "shutter1",
+          "label": "Volet 1",
+          "parameters": { "estimatedTravelTimeMs": 10000 },
+          "equipment": { "type": "shutter", "parameters": { "actualTravelTimeMs": 10000 } }
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation à quatre sorties",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Canal 1",
+          "ga": ["1/1/1", "2/1/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c2",
+          "name": "Canal 2",
+          "ga": [],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c3",
+          "name": "Canal 3",
+          "ga": [],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s3",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c4",
+          "name": "Canal 4",
+          "ga": [],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s4",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "s1", "label": "L1", "equipment": { "type": "lamp" } },
+        { "id": "s2", "label": "L2", "equipment": { "type": "lamp" } },
+        { "id": "s3", "label": "L3", "equipment": { "type": "lamp" } },
+        { "id": "s4", "label": "L4", "equipment": { "type": "lamp" } }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Commander des volets roulants"</span>,
+  <span class="k">"description"</span>: <span class="s">"Un volet utilise deux objets : montée/descente pour un appui long et arrêt/pas pour un appui court. La touche 4 descend le volet et allume L1 avec un seul télégramme. Le superviseur affiche la position renvoyée."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Ligne d'exemple"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"topology"</span>: { <span class="k">"ip"</span>: <span class="s">"lineCouplers"</span> },
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"2/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Volet 1 montée/descente"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/2/1"</span>, <span class="k">"name"</span>: <span class="s">"Volet 1 arrêt/pas"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Volet 1 descente + lumière"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Position volet 1"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"sup"</span>,
+      <span class="k">"name"</span>: <span class="s">"Superviseur"</span>,
+      <span class="k">"kind"</span>: <span class="s">"supervisor"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"display/v1"</span>,
+      <span class="k">"medium"</span>: <span class="s">"IP"</span>,
+      <span class="k">"description"</span>: <span class="s">"Le superviseur ne commande pas l'actionneur ; il observe les commandes et affiche le retour de position."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"md"</span>,
+          <span class="k">"name"</span>: <span class="s">"Sens volet 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position volet 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"display"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Chaque touche a ses propres objets, même quand elles partagent une adresse de groupe. La touche 1 commande le volet sur une seule touche (un appui long inverse le sens, un appui court arrête). La touche 2 le monte et la touche 3 le descend (un appui long le déplace, un appui court l'arrête ou fait un pas). La touche 4 descend le volet et allume la lumière."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"key1Long"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key1Short"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 1 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2Long"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key2Short"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 2 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key3Long"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 3 appui long"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key3Short"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 3 appui court"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"key4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Touche 4"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"up"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 3"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span>, <span class="k">"blindMode"</span>: <span class="s">"down"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Touche 4"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de volets"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"md"</span>,
+          <span class="k">"name"</span>: <span class="s">"MD 1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"2/1/1"</span>, <span class="s">"2/1/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"st"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/2/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"pos"</span>,
+          <span class="k">"name"</span>: <span class="s">"Position 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/4/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"positionStatus"</span>,
+          <span class="k">"channel"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"shutter1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Volet 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">10000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">10000</span> } }
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation à quatre sorties"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/1/1"</span>, <span class="s">"2/1/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 2"</span>,
+          <span class="k">"ga"</span>: [],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 3"</span>,
+          <span class="k">"ga"</span>: [],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Canal 4"</span>,
+          <span class="k">"ga"</span>: [],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"s1"</span>, <span class="k">"label"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"L2"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s3"</span>, <span class="k">"label"</span>: <span class="s">"L3"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s4"</span>, <span class="k">"label"</span>: <span class="s">"L4"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/status-feedback.html">← Retour d&#39;état</a>
+<a href="../../fr/examples/venetian-blind.html">Store à lamelles →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

@@ -1,0 +1,122 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pilotage par programme · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/programmatic-control.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../examples/index.html" hreflang="en">All examples <small class="en">EN</small></a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li class="cur"><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="programmatic-control"><a class="anchor" href="#programmatic-control">#</a>Pilotage par programme</h1><p>Des boutons de la page peuvent mettre la simulation en pause, avancer son horloge, la réinitialiser et lire son état. Avancez par pas de 250 ms pour voir comment un télégramme se déplace après un appui sur la touche 1.</p>
+<figure class="live"><pre class="code"><code>&lt;<span class="t">p</span>&gt;
+  &lt;<span class="t">button</span> <span class="a">id</span>=<span class="s">"c-pause"</span>&gt;Pause&lt;/<span class="t">button</span>&gt;
+  &lt;<span class="t">button</span> <span class="a">id</span>=<span class="s">"c-play"</span>&gt;Lecture&lt;/<span class="t">button</span>&gt;
+  &lt;<span class="t">button</span> <span class="a">id</span>=<span class="s">"c-adv"</span>&gt;+ 250 ms&lt;/<span class="t">button</span>&gt;
+  &lt;<span class="t">button</span> <span class="a">id</span>=<span class="s">"c-reset"</span>&gt;Réinitialiser&lt;/<span class="t">button</span>&gt;
+  &lt;<span class="t">button</span> <span class="a">id</span>=<span class="s">"c-state"</span>&gt;Lire l'état&lt;/<span class="t">button</span>&gt;
+&lt;/<span class="t">p</span>&gt;
+&lt;<span class="t">bus-diagram</span>
+  <span class="a">id</span>=<span class="s">"ctrl"</span>
+  <span class="a">scenario</span>=<span class="s">"#ctrl-json"</span>
+  <span class="a">toolbar</span>=<span class="s">"none"</span>
+  <span class="a">monitor</span>=<span class="s">"false"</span>
+  <span class="a">description</span>=<span class="s">"false"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">pre</span>
+  <span class="a">id</span>=<span class="s">"ctrl-out"</span>
+  <span class="a">style</span>=<span class="s">"font-size:12px;background:#fff;padding:8px;border:1px solid #dedbd2;border-radius:8px"</span>&gt;&lt;/<span class="t">pre</span>&gt;
+&lt;<span class="t">script</span>&gt;
+  const sim = document.getElementById("ctrl");
+  const $ = (id) =&gt; document.getElementById(id);
+  $("c-pause").onclick = () =&gt; sim.pause();
+  $("c-play").onclick = () =&gt; sim.play();
+  $("c-adv").onclick = () =&gt; sim.advance(250);
+  $("c-reset").onclick = () =&gt; sim.reset();
+  $("c-state").onclick = () =&gt; {
+    const s = sim.getState();
+    $("ctrl-out").textContent =
+      `t = ${s.timeMs} ms, en pause : ${s.paused}\nL1 : ${s.equipment["switchActuator/s1"].state.on ? "allumée" : "éteinte"}\nObjet de la touche 1 = ${s.objects["pushButton/b1"].value}`;
+  };
+&lt;/<span class="t">script</span>&gt;</code></pre><div class="live-out"><p>
+  <button id="c-pause">Pause</button>
+  <button id="c-play">Lecture</button>
+  <button id="c-adv">+ 250 ms</button>
+  <button id="c-reset">Réinitialiser</button>
+  <button id="c-state">Lire l'état</button>
+</p>
+<bus-diagram
+  id="ctrl"
+  scenario="#ctrl-json"
+  toolbar="none"
+  monitor="false"
+  description="false"
+></bus-diagram>
+<pre
+  id="ctrl-out"
+  style="font-size:12px;background:#fff;padding:8px;border:1px solid #dedbd2;border-radius:8px"
+></pre>
+<script>
+  const sim = document.getElementById("ctrl");
+  const $ = (id) => document.getElementById(id);
+  $("c-pause").onclick = () => sim.pause();
+  $("c-play").onclick = () => sim.play();
+  $("c-adv").onclick = () => sim.advance(250);
+  $("c-reset").onclick = () => sim.reset();
+  $("c-state").onclick = () => {
+    const s = sim.getState();
+    $("ctrl-out").textContent =
+      `t = ${s.timeMs} ms, en pause : ${s.paused}\nL1 : ${s.equipment["switchActuator/s1"].state.on ? "allumée" : "éteinte"}\nObjet de la touche 1 = ${s.objects["pushButton/b1"].value}`;
+  };
+</script></div></figure><script type="application/json" id="ctrl-json">
+{"formatVersion":2,"title":"Pilotage","lines":[{"address":"1.1"}],"devices":[{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"b1","name":"Touche 1","ga":"1/1/1","dpt":"1.001","port":"switch","flags":{"W":true,"T":true},"channel":"b1"}],"channels":[{"id":"b1","label":"Entrée 1","keyLabel":"Touche 1","parameters":{"function":"switch","ledShown":true}}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"c1","name":"Canal 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}}]}]}
+</script><p>Mettez en pause, appuyez sur la touche 1 et avancez par pas de 250 ms pour suivre le télégramme à travers l&#39;installation.</p>
+
+<nav class="pager">
+<a href="../../fr/examples/events.html">← Événements des télégrammes</a>
+<a href="../../fr/examples/extension.html">Extension →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

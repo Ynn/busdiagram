@@ -18,8 +18,8 @@ export const weatherStationFr: Record<string, string> = {
   "Sun protection hysteresis": "Hystérésis de la protection solaire",
   "{0} °C at or below {1} °C: frost alarm set":
     "{0} °C inférieur ou égal à {1} °C : alarme gel activée",
-  "{0} °C at or above {1} °C: frost alarm reset":
-    "{0} °C supérieur ou égal à {1} °C : alarme gel levée",
+  "{0} °C above {1} °C: frost alarm reset":
+    "{0} °C au-dessus de {1} °C : alarme gel levée",
   "Rain alarm set": "Alarme pluie activée",
   "Rain alarm reset": "Alarme pluie levée",
   "Rain detected: alarm after the delay":

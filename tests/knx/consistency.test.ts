@@ -262,5 +262,35 @@ describe("TP1 segment size", () => {
       configWarnings(scenario(n), en).map((w) => w.code);
     expect(codes(64)).not.toContain("config-segment-size");
     expect(codes(65)).toContain("config-segment-size");
+    // A repeater or a line coupler is connected to the segment as well (TP1: a bridge or
+    // a router has a TP1 connection on each side): 63 devices and one of them make 64.
+    const withCoupling = (n: number, how: "repeater" | "coupler") => {
+      const doc = {
+        formatVersion: 2,
+        title: "Segment",
+        lines: [
+          {
+            address: "1.1",
+            ...(how === "repeater"
+              ? { extension: { address: "1.1.250", mode: "repeater" } }
+              : {}),
+          },
+          ...(how === "coupler" ? [{ address: "1.2" }] : []),
+        ],
+        groupAddresses: [],
+        devices: Array.from({ length: n }, (_, i) => ({
+          id: `d${i}`,
+          address: `1.1.${i + 1}`,
+          kind: "generic",
+          behavior: "passive/v1",
+          objects: [],
+        })),
+      };
+      return configWarnings(buildScenario(doc), en).map((w) => w.code);
+    };
+    for (const how of ["repeater", "coupler"] as const) {
+      expect(withCoupling(63, how)).not.toContain("config-segment-size");
+      expect(withCoupling(64, how)).toContain("config-segment-size");
+    }
   });
 });

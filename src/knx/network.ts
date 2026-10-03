@@ -202,6 +202,8 @@ export interface FrontPlan {
   tStartMs: number;
   /** Date of arrival of the front at each point in the segment (same order as `points`). */
   arrivalsMs: number[];
+  /** Couplers crossed from the source to reach this segment. */
+  path: string[];
 }
 
 export interface CouplerPlan {
@@ -217,6 +219,8 @@ export interface CouplerPlan {
   noVoltage?: boolean;
   rcBefore: number;
   rcAfter: number;
+  /** Couplers crossed before reaching this one, from the source. */
+  path: string[];
 }
 
 export interface DeliveryPlan {
@@ -228,6 +232,8 @@ export interface DeliveryPlan {
   rc: number;
   /** Items associated with the GA, in the order of the table. */
   objectIds: string[];
+  /** Couplers crossed from the source to reach the device. */
+  path: string[];
 }
 
 export interface TransportPlan {
@@ -239,7 +245,16 @@ export interface TransportPlan {
   couplers: CouplerPlan[];
   deliveries: DeliveryPlan[];
   endMs: number;
+  /**
+   * Couplers that could not forward after all, the voltage of a side having been cut since
+   * the emission: nothing behind them is reached. Filled by the simulation.
+   */
+  cut: string[];
 }
+
+/** Is a part of the plan behind a coupler that could not forward? */
+export const behindCut = (plan: TransportPlan, path: string[]) =>
+  plan.cut.length > 0 && path.some((id) => plan.cut.includes(id));
 
 export class Network {
   readonly topology: Topology;
@@ -378,6 +393,7 @@ export class Network {
       couplers: [],
       deliveries: [],
       endMs: busMs,
+      cut: [],
     };
     const bump = (t: number) => (plan.endMs = Math.max(plan.endMs, t));
     const segId = this.topology.deviceSegment.get(sourceDeviceId);
@@ -388,6 +404,7 @@ export class Network {
       t: number;
       rc: number;
       via: string | null;
+      path: string[];
     }[] = [
       {
         seg: segId,
@@ -395,6 +412,7 @@ export class Network {
         t: busMs,
         rc: RC0,
         via: null,
+        path: [],
       },
     ];
     const seen = new Set<string>();
@@ -412,6 +430,7 @@ export class Network {
         originIndex: origin,
         tStartMs: e.t,
         arrivalsMs,
+        path: e.path,
       });
       arrivalsMs.forEach(bump);
       sg.points.forEach((pt, j) => {
@@ -429,6 +448,7 @@ export class Network {
             tDeliverMs,
             rc: e.rc,
             objectIds,
+            path: e.path,
           });
           bump(tDeliverMs);
         } else if (pt.couplerId && pt.couplerId !== e.via) {
@@ -460,6 +480,7 @@ export class Network {
             ...(noVoltage ? { noVoltage } : {}),
             rcBefore: e.rc,
             rcAfter: pass ? e.rc - 1 : e.rc,
+            path: e.path,
           });
           bump(pass ? tOutMs : tDecisionMs + 600);
           if (pass)
@@ -469,6 +490,7 @@ export class Network {
               t: tOutMs,
               rc: e.rc - 1,
               via: c.id,
+              path: [...e.path, c.id],
             });
         }
       });

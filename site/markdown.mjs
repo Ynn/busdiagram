@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { Marked } from "marked";
 import { expand } from "../scripts/site-reference.mjs";
+import { translations, translateScenario } from "../scripts/translations.mjs";
 
 // ── Minimal syntax highlighting (JSON, JS, HTML, shell) ──────────────────────
 const esc = (s) =>
@@ -93,8 +94,18 @@ export function formatJson(v, indent = 0, width = 100, prefix = 0) {
     .join(",\n")}\n${" ".repeat(indent)}}`;
 }
 
-function makeRenderer(root, page, examples) {
+/** Anchor of a heading from its plain text. */
+export const slug = (plain) =>
+  plain
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .replace(/[^\w]+/g, "-")
+    .replace(/^-|-$/g, "");
+
+function makeRenderer(root, page, examples, ids) {
   let n = 0;
+  let h = 0;
   const marked = new Marked();
   marked.use({
     renderer: {
@@ -115,12 +126,8 @@ function makeRenderer(root, page, examples) {
           .replace(/&gt;/g, ">")
           .replace(/&quot;/g, '"')
           .replace(/&amp;/g, "&");
-        const id = plain
-          .toLowerCase()
-          .normalize("NFD")
-          .replace(/[̀-ͯ]/g, "")
-          .replace(/[^\w]+/g, "-")
-          .replace(/^-|-$/g, "");
+        // A translated page takes the anchors of its source page, heading by heading.
+        const id = ids ? ids[h++] : slug(plain);
         page.headings.push({ depth, id, text: plain });
         return `<h${depth} id="${id}"><a class="anchor" href="#${id}">#</a>${inner}</h${depth}>`;
       },
@@ -134,10 +141,38 @@ function makeRenderer(root, page, examples) {
 }
 
 export function renderPage(source, pageData, siteData, scenarios, root) {
+  const lang = pageData.lang ?? "en";
+  if (lang === "en" || !pageData.translationOf)
+    return renderLang(source, pageData, siteData, scenarios, root, "en");
+  // Translation: same anchors as the English page when the headings match.
+  const english = readFileSync(
+    resolve(root, "site/pages", pageData.translationOf),
+    "utf8",
+  ).replace(/^---\n[\s\S]*?\n---\n/, "");
+  const en = renderLang(english, pageData, siteData, scenarios, root, "en");
+  const own = renderLang(source, pageData, siteData, scenarios, root, lang);
+  const same =
+    own.headings.length === en.headings.length &&
+    own.headings.every((x, i) => x.depth === en.headings[i].depth);
+  return same
+    ? renderLang(
+        source,
+        pageData,
+        siteData,
+        scenarios,
+        root,
+        lang,
+        en.headings.map((x) => x.id),
+      )
+    : own;
+}
+
+function renderLang(source, pageData, siteData, scenarios, root, lang, ids) {
   const data = siteData;
   const page = { out: pageData.page.url, headings: [] };
+  const tr = translations(root, lang);
   const base = pageData.base ?? (pageData.section ? "../" : "");
-  const fr = pageData.lang === "fr";
+  const fr = lang === "fr";
   const examples = (spec, id) => {
     const conf = Object.fromEntries(
       spec
@@ -157,7 +192,13 @@ export function renderPage(source, pageData, siteData, scenarios, root) {
       json = JSON.parse(readFileSync(resolve(root, conf.file)));
     if (!json)
       throw new Error(`${page.out} : example with unknown scenario (${spec})`);
+    if (fr) json = translateScenario(json, tr.scenarios);
     const attrs = conf.attrs ? ` ${conf.attrs}` : "";
+    // On the site, the icon of the diagram opens the designer of the site, which also
+    // works offline; the code shown for copying keeps the default designer.
+    const demoAttrs = /\bdesigner=/.test(attrs)
+      ? attrs
+      : `${attrs} designer="${base}designer/index.html"`;
     const style = conf.style ? ` style="${conf.style}"` : "";
     const jsonText = formatJson(json);
     const htmlCode = `<bus-diagram${attrs}${style}>\n<script type="application/json">\n${jsonText}\n</script>\n</bus-diagram>`;
@@ -178,12 +219,12 @@ export function renderPage(source, pageData, siteData, scenarios, root) {
       )
       .join("");
     return `<figure class="example" id="${id}">
-<div class="demo"><bus-diagram${attrs}${style}><script type="application/json">${JSON.stringify(json).replace(/<\//g, "<\\/")}</script></bus-diagram></div>
+<div class="demo"><bus-diagram${demoAttrs}${style}><script type="application/json">${JSON.stringify(json).replace(/<\//g, "<\\/")}</script></bus-diagram></div>
 ${tabs.length ? `<div class="tabs" role="tablist">${tabHtml}${conf.scenario ? `<a class="try" href="${base}designer/index.html#template=${conf.scenario}" title="${fr ? "Ouvrir dans le designer" : "Open in designer"}">${fr ? "Modifier dans le designer ↗" : "Edit in designer ↗"}</a>` : ""}</div>` : ""}
 ${panels}
 </figure>`;
   };
-  const md = makeRenderer(root, page, examples);
-  const html = md.parse(expand(source, siteData, root));
+  const md = makeRenderer(root, page, examples, ids);
+  const html = md.parse(expand(source, siteData, root, lang, tr.reference));
   return { html, headings: page.headings };
 }

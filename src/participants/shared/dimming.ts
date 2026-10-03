@@ -183,7 +183,10 @@ function setValue(ctx: Ctx, ch: string, v: number, fadeMs?: number) {
     );
     v = min;
   }
-  const lvl = v <= 0 ? 0 : clamp(v, 0, num(p.maxLevelPct, 100));
+  // A value above 0 stays within the minimum and maximum levels (KNX Dimming Actuator
+  // Basic: X < minimum gives the minimum, X > maximum the maximum).
+  const lvl =
+    v <= 0 ? 0 : clamp(v, num(p.minLevelPct, 1), num(p.maxLevelPct, 100));
   dali(ctx, ch, ctx.t`DAPC ${daliArcLevel(lvl)} (${Math.round(lvl)} %)`);
   go(ctx, ch, lvl, fadeMs ?? num(p.valueFadeMs, 0));
 }
@@ -207,7 +210,15 @@ function dim(ctx: Ctx, ch: string, raw: number) {
   }
   if (now <= 0 && !up) return;
   const floor = p.dimSwitchesOff === true ? 0 : min;
-  const target = clamp(up ? Math.max(now, min) + step : now - step, floor, max);
+  // While dimming, a new step counts from the level being reached (the set value), as in
+  // the state machine of the KNX Dimming Actuator Basic; otherwise from the current level.
+  const base =
+    st.fadeMs > 0 && levelAt(st, ctx.timeMs) !== st.target ? st.target : now;
+  const target = clamp(
+    up ? Math.max(base, min) + step : base - step,
+    floor,
+    max,
+  );
   const dimTime = num(p.dimTimeMs, 5000);
   dali(
     ctx,

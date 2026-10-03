@@ -1213,6 +1213,8 @@ export function buildScenario(
     // Objects (first pass: identity, GA, port, channel, DPT)
     const objects: KnxObject[] = [];
     const objectFlagsRaw = new Map<KnxObject, unknown>();
+    // Ports with a single object (per channel): first object seen for each.
+    const singles = new Map<string, string>();
     const rawObjects = arr(d, "objects", `${p}.`, true);
     rawObjects.forEach((o, oi) => {
       const op = `${p}.objects[${oi}]`;
@@ -1292,6 +1294,19 @@ export function buildScenario(
           );
       } else if (portDef?.channel === "required") {
         err(`${op}.channel`, "required", t`port “${port}” requires a channel`);
+      }
+      if (portDef?.single) {
+        const key = `${port}|${channel ?? ""}`;
+        const first = singles.get(key);
+        if (first)
+          err(
+            `${op}.port`,
+            "port",
+            channel
+              ? t`port “${port}” takes one object per channel; “${first}” already uses it on channel “${channel}”`
+              : t`port “${port}” takes one object; “${first}” already uses it`,
+          );
+        else singles.set(key, oid);
       }
 
       const dpt =

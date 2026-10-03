@@ -1,0 +1,397 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Extensions · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/extensions.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li class="cur"><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="extensions"><a class="anchor" href="#extensions">#</a>Extensions</h1><p>Une extension peut ajouter un comportement, un modèle d&#39;équipement ou une vue sans modifier le fichier de la bibliothèque. Chargez son script après <code>bus-diagram.js</code>, puis utilisez l&#39;identifiant enregistré dans un scénario. Voir l&#39;<a href="../examples/extension.html">exemple complet</a>.</p>
+<h2 id="register-a-behavior"><a class="anchor" href="#register-a-behavior">#</a>Enregistrer un comportement</h2><p>L&#39;exemple <a href="../examples/extension.html"><code>site/samples/extensions/delayed-switch.ts</code></a> définit une commutation temporisée :</p>
+<pre class="code"><code><span class="kw">export</span> <span class="kw">const</span> delayedSwitch: BehaviorDefinition&lt;State&gt; = {
+  description: <span class="s">"Switch with delayed turn-on and immediate turn-off."</span>,
+  channelParameters: {
+    type: <span class="s">"object"</span>,
+    additionalProperties: <span class="kw">false</span>,
+    properties: {
+      delayMs: {
+        title: <span class="s">"Turn-on delay"</span>,
+        unit: <span class="s">"ms"</span>,
+        type: <span class="s">"integer"</span>,
+        minimum: <span class="n">0</span>,
+        default: <span class="n">2000</span>,
+        description: <span class="s">"Turn-on delay (ms)."</span>,
+      },
+    },
+  },
+  ports: {
+    switch: {
+      dpts: [<span class="s">"1.001"</span>],
+      channel: <span class="s">"required"</span>,
+      title: <span class="s">"Command"</span>,
+      direction: <span class="s">"in"</span>,
+      description: <span class="s">"Switching command of the output, applied after the delay."</span>,
+      drivesLoad: <span class="kw">true</span>,
+    },
+    status: {
+      dpts: [<span class="s">"1.001"</span>],
+      channel: <span class="s">"required"</span>,
+      title: <span class="s">"Status feedback"</span>,
+      direction: <span class="s">"out"</span>,
+      description: <span class="s">"Status of the output, sent after each effective change."</span>,
+      defaultFlags: { R: <span class="kw">true</span> },
+      telegram: <span class="s">"state"</span>,
+    },
+  },
+  output: <span class="s">"switch"</span>,
+  createState: (d) =&gt; ({
+    channels: Object.fromEntries(
+      d.channels.map((c) =&gt; [c.id, { on: <span class="kw">false</span>, onAtMs: <span class="kw">null</span> }]),
+    ),
+  }),
+  onInit(ctx) {
+    ctx.device.channels.forEach((c) =&gt;
+      ctx.setOutput(c.id, { type: <span class="s">"switch"</span>, on: <span class="kw">false</span> }),
+    );
+  },
+  onObjectWrite(ctx, e) {
+    <span class="kw">const</span> o = ctx.device.objects.find((x) =&gt; x.id === e.objectId);
+    <span class="kw">const</span> ch = o?.channel;
+    <span class="kw">if</span> (!o || o.port !== <span class="s">"switch"</span> || !ch) <span class="kw">return</span>;
+    <span class="kw">const</span> st = ctx.state.channels[ch]!;
+    <span class="kw">if</span> (e.newValue) {
+      <span class="kw">const</span> delay = Number(
+        ctx.device.channels.find((c) =&gt; c.id === ch)?.parameters.delayMs ??
+          <span class="n">2000</span>,
+      );
+      ctx.schedule(<span class="s">`${ch}:on`</span>, delay); <span class="c">// replaces a pending timer with the same key</span>
+      st.onAtMs = ctx.timeMs + delay;
+      ctx.note(ctx.t<span class="s">`${ch}: scheduled to switch on in ${delay / 1000} s`</span>);
+    } <span class="kw">else</span> {
+      ctx.cancel(<span class="s">`${ch}:on`</span>);
+      st.onAtMs = <span class="kw">null</span>;
+      setRelay(ctx, ch, <span class="kw">false</span>);
+    }
+  },
+  onTimer(ctx, key) {
+    <span class="kw">const</span> [ch, what] = key.split(<span class="s">":"</span>);
+    <span class="kw">if</span> (!ch) <span class="kw">return</span>;
+    <span class="kw">if</span> (what === <span class="s">"on"</span>) {
+      ctx.state.channels[ch]!.onAtMs = <span class="kw">null</span>;
+      setRelay(ctx, ch, <span class="kw">true</span>);
+    } <span class="kw">else</span> <span class="kw">if</span> (what === <span class="s">"status"</span>)
+      ctx.device.objects
+        .filter((o) =&gt; o.port === <span class="s">"status"</span> &amp;&amp; o.channel === ch)
+        .forEach((o) =&gt; ctx.transmit(o.id));
+  },
+  channelState: (state, ch) =&gt; ({ ...(state.channels[ch] ?? {}) }),
+};
+
+registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</code></pre><p>Un comportement peut mettre en œuvre ces points d&#39;entrée :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Point d&#39;entrée</th>
+<th>Appelé quand</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>onInit(ctx)</code></td>
+<td>Un appareil est créé ; initialiser les sorties sans émettre.</td>
+</tr>
+<tr>
+<td><code>onInput(ctx, input)</code></td>
+<td>Une action locale <code>press</code>, <code>short</code>, <code>long</code>, <code>release</code> ou <code>value</code> se produit ; pour un comportement avec <code>contactInputs</code>, les fronts <code>down</code> et <code>up</code> de la touche d&#39;un canal.</td>
+</tr>
+<tr>
+<td><code>onObjectWrite(ctx, event)</code></td>
+<td>Une écriture reçue est acceptée par un objet ayant l&#39;indicateur W, même si la valeur n&#39;a pas changé.</td>
+</tr>
+<tr>
+<td><code>onTimer(ctx, key, payload)</code></td>
+<td>Un événement programmé avec <code>ctx.schedule</code> arrive à échéance.</td>
+</tr>
+<tr>
+<td><code>onTick(ctx, dtMs)</code></td>
+<td>Le temps de simulation avance ; appelé toutes les 20 ms s&#39;il est mis en œuvre.</td>
+</tr>
+<tr>
+<td><code>onRoomChange(ctx, room)</code></td>
+<td>La température ou l&#39;état de la fenêtre de la pièce de l&#39;appareil change.</td>
+</tr>
+<tr>
+<td><code>onClockChange(ctx)</code></td>
+<td>L&#39;<a href="time.html#simulated-clock">horloge simulée</a> est réglée sur une autre heure ; reprogrammer les échéances liées à l&#39;horloge.</td>
+</tr>
+<tr>
+<td><code>onBusFailure(ctx)</code></td>
+<td>La tension bus du segment de l&#39;appareil est coupée ; fixer les sorties, puis l&#39;appareil s&#39;arrête (ses temporisations sont annulées).</td>
+</tr>
+<tr>
+<td><code>onBusRecovery(ctx)</code></td>
+<td>La tension bus revient ; l&#39;appareil redémarre avec son état.</td>
+</tr>
+<tr>
+<td><code>channelState(state, channel)</code></td>
+<td>L&#39;état d&#39;un canal est demandé par l&#39;inspecteur ou par <code>getState()</code>.</td>
+</tr>
+<tr>
+<td><code>deviceState(state)</code></td>
+<td>L&#39;état de l&#39;appareil est demandé, comme l&#39;afficheur d&#39;un thermostat.</td>
+</tr>
+</tbody></table>
+</div><p>Le contexte <code>ctx</code> expose <code>t</code> pour les messages traduits, <code>timeMs</code>, <code>device</code>, <code>state</code>, <code>getObject</code>, <code>setObject</code>, <code>transmit</code>, <code>setOutput</code>, <code>getOutput</code>, <code>readEquipment</code>, <code>readPower</code>, <code>readRoom</code>, <code>setOutsideTemperature</code>, <code>clock</code>, <code>schedule</code>, <code>cancel</code> et <code>note</code>. <code>setObject</code> change une valeur locale sans émettre. <code>transmit</code> vérifie l&#39;indicateur T et l&#39;adresse d&#39;émission. <code>readEquipment(channel, index)</code> renvoie l&#39;état d&#39;une charge d&#39;un canal : la première par défaut, ou une autre quand plusieurs charges sont câblées sur la sortie (<code>ctx.device.channels[i].loads</code> liste leurs types). <code>readPower</code> renvoie la puissance consommée par un canal, en W : la somme de celles de ses charges qui la modélisent. <code>clock()</code> renvoie l&#39;horloge simulée (<code>nowMs</code>, <code>speed</code>), ou <code>null</code> s&#39;il n&#39;y en a pas ; divisez un délai d&#39;horloge par <code>speed</code> pour le programmer en temps de simulation. <code>note</code> ajoute une explication au journal des événements.</p>
+<p>Les modèles d&#39;équipement peuvent définir <code>heatOutput(state, parameters)</code> pour chauffer ou refroidir une pièce et <code>checkParameters(parameters, t)</code> pour valider des paramètres liés. Une vue peut définir <code>interact(state, action, parameters, equipment)</code> pour répondre à une action de l&#39;utilisateur. Utilisez le temps de simulation et <code>ctx.schedule</code> pour un comportement temporisé ; les minuteries du navigateur comme <code>setTimeout</code> ne suivent pas le temps de simulation.</p>
+<p>Avec <code>contactInputs: true</code>, chaque canal d&#39;un appareil est dessiné comme une touche qui signale ses fronts, et le comportement mesure les appuis avec <code>ctx.schedule</code> ; <code>contactKey(channel, objects)</code> peut choisir l&#39;icône de la touche et l&#39;objet affiché par sa LED. Un port avec <code>direction: &quot;both&quot;</code> émet et écoute : le designer active donc ses indicateurs W et T. <code>channelObjects: { parameter, values }</code> liste, pour chaque valeur d&#39;un paramètre de canal, les ports (et DPT) des objets que le canal possède : le designer les crée et les supprime quand le paramètre change, comme le dialogue de paramètres d&#39;un produit pour une fonction.</p>
+<p>Un comportement peut vérifier sa propre configuration au chargement d&#39;un scénario :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Règle</th>
+<th>Rôle</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>validate(device, t)</code></td>
+<td>Renvoie des erreurs bloquantes <code>{ path, code, message }</code> ; le chemin est relatif à l&#39;appareil (<code>channels[2].scenes.17</code>) et le scénario est refusé.</td>
+</tr>
+<tr>
+<td><code>normalize(device)</code></td>
+<td>Renvoie des données déduites de la configuration : <code>tableGroupAddresses</code>, adresses de groupe de l&#39;appareil que les tables de filtrage des coupleurs gardent sans objet.</td>
+</tr>
+<tr>
+<td><code>warnings(device, t)</code></td>
+<td>Renvoie des avertissements de configuration <code>{ code, channelId?, message }</code> : la simulation fonctionne, et les avertissements s&#39;affichent au-dessus du schéma.</td>
+</tr>
+</tbody></table>
+</div><p><code>presentation(device)</code> indique au schéma et au designer comment dessiner un appareil du comportement, d&#39;après son <code>kind</code>, ses objets et ses canaux : <code>screen</code> (objets face à un écran en tête de la plaque), <code>supervisor</code> (valeurs écrites sous les noms des objets), <code>busInterface</code> (panneau qui écrit et lit n&#39;importe quelle adresse de groupe), <code>remoteSystem</code> (le champ <code>system</code> de son état affiché à côté de son adresse), <code>receiver</code> (colonne des adresses de groupe à gauche ; par défaut pour un appareil avec des canaux et sans touches) et <code>metered</code> (canaux dont les charges affichent leur puissance mesurée).</p>
+<p>L&#39;appareil passé à ces règles est l&#39;appareil normalisé, avec les paramètres de ses canaux et de leurs charges (<code>channels[i].equipmentConfigs</code>). Avec <code>representsAnyDpt: true</code>, les objets du comportement peuvent porter un DPT standard affiché mais non simulé, comme pour une visualisation.</p>
+<p>Un port déclare ce que signifient ses objets ; un nom de port ne signifie rien par lui-même :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ du port</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>defaultFlags: { R, U }</code></td>
+<td>Indicateurs R et U de ses objets quand le scénario ne les écrit pas ; false sinon. Un objet d&#39;état a généralement <code>R: true</code>, un afficheur <code>U: true</code>.</td>
+</tr>
+<tr>
+<td><code>telegram: &quot;state&quot;</code></td>
+<td>Ses télégrammes sont des comptes rendus d&#39;état, présentés comme tels dans le moniteur ; <code>&quot;command&quot;</code> par défaut.</td>
+</tr>
+<tr>
+<td><code>drivesLoad: true</code></td>
+<td>Le schéma relie ses objets aux charges de leur canal, comme la commande d&#39;une sortie.</td>
+</tr>
+<tr>
+<td><code>initialUnknown: true</code></td>
+<td>Ses objets démarrent avec une valeur inconnue jusqu&#39;à ce qu&#39;un télégramme en donne une, comme un afficheur.</td>
+</tr>
+<tr>
+<td><code>description</code></td>
+<td>Rôle du port, affiché dans la référence et le schéma.</td>
+</tr>
+</tbody></table>
+</div><p>Une exception dans un comportement met en pause ce seul schéma et signale une <code>extension-error</code>. Une exception dans une vue remplace cette vue par un cadre d&#39;erreur et signale <code>view-error</code> dans <code>getState()</code>.</p>
+<h3 id="definition-checks"><a class="anchor" href="#definition-checks">#</a>Vérification des définitions</h3><p><code>registerBehavior</code> valide les ports, les DPT pris en charge, les types de sortie et les valeurs par défaut des paramètres. Les schémas de paramètres utilisent un sous-ensemble plat de JSON Schema : propriétés scalaires <code>integer</code>, <code>number</code>, <code>boolean</code>, <code>string</code> et <code>null</code>, avec des bornes, <code>enum</code>, <code>enumTitles</code>, <code>default</code> et <code>description</code>. Les objets imbriqués et les tableaux ne sont pas pris en charge. Une définition enregistrée est copiée et figée.</p>
+<h3 id="labels-for-guided-editing"><a class="anchor" href="#labels-for-guided-editing">#</a>Libellés pour l&#39;édition guidée</h3><p>Des métadonnées facultatives rendent une extension utilisable dans le <a href="designer.html">designer guidé</a> :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>title</code> d&#39;un paramètre</td>
+<td>Libellé affiché à la place du nom de la propriété.</td>
+</tr>
+<tr>
+<td><code>unit: &quot;ms&quot;</code> ou <code>&quot;%&quot;</code> d&#39;un paramètre</td>
+<td>Afficher des secondes pour des valeurs en millisecondes, ou un signe pour cent.</td>
+</tr>
+<tr>
+<td><code>expert: true</code> d&#39;un paramètre</td>
+<td>Placer la commande dans les réglages avancés.</td>
+</tr>
+<tr>
+<td><code>enumTitles</code> d&#39;un paramètre</td>
+<td>Libellés des valeurs <code>enum</code>, dans le même ordre.</td>
+</tr>
+<tr>
+<td><code>nullTitle</code> d&#39;un paramètre</td>
+<td>Libellé de <code>null</code> ; sinon le designer affiche « aucun ».</td>
+</tr>
+<tr>
+<td><code>title</code> d&#39;un port</td>
+<td>Nom affiché pour l&#39;objet de communication.</td>
+</tr>
+<tr>
+<td><code>direction: &quot;in&quot;</code> ou <code>&quot;out&quot;</code> d&#39;un port</td>
+<td>Choisir l&#39;indicateur W ou T par défaut.</td>
+</tr>
+<tr>
+<td><code>title</code> d&#39;un équipement</td>
+<td>Nom de la charge raccordée.</td>
+</tr>
+</tbody></table>
+</div><h3 id="pages-of-parameters"><a class="anchor" href="#pages-of-parameters">#</a>Pages de paramètres</h3><p>Le designer affiche les paramètres d&#39;un appareil sous forme de pages, comme un dialogue de paramètres : les pages de l&#39;appareil, puis un groupe de pages pour chaque canal. <code>parameterLayout</code> les déclare ; sans lui, le designer fait une page de paramètres de l&#39;appareil et une page de réglages du canal. Tout paramètre ou port qu&#39;aucune page ne nomme est quand même affiché, sur une page automatique.</p>
+<pre class="code"><code>parameterLayout: {
+  device: [
+    { id: <span class="s">"general"</span>, title: <span class="s">"General"</span>, items: [
+      { parameter: <span class="s">"delayMs"</span> },
+      { groupObject: <span class="s">"alarm"</span> },
+      { when: { groupObject: <span class="s">"alarm"</span> }, items: [{ parameter: <span class="s">"alarmDelayMs"</span> }] }
+    ] }
+  ],
+  channel: [
+    { id: <span class="s">"function"</span>, title: <span class="s">"Function"</span>, items: [
+      { groupObject: <span class="s">"switch"</span> },
+      { parameter: <span class="s">"mode"</span> },
+      { when: { parameter: <span class="s">"mode"</span>, is: [<span class="s">"timed"</span>] }, items: [{ parameter: <span class="s">"durationMs"</span> }] },
+      { heading: <span class="s">"Status"</span> },
+      { groupObject: <span class="s">"status"</span> },
+      { note: <span class="s">"The status follows the relay."</span> }
+    ] }
+  ]
+}</code></pre><div class="table"><table>
+<thead>
+<tr>
+<th>Élément</th>
+<th>Ligne</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>{ parameter }</code></td>
+<td>Un paramètre de l&#39;appareil (pages de l&#39;appareil) ou du canal (pages du canal).</td>
+</tr>
+<tr>
+<td><code>{ initialState }</code></td>
+<td>Un état initial du canal (pages du canal).</td>
+</tr>
+<tr>
+<td><code>{ groupObject }</code></td>
+<td>La case qui active l&#39;objet de groupe d&#39;un port ; les adresses de groupe se relient dans l&#39;onglet Objets de groupe, jamais sur une page de paramètres.</td>
+</tr>
+<tr>
+<td><code>{ heading }</code>, <code>{ note }</code></td>
+<td>Un titre, ou un encadré d&#39;information.</td>
+</tr>
+<tr>
+<td><code>{ scenes: true }</code></td>
+<td>Les scènes d&#39;un canal.</td>
+</tr>
+<tr>
+<td><code>{ when, items }</code></td>
+<td>Éléments affichés seulement quand un paramètre a (<code>is</code>) ou n&#39;a pas (<code>not</code>) l&#39;une des valeurs données, sa valeur par défaut comptant s&#39;il est absent, ou quand l&#39;objet de groupe d&#39;un port est activé (<code>{ groupObject }</code>).</td>
+</tr>
+</tbody></table>
+</div><p><code>registerBehavior</code> vérifie les noms utilisés par les pages. Les titres, en-têtes et notes sont traduits comme les titres des paramètres.</p>
+<p>Utilisez <code>ctx.t</code> pour les messages dans la langue choisie pour le schéma. Fournissez les traductions d&#39;une extension avec <code>BusDiagram.registerMessages(language, messages)</code> ; voir <a href="languages.html#messages-in-an-extension">Langues</a>.</p>
+<h2 id="register-a-view"><a class="anchor" href="#register-a-view">#</a>Enregistrer une vue</h2><pre class="code"><code>BusDiagram.registerEquipmentView(<span class="s">"ledStrip"</span>, {
+  size: { width: <span class="n">84</span>, height: <span class="n">30</span> },
+  render: ({ state, label, box }) =&gt; BusDiagram.html<span class="s">`
+    &lt;div style="position:absolute;left:${box.x}px;top:${box.y}px"&gt;${state.on ? "●" : "○"} ${label}&lt;/div&gt;`</span>,
+});</code></pre><p>Un scénario peut choisir cette vue avec <code>&quot;equipment&quot;: { &quot;type&quot;: &quot;lamp&quot;, &quot;view&quot;: &quot;ledStrip&quot; }</code>. Le modèle de lampe sous-jacent et son état <code>{ on }</code> restent les mêmes.</p>
+<h2 id="load-scripts"><a class="anchor" href="#load-scripts">#</a>Charger les scripts</h2><pre class="code"><code>&lt;<span class="t">script</span> <span class="a">defer</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;
+&lt;<span class="t">script</span> <span class="a">defer</span> <span class="a">src</span>=<span class="s">"extensions/delayed-switch.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>Les composants attendent le chargement de ces scripts. Les extensions partagent les définitions enregistrées par <code>BusDiagram</code> ; elles ne doivent pas compter sur les variables globales d&#39;une autre extension. Le designer et l&#39;export autonome enveloppent chaque extension dans sa propre portée de fonction. Pour charger des fichiers bruts avec <code>&lt;script src&gt;</code>, compilez chaque extension en IIFE pour éviter les collisions de noms globaux. <code>npm run build</code> compile <code>site/samples/extensions/*.ts</code> en scripts classiques.</p>
+<h2 id="deliver-a-participant-with-the-library"><a class="anchor" href="#deliver-a-participant-with-the-library">#</a>Livrer un participant avec la bibliothèque</h2><p>Un participant livré avec BusDiagram vit dans son propre dossier, <code>src/participants/&lt;nom&gt;/</code>, et utilise le même contrat qu&#39;une extension. Ses fichiers :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Fichier</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>behavior.ts</code></td>
+<td>La définition du comportement : paramètres, ports et leur sens, état, réactions, présentation.</td>
+</tr>
+<tr>
+<td><code>layout.ts</code></td>
+<td>Ses pages de paramètres (<code>parameterLayout</code>).</td>
+</tr>
+<tr>
+<td><code>rules.ts</code></td>
+<td>Ses règles <code>validate</code>, <code>normalize</code> et <code>warnings</code>, s&#39;il en a.</td>
+</tr>
+<tr>
+<td><code>messages.fr.ts</code></td>
+<td>Les traductions de ses textes (paramètres, pages, messages du journal) ; un fichier par langue.</td>
+</tr>
+<tr>
+<td><code>model.ts</code></td>
+<td>Son entrée du modèle : comportements et catalogues, <code>{ behaviors, messages }</code>.</td>
+</tr>
+<tr>
+<td><code>designer.ts</code></td>
+<td>Son entrée du designer : catégorie du catalogue, modèles, type affiché, catalogues du designer.</td>
+</tr>
+<tr>
+<td><code>designer.fr.ts</code></td>
+<td>Les traductions de ses textes du designer.</td>
+</tr>
+</tbody></table>
+</div><p>Deux listes composent les participants livrés : <code>src/standard-model.ts</code> (entrées du modèle, installées par le registre) et <code>site/designer/standard-designer.ts</code> (entrées du designer). Ajouter un participant consiste à ajouter son dossier et une ligne à chaque liste ; le moteur, le schéma et le designer ne connaissent les participants que par ces déclarations. Le code partagé volontairement par plusieurs participants se trouve dans <code>src/participants/shared/</code>. Un équipement livré suit la même organisation dans <code>src/equipment/&lt;nom&gt;/</code> : <code>equipment.ts</code> (modèle physique), <code>size.ts</code> (taille de ses vues, lue par la disposition), <code>view.ts</code>, <code>messages.fr.ts</code> et <code>model.ts</code>, dont l&#39;entrée donne aussi les tailles de ses vues (<code>viewSizes</code>).</p>
+<p>Les tests vérifient cette organisation : un participant ne dépend ni du registre ni d&#39;un autre participant, son entrée du modèle n&#39;atteint jamais le designer, les modules partagés ne nomment aucun comportement, et ses textes sont dans ses propres catalogues.</p>
+
+<nav class="pager">
+<a href="../../fr/guide/versions.html">← Versions et publications</a>
+<a href="../../fr/guide/time.html">Temps et mode pas à pas →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#register-a-behavior">Enregistrer un comportement</a></li><li><a href="#register-a-view">Enregistrer une vue</a></li><li><a href="#load-scripts">Charger les scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Livrer un participant avec la bibliothèque</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

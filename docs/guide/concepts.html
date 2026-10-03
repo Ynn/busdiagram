@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Concepts · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.890cfb0.modified.af5abe16">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16"></script>
 
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/concepts.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.890cfb0.modified.af5abe16" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -118,7 +118,7 @@
 <tr>
 <td><code>GroupValueRead</code></td>
 <td>The USB interface panel.</td>
-<td>Associated objects with the R flag; each responds on its sending address.</td>
+<td>Each device answers once: its first associated object with the R flag and a known value responds, on its own sending address.</td>
 </tr>
 <tr>
 <td><code>GroupValueResponse</code></td>
@@ -137,7 +137,7 @@
     { <span class="k">"type"</span>: <span class="s">"appliance"</span>, <span class="k">"name"</span>: <span class="s">"Socket"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerW"</span>: <span class="n">1000</span> } }
   ]
 }]</code></pre><p>The separation makes it possible to show a <a href="shutters.html">miscalibrated shutter</a>: the actuator estimates position using its configured travel time while the connected shutter moves at its actual speed.</p>
-<h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Internal association</h2><p>When an object transmits, other objects in the <strong>same device</strong> that share the address may also receive the telegram if their W flag permits it. A status object can therefore control another output of the same actuator. This convention of the model is not implemented identically by every manufacturer.</p>
+<h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Internal association</h2><p>When an object transmits, the other objects of the <strong>same device</strong> associated with that address are informed as well, as for a telegram received from the bus: their value is updated, whatever their W flag. W (U for a response) decides only whether the device reacts. A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and only updates its value otherwise. What a device does with such a value, beyond the update, is a choice of its application program.</p>
 
 <nav class="pager">
 <a href="../guide/first-diagram.html">← First diagram</a>
