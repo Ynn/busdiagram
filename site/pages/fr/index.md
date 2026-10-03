@@ -1,7 +1,7 @@
 ---
 title: Accueil
 translationOf: index.md
-sourceHash: 9fd405add26b
+sourceHash: 3fa3b3760328
 ---
 
 <div class="hero">
@@ -114,6 +114,6 @@ La simulation se limite à ce qu'il faut pour expliquer le schéma. Voir [modèl
 - **Objets de communication :** changements de valeur et effet des indicateurs C, R, W, T et U.
 - **Télégrammes :** écritures, lectures et réponses ; propagation sur le bus, filtrage et routage par les coupleurs, réception par les objets associés.
 - **Actionneurs et charges :** sorties de commutation, lampes, volets et retours d'état.
-- **Outils de mise en service :** moniteur de groupe, vue octet par octet des télégrammes TP1 et un [outil d'interface USB](guide/usb-interface.html) pour les lectures et écritures de groupe.
+- **Outils de mise en service :** moniteur de groupe, détails des télégrammes (champs, bits, signal TP1 et calcul de l'octet de contrôle) et un [outil d'interface USB](guide/usb-interface.html) pour les lectures et écritures de groupe.
 
 Le **mode pas à pas** s'arrête à chaque événement et explique ce qui s'est passé.

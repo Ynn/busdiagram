@@ -1535,12 +1535,29 @@ export const styles = css`
   }
   .frame div {
     border-radius: 6px;
-    padding: 2px 5px;
+    padding: 2px 3px;
     font-family: var(--mono);
     font-size: 12.5px;
     font-weight: 600;
     border: 1px solid;
-    cursor: help;
+  }
+  .frame button.oct {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    border-radius: 4px;
+    padding: 0 2px;
+    cursor: pointer;
+  }
+  .frame button.oct:hover,
+  .frame button.oct:focus-visible {
+    background: var(--f);
+    color: #fff;
+  }
+  .frame .btn.details {
+    font-size: 12px;
+    padding: 2px 8px;
   }
   .sep {
     border-top: 1px solid #ecebe5;

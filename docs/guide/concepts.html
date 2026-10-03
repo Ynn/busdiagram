@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Concepts · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0">
-<script src="../assets/bus-diagram.js?v=0.4.0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/concepts.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -138,13 +138,21 @@
   ]
 }]</code></pre><p>The separation makes it possible to show a <a href="shutters.html">miscalibrated shutter</a>: the actuator estimates position using its configured travel time while the connected shutter moves at its actual speed.</p>
 <h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Internal association</h2><p>When an object transmits, the other objects of the <strong>same device</strong> associated with that address are informed as well, as for a telegram received from the bus: their value is updated, whatever their W flag. W (U for a response) decides only whether the device reacts. A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and only updates its value otherwise. What a device does with such a value, beyond the update, is a choice of its application program.</p>
+<h2 id="inside-a-telegram"><a class="anchor" href="#inside-a-telegram">#</a>Inside a telegram</h2><p>Select a telegram in the group monitor: its card gives the source, the destination, the service, the value, the cause, and the octets of its TP1 frame, colored by field. Click an octet, or <strong>Details</strong>, to open the frame in four views that stay in step: selecting an octet in one selects it in the others.</p>
+<ul>
+<li><strong>Frame:</strong> the fields (control, source, destination, routing octet, TPCI/APCI, data, check octet) and, for the selected octet, what each of its bits means. A one-bit value such as DPT 1.001 travels in the APCI octet itself.</li>
+<li><strong>Bits:</strong> every octet bit by bit, its sub-fields underlined.</li>
+<li><strong>TP1 signal:</strong> each octet as the serial character sent on the bus (start bit, eight data bits least significant first, even parity, stop bit, then 2 bit times at rest before the next character), its logical bits, and a schematic bus voltage: a logical 0 is a short voltage drop, a logical 1 leaves the bus at rest. Below, the selected octet appears twice: as it is written, most significant bit first (b7 … b0), and as it is sent, b0 first; point at a bit to find it in both. A time ruler gives the duration; the acknowledgement that follows is drawn for illustration only.</li>
+<li><strong>Checksum:</strong> two checks cross. The parity bit P, sent after the eight data bits of each character, makes the number of 1 even in its row; the check octet, the last character, makes the number of 1 odd in each data column, bits 7 to 0 (not in the column of the parity bits). Click a column to follow its calculation, beside the equivalent XOR of the octets followed by an inversion.</li>
+</ul>
+<p>When the telegram crosses couplers, choose the segment: each coupler lowers the routing counter, so the routing octet and the check octet change from one line to the next.</p>
 
 <nav class="pager">
 <a href="../guide/first-diagram.html">← First diagram</a>
 <a href="../guide/scenario.html">Structure of a scenario →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#device">Device</a></li><li><a href="#communication-object">Communication object</a></li><li><a href="#group-address-and-telegram">Group address and telegram</a></li><li><a href="#channel-and-connected-equipment">Channel and connected equipment</a></li><li><a href="#internal-association">Internal association</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#device">Device</a></li><li><a href="#communication-object">Communication object</a></li><li><a href="#group-address-and-telegram">Group address and telegram</a></li><li><a href="#channel-and-connected-equipment">Channel and connected equipment</a></li><li><a href="#internal-association">Internal association</a></li><li><a href="#inside-a-telegram">Inside a telegram</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.4.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

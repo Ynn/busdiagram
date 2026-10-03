@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Home · BusDiagram</title>
-<link rel="stylesheet" href="assets/docs.css?v=0.4.0">
-<script src="assets/bus-diagram.js?v=0.4.0"></script>
+<link rel="stylesheet" href="assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
+<script src="assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="assets/search-index.js?v=0.4.0"></script>
+<script defer src="assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="assets/docs.js?v=0.4.0" data-base=""></script>
+<script defer src="assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base=""></script>
 </head>
 <body class="home">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="assets/bus-diagram.js?v=0.4.0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout wide">
 
@@ -49,7 +49,7 @@
 </li>
 <li>Put the installation JSON inside a <code>&lt;bus-diagram&gt;</code> element. The <a href="designer/index.html">designer</a> can generate the JSON for you.</li>
 </ol>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-rrLJOjPvQf78XgAPS+eqPwrekBsm55LNwdtbQIt76y2ogelBpw7q83T3SBc49f81"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-ye2XlRh1Boz1Mrxp4k8Z5LL2nz+8O64muM904OP9jQY1/Cmh3R4cfA460OXqt9Ox"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;
 
 &lt;<span class="t">bus-diagram</span>&gt;
   &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
@@ -120,7 +120,7 @@
 <li><strong>Communication objects:</strong> value changes and the effect of the C, R, W, T, and U flags.</li>
 <li><strong>Telegrams:</strong> writes, reads, and responses; bus propagation, coupler filtering and routing, and reception by linked objects.</li>
 <li><strong>Actuators and loads:</strong> switch outputs, lamps, shutters, and status feedback.</li>
-<li><strong>Commissioning tools:</strong> group monitor, byte-level TP1 telegram view, and a <a href="guide/usb-interface.html">USB interface tool</a> for group reads and writes.</li>
+<li><strong>Commissioning tools:</strong> group monitor, telegram details (fields, bits, TP1 signal, and the calculation of the check octet), and a <a href="guide/usb-interface.html">USB interface tool</a> for group reads and writes.</li>
 </ul>
 <p><strong>Step mode</strong> pauses at each event and explains what happened.</p>
 

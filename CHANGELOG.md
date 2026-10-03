@@ -8,6 +8,7 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Added
 
+- Telegram details: the octets of the telegram card are clickable, and **Details** opens the frame in four views kept in step: the fields and the meaning of each bit of an octet, all the octets bit by bit, the TP1 signal (serial characters with start bit, data least significant first, even parity, and stop bit, logical bits, schematic bus voltage, time ruler, and the acknowledgement drawn for illustration), and the calculation of the check octet (odd parity in each column of bits, and the equivalent XOR then NOT). For a telegram that crosses couplers, the frame of each segment shows its routing counter and check octet.
 - Diagram: an icon at the end of the toolbar (full or compact) opens the diagram in the designer, in a new tab, with its scenario compressed in the link after `#` (not sent to a server). The `designer` option (attribute `designer`) gives the address of the designer, the published one by default, or `none` to hide the icon; the diagrams of the documentation and the player open the designer of the site, which also works offline. The designer opens links `#d=…`, in the language of the diagram when no language was chosen before.
 - DPT 2.008 (direction control) for the forcing object of shutter actuators, and DPT 1.022 (scene A/B) for the objects that recall stored positions, as in the KNX application description of shutter actuators; 2.001 and 1.001 remain accepted.
 - Push-button interface: contact of the wired push-button (`keyContact` on the channel: normally open or closed) and contact expected by the input when actuated (`actuatedContact`), with a configuration warning when they disagree.
@@ -97,6 +98,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ### Fixed
 
+- Telegram card: a read was said to be answered by each associated object with the R flag; each device answers once, from its first such object with a known value.
+- French messages: “line 1.2” and “main line 1.0” in the event log and the diagram stayed in English outside the designer.
 - npm package: the type declarations failed to type-check in TypeScript projects that resolve modules as Node does (`moduleResolution` `node16` or `nodenext`), their relative imports lacking an extension; they now carry it, and the build checks both this resolution and a bundler one.
 - Dimmer actuator and DALI gateway: a brightness value above 0 but below `minLevelPct` now gives the minimum level, as in the state machine of the KNX Dimming Actuator Basic; while dimming, a new relative step counts from the level being reached, not from the current one.
 - Shutter actuator: a forcing telegram in the other direction while forcing holds the output (3 then 2) now moves the shutter to the new end position.

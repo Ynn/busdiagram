@@ -148,6 +148,63 @@ test("the icon of a diagram opens its scenario in the designer", async ({
   expect(errors).toEqual([]);
 });
 
+test("telegram details: frame, bits, TP1 signal, and checksum stay in step", async ({
+  page,
+}) => {
+  const { errors } = watch(page);
+  await page.goto(url("examples/topology.html"));
+  const diagram = page.locator(".demo bus-diagram").first();
+  await diagram.evaluate((d) => {
+    const el = d as unknown as {
+      simulation: { groupWrite(id: string, ga: string, v: number): unknown };
+      advance(ms: number): void;
+    };
+    el.simulation.groupWrite("p1", "2/1/1", 1);
+    el.advance(16000);
+  });
+  // A click on the routing octet of the card opens the details on that octet.
+  await diagram.locator(".frame button.oct").nth(5).click();
+  const dlg = diagram.locator("dialog.tdetail");
+  await expect(dlg).toBeVisible();
+  await expect(dlg.locator(".strip button.sel")).toHaveText(/E1/);
+  await expect(dlg.locator("table.subs")).toContainText("Routing counter");
+  // Another segment: the routing counter, the routing octet, and the check octet change.
+  const check = await dlg.locator(".strip button").last().textContent();
+  await dlg.locator(".segs button", { hasText: "main line 1.0" }).click();
+  await expect(dlg.locator(".strip button.sel")).toHaveText(/D1/);
+  await expect(dlg.locator(".strip button").last()).not.toHaveText(check!);
+  // The other views keep the selection.
+  await dlg.locator(".views button", { hasText: "Bits" }).click();
+  await expect(dlg.locator("table.bitgrid tr.sel .hex")).toHaveText("D1");
+  await dlg.locator(".views button", { hasText: "TP1 signal" }).click();
+  await expect(dlg.locator(".signal g.char.sel")).toHaveCount(1);
+  await expect(dlg.locator(".signal .ack")).toHaveCount(1);
+  // The selected octet, written b7 first and sent b0 first: pointing at a bit shows it in both.
+  await expect(dlg.locator(".lsb .cells").first().locator(".cellb")).toHaveCount(8);
+  // S, b0…b7, P, Stop, then the 2 bit times that separate it from the next character.
+  await expect(dlg.locator(".lsb .cells").last().locator(".cellb")).toHaveCount(13);
+  await expect(dlg.locator(".signal g.sep")).toHaveCount(8);
+  await expect(dlg.locator("footer")).toContainText(
+    "9 octets, sent as 9 TP1 characters of 11 bits, + 8 separations of 2 bit times = 115 bit times = 11.98 ms",
+  );
+  await dlg.locator(".lsb .cells").last().locator(".cellb").nth(1).hover();
+  await expect(dlg.locator(".lsb .cellb.hl")).toHaveCount(2);
+  await expect(dlg.locator(".lsb .cells").first().locator(".cellb").last()).toHaveClass(/hl/);
+  await expect(dlg.locator(".signal g.bit.hl")).toHaveCount(1);
+  await dlg.locator(".signal g.char").first().click();
+  await expect(dlg.locator(".strip button.sel")).toHaveText(/BC/);
+  await dlg.locator(".views button", { hasText: "Checksum" }).click();
+  await dlg.locator(".ck-grid th button", { hasText: "5" }).click();
+  await expect(dlg.locator(".ck-explain .focus")).toContainText("Column 5");
+  // The parity bit of each character, one per row, check octet included.
+  await expect(dlg.locator(".ck-grid td.bit.par")).toHaveCount(9);
+  await dlg.locator(".ck-grid th.par button").click();
+  await expect(dlg.locator(".ck-explain .focus")).toContainText("Column P");
+  await dlg.locator("header .close").click();
+  await expect(dlg).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
 test("documentation has valid internal links and anchors", () => {
   const pages = htmlPages();
   expect(pages.length).toBeGreaterThan(40);

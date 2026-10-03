@@ -70,3 +70,14 @@ The separation makes it possible to show a [miscalibrated shutter](shutters.html
 ## Internal association
 
 When an object transmits, the other objects of the **same device** associated with that address are informed as well, as for a telegram received from the bus: their value is updated, whatever their W flag. W (U for a response) decides only whether the device reacts. A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and only updates its value otherwise. What a device does with such a value, beyond the update, is a choice of its application program.
+
+## Inside a telegram
+
+Select a telegram in the group monitor: its card gives the source, the destination, the service, the value, the cause, and the octets of its TP1 frame, colored by field. Click an octet, or **Details**, to open the frame in four views that stay in step: selecting an octet in one selects it in the others.
+
+- **Frame:** the fields (control, source, destination, routing octet, TPCI/APCI, data, check octet) and, for the selected octet, what each of its bits means. A one-bit value such as DPT 1.001 travels in the APCI octet itself.
+- **Bits:** every octet bit by bit, its sub-fields underlined.
+- **TP1 signal:** each octet as the serial character sent on the bus (start bit, eight data bits least significant first, even parity, stop bit, then 2 bit times at rest before the next character), its logical bits, and a schematic bus voltage: a logical 0 is a short voltage drop, a logical 1 leaves the bus at rest. Below, the selected octet appears twice: as it is written, most significant bit first (b7 … b0), and as it is sent, b0 first; point at a bit to find it in both. A time ruler gives the duration; the acknowledgement that follows is drawn for illustration only.
+- **Checksum:** two checks cross. The parity bit P, sent after the eight data bits of each character, makes the number of 1 even in its row; the check octet, the last character, makes the number of 1 odd in each data column, bits 7 to 0 (not in the column of the parity bits). Click a column to follow its calculation, beside the equivalent XOR of the octets followed by an inversion.
+
+When the telegram crosses couplers, choose the segment: each coupler lowers the routing counter, so the routing octet and the check octet change from one line to the next.

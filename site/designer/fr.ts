@@ -496,8 +496,6 @@ export const designerFr: Record<string, string> = {
   "Parameter of coupler {0}": "Paramètre du coupleur {0}",
   "IP network (KNXnet/IP routing)": "réseau IP (routage KNXnet/IP)",
   "backbone 0.0": "dorsale 0.0",
-  "main line {0}.0": "ligne principale {0}.0",
-  "line {0}": "ligne {0}",
   Connection: "Raccordement",
   "What reaches the supervisor": "Ce qui remonte au superviseur",
   "On the IP network, the supervisor receives what the KNXnet/IP routers let through: their filter table decides.":

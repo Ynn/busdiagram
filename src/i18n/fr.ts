@@ -634,8 +634,6 @@ export const frMessages: Record<string, string> = {
   read: "lecture",
   response: "réponse",
   Response: "Réponse",
-  "a read carries no value: each associated object with the R flag responds, on its own sending address":
-    "une lecture ne transporte pas de valeur : chaque objet associé ayant le flag R répond, sur sa propre adresse d'émission",
   broadcast: "broadcast",
   "group {0}": "groupe {0}",
   "DALI: {0} ← {1}": "DALI : {0} ← {1}",
@@ -755,6 +753,8 @@ export const frMessages: Record<string, string> = {
   "no bus voltage: not received": "pas de tension de bus : non reçu",
   "{0}: no bus voltage, the device does not react":
     "{0} : pas de tension de bus, le participant ne réagit pas",
+  "line {0}": "ligne {0}",
+  "main line {0}.0": "ligne principale {0}.0",
   "line {0}, second segment": "ligne {0}, second segment",
   "Bus voltage restored on {0}": "Tension du bus rétablie sur {0}",
   "Bus voltage cut on {0}": "Tension du bus coupée sur {0}",
@@ -841,4 +841,124 @@ export const frMessages: Record<string, string> = {
   "Frost alarm": "Alarme gel",
   "Presence detector": "Détecteur de présence",
   "Heating effect (K)": "Effet de chauffage (K)",
+  system: "système",
+  normal: "normale",
+  urgent: "urgente",
+  low: "basse",
+  "other service": "autre service",
+  "Frame type": "Type de trame",
+  "L_Data standard frame": "trame L_Data standard",
+  "other frame": "autre trame",
+  Repetition: "Répétition",
+  "not repeated": "non répétée",
+  Fixed: "Fixe",
+  "always 1": "toujours 1",
+  "always 0": "toujours 0",
+  Subgroup: "Sous-groupe",
+  "Address type · routing counter · length":
+    "Type d'adresse · compteur de routage · longueur",
+  "Address type": "Type d'adresse",
+  "group address": "adresse de groupe",
+  "individual address": "adresse individuelle",
+  "Routing counter": "Compteur de routage",
+  "{0} octets after this one": "{0} octets après celui-ci",
+  "{0} octet after this one": "{0} octet après celui-ci",
+  "TPCI · APCI": "TPCI · APCI",
+  TPCI: "TPCI",
+  "data, group (T_Data_Group)": "données, groupe (T_Data_Group)",
+  other: "autre",
+  "APCI (high bits)": "APCI (bits de poids fort)",
+  "APCI · data": "APCI · données",
+  "APCI (low bits)": "APCI (bits de poids faible)",
+  Data: "Données",
+  Unused: "Inutilisés",
+  "no data for a read": "pas de données pour une lecture",
+  "value {0}, carried in the APCI octet (6 bits at most)":
+    "valeur {0}, portée dans l'octet APCI (6 bits au plus)",
+  "0: the value follows in its own octets":
+    "0 : la valeur suit dans ses propres octets",
+  "Check octet": "Octet de contrôle",
+  "odd parity per column": "parité impaire par colonne",
+  "Data octet {0}": "Octet de données {0}",
+  "value of DPT {0}": "valeur du DPT {0}",
+  backbone: "ligne de zone",
+  Frame: "Trame",
+  Bits: "Bits",
+  "TP1 signal": "Signal TP1",
+  "Telegram details": "Détails du télégramme",
+  "Frame on": "Trame sur",
+  "Each coupler crossed lowers the routing counter: the routing octet and the check octet change from one segment to the next.":
+    "Chaque coupleur traversé abaisse le compteur de routage : l'octet de routage et l'octet de contrôle changent d'un segment à l'autre.",
+  "Octets of the frame": "Octets de la trame",
+  "KNX TP1 · 9600 bit/s · 1 bit = 104 µs":
+    "KNX TP1 · 9600 bit/s · 1 bit = 104 µs",
+  "Character: start bit, 8 data bits (least significant first), even parity, stop bit":
+    "Caractère : bit de start, 8 bits de données (poids faible en premier), parité paire, bit de stop",
+  "{0}, RC {1}, {2}": "{0}, RC {1}, {2}",
+  "Select an octet to see what each of its bits means.":
+    "Sélectionnez un octet pour voir ce que signifie chacun de ses bits.",
+  "bit {0}": "bit {0}",
+  "bits {0}–{1}": "bits {0}–{1}",
+  "Sub-fields": "Sous-champs",
+  "TP1 signal of the frame": "Signal TP1 de la trame",
+  Logical: "Logique",
+  Bus: "Bus",
+  "idle {0} bit times": "repos {0} temps de bit",
+  "{0} bit times": "{0} temps de bit",
+  "S start · b0–b7 data, least significant first · P even parity · Stop stop bit · sep. 2 bit times between characters":
+    "S start · b0–b7 données, poids faible en premier · P parité paire · Stop bit de stop · sép. 2 temps de bit entre caractères",
+  "Data bits 7 … 0: check octet (columns)": "Bits de données 7 … 0 : octet de contrôle (colonnes)",
+  "Character parity": "Parité du caractère",
+  "S: start bit, always 0": "S : bit de start, toujours 0",
+  "Stop: stop bit, always 1": "Stop : bit de stop, toujours 1",
+  "Character separation: 2 bit times at rest (1) before the start bit of the next character":
+    "Séparation entre caractères : 2 temps de bit au repos (1) avant le bit de start du caractère suivant",
+  "sep.": "sép.",
+  "Each character is a start bit (0), the eight data bits, an even parity bit, and a stop bit (1); 2 bit times at rest separate it from the next character of the frame.":
+    "Chaque caractère se compose d'un bit de start (0), des huit bits de données, d'un bit de parité paire et d'un bit de stop (1) ; 2 temps de bit au repos le séparent du caractère suivant de la trame.",
+  "Frame: {0} octets, sent as {1} TP1 characters of 11 bits, + {2} separations of 2 bit times = {3} bit times = {4} ms":
+    "Trame : {0} octets, transmis comme {1} caractères TP1 de 11 bits, + {2} séparations de 2 temps de bit = {3} temps de bit = {4} ms",
+  "P: even parity, {0}: the 8 data bits and P hold an even number of 1":
+    "P : parité paire, {0} : les 8 bits de données et P contiennent un nombre pair de 1",
+  "b{0}: bit {1} of {2} (weight {3}), sent in position {4} after the start bit":
+    "b{0} : bit {1} de {2} (poids {3}), envoyé en position {4} après le bit de start",
+  "Octet {0} is conventionally written from b7 to b0: {1}. On the TP1 bus, its data bits are sent in the opposite order: b0 first, b7 last.":
+    "L'octet {0} s'écrit par convention de b7 à b0 : {1}. Sur le bus TP1, ses bits de données sont envoyés dans l'ordre inverse : b0 d'abord, b7 en dernier.",
+  Written: "Écrit",
+  Sent: "Envoyé",
+  "P = 1: the data bits hold {0} ones, P makes the count even.":
+    "P = 1 : les bits de données contiennent {0} bits à 1, P rend le compte pair.",
+  "P = 0: the data bits hold {0} ones, already even.":
+    "P = 0 : les bits de données contiennent {0} bits à 1, déjà pair.",
+  "Schematic TP1 waveform, not an electrical simulation. A logical 0 is a voltage drop of about 35 µs followed by an equalisation; a logical 1 leaves the bus at rest, which is why 0 wins when two devices send at once. The acknowledgement that the receivers send 15 bit times after the frame is drawn for illustration: the model does not simulate it.":
+    "Forme d'onde TP1 schématique, pas une simulation électrique. Un 0 logique est une chute de tension d'environ 35 µs suivie d'une compensation ; un 1 logique laisse le bus au repos, c'est pourquoi le 0 l'emporte quand deux appareils émettent en même temps. L'acquittement que les récepteurs envoient 15 temps de bit après la trame est dessiné à titre d'illustration : le modèle ne le simule pas.",
+  "Column of bit {0}": "Colonne du bit {0}",
+  ones: "nombre de 1",
+  "odd already: 0": "déjà impair : 0",
+  "even: 1 to make it odd": "pair : 1 pour le rendre impair",
+  "Two checks cross. Each row: the parity bit P, sent on the bus right after the 8 data bits of each character, makes the number of 1 even in that character. Each data column (7 to 0): the check octet, sent as the last character, makes the number of 1 odd over the whole frame. Column P is not covered by the check octet.":
+    "Deux contrôles se croisent. Chaque ligne : le bit de parité P, envoyé sur le bus juste après les 8 bits de données de chaque caractère, rend pair le nombre de 1 de ce caractère. Chaque colonne de données (7 à 0) : l'octet de contrôle, envoyé comme dernier caractère, rend impair le nombre de 1 sur l'ensemble de la trame. La colonne P n'est pas couverte par l'octet de contrôle.",
+  "Parity bit of each character": "Bit de parité de chaque caractère",
+  "Even parity of this octet, sent after its 8 data bits":
+    "Parité paire de cet octet, envoyée après ses 8 bits de données",
+  "Column P is not part of the check octet: each P only covers its own row. A single wrong bit breaks the parity of its row and of its column, so the receiver sees it twice.":
+    "La colonne P n'entre pas dans l'octet de contrôle : chaque P ne couvre que sa propre ligne. Un seul bit erroné casse la parité de sa ligne et celle de sa colonne : le récepteur le voit deux fois.",
+  "Click a column to follow its calculation.":
+    "Cliquez sur une colonne pour suivre son calcul.",
+  "Column {0}: {1} ones, already odd, so the check bit is 0.":
+    "Colonne {0} : {1} bits à 1, déjà impair, donc le bit de contrôle vaut 0.",
+  "Column {0}: {1} ones, even, so the check bit is 1, which makes {2}.":
+    "Colonne {0} : {1} bits à 1, pair, donc le bit de contrôle vaut 1, ce qui fait {2}.",
+  "Equivalent calculation: XOR of the octets, then every bit inverted (NOT).":
+    "Calcul équivalent : OU exclusif (XOR) des octets, puis inversion de chaque bit (NON).",
+  "A receiver checks the parity of every character and computes the check octet again from the octets it received. If either check fails, the frame is invalid and is not acknowledged.":
+    "Un récepteur vérifie la parité de chaque caractère et recalcule l'octet de contrôle à partir des octets reçus. Si l'un de ces contrôles échoue, la trame est invalide et n'est pas acquittée.",
+  "a read carries no value: each device answers once, from its first associated object with the R flag and a known value, on that object's sending address":
+    "une lecture ne porte pas de valeur : chaque appareil répond une seule fois, par son premier objet associé ayant l'indicateur R et une valeur connue, sur l'adresse d'émission de cet objet",
+  "Details of this octet": "Détails de cet octet",
+  "Frame, bits, TP1 signal, and checksum of this telegram":
+    "Trame, bits, signal TP1 et somme de contrôle de ce télégramme",
+  Details: "Détails",
+  "With the bus idle before it and the acknowledgement: {0} ms":
+    "Avec le repos du bus avant et l'acquittement : {0} ms",
 };

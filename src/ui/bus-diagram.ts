@@ -47,6 +47,11 @@ import { toV2 } from "../knx/export";
 import { encodeShare } from "../share";
 import type { ViewOptions } from "./options";
 import { C, hexA, styles } from "./styles";
+import {
+  type DetailState,
+  detailStyles,
+  renderTelegramDetails,
+} from "./telegram-details";
 
 const win = (t: number, a: number, b: number, fi = 250, fo = 400) =>
   Math.min(easeOut((t - a) / fi), 1 - easeOut((t - b) / fo));
@@ -129,7 +134,7 @@ const pct = (v: unknown) =>
   typeof v === "number" ? `${Math.round(v)} %` : "—";
 
 export class BusDiagram extends LitElement {
-  static override styles = styles;
+  static override styles = [styles, detailStyles];
   static override properties = {
     scenario: { type: String },
     src: { type: String },
@@ -195,6 +200,10 @@ export class BusDiagram extends LitElement {
   private clockEdit = false;
   /** Group monitor temporarily shown in a larger modal dialog. */
   private monitorExpanded = false;
+  /** Details of a telegram (frame, bits, signal, checksum) shown in a dialog. */
+  private detail: (DetailState & { telId: number }) | null = null;
+  /** Selection of the details whose signal was last scrolled into view. */
+  private scrolledDetail = "";
   private info: string | null = null;
   private selId: number | null = null;
   private seenTels = 0;
@@ -811,6 +820,20 @@ export class BusDiagram extends LitElement {
         .querySelectorAll(".mon")
         .forEach((m) => (m.scrollTop = m.scrollHeight));
     }
+    const details =
+      this.renderRoot.querySelector<HTMLDialogElement>("dialog.tdetail");
+    if (details && !details.open) details.showModal();
+    // The signal of a long frame scrolls: the selected character is brought into view.
+    const scroller = details?.querySelector<HTMLElement>(".signal .scroll");
+    const key = `${this.detail?.telId}/${this.detail?.octet}/${this.detail?.segment}`;
+    if (scroller && key !== this.scrolledDetail) {
+      this.scrolledDetail = key;
+      const rect = scroller.querySelector(".char.sel rect");
+      if (rect)
+        scroller.scrollLeft =
+          Number(rect.getAttribute("x")) - scroller.clientWidth / 3;
+    }
+    if (!scroller) this.scrolledDetail = "";
     const dialog =
       this.renderRoot.querySelector<HTMLDialogElement>("dialog.enlarged");
     if (dialog && !dialog.open) {
@@ -988,6 +1011,7 @@ export class BusDiagram extends LitElement {
           : nothing
       }
       ${v.monitor && this.monitorExpanded ? this.renderEnlargedMonitor(s, g, sim) : nothing}
+      ${this.renderTelegramDialog(sim)}
     </div>`;
   }
 
@@ -2442,6 +2466,38 @@ export class BusDiagram extends LitElement {
     </div>`;
   }
 
+  private openDetail(tel: Telegram, octet: number | null) {
+    this.detail = {
+      telId: tel.id,
+      octet,
+      view: "frame",
+      segment: null,
+      column: null,
+      bit: null,
+    };
+    this.requestUpdate();
+  }
+
+  private renderTelegramDialog(sim: Simulation) {
+    const d = this.detail;
+    const tel = d ? sim.telegram(d.telId) : undefined;
+    if (!d || !tel || !this.topo) return nothing;
+    return renderTelegramDetails({
+      tel,
+      topology: this.topo,
+      tr: this.tr,
+      state: d,
+      set: (patch) => {
+        this.detail = { ...d, ...patch };
+        this.requestUpdate();
+      },
+      close: () => {
+        this.detail = null;
+        this.requestUpdate();
+      },
+    });
+  }
+
   /** Larger, temporary view of the group monitor and telegram details. */
   private renderEnlargedMonitor(s: Scenario, g: Geometry, sim: Simulation) {
     const close = () => {
@@ -2650,7 +2706,7 @@ export class BusDiagram extends LitElement {
           read
             ? html`<b
                 >—<small
-                  >${this.tr`a read carries no value: each associated object with the R flag responds, on its own sending address`}</small
+                  >${this.tr`a read carries no value: each device answers once, from its first associated object with the R flag and a known value, on that object's sending address`}</small
                 ></b
               >`
             : html`<b
@@ -2666,15 +2722,33 @@ export class BusDiagram extends LitElement {
         ><b class="cause">${this.causeText(tel, s, sim)}</b>
       </div>
       <div class="frame">
-        ${frame.map(
-          (f, i) =>
-            html`<div
-              style="border-color:${fcol[i]};color:${fcol[i]}"
-              title="${f.label} : ${f.hint}"
-            >
-              ${f.bytes.map(hex).join(" ")}
-            </div>`,
-        )}
+        ${frame.map((f, i) => {
+          const first = frame
+            .slice(0, i)
+            .reduce((n, x) => n + x.bytes.length, 0);
+          return html`<div
+            style="border-color:${fcol[i]};color:${fcol[i]};--f:${fcol[i]}"
+            title="${f.label} : ${f.hint}"
+          >
+            ${f.bytes.map(
+              (b, j) =>
+                html`<button
+                  class="oct"
+                  title=${this.tr`Details of this octet`}
+                  @click=${() => this.openDetail(tel, first + j)}
+                >
+                  ${hex(b)}
+                </button>`,
+            )}
+          </div>`;
+        })}
+        <button
+          class="btn details"
+          title=${this.tr`Frame, bits, TP1 signal, and checksum of this telegram`}
+          @click=${() => this.openDetail(tel, null)}
+        >
+          ${this.tr`Details`}
+        </button>
       </div>
       <div class="hint">
         ${this.tr`TP1 frame: control · source · destination · type/RC/length · APCI+data · checksum. The DPT is not transmitted: only the devices know it.`}

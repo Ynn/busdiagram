@@ -112,6 +112,6 @@ The simulation is limited to what is needed to explain the diagram. See [model a
 - **Communication objects:** value changes and the effect of the C, R, W, T, and U flags.
 - **Telegrams:** writes, reads, and responses; bus propagation, coupler filtering and routing, and reception by linked objects.
 - **Actuators and loads:** switch outputs, lamps, shutters, and status feedback.
-- **Commissioning tools:** group monitor, byte-level TP1 telegram view, and a [USB interface tool](guide/usb-interface.html) for group reads and writes.
+- **Commissioning tools:** group monitor, telegram details (fields, bits, TP1 signal, and the calculation of the check octet), and a [USB interface tool](guide/usb-interface.html) for group reads and writes.
 
 **Step mode** pauses at each event and explains what happened.

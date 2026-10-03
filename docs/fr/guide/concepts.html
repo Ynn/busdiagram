@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Notions · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0">
-<script src="../../assets/bus-diagram.js?v=0.4.0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0"></script>
-<script defer src="../../assets/docs.js?v=0.4.0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/concepts.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -138,13 +138,21 @@
   ]
 }]</code></pre><p>Cette séparation permet de montrer un <a href="shutters.html">volet mal calibré</a> : l&#39;actionneur estime la position d&#39;après la durée de course configurée, alors que le volet raccordé se déplace à sa vitesse réelle.</p>
 <h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Association interne</h2><p>Quand un objet émet, les autres objets du <strong>même appareil</strong> associés à cette adresse en sont informés aussi, comme pour un télégramme reçu du bus : leur valeur est mise à jour, quel que soit leur indicateur W. W (U pour une réponse) décide seulement si l&#39;appareil réagit. Un objet d&#39;état relié à l&#39;adresse de commande d&#39;une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l&#39;objet de commande, et ne fait sinon que mettre à jour sa valeur. Ce qu&#39;un appareil fait d&#39;une telle valeur, au-delà de la mise à jour, est un choix de son programme d&#39;application.</p>
+<h2 id="inside-a-telegram"><a class="anchor" href="#inside-a-telegram">#</a>À l&#39;intérieur d&#39;un télégramme</h2><p>Sélectionnez un télégramme dans le moniteur de groupe : sa carte donne la source, la destination, le service, la valeur, la cause et les octets de sa trame TP1, colorés par champ. Cliquez sur un octet, ou sur <strong>Détails</strong>, pour ouvrir la trame dans quatre vues qui restent synchronisées : sélectionner un octet dans l&#39;une le sélectionne dans les autres.</p>
+<ul>
+<li><strong>Trame :</strong> les champs (contrôle, source, destination, octet de routage, TPCI/APCI, données, octet de contrôle) et, pour l&#39;octet sélectionné, ce que signifie chacun de ses bits. Une valeur sur un bit comme le DPT 1.001 voyage dans l&#39;octet APCI lui-même.</li>
+<li><strong>Bits :</strong> chaque octet bit par bit, ses sous-champs soulignés.</li>
+<li><strong>Signal TP1 :</strong> chaque octet sous la forme du caractère série envoyé sur le bus (bit de start, huit bits de données poids faible en premier, parité paire, bit de stop, puis 2 temps de bit au repos avant le caractère suivant), ses bits logiques et une tension du bus schématique : un 0 logique est une courte chute de tension, un 1 logique laisse le bus au repos. En dessous, l&#39;octet sélectionné apparaît deux fois : tel qu&#39;il s&#39;écrit, bit de poids fort en premier (b7 … b0), et tel qu&#39;il est envoyé, b0 d&#39;abord ; pointez un bit pour le retrouver dans les deux. Une règle donne la durée ; l&#39;acquittement qui suit est dessiné à titre d&#39;illustration seulement.</li>
+<li><strong>Contrôle de trame :</strong> deux contrôles se croisent. Le bit de parité P, envoyé après les huit bits de données de chaque caractère, rend pair le nombre de 1 de sa ligne ; l&#39;octet de contrôle, dernier caractère, rend impair le nombre de 1 dans chaque colonne de données, bits 7 à 0 (pas dans la colonne des bits de parité). Cliquez sur une colonne pour suivre son calcul, à côté du calcul équivalent : OU exclusif des octets suivi d&#39;une inversion.</li>
+</ul>
+<p>Quand le télégramme traverse des coupleurs, choisissez le segment : chaque coupleur abaisse le compteur de routage, si bien que l&#39;octet de routage et l&#39;octet de contrôle changent d&#39;une ligne à l&#39;autre.</p>
 
 <nav class="pager">
 <a href="../../fr/guide/first-diagram.html">← Premier schéma</a>
 <a href="../../fr/guide/scenario.html">Structure d&#39;un scénario →</a>
 </nav>
 </main>
-<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#device">Appareil</a></li><li><a href="#communication-object">Objet de communication</a></li><li><a href="#group-address-and-telegram">Adresse de groupe et télégramme</a></li><li><a href="#channel-and-connected-equipment">Canal et équipement raccordé</a></li><li><a href="#internal-association">Association interne</a></li></ul></aside>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#device">Appareil</a></li><li><a href="#communication-object">Objet de communication</a></li><li><a href="#group-address-and-telegram">Adresse de groupe et télégramme</a></li><li><a href="#channel-and-connected-equipment">Canal et équipement raccordé</a></li><li><a href="#internal-association">Association interne</a></li><li><a href="#inside-a-telegram">À l&#39;intérieur d&#39;un télégramme</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.4.0 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
 </body>

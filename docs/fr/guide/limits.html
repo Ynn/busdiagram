@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Modèle et limites · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0">
-<script src="../../assets/bus-diagram.js?v=0.4.0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0"></script>
-<script defer src="../../assets/docs.js?v=0.4.0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/limits.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -57,7 +57,7 @@
 <ul>
 <li><strong>Cadence :</strong> la propagation est ralentie pour l&#39;observation ; elle ne reproduit pas la cadence réelle d&#39;un bus à paire torsadée.</li>
 <li><strong>Services de groupe :</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code> et <code>GroupValueResponse</code> sont modélisés. Les télégrammes de programmation à adresse individuelle sont hors du modèle.</li>
-<li><strong>Échange TP :</strong> la vue des trames montre une trame de données de groupe, avec la priorité de l&#39;objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L&#39;arbitrage du bus, l&#39;ordonnancement par priorité, les acquittements TP (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>) et les répétitions automatiques sont hors du modèle.</li>
+<li><strong>Échange TP :</strong> la vue des trames montre une trame de données de groupe, avec la priorité de l&#39;objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L&#39;arbitrage du bus, l&#39;ordonnancement par priorité, les acquittements TP (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>) et les répétitions automatiques sont hors du modèle ; les détails des télégrammes dessinent l&#39;acquittement à titre d&#39;illustration, et leur signal TP1 est schématique, pas une simulation électrique.</li>
 <li><strong>Indicateurs des objets :</strong> C, R, W, T, U et I sont modélisés. La lecture à l&#39;initialisation (I) s&#39;exécute quand un appareil redémarre après une coupure de la tension bus, pas au démarrage de la simulation. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l&#39;ordre de ses objets, qui a l&#39;indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d&#39;émission.</li>
 <li><strong>Associations internes :</strong> quand un appareil émet, ses autres objets sur la même adresse de groupe prennent la valeur, comme le prévoit la couche application KNX ; leur indicateur W (U pour une réponse) décide seulement si l&#39;appareil réagit.</li>
 <li><strong>Alimentations :</strong> dessinées sur les lignes et segments qui en déclarent une ; un segment TP qui n&#39;en a pas reçoit l&#39;avertissement <code>config-no-power-supply</code>. Les lignes principales et la ligne de zone n&#39;en reçoivent pas, et la charge du bus (consommation comparée au courant nominal) et la chute de tension ne sont pas calculées.</li>

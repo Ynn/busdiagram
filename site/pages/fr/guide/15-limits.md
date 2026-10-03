@@ -1,7 +1,7 @@
 ---
 title: Modèle et limites
 translationOf: guide/15-limits.md
-sourceHash: b1a21503a59f
+sourceHash: d30e32874b78
 order: 15
 ---
 # Modèle et limites
@@ -10,7 +10,7 @@ BusDiagram est un outil de conception de schémas ; sa couche de simulation sert
 
 - **Cadence :** la propagation est ralentie pour l'observation ; elle ne reproduit pas la cadence réelle d'un bus à paire torsadée.
 - **Services de groupe :** `GroupValueWrite`, `GroupValueRead` et `GroupValueResponse` sont modélisés. Les télégrammes de programmation à adresse individuelle sont hors du modèle.
-- **Échange TP :** la vue des trames montre une trame de données de groupe, avec la priorité de l'objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L'arbitrage du bus, l'ordonnancement par priorité, les acquittements TP (`ACK`, `NACK`, `BUSY`) et les répétitions automatiques sont hors du modèle.
+- **Échange TP :** la vue des trames montre une trame de données de groupe, avec la priorité de l'objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L'arbitrage du bus, l'ordonnancement par priorité, les acquittements TP (`ACK`, `NACK`, `BUSY`) et les répétitions automatiques sont hors du modèle ; les détails des télégrammes dessinent l'acquittement à titre d'illustration, et leur signal TP1 est schématique, pas une simulation électrique.
 - **Indicateurs des objets :** C, R, W, T, U et I sont modélisés. La lecture à l'initialisation (I) s'exécute quand un appareil redémarre après une coupure de la tension bus, pas au démarrage de la simulation. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l'ordre de ses objets, qui a l'indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d'émission.
 - **Associations internes :** quand un appareil émet, ses autres objets sur la même adresse de groupe prennent la valeur, comme le prévoit la couche application KNX ; leur indicateur W (U pour une réponse) décide seulement si l'appareil réagit.
 - **Alimentations :** dessinées sur les lignes et segments qui en déclarent une ; un segment TP qui n'en a pas reçoit l'avertissement `config-no-power-supply`. Les lignes principales et la ligne de zone n'en reçoivent pas, et la charge du bus (consommation comparée au courant nominal) et la chute de tension ne sont pas calculées.

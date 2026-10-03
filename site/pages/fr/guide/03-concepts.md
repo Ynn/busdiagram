@@ -1,7 +1,7 @@
 ---
 title: Notions
 translationOf: guide/03-concepts.md
-sourceHash: 0f15f049a9f6
+sourceHash: 751a5bd7e909
 order: 3
 ---
 
@@ -71,3 +71,14 @@ Cette séparation permet de montrer un [volet mal calibré](shutters.html) : l'a
 ## Association interne
 
 Quand un objet émet, les autres objets du **même appareil** associés à cette adresse en sont informés aussi, comme pour un télégramme reçu du bus : leur valeur est mise à jour, quel que soit leur indicateur W. W (U pour une réponse) décide seulement si l'appareil réagit. Un objet d'état relié à l'adresse de commande d'une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l'objet de commande, et ne fait sinon que mettre à jour sa valeur. Ce qu'un appareil fait d'une telle valeur, au-delà de la mise à jour, est un choix de son programme d'application.
+
+## À l'intérieur d'un télégramme
+
+Sélectionnez un télégramme dans le moniteur de groupe : sa carte donne la source, la destination, le service, la valeur, la cause et les octets de sa trame TP1, colorés par champ. Cliquez sur un octet, ou sur **Détails**, pour ouvrir la trame dans quatre vues qui restent synchronisées : sélectionner un octet dans l'une le sélectionne dans les autres.
+
+- **Trame :** les champs (contrôle, source, destination, octet de routage, TPCI/APCI, données, octet de contrôle) et, pour l'octet sélectionné, ce que signifie chacun de ses bits. Une valeur sur un bit comme le DPT 1.001 voyage dans l'octet APCI lui-même.
+- **Bits :** chaque octet bit par bit, ses sous-champs soulignés.
+- **Signal TP1 :** chaque octet sous la forme du caractère série envoyé sur le bus (bit de start, huit bits de données poids faible en premier, parité paire, bit de stop, puis 2 temps de bit au repos avant le caractère suivant), ses bits logiques et une tension du bus schématique : un 0 logique est une courte chute de tension, un 1 logique laisse le bus au repos. En dessous, l'octet sélectionné apparaît deux fois : tel qu'il s'écrit, bit de poids fort en premier (b7 … b0), et tel qu'il est envoyé, b0 d'abord ; pointez un bit pour le retrouver dans les deux. Une règle donne la durée ; l'acquittement qui suit est dessiné à titre d'illustration seulement.
+- **Contrôle de trame :** deux contrôles se croisent. Le bit de parité P, envoyé après les huit bits de données de chaque caractère, rend pair le nombre de 1 de sa ligne ; l'octet de contrôle, dernier caractère, rend impair le nombre de 1 dans chaque colonne de données, bits 7 à 0 (pas dans la colonne des bits de parité). Cliquez sur une colonne pour suivre son calcul, à côté du calcul équivalent : OU exclusif des octets suivi d'une inversion.
+
+Quand le télégramme traverse des coupleurs, choisissez le segment : chaque coupleur abaisse le compteur de routage, si bien que l'octet de routage et l'octet de contrôle changent d'une ligne à l'autre.
