@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Codes d&#39;erreur · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../reference/errors.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -165,7 +165,15 @@
 </thead>
 <tbody><tr>
 <td><code>config-valve</code></td>
-<td>La sortie de l&#39;actionneur de chauffage (<code>valveType</code>) et la vanne du radiateur raccordé (<code>normallyOpen</code>) ne concordent pas ; la vanne s&#39;ouvre quand aucune chaleur n&#39;est demandée.</td>
+<td>La sortie de l&#39;actionneur de chauffage (<code>valveType</code>) et la vanne du radiateur ou du ventilo-convecteur raccordé (<code>normallyOpen</code>) ne concordent pas ; la vanne s&#39;ouvre quand aucune chaleur n&#39;est demandée.</td>
+</tr>
+<tr>
+<td><code>config-valve-mode</code></td>
+<td>Une grandeur de commande est liée à une sortie de l&#39;actionneur de chauffage dont la fonction (<code>valveMode</code>) l&#39;ignore : une grandeur de refroidissement sur une vanne de chauffage, ou une grandeur de chauffage sur une vanne de refroidissement.</td>
+</tr>
+<tr>
+<td><code>config-emitter</code></td>
+<td>L&#39;émetteur ne convient pas à la fonction de sa vanne : un radiateur sur une vanne de refroidissement, une batterie de ventilo-convecteur de l&#39;autre sorte, ou un émetteur qui ne fait que chauffer ou que refroidir sur une vanne à changement de mode.</td>
 </tr>
 <tr>
 <td><code>config-wiring</code></td>

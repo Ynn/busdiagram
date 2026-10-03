@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Comportements et équipements · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../reference/behaviors.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -1421,7 +1421,7 @@
 <td><code>heatCool</code></td>
 <td>1.100</td>
 <td>aucune</td>
-<td>1 = chauffage, 0 = refroidissement</td>
+<td>1 = chauffage, 0 = refroidissement ; non utilisé avec le basculement automatique</td>
 </tr>
 <tr>
 <td><code>heatCoolStatus</code></td>
@@ -1478,6 +1478,13 @@
 <td><code>7200000</code></td>
 <td>≥ 60000</td>
 <td>Durée du mode confort lancé par le poussoir de présence (2 h par défaut).</td>
+</tr>
+<tr>
+<td><code>changeover</code></td>
+<td>string</td>
+<td><code>&quot;object&quot;</code></td>
+<td>&quot;object&quot; (Par l&#39;objet chauffage / refroidissement), &quot;automatic&quot; (Automatique)</td>
+<td>object : l&#39;objet heatCool (1.100) choisit le chauffage ou le refroidissement, par exemple depuis un basculement central ou selon l&#39;eau fournie dans un système 2 tubes ; automatic : le thermostat refroidit au-dessus de la consigne de refroidissement et chauffe sous la consigne de chauffage, la zone neutre étant entre les deux.</td>
 </tr>
 <tr>
 <td><code>controlType</code></td>
@@ -1620,7 +1627,7 @@
 <td>Envoyer aussi la température mesurée à cet intervalle, même sans changement ; 0 désactive l&#39;envoi cyclique.</td>
 </tr>
 </tbody></table>
-</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Actionneur de chauffage : chaque sortie commande une vanne électrothermique ; grandeur de commande continue (5.001) convertie en MLI, ou commande directe sur 1 bit, surveillance et mode de secours. Commande de sortie : <code>switch</code>.</p>
+</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Actionneur de chauffage : chaque sortie commande une vanne électrothermique de chauffage, de refroidissement ou des deux (changement de mode) ; grandeur de commande continue (5.001) convertie en MLI, ou commande directe sur 1 bit, surveillance et mode de secours. Commande de sortie : <code>switch</code>.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>
@@ -1635,13 +1642,13 @@
 <td><code>value</code></td>
 <td>5.001</td>
 <td>obligatoire</td>
-<td>Grandeur de commande continue de la vanne (5.001), appliquée par modulation de largeur d&#39;impulsion sur cycleMs.</td>
+<td>Grandeur de chauffage de la vanne (5.001), appliquée par modulation de largeur d&#39;impulsion sur cycleMs.</td>
 </tr>
 <tr>
 <td><code>switch</code></td>
 <td>1.001</td>
 <td>obligatoire</td>
-<td>régulation tout ou rien ou MLI du thermostat</td>
+<td>chauffage en tout ou rien ou en MLI du thermostat</td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
@@ -1654,6 +1661,18 @@
 <td>1.005</td>
 <td>obligatoire</td>
 <td>grandeur de commande absente : programme de secours</td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>5.001</td>
+<td>obligatoire</td>
+<td>Grandeur de refroidissement de la vanne (5.001), pour une sortie de refroidissement ou à changement de mode.</td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>1.001</td>
+<td>obligatoire</td>
+<td>refroidissement en tout ou rien ou en MLI du thermostat</td>
 </tr>
 </tbody></table>
 </div><p><strong>Paramètres de canal</strong> (<code>channels[].parameters</code>)</p>
@@ -1668,6 +1687,13 @@
 </tr>
 </thead>
 <tbody><tr>
+<td><code>valveMode</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Chauffage), &quot;cooling&quot; (Refroidissement), &quot;changeover&quot; (Heating and cooling (changement de mode))</td>
+<td>heating : la sortie suit la grandeur de chauffage ; cooling : la grandeur de refroidissement ; changeover : une seule vanne pour les deux, comme sur un système 2 tubes, qui suit la grandeur non nulle.</td>
+</tr>
+<tr>
 <td><code>valveType</code></td>
 <td>string</td>
 <td><code>&quot;normallyClosed&quot;</code></td>
@@ -2998,7 +3024,7 @@
 <td>Nombre de ballasts qui signalent au départ un défaut de lampe ou de ballast.</td>
 </tr>
 </tbody></table>
-</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiateur avec vanne thermoélectrique : ouverture progressive tant qu&#39;elle est alimentée ; l&#39;apport de chaleur ou de froid est proportionnel à l&#39;ouverture de la vanne. Commandes acceptées : <code>switch</code>.</p>
+</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiateur avec vanne thermoélectrique : ouverture progressive tant qu&#39;elle est alimentée ; l&#39;apport de chaleur est proportionnel à l&#39;ouverture de la vanne. Commandes acceptées : <code>switch</code>.</p>
 <p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
 <div class="table"><table>
 <thead>
@@ -3031,12 +3057,72 @@
 <td>≥ 1 ; ≤ 60</td>
 <td>Écart de température (K) avec l&#39;extérieur que ce radiateur peut maintenir seul, vanne entièrement ouverte.</td>
 </tr>
+</tbody></table>
+</div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
 <tr>
-<td><code>emitter</code></td>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="fancoil"><a class="anchor" href="#fancoil">#</a>fanCoil</h3><p>Ventilo-convecteur : une batterie à eau chaude, froide ou à changement de mode (2 tubes) derrière une vanne thermoélectrique, et un ventilateur qui tourne tant que l&#39;eau circule ; l&#39;apport de chaleur ou de froid est proportionnel à l&#39;ouverture de la vanne. Commandes acceptées : <code>switch</code>.</p>
+<p><strong>Paramètres</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Paramètre</th>
+<th>Type</th>
+<th>Défaut</th>
+<th>Contraintes</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>coil</code></td>
 <td>string</td>
-<td><code>&quot;heating&quot;</code></td>
-<td>&quot;heating&quot; (Chauffage), &quot;cooling&quot; (Refroidissement)</td>
-<td>heating réchauffe la pièce ; cooling la refroidit, par exemple un ventilo-convecteur avec évacuation des condensats. L&#39;humidité et la condensation ne sont pas modélisées.</td>
+<td><code>&quot;changeover&quot;</code></td>
+<td>&quot;changeover&quot; (Heating and cooling (2 tubes, changement de mode)), &quot;heating&quot; (Heating (4 tubes, eau chaude)), &quot;cooling&quot; (Cooling (4 tubes, eau froide))</td>
+<td>changeover : la même batterie chauffe avec de l&#39;eau chaude et refroidit avec de l&#39;eau froide, selon l&#39;actionneur de vanne ; heating ou cooling : une batterie d&#39;un appareil 4 tubes, sur sa propre vanne.</td>
+</tr>
+<tr>
+<td><code>openingTimeMs</code></td>
+<td>integer</td>
+<td><code>8000</code></td>
+<td>≥ 1000</td>
+<td>Temps d&#39;ouverture complète de la vanne (ms), compressé comme le temps de la pièce ; court par rapport à la période MLI.</td>
+</tr>
+<tr>
+<td><code>normallyOpen</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Vanne normalement ouverte : l&#39;alimenter la ferme.</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Écart de température (K) avec l&#39;extérieur que l&#39;appareil peut maintenir seul, vanne grande ouverte.</td>
+</tr>
+<tr>
+<td><code>fanPowerW</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 1000</td>
+<td>Puissance électrique (W) absorbée par le ventilateur tant que l&#39;eau circule dans la batterie.</td>
 </tr>
 </tbody></table>
 </div><p><strong>État initial</strong> (<code>equipment.initialState</code>)</p>

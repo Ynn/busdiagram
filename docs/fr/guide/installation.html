@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Installation · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/installation.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -63,7 +63,7 @@
 <h2 id="add-it-to-a-page"><a class="anchor" href="#add-it-to-a-page">#</a>L&#39;ajouter à une page</h2><p>Chargez le script une fois, de préférence dans <code>&lt;head&gt;</code> :</p>
 <pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>Le chemin est relatif à votre fichier HTML. Pour une page dans <code>example/</code> et le fichier dans <code>example/assets/</code>, utilisez <code>src=&quot;assets/bus-diagram.js&quot;</code>.</p>
 <p>Pour le charger plutôt depuis le CDN, utilisez cette balise, qui fige la version 0.4.0 :</p>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-ye2XlRh1Boz1Mrxp4k8Z5LL2nz+8O64muM904OP9jQY1/Cmh3R4cfA460OXqt9Ox"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>L&#39;URL contient le numéro de version complet : la page garde la bibliothèque pour laquelle elle a été écrite quand de nouvelles versions sont publiées. L&#39;attribut <code>integrity</code> fait refuser au navigateur un fichier qui diffère de celui publié. L&#39;export <strong>Exporter → Code à coller dans une page</strong> du designer produit la même balise. Voir <a href="versions.html">versions et publications</a> avant de changer de version.</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-p2Y+fGCs0mEueWi/BPxYs6AVMh8XU1UWdN8APaTFrNsUBfliVGoi1Z7oK/W80nsa"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>L&#39;URL contient le numéro de version complet : la page garde la bibliothèque pour laquelle elle a été écrite quand de nouvelles versions sont publiées. L&#39;attribut <code>integrity</code> fait refuser au navigateur un fichier qui diffère de celui publié. L&#39;export <strong>Exporter → Code à coller dans une page</strong> du designer produit la même balise. Voir <a href="versions.html">versions et publications</a> avant de changer de version.</p>
 <p>L&#39;attribut <code>defer</code> est pris en charge. Chargez les <a href="extensions.html">scripts d&#39;extension</a> après la bibliothèque.</p>
 <h2 id="check-the-result"><a class="anchor" href="#check-the-result">#</a>Vérifier le résultat</h2><p>Copiez un exemple de la <a href="../examples/index.html">galerie</a> depuis son onglet HTML, puis ouvrez la page. Si le schéma n&#39;apparaît pas :</p>
 <div class="table"><table>

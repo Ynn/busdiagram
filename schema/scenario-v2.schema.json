@@ -62,7 +62,7 @@
       "items": {
         "$ref": "#/$defs/room"
       },
-      "description": "Rooms: thermal state shared by assigned thermostats, window contacts, and radiators."
+      "description": "Rooms: thermal state shared by assigned thermostats, window contacts, radiators, and fan coils."
     },
     "topology": {
       "type": "object",
@@ -728,7 +728,7 @@
             },
             {
               "const": "heatCool",
-              "description": "1 = heating, 0 = cooling"
+              "description": "1 = heating, 0 = cooling; not used with the automatic change-over"
             },
             {
               "const": "heatCoolStatus",
@@ -983,6 +983,10 @@
             {
               "const": "dimDown",
               "description": "☼−: dim"
+            },
+            {
+              "const": "heatCool",
+              "description": "☀❄: heating / cooling"
             }
           ],
           "description": "Icon inferred from the action when omitted."
@@ -1230,6 +1234,7 @@
                 "dimmableLamp",
                 "daliGroup",
                 "radiator",
+                "fanCoil",
                 "fan",
                 "appliance",
                 "waterHeater",
@@ -1255,7 +1260,7 @@
         "room": {
           "type": "string",
           "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
-          "description": "Heated or cooled room ID from rooms; required for a radiator."
+          "description": "Heated or cooled room ID from rooms; required for a radiator, a fan coil, or a heat pump."
         },
         "parameters": {
           "type": "object",
@@ -1531,16 +1536,83 @@
                     "maximum": 60,
                     "default": 25,
                     "description": "Temperature difference (K) from outdoors that this radiator can maintain alone with the valve fully open."
-                  },
-                  "emitter": {
-                    "title": "Emitter",
+                  }
+                }
+              },
+              "initialState": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "openPct": {
+                    "title": "Initial opening",
+                    "unit": "%",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 0
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "fanCoil"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "coil": {
+                    "title": "Coil",
                     "type": "string",
                     "enum": [
+                      "changeover",
                       "heating",
                       "cooling"
                     ],
-                    "default": "heating",
-                    "description": "heating warms the room; cooling cools it, for example a fan coil with condensate drainage. Humidity and condensation are not modeled."
+                    "default": "changeover",
+                    "description": "changeover: the same coil heats with hot water and cools with cold water, as given by the valve actuator; heating or cooling: a coil of a 4-pipe unit, on its own valve."
+                  },
+                  "openingTimeMs": {
+                    "title": "Valve travel time",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 1000,
+                    "default": 8000,
+                    "description": "Time for the valve to open fully (ms), compressed like room time; short relative to the PWM period."
+                  },
+                  "normallyOpen": {
+                    "title": "Valve open when de-energised",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Normally open valve: applying power closes it."
+                  },
+                  "powerK": {
+                    "title": "Heating or cooling effect (K)",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 60,
+                    "default": 20,
+                    "description": "Temperature difference (K) from outdoors that the unit can maintain alone with the valve fully open."
+                  },
+                  "fanPowerW": {
+                    "title": "Fan power",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "default": 40,
+                    "description": "Electrical power (W) drawn by the fan while water flows in the coil."
                   }
                 }
               },
@@ -3638,6 +3710,16 @@
                     "default": 7200000,
                     "description": "Duration of the comfort mode started by the presence button (2 h by default)."
                   },
+                  "changeover": {
+                    "title": "Heating / cooling change-over",
+                    "type": "string",
+                    "enum": [
+                      "object",
+                      "automatic"
+                    ],
+                    "default": "object",
+                    "description": "object: the heatCool object (1.100) selects heating or cooling, for example from a central change-over or the water supplied in a 2-pipe system; automatic: the thermostat cools above the cooling setpoint and heats below the heating setpoint, the dead zone in between."
+                  },
                   "controlType": {
                     "title": "Control type",
                     "type": "string",
@@ -3691,7 +3773,6 @@
                   },
                   "deadZoneK": {
                     "title": "Dead zone",
-                    "expert": true,
                     "type": "number",
                     "minimum": 0,
                     "maximum": 10,
@@ -3874,7 +3955,7 @@
                         },
                         {
                           "const": "heatCool",
-                          "description": "1 = heating, 0 = cooling"
+                          "description": "1 = heating, 0 = cooling; not used with the automatic change-over"
                         },
                         {
                           "const": "heatCoolStatus",
@@ -3928,6 +4009,17 @@
                       "type": "object",
                       "additionalProperties": false,
                       "properties": {
+                        "valveMode": {
+                          "title": "Valve function",
+                          "type": "string",
+                          "enum": [
+                            "heating",
+                            "cooling",
+                            "changeover"
+                          ],
+                          "default": "heating",
+                          "description": "heating: the output follows the heating control value; cooling: the cooling control value; changeover: one valve for both, as on a 2-pipe system, following the control value that is not zero."
+                        },
                         "valveType": {
                           "title": "Valve direction of action",
                           "type": "string",
@@ -3981,11 +4073,11 @@
                       "oneOf": [
                         {
                           "const": "value",
-                          "description": "Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs."
+                          "description": "Heating control value of the valve (5.001), applied by pulse-width modulation over cycleMs."
                         },
                         {
                           "const": "switch",
-                          "description": "two-point or thermostat PWM control"
+                          "description": "two-point or thermostat PWM heating control"
                         },
                         {
                           "const": "valueStatus",
@@ -3994,6 +4086,14 @@
                         {
                           "const": "fault",
                           "description": "missing control value: fallback program"
+                        },
+                        {
+                          "const": "coolingValue",
+                          "description": "Cooling control value of the valve (5.001), for a cooling or change-over output."
+                        },
+                        {
+                          "const": "coolingSwitch",
+                          "description": "two-point or thermostat PWM cooling control"
                         }
                       ]
                     }

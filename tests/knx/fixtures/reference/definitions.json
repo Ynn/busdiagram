@@ -27,6 +27,7 @@
     "daliGroup",
     "dimmableLamp",
     "fan",
+    "fanCoil",
     "heatPump",
     "lamp",
     "radiator",

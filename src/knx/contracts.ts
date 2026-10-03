@@ -93,8 +93,15 @@ export interface ParamSchema {
 
 export type MotorDirection = "up" | "down" | "stop";
 
+/** Water carried by a hydronic emitter: hot for heating, cold for cooling. */
+export type Medium = "heating" | "cooling";
+
 export type OutputCommand =
-  | { type: "switch"; on: boolean }
+  /**
+   * On or off; a valve actuator also gives the water that its valve lets through, which a
+   * change-over emitter (2-pipe system) uses to heat or to cool.
+   */
+  | { type: "switch"; on: boolean; medium?: Medium }
   | { type: "motor"; direction: MotorDirection }
   /**
    * Change: target level (0–100 %) achieved in `fadeMs` (0 = immediate); optional colour

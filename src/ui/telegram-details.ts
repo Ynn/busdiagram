@@ -560,10 +560,7 @@ function signalView(c: Ctx, octets: FrameOctet[], sel: number | null) {
           >
             ${hex(ACK.ack)} · ACK
           </text>
-          <path
-            d=${logicPath(ackRuns, W, yHigh, yLow)}
-            class="logic dashed"
-          />
+          <path d=${logicPath(ackRuns, W, yHigh, yLow)} class="logic dashed" />
           <path d=${busPath(ackRuns, W, yBus, 22, 12)} class="busp dashed" />
         </g>
         <line x1="70" y1="138" x2=${width - 10} y2="138" stroke=${C.mute} />
@@ -628,7 +625,9 @@ function checksumView(c: Ctx, octets: FrameOctet[]) {
                 class=${col === PARITY_COLUMN ? "sel" : ""}
                 title=${tr`Parity bit of each character`}
                 @click=${() =>
-                  c.set({ column: col === PARITY_COLUMN ? null : PARITY_COLUMN })}
+                  c.set({
+                    column: col === PARITY_COLUMN ? null : PARITY_COLUMN,
+                  })}
               >
                 P
               </button>
@@ -695,12 +694,12 @@ function checksumView(c: Ctx, octets: FrameOctet[]) {
                   ${tr`Column P is not part of the check octet: each P only covers its own row. A single wrong bit breaks the parity of its row and of its column, so the receiver sees it twice.`}
                 </p>`
               : html`<p class="focus">
-                ${
-                  d.ones[colIdx]! % 2
-                    ? tr`Column ${col}: ${d.ones[colIdx]!} ones, already odd, so the check bit is 0.`
-                    : tr`Column ${col}: ${d.ones[colIdx]!} ones, even, so the check bit is 1, which makes ${d.ones[colIdx]! + 1}.`
-                }
-              </p>`
+                  ${
+                    d.ones[colIdx]! % 2
+                      ? tr`Column ${col}: ${d.ones[colIdx]!} ones, already odd, so the check bit is 0.`
+                      : tr`Column ${col}: ${d.ones[colIdx]!} ones, even, so the check bit is 1, which makes ${d.ones[colIdx]! + 1}.`
+                  }
+                </p>`
         }
         <p>
           ${tr`Equivalent calculation: XOR of the octets, then every bit inverted (NOT).`}

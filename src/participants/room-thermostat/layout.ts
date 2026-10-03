@@ -48,7 +48,12 @@ export const thermostatLayout: ParameterLayout = {
         { groupObject: "heatingSwitch" },
         { groupObject: "coolingValue" },
         { groupObject: "coolingSwitch" },
-        { groupObject: "heatCool" },
+        { heading: "Heating and cooling" },
+        { parameter: "changeover" },
+        {
+          when: { parameter: "changeover", is: ["object"] },
+          items: [{ groupObject: "heatCool" }],
+        },
         { groupObject: "heatCoolStatus" },
       ],
     },

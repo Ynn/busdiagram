@@ -427,7 +427,7 @@ export class GuidedEditor extends LitElement implements Host {
     </section>`;
   }
 
-  /** Rooms: the thermal model shared by thermostats, contacts, and radiators. */
+  /** Rooms: the thermal model shared by thermostats, contacts, radiators, and fan coils. */
   private roomsSection(doc: Doc) {
     const rooms = E.roomsOf(doc);
     const numField = (
@@ -460,7 +460,7 @@ export class GuidedEditor extends LitElement implements Host {
     return html`<section class="g-sec">
       <h3>${t`Rooms (heating)`}</h3>
       <p class="g-hint">
-        ${t`A room's temperature evolves with its radiators, the outside temperature and its window. Its thermostats and window contacts measure it.`}
+        ${t`A room's temperature evolves with its radiators and fan coils, the outside temperature and its window. Its thermostats and window contacts measure it.`}
       </p>
       ${rooms.map((r) =>
         this.card(

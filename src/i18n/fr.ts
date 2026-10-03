@@ -715,6 +715,13 @@ export const frMessages: Record<string, string> = {
   "Limits and transitions": "Limites et transitions",
   "Switching by dimming or by value": "Commutation par variation ou par valeur",
   "Group objects": "Objets de groupe",
+  // Shared by the heating actuator, the room thermostat, the radiator, and the fan coil.
+  "Heating control value": "Commande chauffage",
+  "Cooling control value": "Commande refroidissement",
+  valve: "vanne",
+  "Valve travel time": "Course de la vanne",
+  "Valve open when de-energised": "Vanne ouverte hors tension",
+  "Initial opening": "Ouverture au départ",
   "parameterLayout: object expected": "parameterLayout : objet attendu",
   "{0}: list expected": "{0} : liste attendue",
   "{0}.{1}: unknown “{2}”": "{0}.{1} : « {2} » inconnu",
@@ -907,7 +914,8 @@ export const frMessages: Record<string, string> = {
   "{0} bit times": "{0} temps de bit",
   "S start · b0–b7 data, least significant first · P even parity · Stop stop bit · sep. 2 bit times between characters":
     "S start · b0–b7 données, poids faible en premier · P parité paire · Stop bit de stop · sép. 2 temps de bit entre caractères",
-  "Data bits 7 … 0: check octet (columns)": "Bits de données 7 … 0 : octet de contrôle (colonnes)",
+  "Data bits 7 … 0: check octet (columns)":
+    "Bits de données 7 … 0 : octet de contrôle (colonnes)",
   "Character parity": "Parité du caractère",
   "S: start bit, always 0": "S : bit de start, toujours 0",
   "Stop: stop bit, always 1": "Stop : bit de stop, toujours 1",

@@ -6,6 +6,7 @@ import { shutterModel } from "./equipment/shutter/model";
 import { dimmableLampModel } from "./equipment/dimmable-lamp/model";
 import { daliGroupModel } from "./equipment/dali-group/model";
 import { radiatorModel } from "./equipment/radiator/model";
+import { fanCoilModel } from "./equipment/fan-coil/model";
 import { fanModel } from "./equipment/fan/model";
 import { applianceModel } from "./equipment/appliance/model";
 import { heatPumpModel } from "./equipment/heat-pump/model";
@@ -62,6 +63,7 @@ export const STANDARD_MODEL: readonly ParticipantModel[] = [
   dimmableLampModel,
   daliGroupModel,
   radiatorModel,
+  fanCoilModel,
   fanModel,
   applianceModel,
   waterHeaterModel,

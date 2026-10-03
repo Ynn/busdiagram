@@ -31,6 +31,7 @@ const ICONS: [string, string][] = [
   ["clock", "◷: clock"],
   ["dimUp", "☼+: brighten"],
   ["dimDown", "☼−: dim"],
+  ["heatCool", "☀❄: heating / cooling"],
 ];
 
 // Enumeration wordings are used for forms; they are not JSON Schema.
@@ -181,7 +182,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
         type: "array",
         items: { $ref: "#/$defs/room" },
         description:
-          "Rooms: thermal state shared by assigned thermostats, window contacts, and radiators.",
+          "Rooms: thermal state shared by assigned thermostats, window contacts, radiators, and fan coils.",
       },
       topology: {
         type: "object",
@@ -658,7 +659,7 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
             type: "string",
             pattern: ID_ATOM,
             description:
-              "Heated or cooled room ID from rooms; required for a radiator.",
+              "Heated or cooled room ID from rooms; required for a radiator, a fan coil, or a heat pump.",
           },
           parameters: {
             type: "object",

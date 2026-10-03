@@ -1,0 +1,173 @@
+{
+  "devices": {
+    "usbInterface": {},
+    "officeThermostat": {
+      "temp": {
+        "number": 1,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sp": {
+        "number": 2,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "hcs": {
+        "number": 3,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "heat": {
+        "number": 4,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "cool": {
+        "number": 5,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "meetingThermostat": {
+      "temp": {
+        "number": 1,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sp": {
+        "number": 2,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "hc": {
+        "number": 3,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "hcs": {
+        "number": 4,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "heat": {
+        "number": 5,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "cool": {
+        "number": 6,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "valveActuator": {
+      "h1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "c1": {
+        "number": 5,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "s1": {
+        "number": 3,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "h2": {
+        "number": 7,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "c3": {
+        "number": 17,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      }
+    }
+  },
+  "diagnostics": [],
+  "filterTables": {}
+}

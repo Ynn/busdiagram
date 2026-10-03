@@ -5,6 +5,7 @@ import { shutterView, venetianBlindView } from "../equipment/shutter/view";
 import { dimmableView } from "../equipment/dimmable-lamp/view";
 import { daliGroupView } from "../equipment/dali-group/view";
 import { radiatorView } from "../equipment/radiator/view";
+import { fanCoilView } from "../equipment/fan-coil/view";
 import { fanView } from "../equipment/fan/view";
 import { applianceView } from "../equipment/appliance/view";
 import { heatPumpView } from "../equipment/heat-pump/view";
@@ -18,6 +19,7 @@ export const STANDARD_VIEWS: Readonly<Record<string, EquipmentViewDefinition>> =
     appliance: applianceView,
     lamp: lampView,
     radiator: radiatorView,
+    fanCoil: fanCoilView,
     dimmableLamp: dimmableView,
     daliGroup: daliGroupView,
     shutter: shutterView,

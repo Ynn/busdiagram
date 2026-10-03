@@ -848,7 +848,15 @@ export const styles = css`
   .radiator.hot .rad {
     filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.45));
   }
-  .radiator.hot.cool .rad {
+  .fancoil .fcu {
+    width: 44px;
+    height: 30px;
+    flex: none;
+  }
+  .fancoil.heating .fcu {
+    filter: drop-shadow(0 0 5px rgba(234, 88, 12, 0.45));
+  }
+  .fancoil.cooling .fcu {
     filter: drop-shadow(0 0 5px rgba(47, 109, 179, 0.45));
   }
   .lamp .bulb {
@@ -1328,6 +1336,9 @@ export const styles = css`
     display: block;
     height: 100%;
     background: #ea580c;
+  }
+  .room-bar.cool i {
+    background: #2f6db3;
   }
   .room-ctl {
     display: flex;

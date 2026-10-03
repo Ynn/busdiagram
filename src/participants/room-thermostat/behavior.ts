@@ -206,6 +206,7 @@ function control(ctx: TCtx, dtMs: number) {
   st.measuredC = t;
   sendTemperature(ctx, t);
 
+  changeover(ctx, t);
   // Positive deviation = energy requirement in the current mode.
   const e = st.heating ? st.setpointC - t : t - st.setpointC;
   const type = p.controlType === "twoPoint" ? "twoPoint" : "pi";
@@ -229,6 +230,38 @@ function control(ctx: TCtx, dtMs: number) {
   }
   sendValue(ctx);
   pwm(ctx);
+}
+
+/** Enter heating or cooling mode: the controller starts again from zero in the new mode. */
+function setHeating(ctx: TCtx, heating: boolean) {
+  const st = ctx.state;
+  if (heating === st.heating) return false;
+  st.heating = heating;
+  st.integral = 0;
+  st.switchOn = false;
+  st.lastSentPct = null;
+  return true;
+}
+
+/**
+ * Automatic change-over (KNX Standard 07_13_01, ControlSequence, DPT 20.107 automatic):
+ * the controller cools when the room rises above the cooling setpoint of the current mode
+ * and heats again when it falls below the heating setpoint. In between, the dead zone,
+ * it keeps its mode, and neither heating nor cooling is requested.
+ */
+function changeover(ctx: TCtx, t: number) {
+  const st = ctx.state;
+  if (P(ctx).changeover !== "automatic") return;
+  const heatSp = setpointOf(ctx, { ...st, heating: true }, st.mode);
+  const coolSp = setpointOf(ctx, { ...st, heating: false }, st.mode);
+  const heating = st.heating ? t <= coolSp : t < heatSp;
+  if (!setHeating(ctx, heating)) return;
+  ctx.note(
+    heating
+      ? ctx.t`thermostat: ${fmt(t)} °C, below the heating setpoint ${fmt(heatSp)} °C: heating`
+      : ctx.t`thermostat: ${fmt(t)} °C, above the cooling setpoint ${fmt(coolSp)} °C: cooling`,
+  );
+  update(ctx);
 }
 
 function sendTemperature(ctx: TCtx, t: number) {
@@ -336,15 +369,11 @@ function apply(ctx: TCtx, port: string, value: number, dpt = "") {
     case "window":
       st.window = windowOpenOf(dpt, value);
       break;
-    case "heatCool": {
-      const heating = value !== 0;
-      if (heating !== st.heating) {
-        st.heating = heating;
-        st.integral = 0;
-        st.lastSentPct = null;
-      }
+    case "heatCool":
+      // With the automatic change-over, the controller chooses its mode itself.
+      if (p.changeover === "automatic") return;
+      setHeating(ctx, value !== 0);
       break;
-    }
     default:
       return;
   }
@@ -374,6 +403,15 @@ const thermostatParams: ParamSchema = {
       default: 7200000,
       description:
         "Duration of the comfort mode started by the presence button (2 h by default).",
+    },
+    changeover: {
+      title: "Heating / cooling change-over",
+      type: "string",
+      enum: ["object", "automatic"],
+      enumTitles: ["By the heating / cooling object", "Automatic"],
+      default: "object",
+      description:
+        "object: the heatCool object (1.100) selects heating or cooling, for example from a central change-over or the water supplied in a 2-pipe system; automatic: the thermostat cools above the cooling setpoint and heats below the heating setpoint, the dead zone in between.",
     },
     controlType: {
       title: "Control type",
@@ -430,7 +468,6 @@ const thermostatParams: ParamSchema = {
     },
     deadZoneK: {
       title: "Dead zone",
-      expert: true,
       type: "number",
       minimum: 0,
       maximum: 10,
@@ -665,11 +702,15 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
         "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority",
     },
     heatCool: {
+      // Its value is unknown until one is received: the thermostat starts in heating mode,
+      // whereas a 0 would mean cooling.
+      initialUnknown: true,
       dpts: ["1.100"],
       channel: "none",
       title: "Heating / cooling",
       direction: "in",
-      description: "1 = heating, 0 = cooling",
+      description:
+        "1 = heating, 0 = cooling; not used with the automatic change-over",
     },
     heatCoolStatus: {
       defaultFlags: { R: true },
@@ -749,7 +790,8 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       if (o.port === "hvacMode" && v >= 0 && v <= 4) st.preset = v;
       if (o.port === "presence") st.presence = v !== 0;
       if (o.port === "window") st.window = windowOpenOf(o.dpt, v);
-      if (o.port === "heatCool") st.heating = v !== 0;
+      if (o.port === "heatCool" && P(ctx).changeover !== "automatic")
+        st.heating = v !== 0;
       if (o.port === "baseSetpoint") st.baseC = v;
     });
     st.mode = modeOf(st);

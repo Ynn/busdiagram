@@ -1,7 +1,7 @@
 ---
 title: Codes d'erreur
 translationOf: reference/08-errors.md
-sourceHash: 45deab2a4941
+sourceHash: bba5b4030813
 order: 8
 ---
 # Codes d'erreur
@@ -49,7 +49,9 @@ Ces avertissements n'arrêtent pas la simulation. Ils s'affichent au-dessus du s
 
 | Code | Signification |
 | --- | --- |
-| `config-valve` | La sortie de l'actionneur de chauffage (`valveType`) et la vanne du radiateur raccordé (`normallyOpen`) ne concordent pas ; la vanne s'ouvre quand aucune chaleur n'est demandée. |
+| `config-valve` | La sortie de l'actionneur de chauffage (`valveType`) et la vanne du radiateur ou du ventilo-convecteur raccordé (`normallyOpen`) ne concordent pas ; la vanne s'ouvre quand aucune chaleur n'est demandée. |
+| `config-valve-mode` | Une grandeur de commande est liée à une sortie de l'actionneur de chauffage dont la fonction (`valveMode`) l'ignore : une grandeur de refroidissement sur une vanne de chauffage, ou une grandeur de chauffage sur une vanne de refroidissement. |
+| `config-emitter` | L'émetteur ne convient pas à la fonction de sa vanne : un radiateur sur une vanne de refroidissement, une batterie de ventilo-convecteur de l'autre sorte, ou un émetteur qui ne fait que chauffer ou que refroidir sur une vanne à changement de mode. |
 | `config-wiring` | L'inversion de sortie de l'actionneur de volets (`invertOutput`) et le câblage du moteur du volet (`wiringReversed`) ne concordent pas ; le volet va à l'inverse des commandes. |
 | `config-contact` | Le type de contact de fenêtre (`contactType`) et l'inversion de l'entrée (`invert`) ne concordent pas, ou le contact d'un bouton-poussoir câblé sur une interface de boutons-poussoirs (`keyContact`) et le contact que son entrée attend à l'appui (`actuatedContact`) ne concordent pas ; ouvert et fermé, ou appuis et relâchements, sont vus à l'envers. |
 | `config-value-range` | Une valeur d'une entrée d'interface de boutons-poussoirs (`shortValue`, `longValue`) est hors de la plage du DPT de son objet ; la valeur envoyée est ramenée à cette plage. |

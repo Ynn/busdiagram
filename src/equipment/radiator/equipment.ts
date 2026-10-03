@@ -14,13 +14,14 @@ const valveTarget = (s: RadiatorState, p: JsonObject) =>
   s.energized !== (p.normallyOpen === true) ? 100 : 0;
 
 /**
- * Heating or cooling emitter with a thermoelectric valve. The valve opens slowly
- * while powered and closes when unpowered; heat transfer depends on its opening.
+ * Heating radiator with a thermoelectric valve. The valve opens slowly while powered and
+ * closes when unpowered; heat transfer depends on its opening. A radiator only heats:
+ * cooling uses a fan coil.
  */
 export const radiator: EquipmentDefinition<RadiatorState> = {
   title: "Radiator",
   description:
-    "Radiator with a thermoelectric valve: gradual opening while powered; heat or cooling output is proportional to valve opening.",
+    "Radiator with a thermoelectric valve: gradual opening while powered; heat output is proportional to valve opening.",
   accepts: "switch",
   parameters: {
     type: "object",
@@ -49,15 +50,6 @@ export const radiator: EquipmentDefinition<RadiatorState> = {
         default: 25,
         description:
           "Temperature difference (K) from outdoors that this radiator can maintain alone with the valve fully open.",
-      },
-      emitter: {
-        title: "Emitter",
-        type: "string",
-        enum: ["heating", "cooling"],
-        enumTitles: ["Heating", "Cooling"],
-        default: "heating",
-        description:
-          "heating warms the room; cooling cools it, for example a fan coil with condensate drainage. Humidity and condensation are not modeled.",
       },
     },
   },
@@ -96,8 +88,5 @@ export const radiator: EquipmentDefinition<RadiatorState> = {
         : Math.max(target, s.openPct - step);
     return { ...s, openPct, moving: openPct !== target };
   },
-  heatOutput: (s, p) =>
-    (p.emitter === "cooling" ? -1 : 1) *
-    (s.openPct / 100) *
-    Number(p.powerK ?? 25),
+  heatOutput: (s, p) => (s.openPct / 100) * Number(p.powerK ?? 25),
 };

@@ -1,7 +1,7 @@
 ---
 title: Modèle et limites
 translationOf: guide/15-limits.md
-sourceHash: d30e32874b78
+sourceHash: 8e364e8ffa82
 order: 15
 ---
 # Modèle et limites
@@ -29,7 +29,7 @@ BusDiagram est un outil de conception de schémas ; sa couche de simulation sert
 - **Panneau de l'interface USB :** les lectures et écritures de groupe sont modélisées, sans programmation ni téléchargement.
 - **DALI :** la commande de groupe et la diffusion générale sont modélisées, sans mise en service DALI, commande de couleur ni éclairage de sécurité. Voir [DALI](dali.html#model-limits).
 - **Avertissements de configuration :** les paramètres qui compensent une propriété de la charge (type de vanne, câblage du moteur, type de contact) sont comparés à cette propriété ; une discordance est simulée et affichée comme avertissement. Voir les [codes d'avertissement](../reference/errors.html#configuration-warnings).
-- **Chauffage :** chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent un objet DPT 20.102 ; les objets de mode forcé et les objets de mode sur un bit ne sont pas modélisés. Le thermostat n'a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Les ventilo-convecteurs et les passerelles de climatisation ne sont pas modélisés. Voir [CVC](hvac.html#model-limits).
+- **Chauffage :** chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent un objet DPT 20.102 ; les objets de mode forcé et les objets de mode sur un bit ne sont pas modélisés. Le thermostat n'a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Un ventilo-convecteur a une batterie chaude, froide ou à changement de mode et un ventilateur à une seule vitesse : la commande de vitesse du ventilateur, les températures d'eau, le point de rosée et les passerelles de climatisation ne sont pas modélisés. Voir [CVC](hvac.html#model-limits).
 - **Mesure :** la puissance vient de la puissance nominale de chaque charge, sans tolérance de mesure ni facteur de puissance ; l'énergie est comptée avec une échelle de temps (`energyTimeScale`).
 - **Qualité de l'air :** les mesures sont saisies par le lecteur ; il n'y a pas de modèle de l'air ni de la ventilation.
 - **Stores à lamelles :** les lamelles s'orientent avant chaque mouvement ; le rétablissement de l'angle des lamelles après un mouvement et les positions limites des lamelles ne sont pas modélisés.

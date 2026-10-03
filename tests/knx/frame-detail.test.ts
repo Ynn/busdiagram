@@ -173,7 +173,9 @@ describe("TP1 signal drawing", () => {
     expect(p).toContainEqual({ cmd: "L", x: 30 + active, y: yDc + 20 });
     expect(p).toContainEqual({ cmd: "L", x: 30 + active, y: yDc - 10 });
     // The equalisation decays: each sample is closer to the DC level than the one before.
-    const eq = p.filter((q) => q.x > 30 + active && q.x < 40).map((q) => yDc - q.y);
+    const eq = p
+      .filter((q) => q.x > 30 + active && q.x < 40)
+      .map((q) => yDc - q.y);
     for (let i = 1; i < eq.length; i++) expect(eq[i]!).toBeLessThan(eq[i - 1]!);
   });
 });

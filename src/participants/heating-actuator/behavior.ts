@@ -1,8 +1,12 @@
 // Heating actuator: a DPT 5.001 control value converted to PWM for a thermoelectric valve.
+// Each output drives a heating valve, a cooling valve, or a change-over valve fed by both
+// control values of the room controller (KNX Standard 07_10_03, HVAC Valve Actuator,
+// ValveMode 1, 3, and 5).
 import type {
   BehaviorContext,
   BehaviorDefinition,
   JsonObject,
+  Medium,
   ParamSchema,
 } from "../../knx/contracts";
 import { clamp, num } from "../shared/values";
@@ -12,6 +16,11 @@ import { valveWarnings } from "./rules";
 interface HeatChannel {
   /** Control size applied, %. */
   valuePct: number;
+  /** Last heating and cooling control values received, %. */
+  heatPct: number;
+  coolPct: number;
+  /** Water that the valve lets through: the medium of the control value applied. */
+  medium: Medium;
   /** Order received in 1 bit (two points): no modulation. */
   direct: boolean;
   cycleStartMs: number;
@@ -37,14 +46,44 @@ function chObjects(ctx: HCtx, port: string, ch: string) {
   );
 }
 
+type ValveMode = "heating" | "cooling" | "changeover";
+
+const valveMode = (ctx: HCtx, ch: string): ValveMode => {
+  const m = chParams(ctx, ch).valveMode;
+  return m === "cooling" || m === "changeover" ? m : "heating";
+};
+
+/** Ports that a channel uses, by valve mode. */
+const HEATING_PORTS = ["value", "switch"];
+const COOLING_PORTS = ["coolingValue", "coolingSwitch"];
+
 /** Drive the output to open the valve, accounting for its action direction. */
 function drive(ctx: HCtx, ch: string, open: boolean) {
   const st = ctx.state.channels[ch]!;
   const inverted = chParams(ctx, ch).valveType === "normallyOpen";
   const energized = open !== inverted;
-  if (energized === st.energized && ctx.getOutput(ch)) return;
+  const cur = ctx.getOutput(ch);
+  if (
+    energized === st.energized &&
+    cur?.type === "switch" &&
+    cur.medium === st.medium
+  )
+    return;
   st.energized = energized;
-  ctx.setOutput(ch, { type: "switch", on: energized });
+  ctx.setOutput(ch, { type: "switch", on: energized, medium: st.medium });
+}
+
+/**
+ * Control value of a change-over valve: the controller sends the value of its active
+ * mode and sets the other one to 0, so the valve follows the one that is not zero; when
+ * both are, the last one received.
+ */
+function selectValue(st: HeatChannel, last: Medium) {
+  const other: Medium = last === "heating" ? "cooling" : "heating";
+  const pct = (m: Medium) => (m === "heating" ? st.heatPct : st.coolPct);
+  const medium = pct(last) > 0 || pct(other) === 0 ? last : other;
+  st.medium = medium;
+  st.valuePct = pct(medium);
 }
 
 /** Apply the command size: PWM over the period, immediately resume in the cycle. */
@@ -105,6 +144,15 @@ const heatingChannelParams: ParamSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
+    valveMode: {
+      title: "Valve function",
+      type: "string",
+      enum: ["heating", "cooling", "changeover"],
+      enumTitles: ["Heating", "Cooling", "Heating and cooling (change-over)"],
+      default: "heating",
+      description:
+        "heating: the output follows the heating control value; cooling: the cooling control value; changeover: one valve for both, as on a 2-pipe system, following the control value that is not zero.",
+    },
     valveType: {
       title: "Valve direction of action",
       type: "string",
@@ -150,25 +198,25 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
   warnings: valveWarnings,
   parameterLayout: heatingLayout,
   description:
-    "Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.",
+    "Heating actuator: each output drives an electrothermal valve for heating, for cooling, or for both (change-over); continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.",
   channelParameters: heatingChannelParams,
   ports: {
     value: {
       description:
-        "Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs.",
+        "Heating control value of the valve (5.001), applied by pulse-width modulation over cycleMs.",
       drivesLoad: true,
       dpts: ["5.001"],
       channel: "required",
-      title: "Control value",
+      title: "Heating control value",
       direction: "in",
     },
     switch: {
       drivesLoad: true,
       dpts: ["1.001"],
       channel: "required",
-      title: "1-bit command",
+      title: "Heating 1-bit command",
       direction: "in",
-      description: "two-point or thermostat PWM control",
+      description: "two-point or thermostat PWM heating control",
     },
     valueStatus: {
       description: "Control value applied to the valve (5.001).",
@@ -185,6 +233,23 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
       direction: "out",
       description: "missing control value: fallback program",
     },
+    coolingValue: {
+      description:
+        "Cooling control value of the valve (5.001), for a cooling or change-over output.",
+      drivesLoad: true,
+      dpts: ["5.001"],
+      channel: "required",
+      title: "Cooling control value",
+      direction: "in",
+    },
+    coolingSwitch: {
+      drivesLoad: true,
+      dpts: ["1.001"],
+      channel: "required",
+      title: "Cooling 1-bit command",
+      direction: "in",
+      description: "two-point or thermostat PWM cooling control",
+    },
   },
   output: "switch",
   createState(d) {
@@ -193,6 +258,9 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
       (c) =>
         (channels[c.id] = {
           valuePct: 0,
+          heatPct: 0,
+          coolPct: 0,
+          medium: c.parameters.valveMode === "cooling" ? "cooling" : "heating",
           direct: false,
           cycleStartMs: 0,
           cycling: false,
@@ -207,7 +275,11 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
       const st = ctx.state.channels[c.id]!;
       // Initially closed valve: An open valve off voltage must be supplied.
       st.energized = chParams(ctx, c.id).valveType === "normallyOpen";
-      ctx.setOutput(c.id, { type: "switch", on: st.energized });
+      ctx.setOutput(c.id, {
+        type: "switch",
+        on: st.energized,
+        medium: st.medium,
+      });
       chObjects(ctx, "valueStatus", c.id)
         .filter((o) => o.channel === c.id)
         .forEach((o) => ctx.setObject(o.id, 0));
@@ -219,9 +291,17 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
     const ch = o?.channel;
     if (!o || !ch || !ctx.state.channels[ch]) return;
     const st = ctx.state.channels[ch];
-    if (o.port !== "value" && o.port !== "switch") return;
-    st.direct = o.port === "switch";
-    st.valuePct = st.direct ? (e.newValue ? 100 : 0) : clamp(e.newValue);
+    const mode = valveMode(ctx, ch);
+    const cooling = COOLING_PORTS.includes(o.port);
+    if (!cooling && !HEATING_PORTS.includes(o.port)) return;
+    // A heating output ignores the cooling control value, and the reverse.
+    if ((mode === "heating" && cooling) || (mode === "cooling" && !cooling))
+      return;
+    st.direct = o.port === "switch" || o.port === "coolingSwitch";
+    const pct = st.direct ? (e.newValue ? 100 : 0) : clamp(e.newValue);
+    if (cooling) st.coolPct = pct;
+    else st.heatPct = pct;
+    selectValue(st, cooling ? "cooling" : "heating");
     if (st.emergency) {
       st.emergency = false;
       ctx.note(ctx.t`control value received: emergency mode ended`);
@@ -267,6 +347,7 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
     return st
       ? {
           valuePct: st.valuePct,
+          medium: st.medium,
           energized: st.energized,
           emergency: st.emergency,
         }

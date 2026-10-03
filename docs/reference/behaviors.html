@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/reference/behaviors.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -1421,7 +1421,7 @@
 <td><code>heatCool</code></td>
 <td>1.100</td>
 <td>none</td>
-<td>1 = heating, 0 = cooling</td>
+<td>1 = heating, 0 = cooling; not used with the automatic change-over</td>
 </tr>
 <tr>
 <td><code>heatCoolStatus</code></td>
@@ -1478,6 +1478,13 @@
 <td><code>7200000</code></td>
 <td>≥ 60000</td>
 <td>Duration of the comfort mode started by the presence button (2 h by default).</td>
+</tr>
+<tr>
+<td><code>changeover</code></td>
+<td>string</td>
+<td><code>&quot;object&quot;</code></td>
+<td>&quot;object&quot; (By the heating / cooling object), &quot;automatic&quot; (Automatic)</td>
+<td>object: the heatCool object (1.100) selects heating or cooling, for example from a central change-over or the water supplied in a 2-pipe system; automatic: the thermostat cools above the cooling setpoint and heats below the heating setpoint, the dead zone in between.</td>
 </tr>
 <tr>
 <td><code>controlType</code></td>
@@ -1620,7 +1627,7 @@
 <td>Also send the measured temperature at this interval, even without change; 0 disables cyclic sending.</td>
 </tr>
 </tbody></table>
-</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode. Output command: <code>switch</code>.</p>
+</div><h3 id="heatingactuator-v1"><a class="anchor" href="#heatingactuator-v1">#</a>heatingActuator/v1</h3><p>Heating actuator: each output drives an electrothermal valve for heating, for cooling, or for both (change-over); continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode. Output command: <code>switch</code>.</p>
 <p><strong>Ports</strong></p>
 <div class="table"><table>
 <thead>
@@ -1635,13 +1642,13 @@
 <td><code>value</code></td>
 <td>5.001</td>
 <td>required</td>
-<td>Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs.</td>
+<td>Heating control value of the valve (5.001), applied by pulse-width modulation over cycleMs.</td>
 </tr>
 <tr>
 <td><code>switch</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>two-point or thermostat PWM control</td>
+<td>two-point or thermostat PWM heating control</td>
 </tr>
 <tr>
 <td><code>valueStatus</code></td>
@@ -1654,6 +1661,18 @@
 <td>1.005</td>
 <td>required</td>
 <td>missing control value: fallback program</td>
+</tr>
+<tr>
+<td><code>coolingValue</code></td>
+<td>5.001</td>
+<td>required</td>
+<td>Cooling control value of the valve (5.001), for a cooling or change-over output.</td>
+</tr>
+<tr>
+<td><code>coolingSwitch</code></td>
+<td>1.001</td>
+<td>required</td>
+<td>two-point or thermostat PWM cooling control</td>
 </tr>
 </tbody></table>
 </div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
@@ -1668,6 +1687,13 @@
 </tr>
 </thead>
 <tbody><tr>
+<td><code>valveMode</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Heating), &quot;cooling&quot; (Cooling), &quot;changeover&quot; (Heating and cooling (change-over))</td>
+<td>heating: the output follows the heating control value; cooling: the cooling control value; changeover: one valve for both, as on a 2-pipe system, following the control value that is not zero.</td>
+</tr>
+<tr>
 <td><code>valveType</code></td>
 <td>string</td>
 <td><code>&quot;normallyClosed&quot;</code></td>
@@ -2998,7 +3024,7 @@
 <td>Number of ballasts initially reporting a lamp or ballast fault.</td>
 </tr>
 </tbody></table>
-</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiator with a thermoelectric valve: gradual opening while powered; heat or cooling output is proportional to valve opening. Accepted commands: <code>switch</code>.</p>
+</div><h3 id="radiator"><a class="anchor" href="#radiator">#</a>radiator</h3><p>Radiator with a thermoelectric valve: gradual opening while powered; heat output is proportional to valve opening. Accepted commands: <code>switch</code>.</p>
 <p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
 <div class="table"><table>
 <thead>
@@ -3031,12 +3057,72 @@
 <td>≥ 1 ; ≤ 60</td>
 <td>Temperature difference (K) from outdoors that this radiator can maintain alone with the valve fully open.</td>
 </tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
 <tr>
-<td><code>emitter</code></td>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>openPct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="fancoil"><a class="anchor" href="#fancoil">#</a>fanCoil</h3><p>Fan coil unit: a heating, cooling, or change-over (2-pipe) water coil behind a thermoelectric valve, and a fan that runs while water flows; heat or cooling output is proportional to valve opening. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>coil</code></td>
 <td>string</td>
-<td><code>&quot;heating&quot;</code></td>
-<td>&quot;heating&quot; (Heating), &quot;cooling&quot; (Cooling)</td>
-<td>heating warms the room; cooling cools it, for example a fan coil with condensate drainage. Humidity and condensation are not modeled.</td>
+<td><code>&quot;changeover&quot;</code></td>
+<td>&quot;changeover&quot; (Heating and cooling (2-pipe, change-over)), &quot;heating&quot; (Heating (4-pipe, hot water)), &quot;cooling&quot; (Cooling (4-pipe, cold water))</td>
+<td>changeover: the same coil heats with hot water and cools with cold water, as given by the valve actuator; heating or cooling: a coil of a 4-pipe unit, on its own valve.</td>
+</tr>
+<tr>
+<td><code>openingTimeMs</code></td>
+<td>integer</td>
+<td><code>8000</code></td>
+<td>≥ 1000</td>
+<td>Time for the valve to open fully (ms), compressed like room time; short relative to the PWM period.</td>
+</tr>
+<tr>
+<td><code>normallyOpen</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Normally open valve: applying power closes it.</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Temperature difference (K) from outdoors that the unit can maintain alone with the valve fully open.</td>
+</tr>
+<tr>
+<td><code>fanPowerW</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 1000</td>
+<td>Electrical power (W) drawn by the fan while water flows in the coil.</td>
 </tr>
 </tbody></table>
 </div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>

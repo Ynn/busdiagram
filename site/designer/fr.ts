@@ -556,8 +556,8 @@ export const designerFr: Record<string, string> = {
     "la pièce alimente encore {0} : choisir d'abord une autre pièce pour ces sorties",
   "no load connected": "aucune charge raccordée",
   "Rooms (heating)": "Pièces (chauffage)",
-  "A room's temperature evolves with its radiators, the outside temperature and its window. Its thermostats and window contacts measure it.":
-    "Une pièce a une température qui évolue selon ses radiateurs, la température extérieure et sa fenêtre. Ses thermostats et contacts de fenêtre la mesurent.",
+  "A room's temperature evolves with its radiators and fan coils, the outside temperature and its window. Its thermostats and window contacts measure it.":
+    "Une pièce a une température qui évolue selon ses radiateurs et ventilo-convecteurs, la température extérieure et sa fenêtre. Ses thermostats et contacts de fenêtre la mesurent.",
   "{0} °C at start · outside {1} °C": "{0} °C au départ · extérieur {1} °C",
   "Initial temperature (°C)": "Température au départ (°C)",
   "Outside temperature (°C)": "Température extérieure (°C)",

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Installation · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/installation.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -63,7 +63,7 @@
 <h2 id="add-it-to-a-page"><a class="anchor" href="#add-it-to-a-page">#</a>Add it to a page</h2><p>Load the script once, preferably in <code>&lt;head&gt;</code>:</p>
 <pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The path is relative to your HTML file. For a page in <code>example/</code> and a bundle in <code>example/assets/</code>, use <code>src=&quot;assets/bus-diagram.js&quot;</code>.</p>
 <p>To load it from the CDN instead, use this tag, which pins version 0.4.0:</p>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-ye2XlRh1Boz1Mrxp4k8Z5LL2nz+8O64muM904OP9jQY1/Cmh3R4cfA460OXqt9Ox"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The URL contains the full version number, so the page keeps the library it was written for when new versions are published. The <code>integrity</code> attribute makes the browser refuse a file that differs from the published one. The designer&#39;s <strong>Export → Code to paste into a page</strong> produces the same tag. See <a href="versions.html">versions and releases</a> before changing the version.</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-p2Y+fGCs0mEueWi/BPxYs6AVMh8XU1UWdN8APaTFrNsUBfliVGoi1Z7oK/W80nsa"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The URL contains the full version number, so the page keeps the library it was written for when new versions are published. The <code>integrity</code> attribute makes the browser refuse a file that differs from the published one. The designer&#39;s <strong>Export → Code to paste into a page</strong> produces the same tag. See <a href="versions.html">versions and releases</a> before changing the version.</p>
 <p>The <code>defer</code> attribute is supported. Load <a href="extensions.html">extension scripts</a> after the library.</p>
 <h2 id="check-the-result"><a class="anchor" href="#check-the-result">#</a>Check the result</h2><p>Copy an example from the <a href="../examples/index.html">gallery</a> using its HTML tab, then open the page. If the diagram does not appear:</p>
 <div class="table"><table>

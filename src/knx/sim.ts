@@ -148,7 +148,7 @@ const sameCommand = (a: OutputCommand | null | undefined, b: OutputCommand) =>
   !!a &&
   a.type === b.type &&
   (a.type === "switch"
-    ? a.on === (b as typeof a).on
+    ? a.on === (b as typeof a).on && a.medium === (b as typeof a).medium
     : a.type === "dim"
       ? a.level === (b as typeof a).level &&
         a.fadeMs === (b as typeof a).fadeMs &&
@@ -794,7 +794,11 @@ export class Simulation {
 
   private setOutput(d: Device, c: Channel, cmd: OutputCommand) {
     const ok =
-      (cmd?.type === "switch" && typeof cmd.on === "boolean") ||
+      (cmd?.type === "switch" &&
+        typeof cmd.on === "boolean" &&
+        (cmd.medium === undefined ||
+          cmd.medium === "heating" ||
+          cmd.medium === "cooling")) ||
       (cmd?.type === "motor" &&
         ["up", "down", "stop"].includes(cmd.direction)) ||
       (cmd?.type === "dim" &&

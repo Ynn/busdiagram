@@ -5,23 +5,20 @@ import { en } from "../../i18n";
 import { radiatorSize } from "./size";
 
 /**
- * Radiator and thermoelectric valve: elements color according to the actual opening
- * (red in heating, blue in cooling); the flash signals the valve under tension.
+ * Radiator and thermoelectric valve: elements turn red with the actual opening; the flash
+ * signals the valve under tension.
  */
 export const radiatorView: EquipmentViewDefinition = {
   size: radiatorSize,
-  render: ({ state, label, box, parameters, t = en }) => {
+  render: ({ state, label, box, t = en }) => {
     const open = Math.max(0, Math.min(100, Number(state.openPct ?? 0)));
-    const cool = parameters?.emitter === "cooling";
     const a = open / 100;
-    const fill = cool
-      ? `rgb(${Math.round(236 - 150 * a)}, ${Math.round(240 - 80 * a)}, ${Math.round(242 + 10 * a)})`
-      : `rgb(${Math.round(236 + 12 * a)}, ${Math.round(234 - 140 * a)}, ${Math.round(226 - 160 * a)})`;
-    const stroke = open > 0 ? (cool ? "#2f6db3" : "#c2410c") : "#a9a496";
+    const fill = `rgb(${Math.round(236 + 12 * a)}, ${Math.round(234 - 140 * a)}, ${Math.round(226 - 160 * a)})`;
+    const stroke = open > 0 ? "#c2410c" : "#a9a496";
     return html`<div
-      class="lamp radiator ${open > 0 ? "hot" : ""} ${cool ? "cool" : ""}"
+      class="lamp radiator ${open > 0 ? "hot" : ""}"
       style="left:${box.x}px;top:${box.y}px"
-      title=${cool ? t`Cooling emitter: valve ${Math.round(open)} % open` : t`Radiator: valve ${Math.round(open)} % open`}
+      title=${t`Radiator: valve ${Math.round(open)} % open`}
     >
       <svg viewBox="0 0 40 32" class="rad">
         ${[0, 1, 2, 3, 4].map(

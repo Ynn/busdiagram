@@ -84,6 +84,7 @@ const ICON: Record<string, string> = {
   clock: "◷",
   dimUp: "☼+",
   dimDown: "☼−",
+  heatCool: "☀❄",
 };
 
 const couplerInfo = (key: string, t: Translate): string =>
@@ -2238,19 +2239,14 @@ export class BusDiagram extends LitElement {
             .filter((x) => typeof x.ds.setpointC === "number");
           const emitters = s.devices.flatMap((d) =>
             d.channels.flatMap((c) =>
-              c.equipmentConfigs.flatMap((e, i) =>
-                e.room === r.id
-                  ? [
-                      {
-                        d,
-                        c,
-                        open: Number(
-                          sim.equipmentState(d.id, c.id, i)?.openPct ?? 0,
-                        ),
-                      },
-                    ]
-                  : [],
-              ),
+              c.equipmentConfigs.flatMap((e, i) => {
+                if (e.room !== r.id) return [];
+                const es = sim.equipmentState(d.id, c.id, i);
+                // A fan coil carrying cold water cools: its bar is blue.
+                const cool =
+                  es?.medium === "cooling" && e.parameters.coil !== "heating";
+                return [{ d, c, open: Number(es?.openPct ?? 0), cool }];
+              }),
             ),
           );
           return html`<div class="room ${st.windowOpen ? "open" : ""}">
@@ -2274,7 +2270,8 @@ export class BusDiagram extends LitElement {
               (e) =>
                 html`<div class="room-line">
                   <span>${e.c.label}</span>
-                  <span class="room-bar"><i style="width:${e.open}%"></i></span
+                  <span class="room-bar ${e.cool ? "cool" : ""}"
+                    ><i style="width:${e.open}%"></i></span
                   ><b>${Math.round(e.open)} %</b>
                 </div>`,
             )}

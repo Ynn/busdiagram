@@ -82,7 +82,7 @@ label?: string
 /**
  * Icon inferred from the action when omitted.
  */
-icon?: ("on" | "off" | "toggle" | "up" | "down" | "updown" | "scene" | "presence" | "clock" | "dimUp" | "dimDown")
+icon?: ("on" | "off" | "toggle" | "up" | "down" | "updown" | "scene" | "presence" | "clock" | "dimUp" | "dimDown" | "heatCool")
 /**
  * Action taken immediately on press; cannot be combined with short/long.
  */
@@ -150,7 +150,7 @@ export type Equipment = {
 /**
  * Equipment type: lamp, shutter, or a registered extension type.
  */
-type: (("lamp" | "shutter" | "dimmableLamp" | "daliGroup" | "radiator" | "fan" | "appliance" | "waterHeater" | "heatPump" | "siren") | string)
+type: (("lamp" | "shutter" | "dimmableLamp" | "daliGroup" | "radiator" | "fanCoil" | "fan" | "appliance" | "waterHeater" | "heatPump" | "siren") | string)
 /**
  * Name of the load, such as “Ceiling light”; shown in the diagram and the designer.
  */
@@ -160,7 +160,7 @@ name?: string
  */
 view?: string
 /**
- * Heated or cooled room ID from rooms; required for a radiator.
+ * Heated or cooled room ID from rooms; required for a radiator, a fan coil, or a heat pump.
  */
 room?: string
 /**
@@ -217,7 +217,7 @@ start: string
 speed?: number
 }
 /**
- * Rooms: thermal state shared by assigned thermostats, window contacts, and radiators.
+ * Rooms: thermal state shared by assigned thermostats, window contacts, radiators, and fan coils.
  */
 rooms?: Room[]
 /**

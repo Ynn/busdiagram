@@ -4,6 +4,25 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Heating and cooling, following the KNX application descriptions of HVAC valve actuators and room controllers:
+  - **Room thermostat, automatic change-over** (`changeover: "automatic"`). It cools above the cooling setpoint and heats below the heating setpoint; in the dead zone between them it requests nothing. By default (`"object"`), the `heatCool` object (DPT 1.100) still selects heating or cooling.
+  - **Heating actuator, valve function per output** (`valveMode`): heating, cooling, or change-over, with the cooling control values `coolingValue` and `coolingSwitch`. A change-over valve on a 2-pipe system receives both control values of the thermostat and follows the one that is not zero.
+  - **Fan coil load** (`fanCoil`): a 2-pipe change-over coil, or the heating or cooling coil of a 4-pipe unit, behind a thermoelectric valve, with a fan that runs while water flows (`fanPowerW`).
+  - **Configuration warnings:** `config-valve-mode` for a control value that an output ignores, `config-emitter` for an emitter that does not suit its valve.
+  - **New example:** “Heating and cooling”.
+- Extensions: the `switch` output command can carry the water of a valve (`medium`: heating or cooling).
+
+### Changed
+
+- Radiator: it only heats; its `emitter` parameter is removed. Cooling uses a `fanCoil` load.
+- Room thermostat: the dead zone between the heating and cooling setpoints (`deadZoneK`) is no longer an expert parameter.
+
+### Fixed
+
+- Room thermostat: a `heatCool` object without a value started at 0, which means cooling, so the thermostat started in cooling mode; it now starts in heating mode until the object receives a value.
+
 ## [0.4.0] - 2026-10-03
 
 ### Added

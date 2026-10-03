@@ -406,7 +406,7 @@ Accepts `buttons` and numeric `inputs`.
 | `hvacModeStatus` | 20.102 | none | out | Current mode (20.102). |
 | `presence` | 1.018, 1.001 | none | in | 1 = presence: comfort mode |
 | `window` | 1.019, 1.001, 1.009 | none | in | open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority |
-| `heatCool` | 1.100 | none | in | 1 = heating, 0 = cooling |
+| `heatCool` | 1.100 | none | in | 1 = heating, 0 = cooling; not used with the automatic change-over |
 | `heatCoolStatus` | 1.100 | none | out | Current mode: 1 heating, 0 cooling (1.100). |
 | `heatingValue` | 5.001 | none | out | continuous control value from 0 to 100% |
 | `heatingSwitch` | 1.001 | none | out | two-point control, or PWM under PI control |
@@ -416,6 +416,7 @@ Accepts `buttons` and numeric `inputs`.
 Device `parameters`:
 - `presenceType` (string, default "detector"; "detector" (Presence detector), "button" (Presence button)): detector: comfort while the presence object is 1; button: each 1 extends the comfort mode for comfortExtensionMs.
 - `comfortExtensionMs` (integer, default 7200000; ≥ 60000): Duration of the comfort mode started by the presence button (2 h by default).
+- `changeover` (string, default "object"; "object" (By the heating / cooling object), "automatic" (Automatic)): object: the heatCool object (1.100) selects heating or cooling, for example from a central change-over or the water supplied in a 2-pipe system; automatic: the thermostat cools above the cooling setpoint and heats below the heating setpoint, the dead zone in between.
 - `controlType` (string, default "pi"; "pi" (PI (continuous or PWM)), "twoPoint" (Two-point)): pi uses proportional-integral control with a continuous value (5.001) or PWM (1 bit); twoPoint uses on/off control with hysteresis.
 - `comfortC` (number, default 21; ≥ 5 ; ≤ 35): Initial heating comfort setpoint (°C); the baseSetpoint object can replace it.
 - `standbyShiftK` (number, default 2; ≥ 0 ; ≤ 10): Standby setpoint offset (K): lower for heating, higher for cooling.
@@ -439,18 +440,21 @@ Device `parameters`:
 
 ### `heatingActuator/v1`
 
-Heating actuator: each output drives an electrothermal valve; continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.
+Heating actuator: each output drives an electrothermal valve for heating, for cooling, or for both (change-over); continuous control value (5.001) converted to PWM, or direct 1-bit command, monitoring and emergency mode.
 
 Drives channel outputs with `switch` commands; connect a compatible equipment type.
 
 | Port | DPTs | Channel | Direction | Description |
 | --- | --- | --- | --- | --- |
-| `value` | 5.001 | required | in | Continuous control value of the valve (5.001), applied by pulse-width modulation over cycleMs. |
-| `switch` | 1.001 | required | in | two-point or thermostat PWM control |
+| `value` | 5.001 | required | in | Heating control value of the valve (5.001), applied by pulse-width modulation over cycleMs. |
+| `switch` | 1.001 | required | in | two-point or thermostat PWM heating control |
 | `valueStatus` | 5.001 | required | out | Control value applied to the valve (5.001). |
 | `fault` | 1.005 | required | out | missing control value: fallback program |
+| `coolingValue` | 5.001 | required | in | Cooling control value of the valve (5.001), for a cooling or change-over output. |
+| `coolingSwitch` | 1.001 | required | in | two-point or thermostat PWM cooling control |
 
 Channel `parameters`:
+- `valveMode` (string, default "heating"; "heating" (Heating), "cooling" (Cooling), "changeover" (Heating and cooling (change-over))): heating: the output follows the heating control value; cooling: the cooling control value; changeover: one valve for both, as on a 2-pipe system, following the control value that is not zero.
 - `valveType` (string, default "normallyClosed"; "normallyClosed" (Closed when de-energised), "normallyOpen" (Open when de-energised)): normallyClosed: valve closed without power (common); normallyOpen: valve open without power, so the output is inverted.
 - `cycleMs` (integer, default 20000; ≥ 1000): PWM period for a continuous control value: powered time equals value × period (real installations typically use 10–20 minutes).
 - `monitoringMs` (integer, default 0; ≥ 0): If no control value arrives within this time, enter fallback mode and report a fault (0 disables monitoring).
@@ -734,13 +738,25 @@ DALI ballasts in a group: each has a short address (0–63) and follows the comm
 
 ### `radiator`
 
-Radiator with a thermoelectric valve: gradual opening while powered; heat or cooling output is proportional to valve opening. Accepts `switch` commands.
+Radiator with a thermoelectric valve: gradual opening while powered; heat output is proportional to valve opening. Accepts `switch` commands.
 
 `parameters`:
 - `openingTimeMs` (integer, default 8000; ≥ 1000): Time for the valve to open fully (ms). Real valves take about 3 minutes; this is compressed like room time and should be short relative to the PWM period.
 - `normallyOpen` (boolean, default false): Normally open valve: applying power closes it.
 - `powerK` (number, default 25; ≥ 1 ; ≤ 60): Temperature difference (K) from outdoors that this radiator can maintain alone with the valve fully open.
-- `emitter` (string, default "heating"; "heating" (Heating), "cooling" (Cooling)): heating warms the room; cooling cools it, for example a fan coil with condensate drainage. Humidity and condensation are not modeled.
+`initialState`:
+- `openPct` (number, default 0; ≥ 0 ; ≤ 100)
+
+### `fanCoil`
+
+Fan coil unit: a heating, cooling, or change-over (2-pipe) water coil behind a thermoelectric valve, and a fan that runs while water flows; heat or cooling output is proportional to valve opening. Accepts `switch` commands.
+
+`parameters`:
+- `coil` (string, default "changeover"; "changeover" (Heating and cooling (2-pipe, change-over)), "heating" (Heating (4-pipe, hot water)), "cooling" (Cooling (4-pipe, cold water))): changeover: the same coil heats with hot water and cools with cold water, as given by the valve actuator; heating or cooling: a coil of a 4-pipe unit, on its own valve.
+- `openingTimeMs` (integer, default 8000; ≥ 1000): Time for the valve to open fully (ms), compressed like room time; short relative to the PWM period.
+- `normallyOpen` (boolean, default false): Normally open valve: applying power closes it.
+- `powerK` (number, default 20; ≥ 1 ; ≤ 60): Temperature difference (K) from outdoors that the unit can maintain alone with the valve fully open.
+- `fanPowerW` (number, default 40; ≥ 0 ; ≤ 1000): Electrical power (W) drawn by the fan while water flows in the coil.
 `initialState`:
 - `openPct` (number, default 0; ≥ 0 ; ≤ 100)
 
@@ -854,6 +870,7 @@ Alarm sounder with flash light: sounds while its output is on, for at most its r
 - `scenarios/energy-metering.json`: Energy metering and load shedding
 - `scenarios/full-topology.json`: KNX topology: couplers, repeater, and KNXnet/IP routers
 - `scenarios/heat-pump.json`: Heat pump and hot water
+- `scenarios/heating-cooling.json`: Heating and cooling
 - `scenarios/lighting-control.json`: Control multiple outputs
 - `scenarios/object-flags.json`: W and T flags: six-output actuator
 - `scenarios/priority-control.json`: Force an output

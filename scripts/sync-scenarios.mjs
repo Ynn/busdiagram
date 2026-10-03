@@ -29,6 +29,7 @@ const ORDER = [
   "bus-voltage",
   "alarms",
   "heat-pump",
+  "heating-cooling",
 ];
 const rank = (n) => (ORDER.includes(n) ? ORDER.indexOf(n) : ORDER.length);
 const names = (await readdir(resolve(root, "scenarios")))

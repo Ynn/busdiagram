@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heating · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/hvac.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -53,7 +53,7 @@
 <main>
 <p class="crumb">Guide</p>
 
-<h1 id="heating-and-air-conditioning-hvac"><a class="anchor" href="#heating-and-air-conditioning-hvac">#</a>Heating and air conditioning (HVAC)</h1><p>This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler or water circuit; a heat pump is a load that heats or cools its room (see <a href="#model-limits">model limits</a>). Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.</p>
+<h1 id="heating-and-air-conditioning-hvac"><a class="anchor" href="#heating-and-air-conditioning-hvac">#</a>Heating and air conditioning (HVAC)</h1><p>This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, radiator or fan coil, and window contact. The heating or cooling power is assumed to be available: there is no boiler or water circuit; a heat pump is a load that heats or cools its room (see <a href="#model-limits">model limits</a>). Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.</p>
 <h2 id="rooms-and-thermal-model"><a class="anchor" href="#rooms-and-thermal-model">#</a>Rooms and thermal model</h2><p>Each entry in <code>rooms</code> stores a room&#39;s temperature, outside temperature, and thermal time constant. Temperature moves toward the outside temperature while heating or cooling equipment adds or removes heat. A radiator&#39;s <code>powerK</code> is not a power in watts: it is the temperature difference, in K, that the radiator alone could maintain above the outside temperature with its valve fully open. An open window multiplies the heat loss by eight. The default <code>timeConstantMs</code> is 300 seconds in the accelerated model.</p>
 <pre class="code"><code><span class="k">"rooms"</span>: [
   { <span class="k">"id"</span>: <span class="s">"living"</span>, <span class="k">"name"</span>: <span class="s">"Living room"</span>, <span class="k">"temperatureC"</span>: <span class="n">18</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">5</span> }
@@ -105,7 +105,7 @@
 </tbody></table>
 </div><p>A DPT 9.001 value uses two payload bytes after the APCI. Until an object receives or measures a value, a 9.xxx object can remain unknown.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Room thermostat</h2><p><code>roomThermostat/v1</code> measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.</p>
-<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by <code>hvacMode</code> (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint.</p>
+<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by <code>hvacMode</code> (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint. See <a href="#heating-and-cooling">heating and cooling</a> for how the thermostat chooses between them.</p>
 <p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output at the setpoint and restarts below the <code>hysteresisK</code> threshold.</p>
 <div class="table"><table>
 <thead>
@@ -168,7 +168,7 @@
 <td><code>heatCool</code> / <code>heatCoolStatus</code></td>
 <td>1.100</td>
 <td>Receive / send</td>
-<td>Heating or cooling selection.</td>
+<td>Heating or cooling selection, and current mode. <code>heatCool</code> is unknown until it receives a value: the thermostat starts in heating mode. It is not used with <code>changeover: &quot;automatic&quot;</code>.</td>
 </tr>
 <tr>
 <td><code>heatingValue</code> / <code>coolingValue</code></td>
@@ -189,8 +189,8 @@
 <td>1 when no temperature is usable (external temperature too old, no room sensor); the control value is then <code>sensorFaultValuePct</code> (0 % by default) until a temperature comes back.</td>
 </tr>
 </tbody></table>
-</div><h2 id="heating-actuator-and-valve"><a class="anchor" href="#heating-actuator-and-valve">#</a>Heating actuator and valve</h2><p><code>heatingActuator/v1</code> drives a thermoelectric valve. A continuous <code>value</code> command is converted to PWM using <code>cycleMs</code>; a one-bit <code>switch</code> command is applied directly. <code>valveType</code> tells the actuator whether its valve is normally closed or normally open; the radiator&#39;s <code>normallyOpen</code> parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for <code>monitoringMs</code>, the actuator uses <code>emergencyPct</code> and reports a <code>fault</code>. Its <code>valueStatus</code> object reports the applied control value. When monitoring is enabled, the thermostat&#39;s <code>valueCyclicMs</code> should send often enough to prevent a false fault.</p>
-<p>A <code>radiator</code> load opens and closes its valve over <code>openingTimeMs</code>, then heats or cools the assigned room. Short PWM cycles can prevent the valve from opening fully, so choose a cycle appropriate to the modeled travel time. A switching actuator can also control a radiator with two-point regulation.</p>
+</div><h2 id="heating-actuator-and-valve"><a class="anchor" href="#heating-actuator-and-valve">#</a>Heating actuator and valve</h2><p><code>heatingActuator/v1</code> drives a thermoelectric valve on each output. A continuous <code>value</code> command is converted to PWM using <code>cycleMs</code>; a one-bit <code>switch</code> command is applied directly. The <code>valveMode</code> of an output makes it a heating valve (the default), a cooling valve, or a change-over valve: see <a href="#heating-and-cooling">heating and cooling</a>. <code>valveType</code> tells the actuator whether its valve is normally closed or normally open; the radiator&#39;s <code>normallyOpen</code> parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for <code>monitoringMs</code>, the actuator uses <code>emergencyPct</code> and reports a <code>fault</code>. Its <code>valueStatus</code> object reports the applied control value. When monitoring is enabled, the thermostat&#39;s <code>valueCyclicMs</code> should send often enough to prevent a false fault.</p>
+<p>A <code>radiator</code> load opens and closes its valve over <code>openingTimeMs</code>, then heats the assigned room; a radiator only heats. Short PWM cycles can prevent the valve from opening fully, so choose a cycle appropriate to the modeled travel time. A switching actuator can also control a radiator with two-point regulation.</p>
 <pre class="code"><code>{
   <span class="k">"id"</span>: <span class="s">"heat"</span>,
   <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
@@ -205,7 +205,56 @@
     <span class="k">"parameters"</span>: { <span class="k">"cycleMs"</span>: <span class="n">20000</span> },
     <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"radiator"</span>, <span class="k">"room"</span>: <span class="s">"living"</span> }
   }]
-}</code></pre><h2 id="sensors"><a class="anchor" href="#sensors">#</a>Sensors</h2><p><code>windowContact/v1</code> sends changes to its <code>contact</code> object. The transmitted value always follows the DPT: with DPT 1.019 or 1.001, 1 means open; with DPT 1.009, 1 means closed. <code>contactType</code> describes the physical contact (normally open by default) and <code>invert</code> tells the input to interpret a normally closed contact; when they disagree, open and closed are reported the wrong way round and a configuration warning is shown. By default it also sends its initial state after <code>startDelayMs</code>, so a thermostat can learn that a window starts open. Set <code>sendOnStart: false</code> to suppress that telegram. <code>temperatureSensor/v1</code> transmits room temperature when it changes and, optionally, at a fixed interval.</p>
+}</code></pre><h2 id="heating-and-cooling"><a class="anchor" href="#heating-and-cooling">#</a>Heating and cooling</h2><p>The same thermostat heats or cools. Its two setpoints in comfort mode are the heating setpoint, <code>comfortC</code> (21 °C by default), and the cooling setpoint, <code>deadZoneK</code> higher (24 °C by default); between them lies the dead zone. Standby and economy widen the gap: they lower the heating setpoint and raise the cooling setpoint.</p>
+<p><code>changeover</code> chooses who decides between heating and cooling:</p>
+<ul>
+<li><code>&quot;object&quot;</code>, the default: the <code>heatCool</code> object (DPT 1.100, 1 heating, 0 cooling). It comes from a central change-over, for example a season switch, or from the plant that tells a 2-pipe system whether it supplies hot or cold water. A thermostat in heating mode does nothing in summer, however warm the room.</li>
+<li><code>&quot;automatic&quot;</code>: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode and requests nothing. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).</li>
+</ul>
+<p><code>heatCoolStatus</code> sends the current mode. On a change, the thermostat sends the value of its new mode and sets the other value to 0.</p>
+<p>On the actuator side, <code>valveMode</code> follows the valve functions of a KNX HVAC valve actuator:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th><code>valveMode</code></th>
+<th>Valve</th>
+<th>Control values linked</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>&quot;heating&quot;</code> (default)</td>
+<td>Hot water: radiator, heating coil.</td>
+<td><code>value</code> or <code>switch</code>.</td>
+</tr>
+<tr>
+<td><code>&quot;cooling&quot;</code></td>
+<td>Cold water: cooling coil.</td>
+<td><code>coolingValue</code> or <code>coolingSwitch</code>.</td>
+</tr>
+<tr>
+<td><code>&quot;changeover&quot;</code></td>
+<td>One valve for both, on a 2-pipe system.</td>
+<td>Both: the valve follows the value that is not zero.</td>
+</tr>
+</tbody></table>
+</div><p>Link the heating and cooling values of the thermostat to two separate objects of a change-over output, not to one group address. On a change, the 0 sent on the other value would otherwise close the valve. A configuration warning appears when a value is linked to an output that ignores it, or when the emitter does not suit the valve.</p>
+<p>A <code>fanCoil</code> load is a fan coil unit: a water coil behind a thermoelectric valve, and a fan that runs while water flows in the coil (<code>fanPowerW</code>, 40 W by default, seen by a metering actuator). Its <code>coil</code> parameter has three values:</p>
+<ul>
+<li><code>&quot;changeover&quot;</code>: the coil of a 2-pipe unit. It heats with hot water and cools with cold water, as the change-over valve gives.</li>
+<li><code>&quot;heating&quot;</code>: the hot-water coil of a 4-pipe unit, on its own valve.</li>
+<li><code>&quot;cooling&quot;</code>: the cold-water coil of a 4-pipe unit, on its own valve.</li>
+</ul>
+<p>Its <code>powerK</code> works as for a radiator, but in both directions. The fan speed is not modeled.</p>
+<pre class="code"><code><span class="k">"channels"</span>: [{
+  <span class="k">"id"</span>: <span class="s">"h1"</span>, <span class="k">"label"</span>: <span class="s">"H1 office fan coil"</span>,
+  <span class="k">"parameters"</span>: { <span class="k">"valveMode"</span>: <span class="s">"changeover"</span> },
+  <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"fanCoil"</span>, <span class="k">"room"</span>: <span class="s">"office"</span>, <span class="k">"parameters"</span>: { <span class="k">"coil"</span>: <span class="s">"changeover"</span> } }
+}]</code></pre><p>The <a href="../examples/heating-cooling.html">heating and cooling example</a> shows both cases:</p>
+<ul>
+<li>in the office, an automatic change-over with a 2-pipe fan coil;</li>
+<li>in the meeting room, a radiator and a cooling coil, with heating and cooling selected by a season key that writes a DPT 1.100 object.</li>
+</ul>
+<h2 id="sensors"><a class="anchor" href="#sensors">#</a>Sensors</h2><p><code>windowContact/v1</code> sends changes to its <code>contact</code> object. The transmitted value always follows the DPT: with DPT 1.019 or 1.001, 1 means open; with DPT 1.009, 1 means closed. <code>contactType</code> describes the physical contact (normally open by default) and <code>invert</code> tells the input to interpret a normally closed contact; when they disagree, open and closed are reported the wrong way round and a configuration warning is shown. By default it also sends its initial state after <code>startDelayMs</code>, so a thermostat can learn that a window starts open. Set <code>sendOnStart: false</code> to suppress that telegram. <code>temperatureSensor/v1</code> transmits room temperature when it changes and, optionally, at a fixed interval.</p>
 <h2 id="example"><a class="anchor" href="#example">#</a>Example</h2><p>The <a href="../examples/hvac.html">room-heating example</a> combines PI control in the living room, two-point control in the bedroom, a window contact, and a central mode set through the USB interface panel.</p>
 <figure class="example" id="ex1">
 <div class="demo"><bus-diagram designer="../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Room-by-room heating control","description":"Two rooms are heated. In the living room, a PI thermostat sends a DPT 5.001 control value to a heating actuator, which drives a thermoelectric valve with PWM. The bedroom uses two-point (one-bit) control through a switching actuator. Open the living-room window in the Rooms panel: the contact switches the thermostat to frost protection. Write central mode 3/2/0 (DPT 20.102) from the USB interface panel; the thermostat Presence key restores comfort mode.","lines":[{"address":"1.1","name":"Heating example","powerSupply":{"currentMa":640}}],"rooms":[{"id":"livingRoom","name":"Living room","temperatureC":18},{"id":"bedroom","name":"Bedroom","temperatureC":17}],"groupAddresses":[{"address":"3/0/1","name":"Living-room heating control","dpt":"5.001"},{"address":"3/0/2","name":"Bedroom heating control","dpt":"1.001"},{"address":"3/1/1","name":"Living-room base setpoint","dpt":"9.001"},{"address":"3/2/0","name":"Central mode","dpt":"20.102"},{"address":"3/2/1","name":"Living-room presence","dpt":"1.018"},{"address":"3/3/1","name":"Living-room window","dpt":"1.019"},{"address":"3/4/1","name":"Living-room temperature","dpt":"9.001"},{"address":"3/4/2","name":"Living-room current setpoint","dpt":"9.001"},{"address":"3/4/3","name":"Living-room current mode","dpt":"20.102"},{"address":"3/4/4","name":"Living-room valve status","dpt":"5.001"},{"address":"3/4/5","name":"Bedroom temperature","dpt":"9.001"}],"devices":[{"id":"usbInterface","name":"USB interface","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"livingThermostat","name":"Living-room thermostat","address":"1.1.1","kind":"thermostat","behavior":"roomThermostat/v1","room":"livingRoom","objects":[{"id":"temp","name":"Measured temperature","ga":"3/4/1","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"base","name":"Base setpoint","ga":"3/1/1","dpt":"9.001","port":"baseSetpoint","flags":{"W":true,"T":false}},{"id":"mode","name":"Mode (preset)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"presence","name":"Presence","ga":"3/2/1","dpt":"1.018","port":"presence","flags":{"W":true,"T":true}},{"id":"win","name":"Window","ga":"3/3/1","dpt":"1.019","port":"window","flags":{"W":true,"T":false}},{"id":"sp","name":"Current setpoint","ga":"3/4/2","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"ms","name":"Current mode","ga":"3/4/3","dpt":"20.102","port":"hvacModeStatus","flags":{"W":false,"T":true}},{"id":"val","name":"Heating control","ga":"3/0/1","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}}],"buttons":[{"id":"presence","label":"Presence","icon":"presence","press":{"object":"presence","value":"toggle"},"led":"presence"}],"inputs":[{"id":"setpoint","type":"number","label":"Setpoint °C","object":"base","min":15,"max":28,"step":0.5}]},{"id":"windowContact","name":"Living-room window contact","address":"1.1.2","kind":"binaryInput","behavior":"windowContact/v1","room":"livingRoom","objects":[{"id":"c","name":"Living-room window","ga":"3/3/1","dpt":"1.019","port":"contact","flags":{"W":false,"T":true}}]},{"id":"heatingActuator","name":"Heating actuator","address":"1.1.3","kind":"heatingActuator","behavior":"heatingActuator/v1","objects":[{"id":"v1","name":"H1 control value","ga":"3/0/1","dpt":"5.001","port":"value","channel":"h1","flags":{"W":true,"T":false}},{"id":"s1","name":"H1 control status","ga":"3/4/4","dpt":"5.001","port":"valueStatus","channel":"h1","flags":{"W":false,"T":true}}],"channels":[{"id":"h1","label":"H1 living room","equipment":{"type":"radiator","room":"livingRoom"}}]},{"id":"bedroomThermostat","name":"Bedroom thermostat","address":"1.1.4","kind":"thermostat","behavior":"roomThermostat/v1","parameters":{"controlType":"twoPoint","comfortC":19},"room":"bedroom","objects":[{"id":"temp","name":"Measured temperature","ga":"3/4/5","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"mode","name":"Mode (preset)","ga":"3/2/0","dpt":"20.102","port":"hvacMode","flags":{"W":true,"T":false}},{"id":"sw","name":"One-bit heating control","ga":"3/0/2","dpt":"1.001","port":"heatingSwitch","flags":{"W":false,"T":true}}]},{"id":"switchActuator","name":"Switching actuator","address":"1.1.5","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"a","name":"Bedroom radiator","ga":"3/0/2","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"Bedroom actuator","equipment":{"type":"radiator","room":"bedroom","parameters":{"powerK":20}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
@@ -693,14 +742,14 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, summer or winter changeover, fan coils, or BACnet. A <code>heatPump</code> load heats or cools its room while its output enables it, after the minimum off time of its compressor (<code>minOffMs</code>); its coefficient of performance (<code>cop</code>) gives the heat shown, the room model uses <code>powerK</code>. See the <a href="../examples/heat-pump.html">heat pump example</a>. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, water temperatures, humidity, condensation or dew-point protection, or BACnet. A <code>heatPump</code> load heats or cools its room while its output enables it, after the minimum off time of its compressor (<code>minOffMs</code>); its coefficient of performance (<code>cop</code>) gives the heat shown, the room model uses <code>powerK</code>. See the <a href="../examples/heat-pump.html">heat pump example</a>. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. In a 2-pipe system, the water of a change-over fan coil follows the control value that its valve applies, as if the plant always supplied the water the room asks for. A fan coil runs its fan at one speed, without the fan speed objects of a fan coil controller. The operating mode of a heat pump is a parameter: the bus switches it on and off but does not change it over. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
 
 <nav class="pager">
 <a href="../guide/dali.html">← Dimming and DALI</a>
 <a href="../guide/topology.html">Topology and supervision →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#rooms-and-thermal-model">Rooms and thermal model</a></li><li><a href="#relevant-dpts">Relevant DPTs</a></li><li><a href="#room-thermostat">Room thermostat</a></li><li><a href="#heating-actuator-and-valve">Heating actuator and valve</a></li><li><a href="#sensors">Sensors</a></li><li><a href="#example">Example</a></li><li><a href="#model-limits">Model limits</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#rooms-and-thermal-model">Rooms and thermal model</a></li><li><a href="#relevant-dpts">Relevant DPTs</a></li><li><a href="#room-thermostat">Room thermostat</a></li><li><a href="#heating-actuator-and-valve">Heating actuator and valve</a></li><li><a href="#heating-and-cooling">Heating and cooling</a></li><li><a href="#sensors">Sensors</a></li><li><a href="#example">Example</a></li><li><a href="#model-limits">Model limits</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.4.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

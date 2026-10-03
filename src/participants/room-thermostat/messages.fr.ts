@@ -20,7 +20,6 @@ export const roomThermostatFr: Record<string, string> = {
   "Measured temperature": "Température mesurée",
   "Base setpoint": "Consigne de base",
   "Mode (preset)": "Mode (présélection)",
-  "Heating control value": "Commande chauffage",
   "Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling.":
     "Thermostat d'ambiance : modes confort / veille / économie / protection (20.102), fenêtre et présence, régulation PI (5.001 ou PWM) ou deux points, chauffage et refroidissement.",
   "External temperature": "Température externe",
@@ -30,7 +29,6 @@ export const roomThermostatFr: Record<string, string> = {
   "Heating / cooling": "Chauffage / refroidissement",
   "Heating / cooling status": "État chauffage / refroidissement",
   "Heating 1-bit control": "Commande chauffage 1 bit",
-  "Cooling control value": "Commande refroidissement",
   "Cooling 1-bit control": "Commande refroidissement 1 bit",
   "Control type": "Type de régulation",
   "PI (continuous or PWM)": "PI (continue ou PWM)",
@@ -65,4 +63,12 @@ export const roomThermostatFr: Record<string, string> = {
   "Presence input": "Entrée de présence",
   "Presence button": "Poussoir de présence",
   "Comfort extension": "Prolongation du confort",
+  "thermostat: {0} °C, below the heating setpoint {1} °C: heating":
+    "thermostat : {0} °C, sous la consigne de chauffage {1} °C : chauffage",
+  "thermostat: {0} °C, above the cooling setpoint {1} °C: cooling":
+    "thermostat : {0} °C, au-dessus de la consigne de refroidissement {1} °C : refroidissement",
+  "Heating / cooling change-over": "Basculement chauffage / refroidissement",
+  "By the heating / cooling object": "Par l'objet chauffage / refroidissement",
+  Automatic: "Automatique",
+  "Heating and cooling": "Chauffage et refroidissement",
 };

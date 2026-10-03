@@ -50,7 +50,8 @@ export type ButtonIcon =
   | "presence"
   | "clock"
   | "dimUp"
-  | "dimDown";
+  | "dimDown"
+  | "heatCool";
 
 export interface GroupAddress {
   address: string;
@@ -268,6 +269,7 @@ const ICONS: ButtonIcon[] = [
   "clock",
   "dimUp",
   "dimDown",
+  "heatCool",
 ];
 
 const ROOT_V2 = [

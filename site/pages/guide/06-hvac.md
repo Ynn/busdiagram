@@ -6,7 +6,7 @@ order: 6.3
 
 # Heating and air conditioning (HVAC)
 
-This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler or water circuit; a heat pump is a load that heats or cools its room (see [model limits](#model-limits)). Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.
+This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, radiator or fan coil, and window contact. The heating or cooling power is assumed to be available: there is no boiler or water circuit; a heat pump is a load that heats or cools its room (see [model limits](#model-limits)). Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.
 
 ## Rooms and thermal model
 
@@ -40,7 +40,7 @@ A DPT 9.001 value uses two payload bytes after the APCI. Until an object receive
 
 `roomThermostat/v1` measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.
 
-The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by `hvacMode` (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the `hvacMode` preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to `comfortC: 21`. Standby and economy lower it through `standbyShiftK` and `economyShiftK`; frost protection defaults to `frostProtectionC: 7`. Cooling uses `deadZoneK` between heating and cooling setpoints and a high-temperature protection setpoint.
+The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by `hvacMode` (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the `hvacMode` preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to `comfortC: 21`. Standby and economy lower it through `standbyShiftK` and `economyShiftK`; frost protection defaults to `frostProtectionC: 7`. Cooling uses `deadZoneK` between heating and cooling setpoints and a high-temperature protection setpoint. See [heating and cooling](#heating-and-cooling) for how the thermostat chooses between them.
 
 For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTimeMs`. It sends a DPT 5.001 value on `heatingValue` or `coolingValue` when the change reaches `valueSendDeltaPct`; a one-bit `heatingSwitch` or `coolingSwitch` output uses PWM over `pwmCycleMs`. For **two-point control**, `controlType: "twoPoint"` switches a one-bit output at the setpoint and restarts below the `hysteresisK` threshold.
 
@@ -54,16 +54,16 @@ For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTi
 | `hvacMode` / `hvacModeStatus` | 20.102 | Receive / send | Requested and current mode. |
 | `presence` | 1.018 or 1.001 | Receive | Presence requests comfort, except during building protection. With `presenceType: "button"`, each 1 extends the comfort mode for `comfortExtensionMs` (2 h by default), as a presence button. |
 | `window` | 1.019, 1.001, or 1.009 | Receive | Open window requests protection; with 1.009, 0 means open. |
-| `heatCool` / `heatCoolStatus` | 1.100 | Receive / send | Heating or cooling selection. |
+| `heatCool` / `heatCoolStatus` | 1.100 | Receive / send | Heating or cooling selection, and current mode. `heatCool` is unknown until it receives a value: the thermostat starts in heating mode. It is not used with `changeover: "automatic"`. |
 | `heatingValue` / `coolingValue` | 5.001 | Send | Continuous control value. |
 | `heatingSwitch` / `coolingSwitch` | 1.001 | Send | One-bit control or PWM. |
 | `sensorFault` | 1.005 or 1.001 | Send | 1 when no temperature is usable (external temperature too old, no room sensor); the control value is then `sensorFaultValuePct` (0 % by default) until a temperature comes back. |
 
 ## Heating actuator and valve
 
-`heatingActuator/v1` drives a thermoelectric valve. A continuous `value` command is converted to PWM using `cycleMs`; a one-bit `switch` command is applied directly. `valveType` tells the actuator whether its valve is normally closed or normally open; the radiator's `normallyOpen` parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for `monitoringMs`, the actuator uses `emergencyPct` and reports a `fault`. Its `valueStatus` object reports the applied control value. When monitoring is enabled, the thermostat's `valueCyclicMs` should send often enough to prevent a false fault.
+`heatingActuator/v1` drives a thermoelectric valve on each output. A continuous `value` command is converted to PWM using `cycleMs`; a one-bit `switch` command is applied directly. The `valveMode` of an output makes it a heating valve (the default), a cooling valve, or a change-over valve: see [heating and cooling](#heating-and-cooling). `valveType` tells the actuator whether its valve is normally closed or normally open; the radiator's `normallyOpen` parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for `monitoringMs`, the actuator uses `emergencyPct` and reports a `fault`. Its `valueStatus` object reports the applied control value. When monitoring is enabled, the thermostat's `valueCyclicMs` should send often enough to prevent a false fault.
 
-A `radiator` load opens and closes its valve over `openingTimeMs`, then heats or cools the assigned room. Short PWM cycles can prevent the valve from opening fully, so choose a cycle appropriate to the modeled travel time. A switching actuator can also control a radiator with two-point regulation.
+A `radiator` load opens and closes its valve over `openingTimeMs`, then heats the assigned room; a radiator only heats. Short PWM cycles can prevent the valve from opening fully, so choose a cycle appropriate to the modeled travel time. A switching actuator can also control a radiator with two-point regulation.
 
 ```json
 {
@@ -83,6 +83,48 @@ A `radiator` load opens and closes its valve over `openingTimeMs`, then heats or
 }
 ```
 
+## Heating and cooling
+
+The same thermostat heats or cools. Its two setpoints in comfort mode are the heating setpoint, `comfortC` (21 °C by default), and the cooling setpoint, `deadZoneK` higher (24 °C by default); between them lies the dead zone. Standby and economy widen the gap: they lower the heating setpoint and raise the cooling setpoint.
+
+`changeover` chooses who decides between heating and cooling:
+
+- `"object"`, the default: the `heatCool` object (DPT 1.100, 1 heating, 0 cooling). It comes from a central change-over, for example a season switch, or from the plant that tells a 2-pipe system whether it supplies hot or cold water. A thermostat in heating mode does nothing in summer, however warm the room.
+- `"automatic"`: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode and requests nothing. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).
+
+`heatCoolStatus` sends the current mode. On a change, the thermostat sends the value of its new mode and sets the other value to 0.
+
+On the actuator side, `valveMode` follows the valve functions of a KNX HVAC valve actuator:
+
+| `valveMode` | Valve | Control values linked |
+| --- | --- | --- |
+| `"heating"` (default) | Hot water: radiator, heating coil. | `value` or `switch`. |
+| `"cooling"` | Cold water: cooling coil. | `coolingValue` or `coolingSwitch`. |
+| `"changeover"` | One valve for both, on a 2-pipe system. | Both: the valve follows the value that is not zero. |
+
+Link the heating and cooling values of the thermostat to two separate objects of a change-over output, not to one group address. On a change, the 0 sent on the other value would otherwise close the valve. A configuration warning appears when a value is linked to an output that ignores it, or when the emitter does not suit the valve.
+
+A `fanCoil` load is a fan coil unit: a water coil behind a thermoelectric valve, and a fan that runs while water flows in the coil (`fanPowerW`, 40 W by default, seen by a metering actuator). Its `coil` parameter has three values:
+
+- `"changeover"`: the coil of a 2-pipe unit. It heats with hot water and cools with cold water, as the change-over valve gives.
+- `"heating"`: the hot-water coil of a 4-pipe unit, on its own valve.
+- `"cooling"`: the cold-water coil of a 4-pipe unit, on its own valve.
+
+Its `powerK` works as for a radiator, but in both directions. The fan speed is not modeled.
+
+```json
+"channels": [{
+  "id": "h1", "label": "H1 office fan coil",
+  "parameters": { "valveMode": "changeover" },
+  "equipment": { "type": "fanCoil", "room": "office", "parameters": { "coil": "changeover" } }
+}]
+```
+
+The [heating and cooling example](../examples/heating-cooling.html) shows both cases:
+
+- in the office, an automatic change-over with a 2-pipe fan coil;
+- in the meeting room, a radiator and a cooling coil, with heating and cooling selected by a season key that writes a DPT 1.100 object.
+
 ## Sensors
 
 `windowContact/v1` sends changes to its `contact` object. The transmitted value always follows the DPT: with DPT 1.019 or 1.001, 1 means open; with DPT 1.009, 1 means closed. `contactType` describes the physical contact (normally open by default) and `invert` tells the input to interpret a normally closed contact; when they disagree, open and closed are reported the wrong way round and a configuration warning is shown. By default it also sends its initial state after `startDelayMs`, so a thermostat can learn that a window starts open. Set `sendOnStart: false` to suppress that telegram. `temperatureSensor/v1` transmits room temperature when it changes and, optionally, at a fixed interval.
@@ -97,4 +139,4 @@ scenario: room-heating
 
 ## Model limits
 
-The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, summer or winter changeover, fan coils, or BACnet. A `heatPump` load heats or cools its room while its output enables it, after the minimum off time of its compressor (`minOffMs`); its coefficient of performance (`cop`) gives the heat shown, the room model uses `powerK`. See the [heat pump example](../examples/heat-pump.html). The thermostat has no internal time program: schedules come from the bus, for example a [weekly time switch](devices.html#weekly-time-switch-timeswitch-v1) that sends HVAC modes. Humidity and CO₂ are values entered on an [air quality sensor](devices.html#air-quality-sensor-airqualitysensor-v1); ventilation drives a `fan` load but does not change the room temperature or air quality. A radiator with `emitter: "cooling"` removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.
+The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, water temperatures, humidity, condensation or dew-point protection, or BACnet. A `heatPump` load heats or cools its room while its output enables it, after the minimum off time of its compressor (`minOffMs`); its coefficient of performance (`cop`) gives the heat shown, the room model uses `powerK`. See the [heat pump example](../examples/heat-pump.html). The thermostat has no internal time program: schedules come from the bus, for example a [weekly time switch](devices.html#weekly-time-switch-timeswitch-v1) that sends HVAC modes. Humidity and CO₂ are values entered on an [air quality sensor](devices.html#air-quality-sensor-airqualitysensor-v1); ventilation drives a `fan` load but does not change the room temperature or air quality. In a 2-pipe system, the water of a change-over fan coil follows the control value that its valve applies, as if the plant always supplied the water the room asks for. A fan coil runs its fan at one speed, without the fan speed objects of a fan coil controller. The operating mode of a heat pump is a parameter: the bus switches it on and off but does not change it over. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.

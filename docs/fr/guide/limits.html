@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Modèle et limites · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.0877f34.modified.e56a323c">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/limits.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.0877f34.modified.e56a323c" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -76,7 +76,7 @@
 <li><strong>Panneau de l&#39;interface USB :</strong> les lectures et écritures de groupe sont modélisées, sans programmation ni téléchargement.</li>
 <li><strong>DALI :</strong> la commande de groupe et la diffusion générale sont modélisées, sans mise en service DALI, commande de couleur ni éclairage de sécurité. Voir <a href="dali.html#model-limits">DALI</a>.</li>
 <li><strong>Avertissements de configuration :</strong> les paramètres qui compensent une propriété de la charge (type de vanne, câblage du moteur, type de contact) sont comparés à cette propriété ; une discordance est simulée et affichée comme avertissement. Voir les <a href="../reference/errors.html#configuration-warnings">codes d&#39;avertissement</a>.</li>
-<li><strong>Chauffage :</strong> chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent un objet DPT 20.102 ; les objets de mode forcé et les objets de mode sur un bit ne sont pas modélisés. Le thermostat n&#39;a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Les ventilo-convecteurs et les passerelles de climatisation ne sont pas modélisés. Voir <a href="hvac.html#model-limits">CVC</a>.</li>
+<li><strong>Chauffage :</strong> chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent un objet DPT 20.102 ; les objets de mode forcé et les objets de mode sur un bit ne sont pas modélisés. Le thermostat n&#39;a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Un ventilo-convecteur a une batterie chaude, froide ou à changement de mode et un ventilateur à une seule vitesse : la commande de vitesse du ventilateur, les températures d&#39;eau, le point de rosée et les passerelles de climatisation ne sont pas modélisés. Voir <a href="hvac.html#model-limits">CVC</a>.</li>
 <li><strong>Mesure :</strong> la puissance vient de la puissance nominale de chaque charge, sans tolérance de mesure ni facteur de puissance ; l&#39;énergie est comptée avec une échelle de temps (<code>energyTimeScale</code>).</li>
 <li><strong>Qualité de l&#39;air :</strong> les mesures sont saisies par le lecteur ; il n&#39;y a pas de modèle de l&#39;air ni de la ventilation.</li>
 <li><strong>Stores à lamelles :</strong> les lamelles s&#39;orientent avant chaque mouvement ; le rétablissement de l&#39;angle des lamelles après un mouvement et les positions limites des lamelles ne sont pas modélisés.</li>

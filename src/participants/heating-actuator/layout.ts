@@ -7,8 +7,26 @@ export const heatingLayout: ParameterLayout = {
       id: "valve",
       title: "Valve",
       items: [
-        { groupObject: "value" },
-        { groupObject: "switch" },
+        { parameter: "valveMode" },
+        {
+          when: { parameter: "valveMode", not: ["cooling"] },
+          items: [{ groupObject: "value" }, { groupObject: "switch" }],
+        },
+        {
+          when: { parameter: "valveMode", not: ["heating"] },
+          items: [
+            { groupObject: "coolingValue" },
+            { groupObject: "coolingSwitch" },
+          ],
+        },
+        {
+          when: { parameter: "valveMode", is: ["changeover"] },
+          items: [
+            {
+              note: "Link the heating and the cooling control values of the room controller: the valve follows the one that is not zero, and the water it lets through is hot or cold accordingly.",
+            },
+          ],
+        },
         { groupObject: "valueStatus" },
         { parameter: "valveType" },
         { parameter: "cycleMs" },
