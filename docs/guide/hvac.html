@@ -7,11 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heating · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -23,8 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -50,6 +52,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
+
 <h1 id="heating-and-air-conditioning-hvac"><a class="anchor" href="#heating-and-air-conditioning-hvac">#</a>Heating and air conditioning (HVAC)</h1><p>This chapter models room temperature control with a thermostat, heating actuator, thermoelectric valve, and window contact. The heating or cooling power is assumed to be available: there is no boiler, heat pump, or water circuit. Simulation time is compressed so a change that would take hours in a building becomes visible in minutes.</p>
 <h2 id="rooms-and-thermal-model"><a class="anchor" href="#rooms-and-thermal-model">#</a>Rooms and thermal model</h2><p>Each entry in <code>rooms</code> stores a room&#39;s temperature, outside temperature, and thermal time constant. Temperature moves toward the outside temperature while heating or cooling equipment adds or removes heat. A radiator&#39;s <code>powerK</code> is not a power in watts: it is the temperature difference, in K, that the radiator alone could maintain above the outside temperature with its valve fully open. An open window multiplies the heat loss by eight. The default <code>timeConstantMs</code> is 300 seconds in the accelerated model.</p>
 <pre class="code"><code><span class="k">"rooms"</span>: [
@@ -153,7 +156,7 @@
 <td><code>presence</code></td>
 <td>1.018 or 1.001</td>
 <td>Receive</td>
-<td>Presence requests comfort, except during building protection.</td>
+<td>Presence requests comfort, except during building protection. With <code>presenceType: &quot;button&quot;</code>, each 1 extends the comfort mode for <code>comfortExtensionMs</code> (2 h by default), as a presence button.</td>
 </tr>
 <tr>
 <td><code>window</code></td>
@@ -178,6 +181,12 @@
 <td>1.001</td>
 <td>Send</td>
 <td>One-bit control or PWM.</td>
+</tr>
+<tr>
+<td><code>sensorFault</code></td>
+<td>1.005 or 1.001</td>
+<td>Send</td>
+<td>1 when no temperature is usable (external temperature too old, no room sensor); the control value is then <code>sensorFaultValuePct</code> (0 % by default) until a temperature comes back.</td>
 </tr>
 </tbody></table>
 </div><h2 id="heating-actuator-and-valve"><a class="anchor" href="#heating-actuator-and-valve">#</a>Heating actuator and valve</h2><p><code>heatingActuator/v1</code> drives a thermoelectric valve. A continuous <code>value</code> command is converted to PWM using <code>cycleMs</code>; a one-bit <code>switch</code> command is applied directly. <code>valveType</code> tells the actuator whether its valve is normally closed or normally open; the radiator&#39;s <code>normallyOpen</code> parameter describes the valve actually installed. When they disagree, the valve opens when no heat is requested, and a configuration warning is shown above the diagram. Without a fresh command for <code>monitoringMs</code>, the actuator uses <code>emergencyPct</code> and reports a <code>fault</code>. Its <code>valueStatus</code> object reports the applied control value. When monitoring is enabled, the thermostat&#39;s <code>valueCyclicMs</code> should send often enough to prevent a false fault.</p>
@@ -684,7 +693,7 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, heat production (boiler, heat pump, water circuit, summer or winter changeover), fan coils, or BACnet. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, summer or winter changeover, fan coils, or BACnet. A <code>heatPump</code> load heats or cools its room while its output enables it, after the minimum off time of its compressor (<code>minOffMs</code>); its coefficient of performance (<code>cop</code>) gives the heat shown, the room model uses <code>powerK</code>. See the <a href="../examples/heat-pump.html">heat pump example</a>. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. A radiator with <code>emitter: &quot;cooling&quot;</code> removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
 
 <nav class="pager">
 <a href="../guide/dali.html">← Dimming and DALI</a>

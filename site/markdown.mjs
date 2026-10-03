@@ -136,7 +136,8 @@ function makeRenderer(root, page, examples) {
 export function renderPage(source, pageData, siteData, scenarios, root) {
   const data = siteData;
   const page = { out: pageData.page.url, headings: [] };
-  const base = pageData.section ? "../" : "";
+  const base = pageData.base ?? (pageData.section ? "../" : "");
+  const fr = pageData.lang === "fr";
   const examples = (spec, id) => {
     const conf = Object.fromEntries(
       spec
@@ -178,7 +179,7 @@ export function renderPage(source, pageData, siteData, scenarios, root) {
       .join("");
     return `<figure class="example" id="${id}">
 <div class="demo"><bus-diagram${attrs}${style}><script type="application/json">${JSON.stringify(json).replace(/<\//g, "<\\/")}</script></bus-diagram></div>
-${tabs.length ? `<div class="tabs" role="tablist">${tabHtml}${conf.scenario ? `<a class="try" href="${base}designer/index.html#template=${conf.scenario}" title="Open in designer">Edit in designer ↗</a>` : ""}</div>` : ""}
+${tabs.length ? `<div class="tabs" role="tablist">${tabHtml}${conf.scenario ? `<a class="try" href="${base}designer/index.html#template=${conf.scenario}" title="${fr ? "Ouvrir dans le designer" : "Open in designer"}">${fr ? "Modifier dans le designer ↗" : "Edit in designer ↗"}</a>` : ""}</div>` : ""}
 ${panels}
 </figure>`;
   };

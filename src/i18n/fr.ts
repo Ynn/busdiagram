@@ -703,7 +703,6 @@ export const frMessages: Record<string, string> = {
     "une sortie de store commande un seul moteur ; raccorder chaque store à sa propre sortie",
   Function: "Fonction",
   Scenes: "Scènes",
-  Safety: "Sécurité",
   "Limits and transitions": "Limites et transitions",
   "Switching by dimming or by value": "Commutation par variation ou par valeur",
   "Group objects": "Objets de groupe",
@@ -821,4 +820,14 @@ export const frMessages: Record<string, string> = {
   "Fixed level": "Niveau fixe",
   "Level on bus voltage failure": "Niveau à la coupure de la tension du bus",
   "Level before the failure": "Niveau avant la coupure",
+  "End of forcing": "Fin du forçage",
+  "Forcing and lock": "Forçage et verrouillage",
+  "Intrusion alarm": "Alarme intrusion",
+  "Fire alarm": "Alarme incendie",
+  "“normallyOpen” or “normallyClosed” expected":
+    "« normallyOpen » ou « normallyClosed » attendu",
+  "Rain alarm": "Alarme pluie",
+  "Frost alarm": "Alarme gel",
+  "Presence detector": "Détecteur de présence",
+  "Heating effect (K)": "Effet de chauffage (K)",
 };

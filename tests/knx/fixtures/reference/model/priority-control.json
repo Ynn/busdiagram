@@ -24,7 +24,7 @@
     },
     "switchActuator": {
       "c4": {
-        "number": 25,
+        "number": 31,
         "R": false,
         "U": false,
         "C": true,
@@ -34,7 +34,7 @@
         "drivesLoad": true
       },
       "f4": {
-        "number": 28,
+        "number": 34,
         "R": false,
         "U": false,
         "C": true,
@@ -44,7 +44,7 @@
         "drivesLoad": false
       },
       "e4": {
-        "number": 26,
+        "number": 32,
         "R": true,
         "U": false,
         "C": true,

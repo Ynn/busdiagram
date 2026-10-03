@@ -25,12 +25,20 @@ interface ShutterChannelState {
   stopAtMs: number | null;
   /** An effective movement was interrupted without any further publication of its position. */
   unpublished: boolean;
-  /** Wind alarm active: the shutter is raised and commands are ignored. */
-  windLock: boolean;
-  /** Lock object active: commands are ignored (the wind alarm keeps priority). */
+  /** Weather alarms received (or assumed by the monitoring). */
+  alarms: Record<WeatherAlarm, boolean>;
+  /** Forcing object: the output is held up or down. */
+  forced: "up" | "down" | null;
+  /** Lock object active: commands are ignored. */
   locked: boolean;
-  /** Estimated position when the lock started, to return to it afterwards. */
-  beforeLockPct: number | null;
+  /** Cause that holds the output, by priority: weather alarm, forcing, lock; or null. */
+  control: Control | null;
+  /** Estimated position when a cause took the output, to return to it afterwards. */
+  beforeControlPct: number | null;
+  /** Stored positions 1 to 4 (%), from the parameters, changed by the store objects. */
+  presets: number[];
+  /** Last end-position states sent: [upper, lower]. */
+  limits: [number | null, number | null];
   /** Estimated slat angle at the last reference point (0 % open, 100 % closed). */
   estimatedSlatPct: number;
   /** Duration of the slat rotation at the start of the current movement, ms. */
@@ -38,6 +46,10 @@ interface ShutterChannelState {
   /** Target slat angle of a slat-only movement, or null. */
   targetSlatPct: number | null;
 }
+
+const WEATHER = ["wind", "rain", "frost"] as const;
+type WeatherAlarm = (typeof WEATHER)[number];
+type Control = WeatherAlarm | "forced" | "lock";
 
 export interface ShutterState {
   channels: Record<string, ShutterChannelState>;
@@ -124,9 +136,29 @@ function motor(ctx: Ctx, ch: string, dir: "up" | "down" | null) {
   ctx.setOutput(ch, { type: "motor", direction: d });
 }
 
+/** End-position objects: 1 at the top (upper) or at the bottom (lower), sent on change. */
+function sendLimits(ctx: Ctx, ch: string) {
+  const st = ctx.state.channels[ch]!;
+  const values: [number, number] = [
+    st.estimatedPositionPct <= EPS ? 1 : 0,
+    st.estimatedPositionPct >= 100 - EPS ? 1 : 0,
+  ];
+  (["upperLimit", "lowerLimit"] as const).forEach((port, i) => {
+    if (st.limits[i] === values[i]) return;
+    st.limits[i] = values[i]!;
+    ctx.device.objects
+      .filter((o) => o.port === port && o.channel === ch)
+      .forEach((o) => {
+        ctx.setObject(o.id, values[i]!);
+        ctx.transmit(o.id);
+      });
+  });
+}
+
 function publish(ctx: Ctx, ch: string) {
   const st = ctx.state.channels[ch]!;
   st.unpublished = false;
+  sendLimits(ctx, ch);
   const objs = ctx.device.objects.filter(
     (o) => o.port === "positionStatus" && o.channel === ch,
   );
@@ -377,37 +409,140 @@ function react(ctx: Ctx, ch: string, reaction: unknown, positionPct: unknown) {
   }
 }
 
-/** Lock object: commands ignored while it is 1; reactions at its start and its end. */
-function lock(ctx: Ctx, ch: string, on: boolean) {
-  const st = ctx.state.channels[ch];
-  if (!st || st.locked === on) return;
-  st.locked = on;
+/** Weather alarms in their order of priority, highest first. */
+function alarmOrder(ctx: Ctx, ch: string): WeatherAlarm[] {
+  const order = String(
+    ctx.device.channels.find((c) => c.id === ch)?.parameters.alarmPriority ??
+      "wind,rain,frost",
+  ).split(",");
+  return order.filter((x): x is WeatherAlarm =>
+    (WEATHER as readonly string[]).includes(x),
+  );
+}
+
+/**
+ * Cause holding the output: the first active one in the order of safetyPriority (weather
+ * alarms, lock, forcing by default), the weather alarms in the order of alarmPriority.
+ */
+function controlOf(ctx: Ctx, ch: string): Control | null {
+  const st = ctx.state.channels[ch]!;
+  const order = String(
+    ctx.device.channels.find((c) => c.id === ch)?.parameters.safetyPriority ??
+      "alarms,lock,forced",
+  ).split(",");
+  for (const cause of order) {
+    if (cause === "alarms") {
+      const a = alarmOrder(ctx, ch).find((x) => st.alarms[x]);
+      if (a) return a;
+    } else if (cause === "lock" && st.locked) return "lock";
+    else if (cause === "forced" && st.forced) return "forced";
+  }
+  return null;
+}
+
+/**
+ * Apply the cause that now holds the output: its reaction when it takes over, or, when
+ * every cause has ended, the reaction after the last one (stay, or return to the
+ * position before the first cause).
+ */
+function updateControl(ctx: Ctx, ch: string) {
+  const st = ctx.state.channels[ch]!;
   const p = ctx.device.channels.find((c) => c.id === ch)?.parameters ?? {};
-  if (on) {
-    st.beforeLockPct = projectEstimate(
+  const before = st.control;
+  const now = controlOf(ctx, ch);
+  if (now === before) return;
+  if (before === null)
+    st.beforeControlPct = projectEstimate(
       st,
       ctx.timeMs,
       travelFor(params(ctx, ch), st.direction),
     );
-    ctx.note(ctx.t`${ch}: locked, commands ignored`);
-    if (!st.windLock) react(ctx, ch, p.lockStart, p.lockPositionPct);
+  st.control = now;
+  if (now === null) {
+    const after =
+      before === "lock"
+        ? p.afterLock
+        : before === "forced"
+          ? p.afterForcing
+          : p.afterAlarm;
+    ctx.note(ctx.t`${ch}: released, commands accepted again`);
+    if (after === "restore" && st.beforeControlPct !== null)
+      requestTarget(ctx, ch, st.beforeControlPct);
+    else react(ctx, ch, after, 0);
+    st.beforeControlPct = null;
     return;
   }
-  ctx.note(ctx.t`${ch}: lock ended`);
-  if (st.windLock) return;
-  if (p.afterLock === "restore" && st.beforeLockPct !== null)
-    requestTarget(ctx, ch, st.beforeLockPct);
-  else react(ctx, ch, p.afterLock, 0);
+  if (now === "forced") {
+    ctx.note(
+      st.forced === "up"
+        ? ctx.t`${ch}: forced up, commands ignored`
+        : ctx.t`${ch}: forced down, commands ignored`,
+    );
+    react(ctx, ch, st.forced, 0);
+  } else if (now === "lock") {
+    ctx.note(ctx.t`${ch}: locked, commands ignored`);
+    react(ctx, ch, p.lockStart, p.lockPositionPct);
+  } else {
+    const defaults = { wind: "up", rain: "up", frost: "none" };
+    ctx.note(
+      now === "wind"
+        ? ctx.t`${ch}: wind alarm, commands ignored`
+        : now === "rain"
+          ? ctx.t`${ch}: rain alarm, commands ignored`
+          : ctx.t`${ch}: frost alarm, commands ignored`,
+    );
+    react(ctx, ch, p[`${now}Reaction`] ?? defaults[now], 0);
+  }
 }
 
-function windAlarm(ctx: Ctx, ch: string, on: boolean) {
+/** Why commands are ignored, for the event log. */
+function refusal(ctx: Ctx, ch: string): string {
+  switch (ctx.state.channels[ch]!.control) {
+    case "wind":
+      return ctx.t`${ch}: wind alarm active, command ignored`;
+    case "rain":
+      return ctx.t`${ch}: rain alarm active, command ignored`;
+    case "frost":
+      return ctx.t`${ch}: frost alarm active, command ignored`;
+    case "forced":
+      return ctx.t`${ch}: forced, command ignored`;
+    default:
+      return ctx.t`${ch}: locked, command ignored`;
+  }
+}
+
+/** Alarm objects of a channel (with that channel, or without channel). */
+const alarmObjects = (ctx: Ctx, ch: string, kind: WeatherAlarm) =>
+  ctx.device.objects.filter(
+    (o) => o.port === `${kind}Alarm` && (o.channel === ch || !o.channel),
+  );
+
+/** Cyclic monitoring: without a telegram within the period, the alarm is assumed. */
+function watchAlarms(ctx: Ctx, ch: string, kind?: WeatherAlarm) {
+  const ms = Number(
+    ctx.device.channels.find((c) => c.id === ch)?.parameters
+      .alarmMonitoringMs ?? 0,
+  );
+  if (!(ms > 0)) return;
+  for (const k of kind ? [kind] : WEATHER)
+    if (alarmObjects(ctx, ch, k).length) ctx.schedule(`${ch}:watch:${k}`, ms);
+}
+
+function weatherAlarm(ctx: Ctx, ch: string, kind: WeatherAlarm, on: boolean) {
   const st = ctx.state.channels[ch];
-  if (!st || st.windLock === on) return;
-  st.windLock = on;
-  if (on) {
-    ctx.note(ctx.t`${ch}: wind alarm, shutter raised and locked`);
-    requestTarget(ctx, ch, 0);
-  } else ctx.note(ctx.t`${ch}: wind alarm ended, shutter released in place`);
+  if (!st) return;
+  watchAlarms(ctx, ch, kind);
+  if (st.alarms[kind] === on) return;
+  st.alarms[kind] = on;
+  if (!on)
+    ctx.note(
+      kind === "wind"
+        ? ctx.t`${ch}: wind alarm ended`
+        : kind === "rain"
+          ? ctx.t`${ch}: rain alarm ended`
+          : ctx.t`${ch}: frost alarm ended`,
+    );
+  updateControl(ctx, ch);
 }
 
 export const shutterActuator: BehaviorDefinition<ShutterState> = {
@@ -512,6 +647,154 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         description:
           "A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.",
       },
+      windReaction: {
+        title: "On wind alarm",
+        type: "string",
+        enum: ["up", "down", "stop", "none"],
+        enumTitles: ["Up", "Down", "Stop", "No movement"],
+        default: "up",
+        description:
+          "Movement when the wind alarm starts; commands are then ignored until it ends.",
+      },
+      rainReaction: {
+        title: "On rain alarm",
+        type: "string",
+        enum: ["up", "down", "stop", "none"],
+        enumTitles: ["Up", "Down", "Stop", "No movement"],
+        default: "up",
+        description:
+          "Movement when the rain alarm starts (an awning or a blind is usually raised).",
+      },
+      frostReaction: {
+        title: "On frost alarm",
+        type: "string",
+        enum: ["up", "down", "stop", "none"],
+        enumTitles: ["Up", "Down", "Stop", "No movement"],
+        default: "none",
+        description:
+          "Movement when the frost alarm starts; a frozen shutter is usually left where it is.",
+      },
+      alarmPriority: {
+        title: "Priority of the weather alarms",
+        type: "string",
+        enum: [
+          "wind,rain,frost",
+          "wind,frost,rain",
+          "rain,wind,frost",
+          "rain,frost,wind",
+          "frost,wind,rain",
+          "frost,rain,wind",
+        ],
+        enumTitles: [
+          "Wind > Rain > Frost",
+          "Wind > Frost > Rain",
+          "Rain > Wind > Frost",
+          "Rain > Frost > Wind",
+          "Frost > Wind > Rain",
+          "Frost > Rain > Wind",
+        ],
+        default: "wind,rain,frost",
+        description:
+          "Order of the weather alarms when several are active: the first one active applies.",
+      },
+      safetyPriority: {
+        title: "Priority of the safety functions",
+        type: "string",
+        enum: [
+          "alarms,lock,forced",
+          "alarms,forced,lock",
+          "lock,alarms,forced",
+          "lock,forced,alarms",
+          "forced,lock,alarms",
+          "forced,alarms,lock",
+        ],
+        enumTitles: [
+          "Weather alarms > Lock > Forcing",
+          "Weather alarms > Forcing > Lock",
+          "Lock > Weather alarms > Forcing",
+          "Lock > Forcing > Weather alarms",
+          "Forcing > Lock > Weather alarms",
+          "Forcing > Weather alarms > Lock",
+        ],
+        default: "alarms,lock,forced",
+        description:
+          "Order of the weather alarms, the lock, and forcing when several are active: the first one active holds the output, and commands are ignored.",
+      },
+      alarmMonitoringMs: {
+        title: "Monitoring of the alarm objects",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "Weather sensors send their alarm cyclically: without a telegram on an alarm object within this time, the alarm is assumed (0: no monitoring).",
+      },
+      afterAlarm: {
+        title: "After the weather alarms",
+        type: "string",
+        enum: ["none", "up", "down", "restore"],
+        enumTitles: ["No movement", "Up", "Down", "Position before the alarm"],
+        default: "none",
+        description: "Movement when the last weather alarm ends.",
+      },
+      afterForcing: {
+        title: "End of forcing",
+        type: "string",
+        enum: ["none", "up", "down", "restore"],
+        enumTitles: [
+          "No movement",
+          "Up",
+          "Down",
+          "Position before the forcing",
+        ],
+        default: "none",
+        description:
+          "Movement when the forcing ends (0 or 1 on the forcing object).",
+      },
+      preset1Pct: {
+        title: "Stored position 1",
+        unit: "%",
+        type: "number",
+        minimum: 0,
+        maximum: 100,
+        default: 20,
+        description: "Position recalled by 0 on the object of positions 1/2.",
+      },
+      preset2Pct: {
+        title: "Stored position 2",
+        unit: "%",
+        type: "number",
+        minimum: 0,
+        maximum: 100,
+        default: 40,
+        description: "Position recalled by 1 on the object of positions 1/2.",
+      },
+      preset3Pct: {
+        title: "Stored position 3",
+        unit: "%",
+        type: "number",
+        minimum: 0,
+        maximum: 100,
+        default: 60,
+        description: "Position recalled by 0 on the object of positions 3/4.",
+      },
+      preset4Pct: {
+        title: "Stored position 4",
+        unit: "%",
+        type: "number",
+        minimum: 0,
+        maximum: 100,
+        default: 80,
+        description: "Position recalled by 1 on the object of positions 3/4.",
+      },
+      presetStoring: {
+        title: "Storing of the positions",
+        type: "boolean",
+        default: true,
+        description:
+          "The store objects replace a stored position with the current estimated position, until the simulation restarts.",
+      },
       lockStart: {
         title: "When locked",
         type: "string",
@@ -545,7 +828,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         enumTitles: ["Stop", "Up", "Down"],
         default: "stop",
         description:
-          "Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position).",
+          "Motor when the bus voltage fails: stopped, or driven toward an end position until the voltage returns; the estimated position follows the time elapsed.",
       },
       busRecovery: {
         title: "On bus voltage recovery",
@@ -657,7 +940,7 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       title: "Wind alarm",
       direction: "in",
       description:
-        "1 raises the shutter and locks it against other commands; 0 releases it in place",
+        "1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels",
     },
     lock: {
       dpts: ["1.001"],
@@ -665,7 +948,81 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       title: "Lock",
       direction: "in",
       description:
-        "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority.",
+        "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority.",
+    },
+    rainAlarm: {
+      dpts: ["1.005", "1.001"],
+      channel: "optional",
+      title: "Rain alarm",
+      direction: "in",
+      description: "1 starts the rain alarm (rainReaction); 0 ends it",
+    },
+    frostAlarm: {
+      dpts: ["1.005", "1.001"],
+      channel: "optional",
+      title: "Frost alarm",
+      direction: "in",
+      description: "1 starts the frost alarm (frostReaction); 0 ends it",
+    },
+    forced: {
+      dpts: ["2.001"],
+      channel: "required",
+      title: "Forcing",
+      direction: "in",
+      description:
+        "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority.",
+    },
+    recallPosition12: {
+      dpts: ["1.001", "1.002"],
+      channel: "required",
+      title: "Positions 1/2",
+      direction: "in",
+      description:
+        "0 moves to the stored position 1, 1 to the stored position 2",
+    },
+    recallPosition34: {
+      dpts: ["1.001", "1.002"],
+      channel: "required",
+      title: "Positions 3/4",
+      direction: "in",
+      description:
+        "0 moves to the stored position 3, 1 to the stored position 4",
+    },
+    storePosition12: {
+      dpts: ["1.001", "1.002"],
+      channel: "required",
+      title: "Store positions 1/2",
+      direction: "in",
+      description:
+        "0 stores the current position as position 1, 1 as position 2",
+    },
+    storePosition34: {
+      dpts: ["1.001", "1.002"],
+      channel: "required",
+      title: "Store positions 3/4",
+      direction: "in",
+      description:
+        "0 stores the current position as position 3, 1 as position 4",
+    },
+    upperLimit: {
+      dpts: ["1.002", "1.001"],
+      channel: "required",
+      title: "Upper end position",
+      direction: "out",
+      description:
+        "1 when the shutter is estimated at the top (0 %), sent on change",
+      defaultFlags: { R: true },
+      telegram: "state",
+    },
+    lowerLimit: {
+      dpts: ["1.002", "1.001"],
+      channel: "required",
+      title: "Lower end position",
+      direction: "out",
+      description:
+        "1 when the shutter is estimated at the bottom (100 %), sent on change",
+      defaultFlags: { R: true },
+      telegram: "state",
     },
   },
   output: "motor",
@@ -680,9 +1037,15 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         startedAtMs: null,
         stopAtMs: null,
         unpublished: false,
-        windLock: false,
+        alarms: { wind: false, rain: false, frost: false },
+        forced: null,
         locked: false,
-        beforeLockPct: null,
+        control: null,
+        beforeControlPct: null,
+        presets: [1, 2, 3, 4].map((n) =>
+          Number(c.parameters[`preset${n}Pct`] ?? n * 20),
+        ),
+        limits: [null, null],
         learned: {},
         estimatedSlatPct: Number(c.initialState.estimatedSlatPct ?? 0),
         slatPhaseMs: 0,
@@ -693,11 +1056,23 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
   },
   onInit(ctx) {
     ctx.device.channels.forEach((c) => {
+      watchAlarms(ctx, c.id);
       motor(ctx, c.id, null);
       const st = ctx.state.channels[c.id]!;
       ctx.device.objects
         .filter((o) => o.port === "positionStatus" && o.channel === c.id)
         .forEach((o) => ctx.setObject(o.id, st.estimatedPositionPct));
+      // End positions: known from the start too, without sending.
+      const ends: [string, number][] = [
+        ["upperLimit", st.estimatedPositionPct <= EPS ? 1 : 0],
+        ["lowerLimit", st.estimatedPositionPct >= 100 - EPS ? 1 : 0],
+      ];
+      ends.forEach(([port, v], i) => {
+        st.limits[i] = v;
+        ctx.device.objects
+          .filter((o) => o.port === port && o.channel === c.id)
+          .forEach((o) => ctx.setObject(o.id, v));
+      });
       // The slat angle is known from the start too (a read answers it).
       ctx.device.objects
         .filter((o) => o.port === "slatStatus" && o.channel === c.id)
@@ -708,27 +1083,50 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
     if (!o) return;
     const ch = o.channel;
-    if (o.port === "windAlarm") {
-      (ch ? [ch] : ctx.device.channels.map((c) => c.id)).forEach((c) =>
-        windAlarm(ctx, c, e.newValue === 1),
-      );
+    const all = ch ? [ch] : ctx.device.channels.map((c) => c.id);
+    const kind = WEATHER.find((k) => o.port === `${k}Alarm`);
+    if (kind) {
+      all.forEach((c) => weatherAlarm(ctx, c, kind, e.newValue === 1));
       return;
     }
-    if (o.port === "lock") {
-      if (ch) lock(ctx, ch, e.newValue === 1);
+    if (o.port === "lock" || o.port === "forced") {
+      if (!ch) return;
+      const st = ctx.state.channels[ch]!;
+      if (o.port === "lock") st.locked = e.newValue === 1;
+      // 2.001: control bit and value; 3 forces down, 2 forces up, 0 or 1 ends forcing.
+      else st.forced = e.newValue & 2 ? (e.newValue & 1 ? "down" : "up") : null;
+      if (o.port === "lock" && !st.locked && st.control !== "lock")
+        ctx.note(ctx.t`${ch}: lock ended`);
+      updateControl(ctx, ch);
       return;
     }
-    const blocked = (c: string) =>
-      ctx.state.channels[c]?.windLock || ctx.state.channels[c]?.locked;
-    const locked = ch
-      ? blocked(ch)
-      : o.port === "scene" && ctx.device.channels.every((c) => blocked(c.id));
-    if (locked) {
-      ctx.note(
-        ch && ctx.state.channels[ch]?.windLock
-          ? ctx.t`${ch}: wind alarm active, command ignored`
-          : ctx.t`${ch ?? o.id}: locked, command ignored`,
+    if (o.port === "storePosition12" || o.port === "storePosition34") {
+      if (!ch) return;
+      const n = (o.port === "storePosition12" ? 1 : 3) + (e.newValue ? 1 : 0);
+      if (
+        ctx.device.channels.find((c) => c.id === ch)?.parameters
+          .presetStoring === false
+      ) {
+        ctx.note(
+          ctx.t`${ch}: storing positions disabled, position ${n} unchanged`,
+        );
+        return;
+      }
+      const st = ctx.state.channels[ch]!;
+      const pos = Math.round(
+        projectEstimate(
+          st,
+          ctx.timeMs,
+          travelFor(params(ctx, ch), st.direction),
+        ),
       );
+      st.presets[n - 1] = pos;
+      ctx.note(ctx.t`${ch}: position ${n} stored (${pos} %)`);
+      return;
+    }
+    const held = (c: string) => ctx.state.channels[c]?.control != null;
+    if (ch ? held(ch) : o.port === "scene" && all.every(held)) {
+      ctx.note(ch ? refusal(ctx, ch) : ctx.t`${o.id}: locked, command ignored`);
       return;
     }
     switch (o.port) {
@@ -744,12 +1142,19 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       case "slatCommand":
         if (ch) requestSlat(ctx, ch, e.newValue);
         break;
+      case "recallPosition12":
+      case "recallPosition34":
+        if (ch) {
+          const n =
+            (o.port === "recallPosition12" ? 1 : 3) + (e.newValue ? 1 : 0);
+          ctx.note(ctx.t`${ch}: to stored position ${n}`);
+          requestTarget(ctx, ch, ctx.state.channels[ch]!.presets[n - 1]!);
+        }
+        break;
       case "scene":
         applyScene(
           ctx,
-          (ch ? [ch] : ctx.device.channels.map((c) => c.id)).filter(
-            (c) => !blocked(c),
-          ),
+          all.filter((c) => !held(c)),
           e.newValue,
           o.dpt,
         );
@@ -757,8 +1162,8 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
     }
   },
   onBusFailure(ctx) {
-    // The motors stop, or run to an end position: the device no longer tracks the
-    // movement, so the estimate becomes that end position.
+    // The motors stop, or run toward an end position until the voltage returns: the
+    // estimate then follows the time actually elapsed, as for any movement.
     ctx.device.channels.forEach((c) => {
       const st = ctx.state.channels[c.id];
       if (!st) return;
@@ -767,8 +1172,24 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
         ctx.note(ctx.t`${c.id}: stopped, bus voltage failure`);
       st.targetPct = null;
       if (reaction === "up" || reaction === "down") {
+        const p = params(ctx, c.id);
+        st.phase = "moving";
+        st.direction = reaction;
+        st.targetPct = reaction === "up" ? 0 : 100;
+        st.slatPhaseMs =
+          p.slatTravelMs > 0
+            ? Math.round(
+                ((reaction === "down"
+                  ? 100 - st.estimatedSlatPct
+                  : st.estimatedSlatPct) *
+                  p.slatTravelMs) /
+                  100,
+              )
+            : 0;
+        st.startedAtMs = ctx.timeMs;
+        // No stop deadline: the device is off; the end stop halts the real shutter.
+        st.stopAtMs = null;
         motor(ctx, c.id, reaction);
-        st.estimatedPositionPct = reaction === "up" ? 0 : 100;
         ctx.note(
           reaction === "up"
             ? ctx.t`${c.id}: bus voltage failure, shutter raised`
@@ -781,9 +1202,12 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
     ctx.device.channels.forEach((c) => {
       const st = ctx.state.channels[c.id];
       if (!st) return;
-      // An end position reached during the failure: the motor is switched off.
-      motor(ctx, c.id, null);
-      if (st.windLock || st.locked) return publish(ctx, c.id);
+      // A movement started by the failure ends: the estimate covers the time elapsed.
+      if (st.phase === "moving") haltMotion(ctx, c.id);
+      else motor(ctx, c.id, null);
+      st.targetPct = null;
+      watchAlarms(ctx, c.id);
+      if (st.control !== null) return publish(ctx, c.id);
       if (c.parameters.busRecovery && c.parameters.busRecovery !== "none")
         react(
           ctx,
@@ -797,6 +1221,23 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
   onTimer(ctx, key) {
     const [ch, what] = key.split(":");
     if (!ch) return;
+    const watched = key.split(":")[2] as WeatherAlarm | undefined;
+    if (what === "watch" && watched) {
+      // No telegram from the alarm sensor within the period: the alarm is assumed.
+      ctx.note(
+        watched === "wind"
+          ? ctx.t`${ch}: no telegram on the wind alarm in time, alarm assumed`
+          : watched === "rain"
+            ? ctx.t`${ch}: no telegram on the rain alarm in time, alarm assumed`
+            : ctx.t`${ch}: no telegram on the frost alarm in time, alarm assumed`,
+      );
+      const st = ctx.state.channels[ch];
+      if (st && !st.alarms[watched]) {
+        st.alarms[watched] = true;
+        updateControl(ctx, ch);
+      }
+      return;
+    }
     if (what === "start") start(ctx, ch);
     else if (what === "stop") finish(ctx, ch);
     else if (what === "status")
@@ -832,7 +1273,9 @@ export const shutterActuator: BehaviorDefinition<ShutterState> = {
       targetPct: st.targetPct,
       startedAtMs: st.startedAtMs,
       stopAtMs: st.stopAtMs,
-      windLock: st.windLock,
+      safety: st.control,
+      alarms: { ...st.alarms },
+      presets: [...st.presets],
       locked: st.locked,
       learnedScenes: { ...st.learned },
     };

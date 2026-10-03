@@ -808,4 +808,9 @@ export const designerFr: Record<string, string> = {
     "Installation simulée autour de l'appareil : câblage, charges, valeurs saisies dans le schéma. Ce ne sont pas des paramètres de l'appareil.",
   'The scenario needs "formatVersion": 2 at its root: add it in the JSON tab to resume guided editing.':
     "Le scénario doit porter \"formatVersion\": 2 à sa racine : ajoutez-le dans l'onglet JSON pour reprendre l'édition guidée.",
+  "Contact of the push-button": "Contact du bouton-poussoir",
+  "Normally open (closes when pressed)":
+    "Normalement ouvert (se ferme à l'appui)",
+  "Normally closed (opens when pressed)":
+    "Normalement fermé (s'ouvre à l'appui)",
 };

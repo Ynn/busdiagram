@@ -14,4 +14,12 @@ export const presenceDetectorFr: Record<string, string> = {
   "Detection reported by a slave detector":
     "Détection signalée par un détecteur esclave",
   "Slave detection": "Détection esclave",
+  "Detection sent to the master detector":
+    "Détection envoyée au détecteur maître",
+  "Slave detector": "Détecteur esclave",
+  "Detection ignored: detector locked":
+    "Détection ignorée : détecteur verrouillé",
+  "Detector locked": "Détecteur verrouillé",
+  "Detector unlocked": "Détecteur déverrouillé",
+  "No telegram": "Pas de télégramme",
 };

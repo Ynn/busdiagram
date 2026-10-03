@@ -50,7 +50,7 @@ These warnings do not stop the simulation. They are shown above the diagram, and
 | --- | --- |
 | `config-valve` | The heating actuator output (`valveType`) and the connected radiator valve (`normallyOpen`) disagree; the valve opens when no heat is requested. |
 | `config-wiring` | The shutter actuator output inversion (`invertOutput`) and the motor wiring of the shutter (`wiringReversed`) disagree; the shutter moves opposite to the commands. |
-| `config-contact` | The window contact type (`contactType`) and the input inversion (`invert`) disagree; open and closed are reported the wrong way round. |
+| `config-contact` | The window contact type (`contactType`) and the input inversion (`invert`) disagree, or the contact of a push-button wired to a push-button interface (`keyContact`) and the contact its input expects when actuated (`actuatedContact`) disagree; open and closed, or presses and releases, are seen the wrong way round. |
 | `config-value-range` | A value of a push-button interface input (`shortValue`, `longValue`) is outside the range of its object’s DPT; the value sent is limited to that range. |
 | `config-no-power-supply` | A TP line, or the segment behind its extension, declares no bus power supply (`powerSupply`). Each TP segment needs its own supply with its choke; the simulation still runs. |
 | `config-segment-size` | More than 64 devices on one TP1 segment (a line, or the segment behind its extension). The KNX TP1 specification allows 64 devices per segment, or 256 with TP1-256 devices; otherwise use a line repeater or a segment coupler. |

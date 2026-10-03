@@ -1,7 +1,7 @@
-{% set base = '../' if section else '' %}
-{% set neighbors = collections.docs | pager(section, page.url) %}
+{% set neighbors = collections | pager(section, page.url, lang) %}
+{% set fr = 'fr/' if lang == 'fr' else '' %}
 <!doctype html>
-<html lang="en">
+<html lang="{{ lang }}">
 <head>
 <meta charset="utf-8">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
@@ -11,38 +11,41 @@
 <script src="{{ base }}assets/bus-diagram.js?v={{ assetVersion }}"></script>
 {% if scripts %}{% for script in scripts.split(',') %}<script src="{{ base }}{{ script | trim }}?v={{ assetVersion }}"></script>{% endfor %}{% endif %}
 <script defer src="{{ base }}assets/search-index.js?v={{ assetVersion }}"></script>
+{% if lang == 'fr' %}<script defer src="{{ base }}assets/search-index-fr.js?v={{ assetVersion }}"></script>{% endif %}
 <script defer src="{{ base }}assets/docs.js?v={{ assetVersion }}" data-base="{{ base }}"></script>
 </head>
 <body class="{{ section or 'home' }}">
 <header class="site">
-  <a class="brand" href="{{ base }}index.html">Bus<span>Diagram</span></a>
+  <a class="brand" href="{{ base }}{{ fr }}index.html">Bus<span>Diagram</span></a>
   <nav>
-    <a href="{{ base }}guide/installation.html"{% if section == 'guide' %} class="cur"{% endif %}>Guide</a>
-    <a href="{{ base }}examples/index.html"{% if section == 'examples' %} class="cur"{% endif %}>Examples</a>
-    <a href="{{ base }}reference/index.html"{% if section == 'reference' %} class="cur"{% endif %}>Reference</a>
-    <a href="{{ base }}designer/index.html">Designer</a>
+    <a href="{{ base }}{{ fr }}guide/installation.html"{% if section == 'guide' %} class="cur"{% endif %}>{{ 'Guide' | tr(lang) }}</a>
+    <a href="{{ base }}{{ fr }}examples/index.html"{% if section == 'examples' %} class="cur"{% endif %}>{{ 'Examples' | tr(lang) }}</a>
+    <a href="{{ base }}{{ fr }}reference/index.html"{% if section == 'reference' %} class="cur"{% endif %}>{{ 'Reference' | tr(lang) }}</a>
+    <a href="{{ base }}designer/index.html">{{ 'Designer' | tr(lang) }}</a>
   </nav>
-  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <div class="search"><input type="search" placeholder="{{ 'Search…' | tr(lang) }}" aria-label="{{ 'Search documentation' | tr(lang) }}"><ul class="results" hidden></ul></div>
+  {% if lang == 'fr' %}<a class="lang" href="{{ base }}{{ otherLanguage or 'index.html' }}" hreflang="en" lang="en">English</a>{% elif otherLanguage %}<a class="lang" href="{{ base }}{{ otherLanguage }}" hreflang="fr" lang="fr">Français</a>{% else %}<a class="lang" href="{{ base }}fr/index.html" hreflang="fr" lang="fr">Français</a>{% endif %}
   <a class="repo" href="{{ repository }}">GitHub</a>
-  <a class="dl" href="{{ base }}assets/bus-diagram.js?v={{ assetVersion }}" download="bus-diagram.js">Download</a>
+  <a class="dl" href="{{ base }}assets/bus-diagram.js?v={{ assetVersion }}" download="bus-diagram.js">{{ 'Download' | tr(lang) }}</a>
 </header>
 <div class="layout{% if not section %} wide{% endif %}">
 {% if section %}<aside class="side">
-{% for group in collections.docs | sectionGroups(section) %}
+{% for group in collections | sectionGroups(section, lang) %}
   {% if group.name %}<h4>{{ group.name }}</h4>{% endif %}
-  <ul>{% for item in group.pages %}<li{% if item.url == page.url %} class="cur"{% endif %}><a href="{{ base }}{{ item.url | stripLeadingSlash }}">{{ item.data.title }}</a></li>{% endfor %}</ul>
+  <ul>{% for item in group.pages %}<li{% if item.url == page.url %} class="cur"{% endif %}><a href="{{ base }}{{ item.url | stripLeadingSlash }}"{% if item.untranslated %} hreflang="en"{% endif %}>{{ item.data.title }}{% if item.untranslated %} <small class="en">EN</small>{% endif %}</a></li>{% endfor %}</ul>
 {% endfor %}
 </aside>{% endif %}
 <main>
-{% if section %}<p class="crumb">{{ section | sectionTitle }}</p>{% endif %}
+{% if section %}<p class="crumb">{{ section | sectionTitle(lang) }}</p>{% endif %}
+{% if translationStale %}<p class="stale" role="note">Cette traduction a été faite sur une version antérieure de la page anglaise, qui a changé depuis : elle peut être incomplète ou dépassée. <a href="{{ base }}{{ otherLanguage }}" hreflang="en">Lire la version anglaise de référence</a>.</p>{% endif %}
 {{ content | safe }}
 {% if neighbors.previous or neighbors.next %}<nav class="pager">
 {% if neighbors.previous %}<a href="{{ base }}{{ neighbors.previous.url | stripLeadingSlash }}">← {{ neighbors.previous.data.title }}</a>{% else %}<span></span>{% endif %}
 {% if neighbors.next %}<a href="{{ base }}{{ neighbors.next.url | stripLeadingSlash }}">{{ neighbors.next.data.title }} →</a>{% endif %}
 </nav>{% endif %}
 </main>
-{% if headings and headings.length > 2 %}<aside class="toc"><h4>On this page</h4><ul>{% for heading in headings %}{% if heading.depth == 2 %}<li><a href="#{{ heading.id }}">{{ heading.text }}</a></li>{% endif %}{% endfor %}</ul></aside>{% endif %}
+{% if headings and headings.length > 2 %}<aside class="toc"><h4>{{ 'On this page' | tr(lang) }}</h4><ul>{% for heading in headings %}{% if heading.depth == 2 %}<li><a href="#{{ heading.id }}">{{ heading.text }}</a></li>{% endif %}{% endfor %}</ul></aside>{% endif %}
 </div>
-<footer class="site">BusDiagram {{ version }} · offline documentation · <a href="{{ base }}designer/index.html">Designer</a> · <a href="{{ repository }}">Source code (GitHub)</a> · <a href="{{ repository }}/blob/main/CHANGELOG.md">Changes</a> · <a href="{{ base }}THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+<footer class="site">BusDiagram {{ version }} · {{ 'offline documentation' | tr(lang) }} · <a href="{{ base }}designer/index.html">{{ 'Designer' | tr(lang) }}</a> · <a href="{{ repository }}">{{ 'Source code (GitHub)' | tr(lang) }}</a> · <a href="{{ repository }}/blob/main/CHANGELOG.md">{{ 'Changes' | tr(lang) }}</a> · <a href="{{ base }}THIRD_PARTY_NOTICES.txt">{{ 'Third-party notices' | tr(lang) }}</a><br>{% if lang == 'fr' %}BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.{% else %}BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.{% endif %}</footer>
 </body>
 </html>

@@ -52,4 +52,17 @@ export const roomThermostatFr: Record<string, string> = {
   "Cyclic sending of temperature": "Émission cyclique de la température",
   Setpoints: "Consignes",
   "Presence and window": "Présence et fenêtre",
+  "thermostat: sensor fault, control value {0} %":
+    "thermostat : défaut de sonde, grandeur de commande {0} %",
+  "thermostat: temperature received again, sensor fault cleared":
+    "thermostat : température de nouveau reçue, défaut de sonde levé",
+  "Sensor fault": "Défaut de sonde",
+  "Control value on sensor fault": "Grandeur de commande en défaut de sonde",
+  "thermostat: comfort extended by the presence button":
+    "thermostat : confort prolongé par le poussoir de présence",
+  "thermostat: end of the comfort extension":
+    "thermostat : fin de la prolongation du confort",
+  "Presence input": "Entrée de présence",
+  "Presence button": "Poussoir de présence",
+  "Comfort extension": "Prolongation du confort",
 };

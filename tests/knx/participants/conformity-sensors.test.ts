@@ -144,3 +144,151 @@ describe("logic module", () => {
     expect(sim.objectValue("logicModule", "out")).toBe(1);
   });
 });
+
+describe("logic module: inversion and enable polarity", () => {
+  // In the example, the inputs are the sun output (2/6/2) and the automatic mode (2/6/3).
+  const logic = (params: Record<string, unknown>) =>
+    example("weather-protection.json", (doc) => {
+      setParams(doc, "logicModule", params);
+      device(doc, "logicModule").objects.push({
+        id: "en",
+        name: "Enable",
+        ga: "2/6/9",
+        dpt: "1.003",
+        port: "enable",
+        flags: { W: true, T: false },
+      });
+    });
+  const out = (sim: Simulation) => sim.objectValue("logicModule", "out");
+
+  it("invertOutput: AND becomes NAND", () => {
+    const sim = logic({ operation: "and", invertOutput: true });
+    write(sim, "2/6/3", 1);
+    expect(out(sim)).toBe(1); // sun 0, auto 1: AND 0, NAND 1
+    write(sim, "2/6/2", 1);
+    expect(out(sim)).toBe(0);
+  });
+
+  it("invertInput: one input inverted, the others unchanged", () => {
+    const sim = logic({ operation: "and", invertInput1: true });
+    write(sim, "2/6/3", 1);
+    // Input 1 (sun) is 0, inverted to 1; input 2 is 1: AND gives 1.
+    expect(out(sim)).toBe(1);
+    write(sim, "2/6/2", 1);
+    expect(out(sim)).toBe(0);
+  });
+
+  it("enablePolarity inverted: 1 blocks, 0 enables and sends the result", () => {
+    const sim = logic({ operation: "or", enablePolarity: "inverted" });
+    write(sim, "2/6/9", 1);
+    const before = sim.history.filter(
+      (t) => t.sourceDeviceId === "logicModule",
+    ).length;
+    write(sim, "2/6/3", 1);
+    expect(
+      sim.history.filter((t) => t.sourceDeviceId === "logicModule").length,
+    ).toBe(before);
+    write(sim, "2/6/9", 0);
+    expect(out(sim)).toBe(1);
+  });
+});
+
+describe("weather station: rain, frost, and cyclic alarms", () => {
+  const station = (params: Record<string, unknown> = {}) =>
+    example("weather-protection.json", (doc) => {
+      setParams(doc, "weatherStation", params);
+      const ws = device(doc, "weatherStation");
+      ws.objects.push(
+        {
+          id: "rain",
+          name: "Rain alarm",
+          ga: "2/6/6",
+          dpt: "1.005",
+          port: "rainAlarm",
+          flags: { W: false, T: true },
+        },
+        {
+          id: "frost",
+          name: "Frost alarm",
+          ga: "2/6/7",
+          dpt: "1.005",
+          port: "frostAlarm",
+          flags: { W: false, T: true },
+        },
+        {
+          id: "temp",
+          name: "Outdoor temperature",
+          ga: "2/6/8",
+          dpt: "9.001",
+          port: "outdoorTemp",
+          flags: { W: false, T: true },
+        },
+      );
+      (ws.inputs as unknown[]).push(
+        {
+          id: "rainIn",
+          type: "number",
+          label: "Rain",
+          object: "rain",
+          min: 0,
+          max: 1,
+          step: 1,
+        },
+        {
+          id: "tempIn",
+          type: "number",
+          label: "Temperature",
+          object: "temp",
+          min: -20,
+          max: 40,
+          step: 1,
+        },
+      );
+    });
+  const v = (sim: Simulation, id: string) =>
+    sim.objectValue("weatherStation", id);
+
+  it("rain: alarm after rainOnDelayMs, reset rainOffDelayMs after it stops", () => {
+    const sim = station({ rainOnDelayMs: 10000, rainOffDelayMs: 30000 });
+    enter(sim, "weatherStation", "rainIn", 1);
+    expect(v(sim, "rain")).toBe(0);
+    sim.advance(10000);
+    expect(v(sim, "rain")).toBe(1);
+    enter(sim, "weatherStation", "rainIn", 0);
+    sim.advance(20000);
+    expect(v(sim, "rain")).toBe(1);
+    sim.advance(12000);
+    expect(v(sim, "rain")).toBe(0);
+  });
+
+  it("a short shower is not reported", () => {
+    const sim = station({ rainOnDelayMs: 10000 });
+    enter(sim, "weatherStation", "rainIn", 1);
+    enter(sim, "weatherStation", "rainIn", 0);
+    sim.advance(15000);
+    expect(v(sim, "rain")).toBe(0);
+  });
+
+  it("frost: set at or below the threshold, reset at threshold + hysteresis", () => {
+    const sim = station({ frostThresholdC: 3, frostHysteresisK: 2 });
+    enter(sim, "weatherStation", "tempIn", 4);
+    expect(v(sim, "frost")).toBe(0);
+    enter(sim, "weatherStation", "tempIn", 3);
+    expect(v(sim, "frost")).toBe(1);
+    enter(sim, "weatherStation", "tempIn", 4);
+    expect(v(sim, "frost")).toBe(1);
+    enter(sim, "weatherStation", "tempIn", 5);
+    expect(v(sim, "frost")).toBe(0);
+  });
+
+  it("alarmCyclicMs: the alarms are sent again, for actuators that monitor them", () => {
+    const sim = station({ alarmCyclicMs: 10000 });
+    const sent = () =>
+      sim.history.filter(
+        (t) => t.ga === "2/6/1" && t.sourceDeviceId === "weatherStation",
+      ).length;
+    const before = sent();
+    sim.advance(31000);
+    expect(sent() - before).toBeGreaterThanOrEqual(3);
+  });
+});

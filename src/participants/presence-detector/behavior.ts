@@ -3,6 +3,8 @@ import type { BehaviorContext, BehaviorDefinition } from "../../knx/contracts";
 
 interface PresenceState {
   active: boolean;
+  /** Lock object at 1: detections are ignored. */
+  locked: boolean;
   /** Last brightness entered (lx), or null before any entry. */
   lux: number | null;
 }
@@ -15,6 +17,17 @@ type Ctx = BehaviorContext<PresenceState>;
  */
 function detect(ctx: Ctx, object: string) {
   const p = ctx.device.parameters;
+  if (ctx.state.locked) {
+    ctx.note(ctx.t`Detection ignored: detector locked`);
+    return;
+  }
+  // A slave reports every detection to its master, which keeps the hold time.
+  if (p.slave === true) {
+    ctx.note(ctx.t`Detection sent to the master detector`);
+    ctx.setObject(object, 1);
+    ctx.transmit(object);
+    return;
+  }
   const hold = Number(p.holdMs ?? 10000);
   if (ctx.state.active) {
     if (p.retrigger === false) {
@@ -51,6 +64,31 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
     type: "object",
     additionalProperties: false,
     properties: {
+      lockStart: {
+        title: "When locked",
+        type: "string",
+        enum: ["none", "off", "on"],
+        enumTitles: ["No telegram", "Off", "On"],
+        default: "none",
+        description:
+          "Telegram when the lock object receives 1: none (the hold time runs out as usual), 0 at once, or 1 kept while locked. While locked, detections are ignored.",
+      },
+      lockEnd: {
+        title: "When unlocked",
+        type: "string",
+        enum: ["none", "off", "on"],
+        enumTitles: ["No telegram", "Off", "On"],
+        default: "none",
+        description:
+          "Telegram when the lock object receives 0: none, 0, or 1 followed by the hold time.",
+      },
+      slave: {
+        title: "Slave detector",
+        type: "boolean",
+        default: false,
+        description:
+          "Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0.",
+      },
       holdMs: {
         title: "Hold time",
         unit: "ms",
@@ -95,6 +133,14 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
       direction: "out",
       description: "output object: 1 on detection, 0 when the timer expires",
     },
+    lock: {
+      dpts: ["1.001"],
+      channel: "none",
+      title: "Lock",
+      direction: "in",
+      description:
+        "1 locks the detector: its detections (and those of its slaves) are ignored; 0 unlocks it",
+    },
     slaveTrigger: {
       dpts: ["1.001", "1.018"],
       channel: "none",
@@ -113,7 +159,7 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
     },
   },
   acceptsInputs: true,
-  createState: () => ({ active: false, lux: null }),
+  createState: () => ({ active: false, locked: false, lux: null }),
   onInput(ctx, input) {
     if (input.gesture === "value") {
       // Measured brightness, entered on a numeric input.
@@ -132,6 +178,42 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
   // Master/slave: a slave detector in the same room sends 1 on each detection.
   onObjectWrite(ctx, e) {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
+    if (o?.port === "lock") {
+      const on = e.newValue === 1;
+      if (on === ctx.state.locked) return;
+      ctx.state.locked = on;
+      ctx.note(on ? ctx.t`Detector locked` : ctx.t`Detector unlocked`);
+      const out = ctx.device.objects.find((x) => x.port === "input");
+      if (!out) return;
+      const p = ctx.device.parameters;
+      const reaction = on ? p.lockStart : p.lockEnd;
+      const sendValue = (v: 0 | 1) => {
+        ctx.state.active = v === 1;
+        ctx.setObject(out.id, v);
+        ctx.transmit(out.id);
+      };
+      if (on) {
+        // Off: the hold time ends now with 0; on: the light stays on while locked.
+        if (reaction === "off") {
+          ctx.cancel("off");
+          sendValue(0);
+        } else if (reaction === "on") {
+          ctx.cancel("off");
+          sendValue(1);
+        }
+        return;
+      }
+      if (reaction === "off") {
+        ctx.cancel("off");
+        sendValue(0);
+      } else if (reaction === "on") {
+        sendValue(1);
+        ctx.schedule("off", Number(p.holdMs ?? 10000), out.id);
+      } else if (ctx.state.active)
+        // Still on after the lock: the hold time runs again.
+        ctx.schedule("off", Number(p.holdMs ?? 10000), out.id);
+      return;
+    }
     if (o?.port !== "slaveTrigger" || e.newValue !== 1) return;
     const out = ctx.device.objects.find((x) => x.port === "input");
     if (!out) return;

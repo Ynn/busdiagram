@@ -52,6 +52,8 @@ export interface ThermostatState {
   externalAtMs: number | null;
   /** The external temperature is older than externalTempTimeoutMs. */
   externalStale: boolean;
+  /** No usable temperature: the sensor fault is reported. */
+  sensorFault: boolean;
 }
 
 type TCtx = BehaviorContext<ThermostatState>;
@@ -169,7 +171,32 @@ function control(ctx: TCtx, dtMs: number) {
         ctx.t`thermostat: no temperature (room or “externalTemp” object): no control`,
       );
     st.warned = true;
+    // Sensor fault: a temperature was lost, or the device has no source at all. It is
+    // reported, and the control value set to its fault value.
+    const noSource =
+      ctx.readRoom() === null && !objectsOf(ctx, "externalTemp").length;
+    if (!st.sensorFault && (st.measuredC !== null || noSource)) {
+      st.sensorFault = true;
+      publish(ctx, "sensorFault", 1);
+      if (st.measuredC !== null) {
+        ctx.note(
+          ctx.t`thermostat: sensor fault, control value ${num(p.sensorFaultValuePct, 0)} %`,
+        );
+        st.valuePct = num(p.sensorFaultValuePct, 0);
+        st.switchOn = st.valuePct > 0;
+        sendValue(ctx);
+        pwm(ctx);
+      }
+    }
     return;
+  }
+  if (st.sensorFault) {
+    st.sensorFault = false;
+    st.warned = false;
+    ctx.note(
+      ctx.t`thermostat: temperature received again, sensor fault cleared`,
+    );
+    publish(ctx, "sensorFault", 0);
   }
   st.measuredC = t;
   sendTemperature(ctx, t);
@@ -289,7 +316,13 @@ function apply(ctx: TCtx, port: string, value: number, dpt = "") {
       if (value >= 0 && value <= 4) st.preset = value;
       break;
     case "presence":
-      st.presence = value !== 0;
+      if (p.presenceType === "button") {
+        // Presence button: each 1 extends the comfort mode for comfortExtensionMs.
+        if (value === 0) return;
+        st.presence = true;
+        ctx.schedule("presenceEnd", num(p.comfortExtensionMs, 7_200_000));
+        ctx.note(ctx.t`thermostat: comfort extended by the presence button`);
+      } else st.presence = value !== 0;
       break;
     case "window":
       st.window = windowOpenOf(dpt, value);
@@ -315,6 +348,24 @@ const thermostatParams: ParamSchema = {
   type: "object",
   additionalProperties: false,
   properties: {
+    presenceType: {
+      title: "Presence input",
+      type: "string",
+      enum: ["detector", "button"],
+      enumTitles: ["Presence detector", "Presence button"],
+      default: "detector",
+      description:
+        "detector: comfort while the presence object is 1; button: each 1 extends the comfort mode for comfortExtensionMs.",
+    },
+    comfortExtensionMs: {
+      title: "Comfort extension",
+      unit: "ms",
+      type: "integer",
+      minimum: 60000,
+      default: 7200000,
+      description:
+        "Duration of the comfort mode started by the presence button (2 h by default).",
+    },
     controlType: {
       title: "Control type",
       type: "string",
@@ -454,6 +505,17 @@ const thermostatParams: ParamSchema = {
       description:
         "Send the control value when it changes by at least this many percentage points.",
     },
+    sensorFaultValuePct: {
+      title: "Control value on sensor fault",
+      unit: "%",
+      expert: true,
+      type: "number",
+      minimum: 0,
+      maximum: 100,
+      default: 0,
+      description:
+        "Control value sent when no temperature is usable (external temperature too old, no room sensor), until a temperature comes back.",
+    },
     externalTempTimeoutMs: {
       title: "External temperature timeout",
       unit: "ms",
@@ -521,6 +583,16 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       channel: "none",
       title: "Measured temperature",
       direction: "out",
+    },
+    sensorFault: {
+      dpts: ["1.005", "1.001"],
+      channel: "none",
+      title: "Sensor fault",
+      direction: "out",
+      description:
+        "1 when no temperature is usable (external temperature too old and no room sensor); 0 when one comes back",
+      defaultFlags: { R: true },
+      telegram: "state",
     },
     externalTemp: {
       dpts: ["9.001"],
@@ -651,6 +723,7 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       lastSentTempC: null,
       lastSentTempAt: 0,
       warned: false,
+      sensorFault: false,
       externalAtMs: null,
       externalStale: false,
     };
@@ -687,6 +760,13 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       st.lastSentTempC = t;
       objectsOf(ctx, "actualTemp").forEach((o) => ctx.setObject(o.id, t));
     }
+  },
+  onTimer(ctx, key) {
+    if (key !== "presenceEnd") return;
+    ctx.state.presence = false;
+    ctx.note(ctx.t`thermostat: end of the comfort extension`);
+    update(ctx);
+    if (ctx.state.measuredC !== null) control(ctx, 0);
   },
   onTick(ctx, dtMs) {
     const st = ctx.state;

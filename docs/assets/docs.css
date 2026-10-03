@@ -124,6 +124,32 @@ header nav a.cur {
 .repo:hover {
   background: #f1efe8;
 }
+.lang {
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+.lang:hover {
+  background: #f1efe8;
+}
+.side small.en {
+  font-size: 10px;
+  color: var(--mute);
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  padding: 0 3px;
+  margin-left: 4px;
+}
+p.stale {
+  background: #fff4d6;
+  border-left: 4px solid #d99a00;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 14px;
+}
 .dl {
   font-weight: 600;
   font-size: 14px;

@@ -7,11 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Ports · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -23,8 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -35,6 +37,7 @@
 </aside>
 <main>
 <p class="crumb">Reference</p>
+
 <h1 id="ports"><a class="anchor" href="#ports">#</a>Ports</h1><p>A communication object&#39;s port names its role in a device behavior. Each behavior accepts specific ports and DPTs; see <a href="behaviors.html">behaviors</a>.</p>
 <div class="table"><table>
 <thead>
@@ -62,12 +65,12 @@
 <tr>
 <td><code>forced</code></td>
 <td>Priority override (2 = force off, 3 = force on, 0 or 1 = end of the override).</td>
-<td><code>switchActuator/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code></td>
 </tr>
 <tr>
 <td><code>lock</code></td>
 <td>1 locks the output in the state set by lockStart, 0 unlocks it (afterLock)</td>
-<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>buttonInterface/v1</code></td>
+<td><code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>presenceDetector/v1</code>, <code>buttonInterface/v1</code></td>
 </tr>
 <tr>
 <td><code>logic</code></td>
@@ -92,6 +95,16 @@
 <tr>
 <td><code>powerLimit</code></td>
 <td>1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionAlarm</code></td>
+<td>1 makes the output blink and ignore the commands; 0 ends the alarm (afterAlarm). Without channel, applies to all channels.</td>
+<td><code>switchActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>fireAlarm</code></td>
+<td>1 forces the output on and ignores the commands, with priority over intrusion; 0 ends the alarm. Without channel, applies to all channels.</td>
 <td><code>switchActuator/v1</code></td>
 </tr>
 <tr>
@@ -126,8 +139,48 @@
 </tr>
 <tr>
 <td><code>windAlarm</code></td>
-<td>1 raises the shutter and locks it against other commands; 0 releases it in place</td>
+<td>1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels</td>
 <td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>rainAlarm</code></td>
+<td>1 starts the rain alarm (rainReaction); 0 ends it</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1 starts the frost alarm (frostReaction); 0 ends it</td>
+<td><code>shutterActuator/v1</code>, <code>weatherStation/v1</code></td>
+</tr>
+<tr>
+<td><code>recallPosition12</code></td>
+<td>0 moves to the stored position 1, 1 to the stored position 2</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>recallPosition34</code></td>
+<td>0 moves to the stored position 3, 1 to the stored position 4</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>storePosition12</code></td>
+<td>0 stores the current position as position 1, 1 as position 2</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>storePosition34</code></td>
+<td>0 stores the current position as position 3, 1 as position 4</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>upperLimit</code></td>
+<td>1 when the shutter is estimated at the top (0 %), sent on change</td>
+<td><code>shutterActuator/v1</code></td>
+</tr>
+<tr>
+<td><code>lowerLimit</code></td>
+<td>1 when the shutter is estimated at the bottom (100 %), sent on change</td>
+<td><code>shutterActuator/v1</code></td>
 </tr>
 <tr>
 <td><code>display</code></td>
@@ -197,6 +250,11 @@
 <tr>
 <td><code>actualTemp</code></td>
 <td>Measured temperature (9.001), sent on change.</td>
+<td><code>roomThermostat/v1</code></td>
+</tr>
+<tr>
+<td><code>sensorFault</code></td>
+<td>1 when no temperature is usable (external temperature too old and no room sensor); 0 when one comes back</td>
 <td><code>roomThermostat/v1</code></td>
 </tr>
 <tr>
@@ -355,6 +413,21 @@
 <td><code>timeSwitch/v1</code></td>
 </tr>
 <tr>
+<td><code>override</code></td>
+<td>Value sent at once on the output, held until the next switching point of the program</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>overrideTimed</code></td>
+<td>Value sent at once on the output, held for overrideDurationMin clock minutes; the program value then applies</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
+<td><code>overridePermanent</code></td>
+<td>1 suspends the program (switching points ignored); 0 resumes it and sends its current value</td>
+<td><code>timeSwitch/v1</code></td>
+</tr>
+<tr>
 <td><code>command</code></td>
 <td>value received from KNX and forwarded to the other system (mode, setpoint, boost…)</td>
 <td><code>systemGateway/v1</code></td>
@@ -363,6 +436,36 @@
 <td><code>led</code></td>
 <td>state shown by the LED of the key</td>
 <td><code>buttonInterface/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionTrigger</code></td>
+<td>1 from an intrusion contact or detector sets the stored intrusion alarm</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionReset</code></td>
+<td>1 resets the stored alarm, only once its trigger has returned to 0</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>intrusionState</code></td>
+<td>Stored intrusion alarm, sent on each change; link it to the intrusion objects of the actuators</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireTrigger</code></td>
+<td>1 from a fire detector sets the stored fire alarm</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireReset</code></td>
+<td>1 resets the stored alarm, only once its trigger has returned to 0</td>
+<td><code>alarmModule/v1</code></td>
+</tr>
+<tr>
+<td><code>fireState</code></td>
+<td>Stored fire alarm, sent on each change; link it to the fire objects of the actuators</td>
+<td><code>alarmModule/v1</code></td>
 </tr>
 </tbody></table>
 </div>

@@ -66,7 +66,7 @@ test("all scenarios and extension example load without error", async ({
 }) => {
   await page.goto(DEMO);
   const all = page.locator("bus-diagram");
-  await expect(all).toHaveCount(24);
+  await expect(all).toHaveCount(26);
   for (let i = 0; i < 21; i++) {
     await expect(all.nth(i).locator(".card").first()).toBeVisible();
     await expect(all.nth(i).locator(".err")).toHaveCount(0);
@@ -324,7 +324,7 @@ for (const width of [1280, 768]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(DEMO);
     const all = page.locator("bus-diagram");
-    await expect(all).toHaveCount(24);
+    await expect(all).toHaveCount(26);
     // Heating changes autonomously with temperature; freeze every diagram at t = 0 before screenshots.
     await page.evaluate(() =>
       document.querySelectorAll("bus-diagram").forEach((el) => {

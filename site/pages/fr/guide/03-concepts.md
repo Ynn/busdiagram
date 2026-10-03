@@ -1,0 +1,73 @@
+---
+title: Notions
+translationOf: guide/03-concepts.md
+sourceHash: 7b5f42603e02
+order: 3
+---
+
+# Notions
+
+Un schéma distingue les actions de l'utilisateur, la communication KNX, les sorties des actionneurs et les équipements raccordés.
+
+```text
+appui sur une touche → comportement de l'appareil → objet de communication → télégramme sur le bus
+                                                                      ↓
+                                                 objet récepteur (indicateur W)
+                                                                      ↓
+                                      comportement → sortie → lampe ou volet
+```
+
+## Appareil
+
+Un appareil KNX a une adresse individuelle comme `1.1.10`. Il contient des objets de communication et peut aussi avoir des touches, des entrées et des voies. Son `behavior` définit sa logique et la façon de le dessiner, par exemple `buttonInterface/v1`, `switchActuator/v1`, `shutterActuator/v1`, `daliGateway/v1`, `roomThermostat/v1`, ou une [extension](extensions.html) enregistrée. Le champ `kind` est une description libre de l'appareil ; seul un comportement qui documente une valeur lui donne un effet, comme `"supervisor"` pour un afficheur.
+
+## Objet de communication
+
+Chaque objet a une valeur, un DPT qui détermine comment l'interpréter, une ou plusieurs adresses de groupe, et des indicateurs :
+
+| Indicateur | Activé | Désactivé |
+| --- | --- | --- |
+| `C` communication | L'objet communique, selon ses autres indicateurs (activé par défaut). | L'objet n'envoie ni ne traite aucun message. |
+| `W` écriture | Une écriture reçue met à jour la valeur et appelle le comportement. | Le télégramme reste visible, mais la valeur et le comportement ne changent pas. |
+| `T` transmission | L'objet peut envoyer sa valeur. | La valeur peut changer localement, mais aucun télégramme n'est envoyé. |
+| `R` lecture | L'objet répond à une lecture sur n'importe laquelle de ses adresses, sur son adresse d'émission. | Aucune réponse n'est envoyée. |
+| `U` mise à jour | Une réponse reçue met à jour l'objet. | Les réponses sont ignorées. |
+| `I` lecture à l'initialisation | Quand l'appareil redémarre après une coupure de la tension bus, l'objet lit sa valeur sur son adresse d'émission. | Pas de lecture au démarrage. |
+
+Quand un appareil émet, ses autres objets sur la même adresse prennent aussitôt la valeur, comme le prévoit la couche application KNX ; leur indicateur `W` décide seulement si l'appareil réagit, pour qu'un objet d'état n'agisse pas comme une commande.
+
+`R`, `U`, `C` et `I` sont facultatifs en JSON ; voir les valeurs par défaut de `R` et `U` dans le [guide de l'interface USB](usb-interface.html#r-and-u-flags). Chaque objet a aussi une priorité de transmission, `"priority": "low"` (par défaut), `"normal"` ou `"urgent"`, écrite dans le champ de contrôle de ses trames. Le **port** de l'objet (`switch`, `status`, `move`, etc.) lui donne un rôle dans son comportement ; voir la [référence des ports](../reference/ports.html).
+
+## Adresse de groupe et télégramme
+
+Un télégramme de groupe a une adresse individuelle source, une adresse de groupe destinataire, un service et, pour une écriture ou une réponse, des données utiles. Le DPT n'est pas transmis : chaque appareil interprète les données selon le DPT de son propre objet. Tous les appareils de la ligne peuvent recevoir le télégramme, mais seuls les objets associés à son adresse destinataire le traitent.
+
+| Service | Envoyé par | Traité par |
+| --- | --- | --- |
+| `GroupValueWrite` | Un comportement avec l'indicateur T, ou le panneau de l'interface USB. | Les objets associés avec l'indicateur W. |
+| `GroupValueRead` | Le panneau de l'interface USB. | Les objets associés avec l'indicateur R ; chacun répond sur son adresse d'émission. |
+| `GroupValueResponse` | Un objet qui répond à une lecture. | Les objets associés avec l'indicateur U. |
+
+## Voie et équipement raccordé
+
+Une voie est une sortie d'actionneur, comme un relais ou une commande de moteur. Son comportement envoie des commandes comme `on/off` ou `up/down/stop`. L'équipement raccordé, comme une lampe ou un volet, répond à ces commandes et a son propre état physique. Il ne connaît ni les adresses de groupe ni les DPT.
+
+Une sortie peut alimenter plusieurs charges câblées en parallèle, comme un circuit d'éclairage alimente plusieurs luminaires : `equipment` est alors une liste, et chaque charge reçoit les commandes de la sortie. Un actionneur avec mesure mesure la somme de leurs puissances. Une sortie de volet commande un seul moteur.
+
+```json
+"channels": [{
+  "id": "s1",
+  "label": "L1",
+  "equipment": [
+    { "type": "lamp", "name": "Ceiling", "parameters": { "powerW": 75 } },
+    { "type": "lamp", "name": "Wall" },
+    { "type": "appliance", "name": "Socket", "parameters": { "powerW": 1000 } }
+  ]
+}]
+```
+
+Cette séparation permet de montrer un [volet mal calibré](shutters.html) : l'actionneur estime la position d'après la durée de course configurée, alors que le volet raccordé se déplace à sa vitesse réelle.
+
+## Association interne
+
+Quand un objet émet, les autres objets du **même appareil** qui partagent l'adresse peuvent aussi recevoir le télégramme si leur indicateur W le permet. Un objet d'état peut donc commander une autre sortie du même actionneur. Cette convention du modèle n'est pas mise en œuvre de la même façon par tous les fabricants.

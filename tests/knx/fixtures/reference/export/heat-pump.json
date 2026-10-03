@@ -1,0 +1,295 @@
+{
+  "formatVersion": 2,
+  "title": "Heat pump and hot water",
+  "description": "A room thermostat switches a heat pump through a switching actuator; the compressor waits for its minimum off time before it starts again. A hot water cylinder, switched by a key, heats up to the setpoint of its own thermostat and then draws nothing: its power object shows it. Click the cylinder to draw off hot water.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Technical room",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "rooms": [
+    {
+      "id": "living",
+      "name": "Living room",
+      "temperatureC": 17
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "3/0/1",
+      "name": "Heat pump enable",
+      "dpt": "1.001"
+    },
+    {
+      "address": "3/4/1",
+      "name": "Room temperature",
+      "dpt": "9.001"
+    },
+    {
+      "address": "3/1/1",
+      "name": "Base setpoint",
+      "dpt": "9.001"
+    },
+    {
+      "address": "5/0/1",
+      "name": "Hot water cylinder switch",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/1/1",
+      "name": "Hot water cylinder status",
+      "dpt": "1.001"
+    },
+    {
+      "address": "5/2/1",
+      "name": "Heat pump power",
+      "dpt": "14.056"
+    },
+    {
+      "address": "5/2/2",
+      "name": "Hot water cylinder power",
+      "dpt": "14.056"
+    }
+  ],
+  "devices": [
+    {
+      "id": "thermostat",
+      "name": "Room thermostat",
+      "address": "1.1.1",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "parameters": {
+        "controlType": "twoPoint"
+      },
+      "room": "living",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Measured temperature",
+          "ga": "3/4/1",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "base",
+          "name": "Base setpoint",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "baseSetpoint",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "sw",
+          "name": "Heating switch",
+          "ga": "3/0/1",
+          "dpt": "1.001",
+          "port": "heatingSwitch",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "pushButton",
+      "name": "Push-button interface",
+      "address": "1.1.2",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "k1",
+          "name": "Hot water",
+          "ga": "5/0/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Hot water",
+          "parameters": {
+            "ledShown": true
+          },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "actuator",
+      "name": "Switch actuator with metering",
+      "address": "1.1.3",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "swHp",
+          "name": "Heat pump switching",
+          "ga": "3/0/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "hp",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "pHp",
+          "name": "Heat pump power",
+          "ga": "5/2/1",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "hp",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "swWh",
+          "name": "Hot water switching",
+          "ga": "5/0/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "wh",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "stWh",
+          "name": "Hot water status",
+          "ga": "5/1/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "wh",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "pWh",
+          "name": "Hot water power",
+          "ga": "5/2/2",
+          "dpt": "14.056",
+          "port": "power",
+          "channel": "wh",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "channels": [
+        {
+          "id": "hp",
+          "label": "Heat pump",
+          "equipment": {
+            "type": "heatPump",
+            "room": "living"
+          }
+        },
+        {
+          "id": "wh",
+          "label": "Hot water",
+          "equipment": {
+            "type": "waterHeater",
+            "initialState": {
+              "tempC": 40
+            }
+          }
+        }
+      ]
+    },
+    {
+      "id": "panel",
+      "name": "Visualization",
+      "address": "1.1.4",
+      "kind": "panel",
+      "behavior": "passive/v1",
+      "objects": [
+        {
+          "id": "t",
+          "name": "Room temperature",
+          "ga": "3/4/1",
+          "dpt": "9.001",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "php",
+          "name": "Heat pump power",
+          "ga": "5/2/1",
+          "dpt": "14.056",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "pwh",
+          "name": "Hot water power",
+          "ga": "5/2/2",
+          "dpt": "14.056",
+          "port": "display",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "sp",
+          "name": "Base setpoint",
+          "ga": "3/1/1",
+          "dpt": "9.001",
+          "port": "input",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ],
+      "inputs": [
+        {
+          "id": "spIn",
+          "type": "number",
+          "label": "Setpoint (°C)",
+          "object": "sp",
+          "min": 15,
+          "max": 25,
+          "step": 0.5
+        }
+      ]
+    }
+  ],
+  "options": {
+    "speed": 1,
+    "filterTables": false
+  }
+}

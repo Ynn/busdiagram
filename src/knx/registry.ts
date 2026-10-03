@@ -85,6 +85,7 @@ export function captureRegistry(): Registry {
 export interface RegistrySnapshot {
   readonly behaviors: ReadonlyMap<string, AnyBehavior>;
   readonly equipment: ReadonlyMap<string, AnyEquipment>;
+  readonly viewSizes: ReadonlyMap<string, EquipmentSize>;
   readonly messages: MessagesSnapshot;
 }
 
@@ -92,6 +93,7 @@ export function saveRegistry(): RegistrySnapshot {
   return {
     behaviors: new Map(behaviors),
     equipment: new Map(equipment),
+    viewSizes: new Map(viewSizes),
     messages: saveMessages(),
   };
 }
@@ -101,6 +103,8 @@ export function restoreRegistry(s: RegistrySnapshot): void {
   s.behaviors.forEach((v, k) => behaviors.set(k, v));
   equipment.clear();
   s.equipment.forEach((v, k) => equipment.set(k, v));
+  viewSizes.clear();
+  s.viewSizes.forEach((v, k) => viewSizes.set(k, v));
   restoreMessages(s.messages);
 }
 

@@ -45,6 +45,7 @@
     "prepare": "node scripts/install-hook.mjs",
     "prepublishOnly": "npm run check",
     "sync": "node scripts/sync-scenarios.mjs",
+    "docs:translations": "node scripts/translations.mjs",
     "check:publication": "sh scripts/check-publication.sh",
     "check:version": "node scripts/check-version.mjs",
     "preversion": "node scripts/release-version.mjs --preflight && npm run lint && npm run typecheck && npm test",

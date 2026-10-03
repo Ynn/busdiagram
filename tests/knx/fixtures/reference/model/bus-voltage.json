@@ -64,7 +64,7 @@
         "drivesLoad": false
       },
       "sw2": {
-        "number": 9,
+        "number": 11,
         "R": false,
         "U": false,
         "C": true,
@@ -74,7 +74,7 @@
         "drivesLoad": true
       },
       "st2": {
-        "number": 10,
+        "number": 12,
         "R": true,
         "U": false,
         "C": true,

@@ -141,6 +141,10 @@ summary:hover {
 .gutter[hidden] {
   display: none;
 }
+/* The Simulation tab shows the diagram even when the preview is hidden beside an editor. */
+.split.sim.no-preview .right {
+  display: block;
+}
 .gutter {
   cursor: col-resize;
   background: linear-gradient(

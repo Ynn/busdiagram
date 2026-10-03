@@ -113,10 +113,10 @@ const textsOf = (dir: string, designer: boolean) =>
 
 describe("catalogs of the participants and equipment", () => {
   it("are found for every participant and equipment", () => {
-    // 20 participants and 7 equipment; each has a French catalog.
+    // 21 participants and 10 equipment; each has a French catalog.
     const all = folders();
-    expect(all).toHaveLength(27);
-    expect(all.filter((f) => f.model.messages?.fr).length).toBe(27);
+    expect(all).toHaveLength(31);
+    expect(all.filter((f) => f.model.messages?.fr).length).toBe(31);
   });
 
   it("keep the interpolation slots, in every language", () => {

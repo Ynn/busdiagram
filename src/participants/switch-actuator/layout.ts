@@ -93,6 +93,22 @@ export const switchLayout: ParameterLayout = {
       ],
     },
     {
+      id: "alarms",
+      title: "Alarms",
+      items: [
+        { groupObject: "fireAlarm" },
+        { groupObject: "intrusionAlarm" },
+        {
+          when: { groupObject: "intrusionAlarm" },
+          items: [{ parameter: "blinkMs" }],
+        },
+        { parameter: "afterAlarm" },
+        {
+          note: "Fire forces the output on, intrusion makes it blink; fire has priority over intrusion, and both over forcing and the lock.",
+        },
+      ],
+    },
+    {
       id: "logic",
       title: "Logic link",
       items: [

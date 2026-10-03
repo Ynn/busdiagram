@@ -7,7 +7,6 @@ export const radiatorFr: Record<string, string> = {
   Radiator: "Radiateur",
   "Valve travel time": "Course de la vanne",
   "Valve open when de-energised": "Vanne ouverte hors tension",
-  "Heating effect (K)": "Effet de chauffage (K)",
   Emitter: "Émetteur",
   "Initial opening": "Ouverture au départ",
 };

@@ -10,6 +10,7 @@ export const buttonInterfaceLayout: ParameterLayout = {
       title: "Function",
       items: [
         { parameter: "function" },
+        { parameter: "actuatedContact" },
         {
           note: "The group objects of the function are created with it; link them in the Group objects tab.",
         },

@@ -7,11 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -23,8 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -35,6 +37,7 @@
 </aside>
 <main>
 <p class="crumb">Reference</p>
+
 <h1 id="behaviors-and-equipment"><a class="anchor" href="#behaviors-and-equipment">#</a>Behaviors and equipment</h1><p>These tables are generated from registered definitions. An extension can register additional behaviors or equipment; see the <a href="../guide/extensions.html">extension guide</a>.</p>
 <h2 id="behaviors"><a class="anchor" href="#behaviors">#</a>Behaviors</h2><h3 id="switchactuator-v1"><a class="anchor" href="#switchactuator-v1">#</a>switchActuator/v1</h3><p>Switch actuator: each channel drives a relay; optional timer, status feedback, and power and energy metering. Output command: <code>switch</code>.</p>
 <p><strong>Ports</strong></p>
@@ -106,6 +109,18 @@
 <td>1.005, 1.001</td>
 <td>none</td>
 <td>1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)</td>
+</tr>
+<tr>
+<td><code>intrusionAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>optional (all channels when omitted)</td>
+<td>1 makes the output blink and ignore the commands; 0 ends the alarm (afterAlarm). Without channel, applies to all channels.</td>
+</tr>
+<tr>
+<td><code>fireAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>optional (all channels when omitted)</td>
+<td>1 forces the output on and ignores the commands, with priority over intrusion; 0 ends the alarm. Without channel, applies to all channels.</td>
 </tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
@@ -279,6 +294,20 @@
 <td>State of the output when the bus voltage returns; the status feedback is then sent.</td>
 </tr>
 <tr>
+<td><code>blinkMs</code></td>
+<td>integer</td>
+<td><code>1000</code></td>
+<td>≥ 1000</td>
+<td>Time the contact stays closed, then open, while the intrusion alarm makes the output blink; mind the switching life of the relay.</td>
+</tr>
+<tr>
+<td><code>afterAlarm</code></td>
+<td>string</td>
+<td><code>&quot;lastCommand&quot;</code></td>
+<td>&quot;lastCommand&quot; (Last command), &quot;previous&quot; (Previous state), &quot;unchanged&quot; (Unchanged), &quot;on&quot; (On), &quot;off&quot; (Off)</td>
+<td>State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off.</td>
+</tr>
+<tr>
 <td><code>afterForcing</code></td>
 <td>string</td>
 <td><code>&quot;lastCommand&quot;</code></td>
@@ -362,13 +391,67 @@
 <td><code>windAlarm</code></td>
 <td>1.005, 1.001</td>
 <td>optional (all channels when omitted)</td>
-<td>1 raises the shutter and locks it against other commands; 0 releases it in place</td>
+<td>1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels</td>
 </tr>
 <tr>
 <td><code>lock</code></td>
 <td>1.001</td>
 <td>required</td>
-<td>1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority.</td>
+<td>1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority.</td>
+</tr>
+<tr>
+<td><code>rainAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>optional (all channels when omitted)</td>
+<td>1 starts the rain alarm (rainReaction); 0 ends it</td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>optional (all channels when omitted)</td>
+<td>1 starts the frost alarm (frostReaction); 0 ends it</td>
+</tr>
+<tr>
+<td><code>forced</code></td>
+<td>2.001</td>
+<td>required</td>
+<td>3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority.</td>
+</tr>
+<tr>
+<td><code>recallPosition12</code></td>
+<td>1.001, 1.002</td>
+<td>required</td>
+<td>0 moves to the stored position 1, 1 to the stored position 2</td>
+</tr>
+<tr>
+<td><code>recallPosition34</code></td>
+<td>1.001, 1.002</td>
+<td>required</td>
+<td>0 moves to the stored position 3, 1 to the stored position 4</td>
+</tr>
+<tr>
+<td><code>storePosition12</code></td>
+<td>1.001, 1.002</td>
+<td>required</td>
+<td>0 stores the current position as position 1, 1 as position 2</td>
+</tr>
+<tr>
+<td><code>storePosition34</code></td>
+<td>1.001, 1.002</td>
+<td>required</td>
+<td>0 stores the current position as position 3, 1 as position 4</td>
+</tr>
+<tr>
+<td><code>upperLimit</code></td>
+<td>1.002, 1.001</td>
+<td>required</td>
+<td>1 when the shutter is estimated at the top (0 %), sent on change</td>
+</tr>
+<tr>
+<td><code>lowerLimit</code></td>
+<td>1.002, 1.001</td>
+<td>required</td>
+<td>1 when the shutter is estimated at the bottom (100 %), sent on change</td>
 </tr>
 </tbody></table>
 </div><p><strong>Channel parameters</strong> (<code>channels[].parameters</code>)</p>
@@ -453,6 +536,97 @@
 <td>A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts.</td>
 </tr>
 <tr>
+<td><code>windReaction</code></td>
+<td>string</td>
+<td><code>&quot;up&quot;</code></td>
+<td>&quot;up&quot; (Up), &quot;down&quot; (Down), &quot;stop&quot; (Stop), &quot;none&quot; (No movement)</td>
+<td>Movement when the wind alarm starts; commands are then ignored until it ends.</td>
+</tr>
+<tr>
+<td><code>rainReaction</code></td>
+<td>string</td>
+<td><code>&quot;up&quot;</code></td>
+<td>&quot;up&quot; (Up), &quot;down&quot; (Down), &quot;stop&quot; (Stop), &quot;none&quot; (No movement)</td>
+<td>Movement when the rain alarm starts (an awning or a blind is usually raised).</td>
+</tr>
+<tr>
+<td><code>frostReaction</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;up&quot; (Up), &quot;down&quot; (Down), &quot;stop&quot; (Stop), &quot;none&quot; (No movement)</td>
+<td>Movement when the frost alarm starts; a frozen shutter is usually left where it is.</td>
+</tr>
+<tr>
+<td><code>alarmPriority</code></td>
+<td>string</td>
+<td><code>&quot;wind,rain,frost&quot;</code></td>
+<td>&quot;wind,rain,frost&quot; (Wind &gt; Rain &gt; Frost), &quot;wind,frost,rain&quot; (Wind &gt; Frost &gt; Rain), &quot;rain,wind,frost&quot; (Rain &gt; Wind &gt; Frost), &quot;rain,frost,wind&quot; (Rain &gt; Frost &gt; Wind), &quot;frost,wind,rain&quot; (Frost &gt; Wind &gt; Rain), &quot;frost,rain,wind&quot; (Frost &gt; Rain &gt; Wind)</td>
+<td>Order of the weather alarms when several are active: the first one active applies.</td>
+</tr>
+<tr>
+<td><code>safetyPriority</code></td>
+<td>string</td>
+<td><code>&quot;alarms,lock,forced&quot;</code></td>
+<td>&quot;alarms,lock,forced&quot; (Weather alarms &gt; Lock &gt; Forcing), &quot;alarms,forced,lock&quot; (Weather alarms &gt; Forcing &gt; Lock), &quot;lock,alarms,forced&quot; (Lock &gt; Weather alarms &gt; Forcing), &quot;lock,forced,alarms&quot; (Lock &gt; Forcing &gt; Weather alarms), &quot;forced,lock,alarms&quot; (Forcing &gt; Lock &gt; Weather alarms), &quot;forced,alarms,lock&quot; (Forcing &gt; Weather alarms &gt; Lock)</td>
+<td>Order of the weather alarms, the lock, and forcing when several are active: the first one active holds the output, and commands are ignored.</td>
+</tr>
+<tr>
+<td><code>alarmMonitoringMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Weather sensors send their alarm cyclically: without a telegram on an alarm object within this time, the alarm is assumed (0: no monitoring).</td>
+</tr>
+<tr>
+<td><code>afterAlarm</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No movement), &quot;up&quot; (Up), &quot;down&quot; (Down), &quot;restore&quot; (Position before the alarm)</td>
+<td>Movement when the last weather alarm ends.</td>
+</tr>
+<tr>
+<td><code>afterForcing</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No movement), &quot;up&quot; (Up), &quot;down&quot; (Down), &quot;restore&quot; (Position before the forcing)</td>
+<td>Movement when the forcing ends (0 or 1 on the forcing object).</td>
+</tr>
+<tr>
+<td><code>preset1Pct</code></td>
+<td>number</td>
+<td><code>20</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position recalled by 0 on the object of positions 1/2.</td>
+</tr>
+<tr>
+<td><code>preset2Pct</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position recalled by 1 on the object of positions 1/2.</td>
+</tr>
+<tr>
+<td><code>preset3Pct</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position recalled by 0 on the object of positions 3/4.</td>
+</tr>
+<tr>
+<td><code>preset4Pct</code></td>
+<td>number</td>
+<td><code>80</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Position recalled by 1 on the object of positions 3/4.</td>
+</tr>
+<tr>
+<td><code>presetStoring</code></td>
+<td>boolean</td>
+<td><code>true</code></td>
+<td></td>
+<td>The store objects replace a stored position with the current estimated position, until the simulation restarts.</td>
+</tr>
+<tr>
 <td><code>lockStart</code></td>
 <td>string</td>
 <td><code>&quot;none&quot;</code></td>
@@ -478,7 +652,7 @@
 <td>string</td>
 <td><code>&quot;stop&quot;</code></td>
 <td>&quot;stop&quot; (Stop), &quot;up&quot; (Up), &quot;down&quot; (Down)</td>
-<td>Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position).</td>
+<td>Motor when the bus voltage fails: stopped, or driven toward an end position until the voltage returns; the estimated position follows the time elapsed.</td>
 </tr>
 <tr>
 <td><code>busRecovery</code></td>
@@ -583,6 +757,12 @@
 <td>output object: 1 on detection, 0 when the timer expires</td>
 </tr>
 <tr>
+<td><code>lock</code></td>
+<td>1.001</td>
+<td>none</td>
+<td>1 locks the detector: its detections (and those of its slaves) are ignored; 0 unlocks it</td>
+</tr>
+<tr>
 <td><code>slaveTrigger</code></td>
 <td>1.001, 1.018</td>
 <td>none</td>
@@ -607,6 +787,27 @@
 </tr>
 </thead>
 <tbody><tr>
+<td><code>lockStart</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No telegram), &quot;off&quot; (Off), &quot;on&quot; (On)</td>
+<td>Telegram when the lock object receives 1: none (the hold time runs out as usual), 0 at once, or 1 kept while locked. While locked, detections are ignored.</td>
+</tr>
+<tr>
+<td><code>lockEnd</code></td>
+<td>string</td>
+<td><code>&quot;none&quot;</code></td>
+<td>&quot;none&quot; (No telegram), &quot;off&quot; (Off), &quot;on&quot; (On)</td>
+<td>Telegram when the lock object receives 0: none, 0, or 1 followed by the hold time.</td>
+</tr>
+<tr>
+<td><code>slave</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0.</td>
+</tr>
+<tr>
 <td><code>holdMs</code></td>
 <td>integer</td>
 <td><code>10000</code></td>
@@ -1163,6 +1364,12 @@
 <td>Measured temperature (9.001), sent on change.</td>
 </tr>
 <tr>
+<td><code>sensorFault</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when no temperature is usable (external temperature too old and no room sensor); 0 when one comes back</td>
+</tr>
+<tr>
 <td><code>externalTemp</code></td>
 <td>9.001</td>
 <td>none</td>
@@ -1259,6 +1466,20 @@
 </tr>
 </thead>
 <tbody><tr>
+<td><code>presenceType</code></td>
+<td>string</td>
+<td><code>&quot;detector&quot;</code></td>
+<td>&quot;detector&quot; (Presence detector), &quot;button&quot; (Presence button)</td>
+<td>detector: comfort while the presence object is 1; button: each 1 extends the comfort mode for comfortExtensionMs.</td>
+</tr>
+<tr>
+<td><code>comfortExtensionMs</code></td>
+<td>integer</td>
+<td><code>7200000</code></td>
+<td>≥ 60000</td>
+<td>Duration of the comfort mode started by the presence button (2 h by default).</td>
+</tr>
+<tr>
 <td><code>controlType</code></td>
 <td>string</td>
 <td><code>&quot;pi&quot;</code></td>
@@ -1362,6 +1583,13 @@
 <td><code>5</code></td>
 <td>≥ 1 ; ≤ 50</td>
 <td>Send the control value when it changes by at least this many percentage points.</td>
+</tr>
+<tr>
+<td><code>sensorFaultValuePct</code></td>
+<td>number</td>
+<td><code>0</code></td>
+<td>≥ 0 ; ≤ 100</td>
+<td>Control value sent when no temperature is usable (external temperature too old, no room sensor), until a temperature comes back.</td>
 </tr>
 <tr>
 <td><code>externalTempTimeoutMs</code></td>
@@ -1639,6 +1867,83 @@
 <td>End of the daily time window (HH:MM), excluded.</td>
 </tr>
 <tr>
+<td><code>invertOutput</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Send the inverse of the operation: NAND, NOR, or XNOR. Outside a time window, the output stays 0.</td>
+</tr>
+<tr>
+<td><code>invertInput1</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 1, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput2</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 2, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput3</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 3, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput4</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 4, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput5</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 5, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput6</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 6, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput7</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 7, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>invertInput8</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td>Invert the value of the logic input object number 8, in the order of the objects.</td>
+</tr>
+<tr>
+<td><code>enableAtStart</code></td>
+<td>string</td>
+<td><code>&quot;enabled&quot;</code></td>
+<td>&quot;enabled&quot; (Enabled), &quot;blocked&quot; (Blocked)</td>
+<td>State of the output before the enable object receives a first telegram.</td>
+</tr>
+<tr>
+<td><code>enablePolarity</code></td>
+<td>string</td>
+<td><code>&quot;normal&quot;</code></td>
+<td>&quot;normal&quot; (0 = blocked, 1 = enabled), &quot;inverted&quot; (0 = enabled, 1 = blocked)</td>
+<td>Value of the enable object that blocks the output.</td>
+</tr>
+<tr>
 <td><code>sendOnChangeOnly</code></td>
 <td>boolean</td>
 <td><code>true</code></td>
@@ -1682,6 +1987,18 @@
 <td>1 when the wind threshold is reached, 0 after hysteresis</td>
 </tr>
 <tr>
+<td><code>rainAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 after rain has lasted rainOnDelayMs, 0 rainOffDelayMs after it stops; rain is entered on this object&#39;s numeric input (0 or 1)</td>
+</tr>
+<tr>
+<td><code>frostAlarm</code></td>
+<td>1.005, 1.001</td>
+<td>none</td>
+<td>1 when the outdoor temperature is at or below frostThresholdC, 0 above it plus the hysteresis</td>
+</tr>
+<tr>
 <td><code>sunProtection</code></td>
 <td>1.001, 1.002</td>
 <td>none</td>
@@ -1719,6 +2036,41 @@
 <td><code>40000</code></td>
 <td>≥ 0</td>
 <td>Brightness (lux) at which sun protection is requested.</td>
+</tr>
+<tr>
+<td><code>frostThresholdC</code></td>
+<td>number</td>
+<td><code>3</code></td>
+<td>≥ -20 ; ≤ 10</td>
+<td>Outdoor temperature (°C) at or below which the frost alarm is set.</td>
+</tr>
+<tr>
+<td><code>frostHysteresisK</code></td>
+<td>number</td>
+<td><code>2</code></td>
+<td>≥ 0</td>
+<td>The frost alarm is reset once the temperature reaches threshold + hysteresis (K).</td>
+</tr>
+<tr>
+<td><code>rainOnDelayMs</code></td>
+<td>integer</td>
+<td><code>20000</code></td>
+<td>≥ 0</td>
+<td>Rain must last this long before the rain alarm is set, so that a short shower is not reported.</td>
+</tr>
+<tr>
+<td><code>rainOffDelayMs</code></td>
+<td>integer</td>
+<td><code>300000</code></td>
+<td>≥ 0</td>
+<td>The rain alarm is reset this long after the rain stops, so that a short break is not reported.</td>
+</tr>
+<tr>
+<td><code>alarmCyclicMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Period at which the wind, rain, and frost alarms are sent again, for actuators that monitor them (0: on change only).</td>
 </tr>
 <tr>
 <td><code>setsRoomOutdoorTemperature</code></td>
@@ -1960,6 +2312,24 @@
 <td>none</td>
 <td>object that receives the programmed values</td>
 </tr>
+<tr>
+<td><code>override</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>none</td>
+<td>Value sent at once on the output, held until the next switching point of the program</td>
+</tr>
+<tr>
+<td><code>overrideTimed</code></td>
+<td>1.001, 1.002, 1.003, 1.008, 5.001, 5.010, 17.001, 20.102</td>
+<td>none</td>
+<td>Value sent at once on the output, held for overrideDurationMin clock minutes; the program value then applies</td>
+</tr>
+<tr>
+<td><code>overridePermanent</code></td>
+<td>1.001, 1.003</td>
+<td>none</td>
+<td>1 suspends the program (switching points ignored); 0 resumes it and sends its current value</td>
+</tr>
 </tbody></table>
 </div><p><strong>Device parameters</strong> (<code>parameters</code>)</p>
 <div class="table"><table>
@@ -1978,6 +2348,13 @@
 <td><code>&quot;&quot;</code></td>
 <td></td>
 <td>Switching points separated by semicolons: days, time, and value, for example “Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0”. Days: Mon … Sun, ranges (Mon-Fri), lists (Sat,Sun), or Daily.</td>
+</tr>
+<tr>
+<td><code>overrideDurationMin</code></td>
+<td>integer</td>
+<td><code>60</code></td>
+<td>≥ 15 ; ≤ 4320</td>
+<td>Clock minutes during which a value received on the timed override object holds (15 min to 72 h).</td>
 </tr>
 <tr>
 <td><code>sendOnStart</code></td>
@@ -2132,7 +2509,7 @@
 </thead>
 <tbody><tr>
 <td><code>switch</code></td>
-<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.017, 1.018, 1.019, 1.100</td>
+<td>1.001, 1.002, 1.003, 1.005, 1.007, 1.008, 1.009, 1.010, 1.011, 1.012, 1.015, 1.017, 1.018, 1.019, 1.100</td>
 <td>required</td>
 <td>switching telegrams; with W set, the object follows the status of the load so that toggling and one-key dimming start from the real state</td>
 </tr>
@@ -2353,6 +2730,13 @@
 <td>Which value of the switching object is sent cyclically.</td>
 </tr>
 <tr>
+<td><code>actuatedContact</code></td>
+<td>string</td>
+<td><code>&quot;closed&quot;</code></td>
+<td>&quot;closed&quot; (Contact closed), &quot;open&quot; (Contact open)</td>
+<td>State of the input contact when the push-button is actuated: closed for a normally open push-button, open for a normally closed one.</td>
+</tr>
+<tr>
 <td><code>ledShown</code></td>
 <td>boolean</td>
 <td><code>false</code></td>
@@ -2367,7 +2751,56 @@
 <td>The LED is lit while its object is 0 and off while it is 1.</td>
 </tr>
 </tbody></table>
-</div><h2 id="equipment"><a class="anchor" href="#equipment">#</a>Equipment</h2><h3 id="lamp"><a class="anchor" href="#lamp">#</a>lamp</h3><p>Lamp: lit while the relay output is closed. Accepted commands: <code>switch</code>.</p>
+</div><h3 id="alarmmodule-v1"><a class="anchor" href="#alarmmodule-v1">#</a>alarmModule/v1</h3><p>Alarm module: for each zone, an intrusion and a fire alarm set by a trigger, stored until a reset accepted once the trigger has returned to 0.</p>
+<p><strong>Ports</strong></p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Port</th>
+<th>DPT</th>
+<th>Channel</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>intrusionTrigger</code></td>
+<td>1.005, 1.001</td>
+<td>required</td>
+<td>1 from an intrusion contact or detector sets the stored intrusion alarm</td>
+</tr>
+<tr>
+<td><code>intrusionReset</code></td>
+<td>1.015, 1.001</td>
+<td>required</td>
+<td>1 resets the stored alarm, only once its trigger has returned to 0</td>
+</tr>
+<tr>
+<td><code>intrusionState</code></td>
+<td>1.005, 1.001</td>
+<td>required</td>
+<td>Stored intrusion alarm, sent on each change; link it to the intrusion objects of the actuators</td>
+</tr>
+<tr>
+<td><code>fireTrigger</code></td>
+<td>1.005, 1.001</td>
+<td>required</td>
+<td>1 from a fire detector sets the stored fire alarm</td>
+</tr>
+<tr>
+<td><code>fireReset</code></td>
+<td>1.015, 1.001</td>
+<td>required</td>
+<td>1 resets the stored alarm, only once its trigger has returned to 0</td>
+</tr>
+<tr>
+<td><code>fireState</code></td>
+<td>1.005, 1.001</td>
+<td>required</td>
+<td>Stored fire alarm, sent on each change; link it to the fire objects of the actuators</td>
+</tr>
+</tbody></table>
+</div><p><em>No parameters.</em></p>
+<h2 id="equipment"><a class="anchor" href="#equipment">#</a>Equipment</h2><h3 id="lamp"><a class="anchor" href="#lamp">#</a>lamp</h3><p>Lamp: lit while the relay output is closed. Accepted commands: <code>switch</code>.</p>
 <p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
 <div class="table"><table>
 <thead>
@@ -2701,6 +3134,188 @@
 <td><code>false</code></td>
 <td></td>
 <td></td>
+</tr>
+</tbody></table>
+</div><h3 id="waterheater"><a class="anchor" href="#waterheater">#</a>waterHeater</h3><p>Electric hot water cylinder: its element heats the water to the setpoint of its own thermostat while the output supplies it; the water cools slowly and drawing off hot water cools it. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>2000</code></td>
+<td>≥ 100 ; ≤ 12000</td>
+<td>Electrical power (W) of the element while it heats.</td>
+</tr>
+<tr>
+<td><code>volumeL</code></td>
+<td>number</td>
+<td><code>200</code></td>
+<td>≥ 10 ; ≤ 1000</td>
+<td>Water volume of the cylinder (litres).</td>
+</tr>
+<tr>
+<td><code>setpointC</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 30 ; ≤ 80</td>
+<td>Temperature (°C) at which the thermostat of the element cuts the heating.</td>
+</tr>
+<tr>
+<td><code>hysteresisK</code></td>
+<td>number</td>
+<td><code>5</code></td>
+<td>≥ 1 ; ≤ 20</td>
+<td>The element heats again once the water is this much below the setpoint (K).</td>
+</tr>
+<tr>
+<td><code>lossKPerH</code></td>
+<td>number</td>
+<td><code>0.5</code></td>
+<td>≥ 0 ; ≤ 5</td>
+<td>Cooling of the water without draw-off (K per hour).</td>
+</tr>
+<tr>
+<td><code>timeScale</code></td>
+<td>number</td>
+<td><code>60</code></td>
+<td>≥ 1 ; ≤ 3600</td>
+<td>The water heats and cools this many times faster than real time, so that a heating cycle of hours lasts minutes (as energy metering).</td>
+</tr>
+<tr>
+<td><code>drawL</code></td>
+<td>number</td>
+<td><code>40</code></td>
+<td>≥ 1 ; ≤ 200</td>
+<td>Volume of hot water drawn off by a click on the cylinder (litres), replaced by cold water at 10 °C.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>tempC</code></td>
+<td>number</td>
+<td><code>45</code></td>
+<td>≥ 5 ; ≤ 80</td>
+<td></td>
+</tr>
+<tr>
+<td><code>powered</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="heatpump"><a class="anchor" href="#heatpump">#</a>heatPump</h3><p>Heat pump serving a room: while the output enables it, its compressor runs (after a minimum off time) and heats or cools the room; it draws its electrical power, the heat delivered being that power times its coefficient of performance. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>mode</code></td>
+<td>string</td>
+<td><code>&quot;heating&quot;</code></td>
+<td>&quot;heating&quot; (Heating), &quot;cooling&quot; (Cooling)</td>
+<td>Heating warms the room; cooling cools it (reversible unit).</td>
+</tr>
+<tr>
+<td><code>electricPowerW</code></td>
+<td>number</td>
+<td><code>1500</code></td>
+<td>≥ 100 ; ≤ 20000</td>
+<td>Electrical power (W) drawn while the compressor runs.</td>
+</tr>
+<tr>
+<td><code>cop</code></td>
+<td>number</td>
+<td><code>3.5</code></td>
+<td>≥ 1 ; ≤ 8</td>
+<td>Heat delivered divided by the electrical power drawn (shown on the unit; the room model uses powerK).</td>
+</tr>
+<tr>
+<td><code>powerK</code></td>
+<td>number</td>
+<td><code>25</code></td>
+<td>≥ 1 ; ≤ 60</td>
+<td>Temperature difference (K) from outdoors that the unit can maintain alone while it runs.</td>
+</tr>
+<tr>
+<td><code>minOffMs</code></td>
+<td>integer</td>
+<td><code>10000</code></td>
+<td>≥ 0</td>
+<td>Time the compressor stays off after a stop before it may start again (anti short-cycle); real units wait a few minutes, compressed here like room time.</td>
+</tr>
+</tbody></table>
+</div><p><strong>Initial state</strong> (<code>equipment.initialState</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>enabled</code></td>
+<td>boolean</td>
+<td><code>false</code></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+</div><h3 id="siren"><a class="anchor" href="#siren">#</a>siren</h3><p>Alarm sounder with flash light: sounds while its output is on, for at most its ringing time limit. Accepted commands: <code>switch</code>.</p>
+<p><strong>Parameters</strong> (<code>equipment.parameters</code>)</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Constraints</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>ringLimitMs</code></td>
+<td>integer</td>
+<td><code>180000</code></td>
+<td>≥ 0</td>
+<td>The sounder stops after this time even if still powered; the flash light stays on (0: no limit). Outdoor sounders are often limited to 3 minutes.</td>
+</tr>
+<tr>
+<td><code>powerW</code></td>
+<td>number</td>
+<td><code>15</code></td>
+<td>≥ 0 ; ≤ 1000</td>
+<td>Electrical power (W) drawn while powered.</td>
 </tr>
 </tbody></table>
 </div>

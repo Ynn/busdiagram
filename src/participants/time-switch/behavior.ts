@@ -104,6 +104,12 @@ export function currentEntry(
 interface SwitchTimerState {
   /** Clock time of the next switching point, or null. */
   nextAtMs: number | null;
+  /** Override: a value received holds until the next switching point. */
+  overridden: boolean;
+  /** Timed override: switching points are held until this clock time, or null. */
+  overrideUntilMs: number | null;
+  /** Permanent override: the program is suspended. */
+  suspended: boolean;
 }
 
 const hhmm = (minute: number) =>
@@ -130,7 +136,7 @@ function scheduleNext(ctx: BehaviorContext<SwitchTimerState>, fromMs?: number) {
 /** Send the value the program requests now (at start or after the clock is set). */
 function applyCurrent(ctx: BehaviorContext<SwitchTimerState>) {
   const c = ctx.clock();
-  if (!c) return;
+  if (!c || ctx.state.suspended) return;
   const e = currentEntry(program(ctx).entries, c.nowMs);
   if (!e) return;
   ctx.note(
@@ -138,6 +144,17 @@ function applyCurrent(ctx: BehaviorContext<SwitchTimerState>) {
   );
   send(ctx, "output", e.value);
 }
+
+const OUTPUT_DPTS = [
+  "1.001",
+  "1.002",
+  "1.003",
+  "1.008",
+  "5.001",
+  "5.010",
+  "17.001",
+  "20.102",
+];
 
 export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
   description:
@@ -153,6 +170,15 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
         description:
           "Switching points separated by semicolons: days, time, and value, for example “Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0”. Days: Mon … Sun, ranges (Mon-Fri), lists (Sat,Sun), or Daily.",
       },
+      overrideDurationMin: {
+        title: "Duration of the timed override",
+        type: "integer",
+        minimum: 15,
+        maximum: 4320,
+        default: 60,
+        description:
+          "Clock minutes during which a value received on the timed override object holds (15 min to 72 h).",
+      },
       sendOnStart: {
         title: "Send current state on start",
         type: "boolean",
@@ -165,23 +191,80 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
   ports: {
     output: {
       defaultFlags: { R: true },
-      dpts: [
-        "1.001",
-        "1.002",
-        "1.003",
-        "1.008",
-        "5.001",
-        "5.010",
-        "17.001",
-        "20.102",
-      ],
+      dpts: OUTPUT_DPTS,
       channel: "none",
       title: "Output",
       direction: "out",
       description: "object that receives the programmed values",
     },
+    override: {
+      dpts: OUTPUT_DPTS,
+      channel: "none",
+      title: "Override",
+      direction: "in",
+      description:
+        "Value sent at once on the output, held until the next switching point of the program",
+    },
+    overrideTimed: {
+      dpts: OUTPUT_DPTS,
+      channel: "none",
+      title: "Timed override",
+      direction: "in",
+      description:
+        "Value sent at once on the output, held for overrideDurationMin clock minutes; the program value then applies",
+    },
+    overridePermanent: {
+      dpts: ["1.001", "1.003"],
+      channel: "none",
+      title: "Permanent override",
+      direction: "in",
+      description:
+        "1 suspends the program (switching points ignored); 0 resumes it and sends its current value",
+    },
   },
-  createState: () => ({ nextAtMs: null }),
+  createState: () => ({
+    nextAtMs: null,
+    overridden: false,
+    overrideUntilMs: null,
+    suspended: false,
+  }),
+  onObjectWrite(ctx, e) {
+    const o = ctx.device.objects.find((x) => x.id === e.objectId);
+    if (o?.port === "override") {
+      // Manual override: the value is sent now and holds until the next switching point.
+      ctx.state.overridden = true;
+      ctx.note(
+        ctx.t`Time switch: override ${e.newValue} until the next switching point`,
+      );
+      send(ctx, "output", e.newValue);
+    } else if (o?.port === "overrideTimed") {
+      // Timed override: the value holds for overrideDurationMin clock minutes; the
+      // switching points meanwhile are held, then the program value applies.
+      const c = ctx.clock();
+      if (!c) return;
+      const minutes = Number(ctx.device.parameters.overrideDurationMin ?? 60);
+      ctx.state.overrideUntilMs = c.nowMs + minutes * 60_000;
+      ctx.schedule(
+        "overrideEnd",
+        Math.max(1, Math.round((minutes * 60_000) / c.speed)),
+      );
+      ctx.note(ctx.t`Time switch: override ${e.newValue} for ${minutes} min`);
+      send(ctx, "output", e.newValue);
+    } else if (o?.port === "overridePermanent") {
+      const on = e.newValue === 1;
+      if (on === ctx.state.suspended) return;
+      ctx.state.suspended = on;
+      if (on)
+        ctx.note(ctx.t`Time switch: program suspended (permanent override)`);
+      else {
+        ctx.note(ctx.t`Time switch: program resumed`);
+        ctx.state.overridden = false;
+        ctx.state.overrideUntilMs = null;
+        ctx.cancel("overrideEnd");
+        applyCurrent(ctx);
+      }
+    }
+  },
   onInit(ctx) {
     if (!ctx.clock()) {
       ctx.note(ctx.t`Time switch: the scenario declares no clock`);
@@ -196,12 +279,29 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
   },
   onTimer(ctx, key) {
     if (key === "start") applyCurrent(ctx);
+    if (key === "overrideEnd") {
+      ctx.state.overrideUntilMs = null;
+      ctx.note(ctx.t`Time switch: end of the override`);
+      applyCurrent(ctx);
+      return;
+    }
     if (key !== "next") return;
     const c = ctx.clock();
     // The deadline is rounded to whole milliseconds: use the programmed time itself.
     const at = Math.max(c?.nowMs ?? 0, ctx.state.nextAtMs ?? 0);
     const e = c ? currentEntry(program(ctx).entries, at) : null;
-    if (e) {
+    if (e && ctx.state.overrideUntilMs !== null)
+      ctx.note(
+        ctx.t`Time switch: ${hhmm(e.minute)} held by the timed override`,
+      );
+    else if (e && ctx.state.suspended)
+      ctx.note(
+        ctx.t`Time switch: ${hhmm(e.minute)} ignored, program suspended`,
+      );
+    else if (e) {
+      if (ctx.state.overridden)
+        ctx.note(ctx.t`Time switch: end of the override`);
+      ctx.state.overridden = false;
       ctx.note(ctx.t`Time switch: ${hhmm(e.minute)} → ${e.value}`);
       send(ctx, "output", e.value);
     }
@@ -212,6 +312,10 @@ export const timeSwitch: BehaviorDefinition<SwitchTimerState> = {
     scheduleNext(ctx);
   },
   deviceState(state): JsonObject {
-    return { nextAtMs: state.nextAtMs };
+    return {
+      nextAtMs: state.nextAtMs,
+      overridden: state.overridden || state.overrideUntilMs !== null,
+      suspended: state.suspended,
+    };
   },
 };

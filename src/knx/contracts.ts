@@ -191,6 +191,11 @@ export interface ChannelInfo {
   readonly equipment: string | null;
   /** Types of all the loads connected, in order; they receive the same commands. */
   readonly loads: readonly string[];
+  /**
+   * Contact of the push-button wired to a contact input (installation): normally open
+   * (closes when pressed, the default) or normally closed.
+   */
+  readonly keyContact?: "normallyOpen" | "normallyClosed";
 }
 
 /** What the presentation of a device is decided from. */

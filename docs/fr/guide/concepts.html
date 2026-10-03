@@ -1,0 +1,151 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notions · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+<script defer src="../../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../examples/index.html">Exemples</a>
+    <a href="../../reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/concepts.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li class="cur"><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li><a href="../../guide/scenario.html" hreflang="en">Structure of a scenario <small class="en">EN</small></a></li><li><a href="../../guide/devices.html" hreflang="en">Push buttons and actuators <small class="en">EN</small></a></li><li><a href="../../guide/shutters.html" hreflang="en">Shutters <small class="en">EN</small></a></li><li><a href="../../guide/dali.html" hreflang="en">Dimming and DALI <small class="en">EN</small></a></li><li><a href="../../guide/hvac.html" hreflang="en">Heating <small class="en">EN</small></a></li><li><a href="../../guide/topology.html" hreflang="en">Topology and supervision <small class="en">EN</small></a></li><li><a href="../../guide/couplers.html" hreflang="en">Couplers and repeaters <small class="en">EN</small></a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li><a href="../../guide/designer.html" hreflang="en">Designer <small class="en">EN</small></a></li><li><a href="../../guide/usb-interface.html" hreflang="en">USB interface tool <small class="en">EN</small></a></li><li><a href="../../guide/language-models.html" hreflang="en">Generate with a language model <small class="en">EN</small></a></li><li><a href="../../guide/prompt-generator.html" hreflang="en">Prompt generator <small class="en">EN</small></a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../guide/embedding.html" hreflang="en">Embed in a page <small class="en">EN</small></a></li><li><a href="../../guide/slides.html" hreflang="en">Slides <small class="en">EN</small></a></li><li><a href="../../guide/viewer.html" hreflang="en">Standalone page and link <small class="en">EN</small></a></li><li><a href="../../guide/languages.html" hreflang="en">Languages <small class="en">EN</small></a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../guide/api.html" hreflang="en">JavaScript API <small class="en">EN</small></a></li><li><a href="../../guide/versions.html" hreflang="en">Versions and releases <small class="en">EN</small></a></li><li><a href="../../guide/extensions.html" hreflang="en">Extensions <small class="en">EN</small></a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../guide/time.html" hreflang="en">Time and step mode <small class="en">EN</small></a></li><li><a href="../../guide/errors.html" hreflang="en">Diagnosing an error <small class="en">EN</small></a></li><li><a href="../../guide/limits.html" hreflang="en">Model and limits <small class="en">EN</small></a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="notions"><a class="anchor" href="#notions">#</a>Notions</h1><p>Un schéma distingue les actions de l&#39;utilisateur, la communication KNX, les sorties des actionneurs et les équipements raccordés.</p>
+<pre class="code"><code>appui sur une touche → comportement de l'appareil → objet de communication → télégramme sur le bus
+                                                                      ↓
+                                                 objet récepteur (indicateur W)
+                                                                      ↓
+                                      comportement → sortie → lampe ou volet</code></pre><h2 id="appareil"><a class="anchor" href="#appareil">#</a>Appareil</h2><p>Un appareil KNX a une adresse individuelle comme <code>1.1.10</code>. Il contient des objets de communication et peut aussi avoir des touches, des entrées et des voies. Son <code>behavior</code> définit sa logique et la façon de le dessiner, par exemple <code>buttonInterface/v1</code>, <code>switchActuator/v1</code>, <code>shutterActuator/v1</code>, <code>daliGateway/v1</code>, <code>roomThermostat/v1</code>, ou une <a href="../../guide/extensions.html">extension</a> enregistrée. Le champ <code>kind</code> est une description libre de l&#39;appareil ; seul un comportement qui documente une valeur lui donne un effet, comme <code>&quot;supervisor&quot;</code> pour un afficheur.</p>
+<h2 id="objet-de-communication"><a class="anchor" href="#objet-de-communication">#</a>Objet de communication</h2><p>Chaque objet a une valeur, un DPT qui détermine comment l&#39;interpréter, une ou plusieurs adresses de groupe, et des indicateurs :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Indicateur</th>
+<th>Activé</th>
+<th>Désactivé</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>C</code> communication</td>
+<td>L&#39;objet communique, selon ses autres indicateurs (activé par défaut).</td>
+<td>L&#39;objet n&#39;envoie ni ne traite aucun message.</td>
+</tr>
+<tr>
+<td><code>W</code> écriture</td>
+<td>Une écriture reçue met à jour la valeur et appelle le comportement.</td>
+<td>Le télégramme reste visible, mais la valeur et le comportement ne changent pas.</td>
+</tr>
+<tr>
+<td><code>T</code> transmission</td>
+<td>L&#39;objet peut envoyer sa valeur.</td>
+<td>La valeur peut changer localement, mais aucun télégramme n&#39;est envoyé.</td>
+</tr>
+<tr>
+<td><code>R</code> lecture</td>
+<td>L&#39;objet répond à une lecture sur n&#39;importe laquelle de ses adresses, sur son adresse d&#39;émission.</td>
+<td>Aucune réponse n&#39;est envoyée.</td>
+</tr>
+<tr>
+<td><code>U</code> mise à jour</td>
+<td>Une réponse reçue met à jour l&#39;objet.</td>
+<td>Les réponses sont ignorées.</td>
+</tr>
+<tr>
+<td><code>I</code> lecture à l&#39;initialisation</td>
+<td>Quand l&#39;appareil redémarre après une coupure de la tension bus, l&#39;objet lit sa valeur sur son adresse d&#39;émission.</td>
+<td>Pas de lecture au démarrage.</td>
+</tr>
+</tbody></table>
+</div><p>Quand un appareil émet, ses autres objets sur la même adresse prennent aussitôt la valeur, comme le prévoit la couche application KNX ; leur indicateur <code>W</code> décide seulement si l&#39;appareil réagit, pour qu&#39;un objet d&#39;état n&#39;agisse pas comme une commande.</p>
+<p><code>R</code>, <code>U</code>, <code>C</code> et <code>I</code> sont facultatifs en JSON ; voir les valeurs par défaut de <code>R</code> et <code>U</code> dans le <a href="../../guide/usb-interface.html#r-and-u-flags">guide de l&#39;interface USB</a>. Chaque objet a aussi une priorité de transmission, <code>&quot;priority&quot;: &quot;low&quot;</code> (par défaut), <code>&quot;normal&quot;</code> ou <code>&quot;urgent&quot;</code>, écrite dans le champ de contrôle de ses trames. Le <strong>port</strong> de l&#39;objet (<code>switch</code>, <code>status</code>, <code>move</code>, etc.) lui donne un rôle dans son comportement ; voir la <a href="../../reference/ports.html">référence des ports</a>.</p>
+<h2 id="adresse-de-groupe-et-telegramme"><a class="anchor" href="#adresse-de-groupe-et-telegramme">#</a>Adresse de groupe et télégramme</h2><p>Un télégramme de groupe a une adresse individuelle source, une adresse de groupe destinataire, un service et, pour une écriture ou une réponse, des données utiles. Le DPT n&#39;est pas transmis : chaque appareil interprète les données selon le DPT de son propre objet. Tous les appareils de la ligne peuvent recevoir le télégramme, mais seuls les objets associés à son adresse destinataire le traitent.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Envoyé par</th>
+<th>Traité par</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>GroupValueWrite</code></td>
+<td>Un comportement avec l&#39;indicateur T, ou le panneau de l&#39;interface USB.</td>
+<td>Les objets associés avec l&#39;indicateur W.</td>
+</tr>
+<tr>
+<td><code>GroupValueRead</code></td>
+<td>Le panneau de l&#39;interface USB.</td>
+<td>Les objets associés avec l&#39;indicateur R ; chacun répond sur son adresse d&#39;émission.</td>
+</tr>
+<tr>
+<td><code>GroupValueResponse</code></td>
+<td>Un objet qui répond à une lecture.</td>
+<td>Les objets associés avec l&#39;indicateur U.</td>
+</tr>
+</tbody></table>
+</div><h2 id="voie-et-equipement-raccorde"><a class="anchor" href="#voie-et-equipement-raccorde">#</a>Voie et équipement raccordé</h2><p>Une voie est une sortie d&#39;actionneur, comme un relais ou une commande de moteur. Son comportement envoie des commandes comme <code>on/off</code> ou <code>up/down/stop</code>. L&#39;équipement raccordé, comme une lampe ou un volet, répond à ces commandes et a son propre état physique. Il ne connaît ni les adresses de groupe ni les DPT.</p>
+<p>Une sortie peut alimenter plusieurs charges câblées en parallèle, comme un circuit d&#39;éclairage alimente plusieurs luminaires : <code>equipment</code> est alors une liste, et chaque charge reçoit les commandes de la sortie. Un actionneur avec mesure mesure la somme de leurs puissances. Une sortie de volet commande un seul moteur.</p>
+<pre class="code"><code><span class="k">"channels"</span>: [{
+  <span class="k">"id"</span>: <span class="s">"s1"</span>,
+  <span class="k">"label"</span>: <span class="s">"L1"</span>,
+  <span class="k">"equipment"</span>: [
+    { <span class="k">"type"</span>: <span class="s">"lamp"</span>, <span class="k">"name"</span>: <span class="s">"Ceiling"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerW"</span>: <span class="n">75</span> } },
+    { <span class="k">"type"</span>: <span class="s">"lamp"</span>, <span class="k">"name"</span>: <span class="s">"Wall"</span> },
+    { <span class="k">"type"</span>: <span class="s">"appliance"</span>, <span class="k">"name"</span>: <span class="s">"Socket"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerW"</span>: <span class="n">1000</span> } }
+  ]
+}]</code></pre><p>Cette séparation permet de montrer un <a href="../../guide/shutters.html">volet mal calibré</a> : l&#39;actionneur estime la position d&#39;après la durée de course configurée, alors que le volet raccordé se déplace à sa vitesse réelle.</p>
+<h2 id="association-interne"><a class="anchor" href="#association-interne">#</a>Association interne</h2><p>Quand un objet émet, les autres objets du <strong>même appareil</strong> qui partagent l&#39;adresse peuvent aussi recevoir le télégramme si leur indicateur W le permet. Un objet d&#39;état peut donc commander une autre sortie du même actionneur. Cette convention du modèle n&#39;est pas mise en œuvre de la même façon par tous les fabricants.</p>
+
+<nav class="pager">
+<a href="../../fr/guide/first-diagram.html">← Premier schéma</a>
+<a href="../../guide/scenario.html">Structure of a scenario →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#appareil">Appareil</a></li><li><a href="#objet-de-communication">Objet de communication</a></li><li><a href="#adresse-de-groupe-et-telegramme">Adresse de groupe et télégramme</a></li><li><a href="#voie-et-equipement-raccorde">Voie et équipement raccordé</a></li><li><a href="#association-interne">Association interne</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.3.1 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

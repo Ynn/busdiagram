@@ -54,6 +54,8 @@ export interface Chan extends J {
   label?: string;
   /** Text on the push-button wired to a contact input; the label of the input stays. */
   keyLabel?: string;
+  /** Contact of the wired push-button; normally open when absent. */
+  keyContact?: "normallyOpen" | "normallyClosed";
   parameters?: J;
   initialState?: J;
   /** One load, several loads wired in parallel, or null for a free output. */
@@ -1065,6 +1067,18 @@ export function setKeyLabel(doc: Doc, devId: string, ch: string, text: string) {
   const c = channel(device(doc, devId), ch);
   if (text.trim()) c.keyLabel = text.trim();
   else delete c.keyLabel;
+}
+
+/** Contact of the push-button wired to an input; normally open is not written. */
+export function setKeyContact(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  contact: "normallyOpen" | "normallyClosed",
+) {
+  const c = channel(device(doc, devId), ch);
+  if (contact === "normallyClosed") c.keyContact = contact;
+  else delete c.keyContact;
 }
 
 export function setChannelLoad(

@@ -58,7 +58,7 @@
         "drivesLoad": false
       },
       "c2": {
-        "number": 9,
+        "number": 11,
         "R": false,
         "U": false,
         "C": true,
@@ -68,7 +68,7 @@
         "drivesLoad": true
       },
       "c3": {
-        "number": 17,
+        "number": 21,
         "R": false,
         "U": false,
         "C": true,
@@ -78,7 +78,7 @@
         "drivesLoad": true
       },
       "e3": {
-        "number": 18,
+        "number": 22,
         "R": true,
         "U": false,
         "C": true,
@@ -88,7 +88,7 @@
         "drivesLoad": false
       },
       "c4": {
-        "number": 25,
+        "number": 31,
         "R": false,
         "U": false,
         "C": true,

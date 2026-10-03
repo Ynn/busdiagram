@@ -1,0 +1,182 @@
+{
+  "devices": {
+    "pushButton": {
+      "door": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "smoke": {
+        "number": 8,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "resetI": {
+        "number": 15,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "resetF": {
+        "number": 22,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "light": {
+        "number": 29,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "alarms": {
+      "it": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "ir": {
+        "number": 2,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "is": {
+        "number": 3,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      },
+      "ft": {
+        "number": 4,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "fr": {
+        "number": 5,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "fs": {
+        "number": 6,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      }
+    },
+    "actuator": {
+      "swA": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "iaA": {
+        "number": 9,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "faA": {
+        "number": 10,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "swB": {
+        "number": 11,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "faB": {
+        "number": 20,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "swC": {
+        "number": 21,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      }
+    }
+  },
+  "diagnostics": [],
+  "filterTables": {}
+}

@@ -267,6 +267,10 @@
               "description": "Invert"
             },
             {
+              "const": "1.015",
+              "description": "Reset"
+            },
+            {
               "const": "1.017",
               "description": "Trigger"
             },
@@ -555,6 +559,14 @@
               "description": "1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)"
             },
             {
+              "const": "intrusionAlarm",
+              "description": "1 makes the output blink and ignore the commands; 0 ends the alarm (afterAlarm). Without channel, applies to all channels."
+            },
+            {
+              "const": "fireAlarm",
+              "description": "1 forces the output on and ignores the commands, with priority over intrusion; 0 ends the alarm. Without channel, applies to all channels."
+            },
+            {
               "const": "move",
               "description": "Up/down: 0 raises toward 0 %, 1 lowers toward 100 %."
             },
@@ -580,7 +592,39 @@
             },
             {
               "const": "windAlarm",
-              "description": "1 raises the shutter and locks it against other commands; 0 releases it in place"
+              "description": "1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels"
+            },
+            {
+              "const": "rainAlarm",
+              "description": "1 starts the rain alarm (rainReaction); 0 ends it"
+            },
+            {
+              "const": "frostAlarm",
+              "description": "1 starts the frost alarm (frostReaction); 0 ends it"
+            },
+            {
+              "const": "recallPosition12",
+              "description": "0 moves to the stored position 1, 1 to the stored position 2"
+            },
+            {
+              "const": "recallPosition34",
+              "description": "0 moves to the stored position 3, 1 to the stored position 4"
+            },
+            {
+              "const": "storePosition12",
+              "description": "0 stores the current position as position 1, 1 as position 2"
+            },
+            {
+              "const": "storePosition34",
+              "description": "0 stores the current position as position 3, 1 as position 4"
+            },
+            {
+              "const": "upperLimit",
+              "description": "1 when the shutter is estimated at the top (0 %), sent on change"
+            },
+            {
+              "const": "lowerLimit",
+              "description": "1 when the shutter is estimated at the bottom (100 %), sent on change"
             },
             {
               "const": "display",
@@ -637,6 +681,10 @@
             {
               "const": "actualTemp",
               "description": "Measured temperature (9.001), sent on change."
+            },
+            {
+              "const": "sensorFault",
+              "description": "1 when no temperature is usable (external temperature too old and no room sensor); 0 when one comes back"
             },
             {
               "const": "externalTemp",
@@ -763,12 +811,48 @@
               "description": "object that receives the programmed values"
             },
             {
+              "const": "override",
+              "description": "Value sent at once on the output, held until the next switching point of the program"
+            },
+            {
+              "const": "overrideTimed",
+              "description": "Value sent at once on the output, held for overrideDurationMin clock minutes; the program value then applies"
+            },
+            {
+              "const": "overridePermanent",
+              "description": "1 suspends the program (switching points ignored); 0 resumes it and sends its current value"
+            },
+            {
               "const": "command",
               "description": "value received from KNX and forwarded to the other system (mode, setpoint, boost…)"
             },
             {
               "const": "led",
               "description": "state shown by the LED of the key"
+            },
+            {
+              "const": "intrusionTrigger",
+              "description": "1 from an intrusion contact or detector sets the stored intrusion alarm"
+            },
+            {
+              "const": "intrusionReset",
+              "description": "1 resets the stored alarm, only once its trigger has returned to 0"
+            },
+            {
+              "const": "intrusionState",
+              "description": "Stored intrusion alarm, sent on each change; link it to the intrusion objects of the actuators"
+            },
+            {
+              "const": "fireTrigger",
+              "description": "1 from a fire detector sets the stored fire alarm"
+            },
+            {
+              "const": "fireReset",
+              "description": "1 resets the stored alarm, only once its trigger has returned to 0"
+            },
+            {
+              "const": "fireState",
+              "description": "Stored fire alarm, sent on each change; link it to the fire objects of the actuators"
             }
           ],
           "description": "Object role in the device's behavior."
@@ -1139,7 +1223,10 @@
                 "daliGroup",
                 "radiator",
                 "fan",
-                "appliance"
+                "appliance",
+                "waterHeater",
+                "heatPump",
+                "siren"
               ]
             },
             {
@@ -1550,6 +1637,219 @@
               }
             }
           }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "waterHeater"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "powerW": {
+                    "title": "Element power",
+                    "type": "number",
+                    "minimum": 100,
+                    "maximum": 12000,
+                    "default": 2000,
+                    "description": "Electrical power (W) of the element while it heats."
+                  },
+                  "volumeL": {
+                    "title": "Volume",
+                    "type": "number",
+                    "minimum": 10,
+                    "maximum": 1000,
+                    "default": 200,
+                    "description": "Water volume of the cylinder (litres)."
+                  },
+                  "setpointC": {
+                    "title": "Thermostat setpoint",
+                    "type": "number",
+                    "minimum": 30,
+                    "maximum": 80,
+                    "default": 60,
+                    "description": "Temperature (°C) at which the thermostat of the element cuts the heating."
+                  },
+                  "hysteresisK": {
+                    "title": "Thermostat hysteresis",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 20,
+                    "default": 5,
+                    "description": "The element heats again once the water is this much below the setpoint (K)."
+                  },
+                  "lossKPerH": {
+                    "title": "Standing losses",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 5,
+                    "default": 0.5,
+                    "description": "Cooling of the water without draw-off (K per hour)."
+                  },
+                  "timeScale": {
+                    "title": "Time acceleration",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 3600,
+                    "default": 60,
+                    "description": "The water heats and cools this many times faster than real time, so that a heating cycle of hours lasts minutes (as energy metering)."
+                  },
+                  "drawL": {
+                    "title": "Draw-off",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 200,
+                    "default": 40,
+                    "description": "Volume of hot water drawn off by a click on the cylinder (litres), replaced by cold water at 10 °C."
+                  }
+                }
+              },
+              "initialState": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "tempC": {
+                    "title": "Water temperature at start",
+                    "type": "number",
+                    "minimum": 5,
+                    "maximum": 80,
+                    "default": 45
+                  },
+                  "powered": {
+                    "title": "On at start",
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "heatPump"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "mode": {
+                    "title": "Operating mode",
+                    "type": "string",
+                    "enum": [
+                      "heating",
+                      "cooling"
+                    ],
+                    "default": "heating",
+                    "description": "Heating warms the room; cooling cools it (reversible unit)."
+                  },
+                  "electricPowerW": {
+                    "title": "Electrical power",
+                    "type": "number",
+                    "minimum": 100,
+                    "maximum": 20000,
+                    "default": 1500,
+                    "description": "Electrical power (W) drawn while the compressor runs."
+                  },
+                  "cop": {
+                    "title": "Coefficient of performance",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 8,
+                    "default": 3.5,
+                    "description": "Heat delivered divided by the electrical power drawn (shown on the unit; the room model uses powerK)."
+                  },
+                  "powerK": {
+                    "title": "Heating effect (K)",
+                    "type": "number",
+                    "minimum": 1,
+                    "maximum": 60,
+                    "default": 25,
+                    "description": "Temperature difference (K) from outdoors that the unit can maintain alone while it runs."
+                  },
+                  "minOffMs": {
+                    "title": "Minimum off time",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 10000,
+                    "description": "Time the compressor stays off after a stop before it may start again (anti short-cycle); real units wait a few minutes, compressed here like room time."
+                  }
+                }
+              },
+              "initialState": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "enabled": {
+                    "title": "On at start",
+                    "type": "boolean",
+                    "default": false
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "siren"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "additionalProperties": false,
+                "properties": {
+                  "ringLimitMs": {
+                    "title": "Ringing time limit",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 180000,
+                    "description": "The sounder stops after this time even if still powered; the flash light stays on (0: no limit). Outdoor sounders are often limited to 3 minutes."
+                  },
+                  "powerW": {
+                    "title": "Rated power",
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1000,
+                    "default": 15,
+                    "description": "Electrical power (W) drawn while powered."
+                  }
+                }
+              },
+              "initialState": {
+                "type": "object",
+                "maxProperties": 0
+              }
+            }
+          }
         }
       ]
     },
@@ -1573,6 +1873,13 @@
         "keyLabel": {
           "type": "string",
           "description": "Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label."
+        },
+        "keyContact": {
+          "enum": [
+            "normallyOpen",
+            "normallyClosed"
+          ],
+          "description": "Contact of the push-button wired to a contact input: normally open (closes when pressed, default) or normally closed."
         },
         "parameters": {
           "type": "object",
@@ -1664,7 +1971,8 @@
                 "timeSwitch/v1",
                 "systemGateway/v1",
                 "energyMeter/v1",
-                "buttonInterface/v1"
+                "buttonInterface/v1",
+                "alarmModule/v1"
               ]
             },
             {
@@ -1950,6 +2258,28 @@
                           "default": "previous",
                           "description": "State of the output when the bus voltage returns; the status feedback is then sent."
                         },
+                        "blinkMs": {
+                          "title": "Blinking period on intrusion",
+                          "unit": "ms",
+                          "expert": true,
+                          "type": "integer",
+                          "minimum": 1000,
+                          "default": 1000,
+                          "description": "Time the contact stays closed, then open, while the intrusion alarm makes the output blink; mind the switching life of the relay."
+                        },
+                        "afterAlarm": {
+                          "title": "End of the alarms",
+                          "type": "string",
+                          "enum": [
+                            "lastCommand",
+                            "previous",
+                            "unchanged",
+                            "on",
+                            "off"
+                          ],
+                          "default": "lastCommand",
+                          "description": "State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off."
+                        },
                         "afterForcing": {
                           "title": "End of forcing",
                           "expert": true,
@@ -2026,6 +2356,14 @@
                         {
                           "const": "powerLimit",
                           "description": "1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)"
+                        },
+                        {
+                          "const": "intrusionAlarm",
+                          "description": "1 makes the output blink and ignore the commands; 0 ends the alarm (afterAlarm). Without channel, applies to all channels."
+                        },
+                        {
+                          "const": "fireAlarm",
+                          "description": "1 forces the output on and ignores the commands, with priority over intrusion; 0 ends the alarm. Without channel, applies to all channels."
                         }
                       ]
                     }
@@ -2146,6 +2484,145 @@
                           "default": true,
                           "description": "A scene control telegram with the learn bit (DPT 18.001) stores the current estimated position as the scene; it replaces the configured preset until the simulation restarts."
                         },
+                        "windReaction": {
+                          "title": "On wind alarm",
+                          "type": "string",
+                          "enum": [
+                            "up",
+                            "down",
+                            "stop",
+                            "none"
+                          ],
+                          "default": "up",
+                          "description": "Movement when the wind alarm starts; commands are then ignored until it ends."
+                        },
+                        "rainReaction": {
+                          "title": "On rain alarm",
+                          "type": "string",
+                          "enum": [
+                            "up",
+                            "down",
+                            "stop",
+                            "none"
+                          ],
+                          "default": "up",
+                          "description": "Movement when the rain alarm starts (an awning or a blind is usually raised)."
+                        },
+                        "frostReaction": {
+                          "title": "On frost alarm",
+                          "type": "string",
+                          "enum": [
+                            "up",
+                            "down",
+                            "stop",
+                            "none"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the frost alarm starts; a frozen shutter is usually left where it is."
+                        },
+                        "alarmPriority": {
+                          "title": "Priority of the weather alarms",
+                          "type": "string",
+                          "enum": [
+                            "wind,rain,frost",
+                            "wind,frost,rain",
+                            "rain,wind,frost",
+                            "rain,frost,wind",
+                            "frost,wind,rain",
+                            "frost,rain,wind"
+                          ],
+                          "default": "wind,rain,frost",
+                          "description": "Order of the weather alarms when several are active: the first one active applies."
+                        },
+                        "safetyPriority": {
+                          "title": "Priority of the safety functions",
+                          "type": "string",
+                          "enum": [
+                            "alarms,lock,forced",
+                            "alarms,forced,lock",
+                            "lock,alarms,forced",
+                            "lock,forced,alarms",
+                            "forced,lock,alarms",
+                            "forced,alarms,lock"
+                          ],
+                          "default": "alarms,lock,forced",
+                          "description": "Order of the weather alarms, the lock, and forcing when several are active: the first one active holds the output, and commands are ignored."
+                        },
+                        "alarmMonitoringMs": {
+                          "title": "Monitoring of the alarm objects",
+                          "unit": "ms",
+                          "expert": true,
+                          "type": "integer",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Weather sensors send their alarm cyclically: without a telegram on an alarm object within this time, the alarm is assumed (0: no monitoring)."
+                        },
+                        "afterAlarm": {
+                          "title": "After the weather alarms",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down",
+                            "restore"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the last weather alarm ends."
+                        },
+                        "afterForcing": {
+                          "title": "End of forcing",
+                          "type": "string",
+                          "enum": [
+                            "none",
+                            "up",
+                            "down",
+                            "restore"
+                          ],
+                          "default": "none",
+                          "description": "Movement when the forcing ends (0 or 1 on the forcing object)."
+                        },
+                        "preset1Pct": {
+                          "title": "Stored position 1",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 20,
+                          "description": "Position recalled by 0 on the object of positions 1/2."
+                        },
+                        "preset2Pct": {
+                          "title": "Stored position 2",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 40,
+                          "description": "Position recalled by 1 on the object of positions 1/2."
+                        },
+                        "preset3Pct": {
+                          "title": "Stored position 3",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 60,
+                          "description": "Position recalled by 0 on the object of positions 3/4."
+                        },
+                        "preset4Pct": {
+                          "title": "Stored position 4",
+                          "unit": "%",
+                          "type": "number",
+                          "minimum": 0,
+                          "maximum": 100,
+                          "default": 80,
+                          "description": "Position recalled by 1 on the object of positions 3/4."
+                        },
+                        "presetStoring": {
+                          "title": "Storing of the positions",
+                          "type": "boolean",
+                          "default": true,
+                          "description": "The store objects replace a stored position with the current estimated position, until the simulation restarts."
+                        },
                         "lockStart": {
                           "title": "When locked",
                           "type": "string",
@@ -2189,7 +2666,7 @@
                             "down"
                           ],
                           "default": "stop",
-                          "description": "Motor when the bus voltage fails: stopped, or driven to an end position (the estimate becomes that end position)."
+                          "description": "Motor when the bus voltage fails: stopped, or driven toward an end position until the voltage returns; the estimated position follows the time elapsed."
                         },
                         "busRecovery": {
                           "title": "On bus voltage recovery",
@@ -2276,11 +2753,47 @@
                         },
                         {
                           "const": "windAlarm",
-                          "description": "1 raises the shutter and locks it against other commands; 0 releases it in place"
+                          "description": "1 starts the wind alarm (windReaction, up by default): commands are ignored until 0; without channel, applies to all channels"
                         },
                         {
                           "const": "lock",
-                          "description": "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; the wind alarm keeps priority."
+                          "description": "1 locks the output: commands are ignored, with the reactions lockStart and afterLock; weather alarms and forcing keep priority."
+                        },
+                        {
+                          "const": "rainAlarm",
+                          "description": "1 starts the rain alarm (rainReaction); 0 ends it"
+                        },
+                        {
+                          "const": "frostAlarm",
+                          "description": "1 starts the frost alarm (frostReaction); 0 ends it"
+                        },
+                        {
+                          "const": "forced",
+                          "description": "3 forces down, 2 forces up; 0 or 1 ends the forcing (afterForcing). Weather alarms keep priority."
+                        },
+                        {
+                          "const": "recallPosition12",
+                          "description": "0 moves to the stored position 1, 1 to the stored position 2"
+                        },
+                        {
+                          "const": "recallPosition34",
+                          "description": "0 moves to the stored position 3, 1 to the stored position 4"
+                        },
+                        {
+                          "const": "storePosition12",
+                          "description": "0 stores the current position as position 1, 1 as position 2"
+                        },
+                        {
+                          "const": "storePosition34",
+                          "description": "0 stores the current position as position 3, 1 as position 4"
+                        },
+                        {
+                          "const": "upperLimit",
+                          "description": "1 when the shutter is estimated at the top (0 %), sent on change"
+                        },
+                        {
+                          "const": "lowerLimit",
+                          "description": "1 when the shutter is estimated at the bottom (100 %), sent on change"
                         }
                       ]
                     }
@@ -2407,6 +2920,34 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "lockStart": {
+                    "title": "When locked",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "off",
+                      "on"
+                    ],
+                    "default": "none",
+                    "description": "Telegram when the lock object receives 1: none (the hold time runs out as usual), 0 at once, or 1 kept while locked. While locked, detections are ignored."
+                  },
+                  "lockEnd": {
+                    "title": "When unlocked",
+                    "type": "string",
+                    "enum": [
+                      "none",
+                      "off",
+                      "on"
+                    ],
+                    "default": "none",
+                    "description": "Telegram when the lock object receives 0: none, 0, or 1 followed by the hold time."
+                  },
+                  "slave": {
+                    "title": "Slave detector",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0."
+                  },
                   "holdMs": {
                     "title": "Hold time",
                     "unit": "ms",
@@ -2461,6 +3002,10 @@
                         {
                           "const": "input",
                           "description": "output object: 1 on detection, 0 when the timer expires"
+                        },
+                        {
+                          "const": "lock",
+                          "description": "1 locks the detector: its detections (and those of its slaves) are ignored; 0 unlocks it"
                         },
                         {
                           "const": "slaveTrigger",
@@ -3067,6 +3612,24 @@
                 "type": "object",
                 "additionalProperties": false,
                 "properties": {
+                  "presenceType": {
+                    "title": "Presence input",
+                    "type": "string",
+                    "enum": [
+                      "detector",
+                      "button"
+                    ],
+                    "default": "detector",
+                    "description": "detector: comfort while the presence object is 1; button: each 1 extends the comfort mode for comfortExtensionMs."
+                  },
+                  "comfortExtensionMs": {
+                    "title": "Comfort extension",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 60000,
+                    "default": 7200000,
+                    "description": "Duration of the comfort mode started by the presence button (2 h by default)."
+                  },
                   "controlType": {
                     "title": "Control type",
                     "type": "string",
@@ -3195,6 +3758,16 @@
                     "default": 5,
                     "description": "Send the control value when it changes by at least this many percentage points."
                   },
+                  "sensorFaultValuePct": {
+                    "title": "Control value on sensor fault",
+                    "unit": "%",
+                    "expert": true,
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 100,
+                    "default": 0,
+                    "description": "Control value sent when no temperature is usable (external temperature too old, no room sensor), until a temperature comes back."
+                  },
                   "externalTempTimeoutMs": {
                     "title": "External temperature timeout",
                     "unit": "ms",
@@ -3254,6 +3827,10 @@
                         {
                           "const": "actualTemp",
                           "description": "Measured temperature (9.001), sent on change."
+                        },
+                        {
+                          "const": "sensorFault",
+                          "description": "1 when no temperature is usable (external temperature too old and no room sensor); 0 when one comes back"
                         },
                         {
                           "const": "externalTemp",
@@ -3608,6 +4185,90 @@
                     "default": "",
                     "description": "End of the daily time window (HH:MM), excluded."
                   },
+                  "invertOutput": {
+                    "title": "Invert the result",
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Send the inverse of the operation: NAND, NOR, or XNOR. Outside a time window, the output stays 0."
+                  },
+                  "invertInput1": {
+                    "title": "Invert input 1",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 1, in the order of the objects."
+                  },
+                  "invertInput2": {
+                    "title": "Invert input 2",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 2, in the order of the objects."
+                  },
+                  "invertInput3": {
+                    "title": "Invert input 3",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 3, in the order of the objects."
+                  },
+                  "invertInput4": {
+                    "title": "Invert input 4",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 4, in the order of the objects."
+                  },
+                  "invertInput5": {
+                    "title": "Invert input 5",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 5, in the order of the objects."
+                  },
+                  "invertInput6": {
+                    "title": "Invert input 6",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 6, in the order of the objects."
+                  },
+                  "invertInput7": {
+                    "title": "Invert input 7",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 7, in the order of the objects."
+                  },
+                  "invertInput8": {
+                    "title": "Invert input 8",
+                    "expert": true,
+                    "type": "boolean",
+                    "default": false,
+                    "description": "Invert the value of the logic input object number 8, in the order of the objects."
+                  },
+                  "enableAtStart": {
+                    "title": "Enable at start",
+                    "expert": true,
+                    "type": "string",
+                    "enum": [
+                      "enabled",
+                      "blocked"
+                    ],
+                    "default": "enabled",
+                    "description": "State of the output before the enable object receives a first telegram."
+                  },
+                  "enablePolarity": {
+                    "title": "Polarity of the enable object",
+                    "expert": true,
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "inverted"
+                    ],
+                    "default": "normal",
+                    "description": "Value of the enable object that blocks the output."
+                  },
                   "sendOnChangeOnly": {
                     "title": "Send on change only",
                     "expert": true,
@@ -3699,6 +4360,47 @@
                     "default": 40000,
                     "description": "Brightness (lux) at which sun protection is requested."
                   },
+                  "frostThresholdC": {
+                    "title": "Frost alarm threshold",
+                    "type": "number",
+                    "minimum": -20,
+                    "maximum": 10,
+                    "default": 3,
+                    "description": "Outdoor temperature (°C) at or below which the frost alarm is set."
+                  },
+                  "frostHysteresisK": {
+                    "title": "Frost alarm hysteresis",
+                    "expert": true,
+                    "type": "number",
+                    "minimum": 0,
+                    "default": 2,
+                    "description": "The frost alarm is reset once the temperature reaches threshold + hysteresis (K)."
+                  },
+                  "rainOnDelayMs": {
+                    "title": "Delay of the rain alarm",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 20000,
+                    "description": "Rain must last this long before the rain alarm is set, so that a short shower is not reported."
+                  },
+                  "rainOffDelayMs": {
+                    "title": "Delay of the end of rain",
+                    "unit": "ms",
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 300000,
+                    "description": "The rain alarm is reset this long after the rain stops, so that a short break is not reported."
+                  },
+                  "alarmCyclicMs": {
+                    "title": "Cyclic sending of the alarms",
+                    "unit": "ms",
+                    "expert": true,
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 0,
+                    "description": "Period at which the wind, rain, and frost alarms are sent again, for actuators that monitor them (0: on change only)."
+                  },
                   "setsRoomOutdoorTemperature": {
                     "title": "Outdoor temperature applies to the rooms",
                     "type": "boolean",
@@ -3749,6 +4451,14 @@
                         {
                           "const": "windAlarm",
                           "description": "1 when the wind threshold is reached, 0 after hysteresis"
+                        },
+                        {
+                          "const": "rainAlarm",
+                          "description": "1 after rain has lasted rainOnDelayMs, 0 rainOffDelayMs after it stops; rain is entered on this object's numeric input (0 or 1)"
+                        },
+                        {
+                          "const": "frostAlarm",
+                          "description": "1 when the outdoor temperature is at or below frostThresholdC, 0 above it plus the hysteresis"
                         },
                         {
                           "const": "sunProtection",
@@ -4050,6 +4760,14 @@
                     "default": "",
                     "description": "Switching points separated by semicolons: days, time, and value, for example “Mon-Fri 07:00 = 1; Sat,Sun 09:00 = 1; Daily 22:30 = 0”. Days: Mon … Sun, ranges (Mon-Fri), lists (Sat,Sun), or Daily."
                   },
+                  "overrideDurationMin": {
+                    "title": "Duration of the timed override",
+                    "type": "integer",
+                    "minimum": 15,
+                    "maximum": 4320,
+                    "default": 60,
+                    "description": "Clock minutes during which a value received on the timed override object holds (15 min to 72 h)."
+                  },
                   "sendOnStart": {
                     "title": "Send current state on start",
                     "type": "boolean",
@@ -4080,6 +4798,18 @@
                         {
                           "const": "output",
                           "description": "object that receives the programmed values"
+                        },
+                        {
+                          "const": "override",
+                          "description": "Value sent at once on the output, held until the next switching point of the program"
+                        },
+                        {
+                          "const": "overrideTimed",
+                          "description": "Value sent at once on the output, held for overrideDurationMin clock minutes; the program value then applies"
+                        },
+                        {
+                          "const": "overridePermanent",
+                          "description": "1 suspends the program (switching points ignored); 0 resumes it and sends its current value"
                         }
                       ]
                     }
@@ -4519,6 +5249,17 @@
                           "default": "always",
                           "description": "Which value of the switching object is sent cyclically."
                         },
+                        "actuatedContact": {
+                          "title": "Input when actuated",
+                          "expert": true,
+                          "type": "string",
+                          "enum": [
+                            "closed",
+                            "open"
+                          ],
+                          "default": "closed",
+                          "description": "State of the input contact when the push-button is actuated: closed for a normally open push-button, open for a normally closed one."
+                        },
                         "ledShown": {
                           "title": "LED on the key",
                           "type": "boolean",
@@ -4572,6 +5313,74 @@
                         {
                           "const": "led",
                           "description": "state shown by the LED of the key"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "behavior": {
+                "const": "alarmModule/v1"
+              }
+            },
+            "required": [
+              "behavior"
+            ]
+          },
+          "then": {
+            "properties": {
+              "parameters": {
+                "type": "object",
+                "maxProperties": 0
+              },
+              "channels": {
+                "items": {
+                  "properties": {
+                    "parameters": {
+                      "type": "object",
+                      "maxProperties": 0
+                    },
+                    "initialState": {
+                      "type": "object",
+                      "maxProperties": 0
+                    }
+                  }
+                }
+              },
+              "objects": {
+                "items": {
+                  "properties": {
+                    "port": {
+                      "oneOf": [
+                        {
+                          "const": "intrusionTrigger",
+                          "description": "1 from an intrusion contact or detector sets the stored intrusion alarm"
+                        },
+                        {
+                          "const": "intrusionReset",
+                          "description": "1 resets the stored alarm, only once its trigger has returned to 0"
+                        },
+                        {
+                          "const": "intrusionState",
+                          "description": "Stored intrusion alarm, sent on each change; link it to the intrusion objects of the actuators"
+                        },
+                        {
+                          "const": "fireTrigger",
+                          "description": "1 from a fire detector sets the stored fire alarm"
+                        },
+                        {
+                          "const": "fireReset",
+                          "description": "1 resets the stored alarm, only once its trigger has returned to 0"
+                        },
+                        {
+                          "const": "fireState",
+                          "description": "Stored fire alarm, sent on each change; link it to the fire objects of the actuators"
                         }
                       ]
                     }

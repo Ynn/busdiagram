@@ -35,7 +35,14 @@ tabs: json
 | `scene` | 17.001 | Recalls a channel position preset. |
 | `slatCommand` / `slatStatus` | 5.001 | Slat angle setpoint and estimated angle of a venetian blind (0 % open, 100 % closed). |
 | `windAlarm` | 1.005, 1.001 | 1 raises the shutter and ignores other commands; 0 releases it where it is. Without `channel`, applies to all channels. |
-| `lock` | 1.001 | 1 locks the output: commands are ignored; `lockStart` (up, down, stop, or a position `lockPositionPct`) and `afterLock` (up, down, or back to the position before the lock) set its reactions. The wind alarm keeps priority. |
+| `rainAlarm` / `frostAlarm` | 1.005, 1.001 | Rain and frost alarms, with their reactions `rainReaction` (up by default) and `frostReaction` (no movement by default); `windReaction` sets that of the wind alarm. |
+| `forced` | 2.001 | 3 forces down, 2 forces up; 0 or 1 ends the forcing (`afterForcing`). |
+| `lock` | 1.001 | 1 locks the output: commands are ignored; `lockStart` (up, down, stop, or a position `lockPositionPct`) and `afterLock` (up, down, or back to the position before the lock) set its reactions. |
+| `recallPosition12` / `recallPosition34` | 1.001 | 0 or 1 moves to the stored position 1 or 2 (3 or 4): `preset1Pct` … `preset4Pct`. |
+| `storePosition12` / `storePosition34` | 1.001 | 0 or 1 stores the current position as position 1 or 2 (3 or 4), unless `presetStoring` is false. |
+| `upperLimit` / `lowerLimit` | 1.002 | 1 when the shutter is estimated at the top or at the bottom, sent on change. |
+
+When several causes hold an output, the first active one applies, in the order of `safetyPriority` (weather alarms, then lock, then forcing by default, as on common shutter actuators), the weather alarms in the order of `alarmPriority` (wind, rain, frost by default). A cause that ends hands the output to the next one; when none remains, `afterAlarm`, `afterForcing`, or `afterLock` sets the movement (none, up, down, or back to the position before the first cause). With `alarmMonitoringMs`, an alarm object that receives no telegram within that time is considered active, as for a weather sensor that sends its alarms cyclically.
 
 The position convention is **0% open (top), 100% closed (bottom)**. A motor wired in reverse is described on the shutter with `"wiringReversed": true` in its equipment parameters; the actuator's `invertOutput` compensates it without changing the DPT direction convention. When the two disagree, the shutter moves opposite to the commands and a configuration warning is shown above the diagram.
 
@@ -47,7 +54,7 @@ The position convention is **0% open (top), 100% closed (bottom)**. A motor wire
 - A new command replaces a pending start, stop, or status transmission.
 - At an estimated end stop, a command may have no effect even when the real shutter is elsewhere. `endSupplementPct` can add extra travel to reach the physical stop; its default is 0.
 - While a wind alarm is active, move, stop/step, position, and scene commands are ignored and noted in the event log. The end of the alarm does not restore the previous position. See the [weather protection example](../examples/weather-protection.html).
-- On a bus voltage failure the motors stop (`busFailure: "stop"`), or run to an end position (`"up"`, `"down"`); on recovery the output stays (`busRecovery: "none"`), moves up or down, or to `busRecoveryPositionPct`, and the estimated position is sent again.
+- On a bus voltage failure the motors stop (`busFailure: "stop"`), or run toward an end position (`"up"`, `"down"`) until the voltage returns, the estimated position following the time elapsed; on recovery the output stays (`busRecovery: "none"`), moves up or down, or to `busRecoveryPositionPct`, and the estimated position is sent again.
 - A stop/step command at rest turns the slats of a venetian blind (see below). On a roller shutter without slats it has no effect, as in the KNX stop/step function and in most actuator manuals. Some actuators instead move a roller shutter by a small step; set `stepPct` (for example 5) on the channel to model them.
 
 ## Venetian blinds and slats

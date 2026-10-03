@@ -140,3 +140,53 @@ describe("room thermostat: control", () => {
     expect(value(sim, "val")).toBe(0);
   });
 });
+
+describe("room thermostat: sensor fault", () => {
+  const external = () =>
+    thermostat(
+      { externalTempTimeoutMs: 10000, sensorFaultValuePct: 40 },
+      [
+        ["ext", "externalTemp", "3/4/9", "9.001", true],
+        ["fault", "sensorFault", "3/4/10", "1.005", false],
+      ],
+      (doc) => {
+        // Without a room, the external temperature is the only source.
+        delete device(doc, T).room;
+      },
+    );
+
+  it("an external temperature that stops arriving raises the fault and its control value", () => {
+    const sim = external();
+    write(sim, "3/4/9", 18);
+    expect(value(sim, "fault")).toBe(0);
+    expect(Number(value(sim, "val"))).toBeGreaterThan(40);
+    sim.advance(12000);
+    expect(value(sim, "fault")).toBe(1);
+    expect(Math.round(Number(value(sim, "val")))).toBe(40);
+    write(sim, "3/4/9", 19);
+    expect(value(sim, "fault")).toBe(0);
+  });
+
+  it("waiting for the first external temperature is not a fault", () => {
+    const sim = external();
+    sim.advance(5000);
+    expect(value(sim, "fault")).toBe(0);
+  });
+});
+
+describe("room thermostat: presence button", () => {
+  it("each 1 extends the comfort mode for comfortExtensionMs", () => {
+    const sim = thermostat({
+      presenceType: "button",
+      comfortExtensionMs: 60000,
+    });
+    write(sim, "3/2/0", 3); // economy
+    expect(value(sim, "ms")).toBe(3);
+    write(sim, "3/2/1", 1);
+    expect(value(sim, "ms")).toBe(1);
+    write(sim, "3/2/1", 0); // a 0 changes nothing for a button
+    expect(value(sim, "ms")).toBe(1);
+    sim.advance(60000);
+    expect(value(sim, "ms")).toBe(3);
+  });
+});

@@ -1,6 +1,7 @@
 {
   "behaviors": [
     "airQualitySensor/v1",
+    "alarmModule/v1",
     "buttonInterface/v1",
     "clockMaster/v1",
     "daliGateway/v1",
@@ -26,9 +27,12 @@
     "daliGroup",
     "dimmableLamp",
     "fan",
+    "heatPump",
     "lamp",
     "radiator",
-    "shutter"
+    "shutter",
+    "siren",
+    "waterHeater"
   ],
   "templates": [
     "buttonInterface4",
@@ -45,6 +49,7 @@
     "airQualitySensor",
     "weatherStation",
     "logicModule",
+    "alarmModule",
     "clockMaster",
     "timeSwitch",
     "energyMeter",
@@ -86,6 +91,7 @@
       "Automation and metering",
       [
         "snippet:logicModule",
+        "snippet:alarmModule",
         "snippet:clockMaster",
         "snippet:timeSwitch",
         "snippet:energyMeter"

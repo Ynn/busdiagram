@@ -20,4 +20,5 @@ export const heatingActuatorFr: Record<string, string> = {
   "Control value monitoring": "Surveillance de la commande",
   "Emergency control value": "Commande de secours",
   Valve: "Vanne",
+  Safety: "Sécurité",
 };

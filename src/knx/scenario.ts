@@ -345,6 +345,7 @@ const CHANNEL_V2 = [
   "id",
   "label",
   "keyLabel",
+  "keyContact",
   "parameters",
   "initialState",
   "equipment",
@@ -1046,6 +1047,20 @@ export function buildScenario(
         return err(`${cp}.id`, "duplicate", t`duplicate channel “${cid}”`);
       const label = str(c, "label", cp) ?? cid;
       const keyLabel = str(c, "keyLabel", cp) ?? null;
+      let keyContact: "normallyOpen" | "normallyClosed" = "normallyOpen";
+      if (c.keyContact !== undefined) {
+        if (
+          c.keyContact === "normallyOpen" ||
+          c.keyContact === "normallyClosed"
+        )
+          keyContact = c.keyContact;
+        else
+          err(
+            `${cp}.keyContact`,
+            "enum",
+            t`“normallyOpen” or “normallyClosed” expected`,
+          );
+      }
 
       const rawParams: unknown = c.parameters;
       const rawInit: unknown = c.initialState;
@@ -1185,6 +1200,7 @@ export function buildScenario(
         id: cid,
         label,
         keyLabel,
+        keyContact,
         parameters: chParams,
         initialState: chInit,
         scenes,

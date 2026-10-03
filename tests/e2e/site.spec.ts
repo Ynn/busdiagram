@@ -57,6 +57,38 @@ const watch = (page: Page) => {
   return { errors, external };
 };
 
+test("French documentation: language, navigation, and links to the English pages", async ({
+  page,
+}) => {
+  const { errors } = watch(page);
+  await page.goto(url("fr/guide/installation.html"));
+  await expect(page.locator("html")).toHaveAttribute("lang", "fr");
+  await expect(page.locator(".side h4").first()).toHaveText("Premiers pas");
+  await expect(page.locator(".crumb")).toHaveText("Guide");
+  await expect(page.locator("main p.stale")).toHaveCount(0);
+  // A page not translated yet stays in the French navigation, marked, and opens in English.
+  const devices = page.locator(".side a", { hasText: /^Shutters/ });
+  await expect(devices.locator("small.en")).toHaveText("EN");
+  await expect(devices).toHaveAttribute("href", "../../guide/shutters.html");
+  // Search finds French pages, and English pages not translated yet.
+  await page.locator(".search input").fill("premier");
+  await expect(page.locator(".search .results a").first()).toContainText(
+    "Premier schéma",
+  );
+  await page.locator(".search input").fill("weather station");
+  await expect(page.locator(".search .results a").first()).toHaveAttribute(
+    "href",
+    /^\.\.\/\.\.\/guide\//,
+  );
+  // Switch to the English page and back.
+  await page.locator("header .lang").click();
+  await expect(page).toHaveURL(/\/guide\/installation\.html$/);
+  await expect(page.locator("html")).toHaveAttribute("lang", "en");
+  await page.locator("header .lang").click();
+  await expect(page).toHaveURL(/\/fr\/guide\/installation\.html$/);
+  expect(errors).toEqual([]);
+});
+
 test("documentation has valid internal links and anchors", () => {
   const pages = htmlPages();
   expect(pages.length).toBeGreaterThan(40);
@@ -87,12 +119,16 @@ test("documentation has valid internal links and anchors", () => {
       }
     }
   }
-  const search = JSON.parse(
-    readFileSync(join(DOCS, "assets/search-index.js"), "utf8")
-      .replace(/^window\.BUSDIAGRAM_SEARCH=/, "")
-      .replace(/;\s*$/, ""),
-  ) as { u: string; h: [string, string][] }[];
-  for (const entry of search) {
+  const index = (file: string) =>
+    JSON.parse(
+      readFileSync(join(DOCS, "assets", file), "utf8")
+        .replace(/^window\.BUSDIAGRAM_SEARCH(_FR)?=/, "")
+        .replace(/;\s*$/, ""),
+    ) as { u: string; h: [string, string][] }[];
+  const search = index("search-index.js");
+  const searchFr = index("search-index-fr.js");
+  expect(searchFr.every((entry) => entry.u.startsWith("fr/"))).toBe(true);
+  for (const entry of [...search, ...searchFr]) {
     const route = entry.u.endsWith("/")
       ? `${entry.u}index.html`
       : entry.u || "index.html";
@@ -106,7 +142,7 @@ test("documentation has valid internal links and anchors", () => {
       if (!html.includes(`id="${id}"`))
         broken.push(`search → ${entry.u}#${id}`);
   }
-  expect(search).toHaveLength(65);
+  expect(search).toHaveLength(67);
   expect(broken).toEqual([]);
 });
 
@@ -300,7 +336,9 @@ test.describe("designer", () => {
     const items = page.locator(".cm-tooltip-autocomplete li");
     await expect(items).toHaveText([
       "energy",
+      "fireAlarm",
       "forced",
+      "intrusionAlarm",
       "lock",
       "logic",
       "power",
@@ -697,6 +735,30 @@ test.describe("guided designer", () => {
     await expect(
       page.locator("select.g-add option[value='ext:delayedSwitch/v1']"),
     ).toHaveCount(1);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("a language brought by an extension appears in the selector at once", async ({
+    page,
+  }, info) => {
+    const w = watch(page);
+    await page.goto(url("designer/index.html"));
+    const file = info.outputPath("german.js");
+    writeFileSync(
+      file,
+      'BusDiagram.registerMessages("de", { "Audit language": "Prüfsprache" });\n',
+    );
+    await expect(page.locator("#lang option")).toHaveText([
+      "English",
+      "Français",
+    ]);
+    await page.setInputFiles("#ext-file", file);
+    await expect(page.locator("#toast")).toContainText("german.js loaded");
+    await expect(page.locator("#lang option")).toHaveText([
+      "English",
+      "Français",
+      "Deutsch",
+    ]);
     expect(w.errors).toEqual([]);
   });
 
@@ -1829,6 +1891,18 @@ test.describe("designer workspace", () => {
     expect(box.width).toBeGreaterThan(1300);
     await page.click("#tab-guided");
     await expect(page.locator("#pane-guided")).toBeVisible();
+    // With the preview hidden beside the editor, the Simulation tab still shows it.
+    await page.click("#toggle-preview");
+    await expect(page.locator("#preview")).toBeHidden();
+    await page.click("#tab-sim");
+    await expect(page.locator("#preview")).toBeVisible();
+    expect(
+      (await page.locator("#preview").boundingBox())!.width,
+    ).toBeGreaterThan(1300);
+    await expect(page.locator("#preview .card").first()).toBeVisible();
+    await page.click("#tab-json");
+    await expect(page.locator("#preview")).toBeHidden();
+    await page.click("#toggle-preview");
     expect(w.errors).toEqual([]);
   });
 

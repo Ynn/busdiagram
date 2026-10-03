@@ -7,11 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model and limits · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.2b512bc.modified.639ecf90">
-<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
 
-<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90"></script>
-<script defer src="../assets/docs.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" data-base="../"></script>
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -23,8 +24,9 @@
     <a href="../designer/index.html">Designer</a>
   </nav>
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.2b512bc.modified.639ecf90" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -50,6 +52,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
+
 <h1 id="model-and-limits"><a class="anchor" href="#model-and-limits">#</a>Model and limits</h1><p>BusDiagram is a diagram design tool; its simulation layer exists to illustrate the diagrams and makes the following choices. They describe the software model and should not be taken as a complete account of a physical KNX installation.</p>
 <ul>
 <li><strong>Timing:</strong> propagation is slowed for inspection; it does not reproduce real twisted-pair bus timing.</li>
@@ -67,7 +70,7 @@
 <li><strong>Relay feedback:</strong> it reports the controlled relay state, not a measured mains voltage.</li>
 <li><strong>Scenes:</strong> recall (DPT 17.001 and 18.001) and storing by the learn bit (DPT 18.001) are modeled; a stored scene lasts until the simulation restarts.</li>
 <li><strong>Bus voltage:</strong> a line or segment can lose its bus voltage from its power supply on the diagram; devices then stop and run their failure and recovery behavior. Behavior after a download of the configuration is outside the model, and the simulation starts with the installation already in operation, without a recovery reaction.</li>
-<li><strong>Push-button interface:</strong> contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Contact type (normally open or closed), debounce, and telegram rate limits are not modeled.</li>
+<li><strong>Push-button interface:</strong> contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Debounce and telegram rate limits are not modeled; the contact type of the push-button (normally open or closed) and the contact expected by the input are.</li>
 <li><strong>DPTs:</strong> only the <a href="../reference/dpt.html">listed data types</a> are simulated; passive and display devices can show other standard DPTs as raw bytes.</li>
 <li><strong>Other systems:</strong> a gateway models only its KNX side; Modbus, BACnet, and M-Bus are not simulated.</li>
 <li><strong>USB interface panel:</strong> group reads and writes are modeled, without programming or downloads.</li>
@@ -78,8 +81,8 @@
 <li><strong>Air quality:</strong> measurements are entered by the reader; there is no air or ventilation model.</li>
 <li><strong>Venetian blinds:</strong> slats turn before each movement; slat angle restoration after a movement and slat limit positions are not modeled.</li>
 <li><strong>Presence detector:</strong> brightness is entered by the reader; there is no light model and no constant light regulation.</li>
-<li><strong>Weather station:</strong> measurements are entered by the reader; there is no weather model. Only wind and brightness thresholds are provided.</li>
-<li><strong>Logic module:</strong> one-bit AND, OR, XOR, and NOT with an enable object and an optional daily time window; no delay blocks or numeric comparisons.</li>
+<li><strong>Weather station:</strong> measurements are entered by the reader; there is no weather model. Wind, brightness, and frost thresholds and a rain alarm with delays are provided; there are no generic comparators on every measurement, no minimum exceedance times, and no lock per threshold.</li>
+<li><strong>Logic module:</strong> one-bit AND, OR, XOR, and NOT, with inversion of each input and of the result, an enable object, and an optional daily time window; no delay blocks or numeric comparisons.</li>
 <li><strong>Outside scope:</strong> BACnet, KNX Secure, and connection to a real bus.</li>
 </ul>
 

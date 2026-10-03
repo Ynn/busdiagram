@@ -14,11 +14,11 @@ export type Dev = {
   address?: string;
   parameters?: Record<string, unknown>;
   objects: Record<string, unknown>[];
-  channels?: {
+  channels?: ({
     id: string;
     parameters?: Record<string, unknown>;
     equipment?: unknown;
-  }[];
+  } & Record<string, unknown>)[];
 } & Record<string, unknown>;
 
 /** A copy of an example, changed by `edit`, with a USB interface on its first line. */

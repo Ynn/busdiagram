@@ -70,4 +70,11 @@ export const buttonInterfaceFr: Record<string, string> = {
   "No reaction for this function.": "Aucune réaction pour cette fonction.",
   "Cyclic sending applies to the switching function.":
     "L'émission cyclique concerne la fonction de commutation.",
+  "{0}, {1}: the push-button is normally closed, but the input expects a closed contact when actuated; presses and releases are seen the wrong way round.":
+    "{0}, {1} : le bouton-poussoir est normalement fermé, mais l'entrée attend un contact fermé à l'actionnement ; appuis et relâchements sont vus à l'envers.",
+  "{0}, {1}: the input expects an open contact when actuated, but the push-button is normally open; presses and releases are seen the wrong way round.":
+    "{0}, {1} : l'entrée attend un contact ouvert à l'actionnement, mais le bouton-poussoir est normalement ouvert ; appuis et relâchements sont vus à l'envers.",
+  "Input when actuated": "Entrée lors de l'actionnement",
+  "Contact closed": "Contact fermé",
+  "Contact open": "Contact ouvert",
 };

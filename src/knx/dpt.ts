@@ -41,6 +41,7 @@ const TABLE: DptInfo[] = [
   BOOL("1.010", "Start/Stop"),
   BOOL("1.011", "State"),
   BOOL("1.012", "Invert"),
+  BOOL("1.015", "Reset"),
   BOOL("1.017", "Trigger"),
   BOOL("1.018", "Occupation"),
   BOOL("1.019", "Window/Door"),
@@ -384,6 +385,8 @@ export function dptTitle(dpt: string, t: Translate = en): string {
       return t`State`;
     case "1.012":
       return t`Invert`;
+    case "1.015":
+      return t`Reset`;
     case "1.017":
       return t`Trigger`;
     case "1.018":
@@ -629,6 +632,8 @@ export function formatValue(
       return v ? t`Active` : t`Inactive`;
     case "1.012":
       return v ? t`Inverted` : t`Not inverted`;
+    case "1.015":
+      return v ? t`Reset` : t`No action`;
     case "1.017":
       return t`Triggered`;
     case "2.001":

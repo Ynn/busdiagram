@@ -459,7 +459,7 @@ function commit(label: string, mutate: (doc: Doc) => void): boolean {
   return !r;
 }
 
-// ── Onglets ──────────────────────────────────────────────────────────────────
+// ── Tabs ────────────────────────────────────────────────────────────────────
 type Tab = "guided" | "json" | "sim";
 /** Guided editor, JSON editor, or the simulation alone, over the whole width. */
 function showTab(tab: Tab) {
@@ -684,6 +684,7 @@ async function applyExtensions(next: LoadedExtension[], changed: string[]) {
   loaded = "";
   refresh();
   renderExtensionList();
+  fillLanguages();
   return problems.length === 0;
 }
 function renderExtensionList() {
@@ -781,13 +782,24 @@ const languageName = (l: string) => {
     return l;
   }
 };
-availableLanguages().forEach((l) => {
-  const o = document.createElement("option");
-  o.value = l;
-  o.textContent = languageName(l);
-  o.selected = l === language;
-  langSelect.append(o);
-});
+/**
+ * Options of the language selector: the registered languages, rebuilt when extensions
+ * bring or take away one. The current language stays listed until the page reloads.
+ */
+function fillLanguages() {
+  const langs = availableLanguages();
+  if (!langs.includes(language)) langs.push(language);
+  langSelect.replaceChildren(
+    ...langs.map((l) => {
+      const o = document.createElement("option");
+      o.value = l;
+      o.textContent = languageName(l);
+      o.selected = l === language;
+      return o;
+    }),
+  );
+}
+fillLanguages();
 langSelect.addEventListener("change", () => {
   try {
     localStorage.setItem(LANG, langSelect.value);

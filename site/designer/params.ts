@@ -1181,6 +1181,23 @@ function keyPage(ed: GuidedEditor, d: Dev, c: Chan) {
               ),
             )}
       /></label>
+      ${ed.select(
+        t`Contact of the push-button`,
+        [
+          ["normallyOpen", t`Normally open (closes when pressed)`],
+          ["normallyClosed", t`Normally closed (opens when pressed)`],
+        ],
+        c.keyContact ?? "normallyOpen",
+        (v) =>
+          ed.run(t`Contact of the push-button`, (x) =>
+            E.setKeyContact(
+              x,
+              d.id,
+              c.id,
+              v as "normallyOpen" | "normallyClosed",
+            ),
+          ),
+      )}
     </div>`;
 }
 

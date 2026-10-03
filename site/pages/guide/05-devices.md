@@ -22,6 +22,8 @@ The `function` parameter of each input decides its behavior and its group object
 | `value` | Sends `shortValue`, or `longValue` after a long press; without `longValue`, the value is sent at once. | `value` (5.001, 5.004, 5.010, 7.600, 9.001, 20.102) |
 | `scene` | A short press recalls `sceneNumber`; with `sceneStore`, a long press stores it (DPT 18.001 with the learn bit). | `value` (17.001 or 18.001) |
 
+The push-button wired to an input is normally open (it closes when pressed); a normally closed one is declared on the channel with `"keyContact": "normallyClosed"`, as part of the installation. The input expects a closed contact when actuated (`actuatedContact: "closed"`), or an open one (`"open"`) for a normally closed push-button. When the two disagree, presses and releases are seen the wrong way round (at rest, the input sees the key held, and a long press after its threshold), and a configuration warning is shown.
+
 `toggle` inverts the **value of the switching object**, which may differ from the lamp's actual state. The `switch` and `move` objects have the W flag by default: when they also listen to the status of the load, as an additional receive-only address (`"ga": ["1/1/1", "1/4/1"]`), toggling and one-key dimming or blind start from the real state, and the LED of the key shows it. The [status feedback example](../examples/status-feedback.html) shows why that matters.
 
 ```knx
@@ -45,8 +47,10 @@ scenario: push-button-interface
 
 An actuator has one channel per output. Its object ports include `switch` (command), `status` (feedback), `scene`, and `forced`.
 
+- **Alarms:** an `intrusionAlarm` object makes the output blink (`blinkMs`, 1 s by default), a `fireAlarm` object forces it on and steady; fire has priority over intrusion, and both over forcing and the lock. Commands received meanwhile are stored without effect; when the last alarm ends, `afterAlarm` sets the state (the last command by default). Link these objects to the stored alarms of an [alarm module](#alarm-module-alarmmodule-v1).
+
 - **Status feedback:** when the switching state changes, the `status` object takes its value and transmits it after `statusDelayMs` (300 ms by default).
-- **Metering and load shedding:** `power` (DPT 14.056 in W, or 9.024 in kW) and `energy` (DPT 13.010 in Wh, or 13.013 in kWh) objects on a channel report the power drawn by its load and the energy counted; `totalPower` and `powerLimit` objects without a channel report the total and a power limit alarm (`powerLimitW`). Loads declare their rated power with `powerW` (lamps, dimmable lamps, fans, and `appliance` loads). A channel with `"loadShedding": true` is switched off while the limit is exceeded and switched on again after `sheddingTimeMs` if its command still requests it. Energy is counted `energyTimeScale` times faster than real time (60 by default). See the [energy metering example](../examples/energy-metering.html).
+- **Metering and load shedding:** `power` (DPT 14.056 in W, or 9.024 in kW) and `energy` (DPT 13.010 in Wh, or 13.013 in kWh) objects on a channel report the power drawn by its load and the energy counted; `totalPower` and `powerLimit` objects without a channel report the total and a power limit alarm (`powerLimitW`). Loads declare their rated power with `powerW` (lamps, dimmable lamps, fans, `appliance` and `siren` loads, the element of a `waterHeater`, which draws it only while its own thermostat heats, and `electricPowerW` for a `heatPump` while its compressor runs). A channel with `"loadShedding": true` is switched off while the limit is exceeded and switched on again after `sheddingTimeMs` if its command still requests it. Energy is counted `energyTimeScale` times faster than real time (60 by default). See the [energy metering example](../examples/energy-metering.html).
 - **Relay operating mode:** `"parameters": { "relayMode": "normallyClosed" }` on a channel inverts the contact: the load is powered while the switching state is 0, for example for a light that must stay on unless a command switches it off. The switching state, status feedback, timer, scenes, and priority override keep their usual meaning; only the contact is inverted. The diagram marks such an output with an inversion circle and the label **NC** on the load wire.
 - **Staircase timer:** `"parameters": { "timerMs": 10000 }` on a channel. A write of 1 closes the relay and starts a delay. `timerRetrigger` selects `"restart"` (default), `"none"`, or `"add"` (each new 1 adds a period, up to five). With `timerOffAllowed: false`, a write of 0 cannot cancel the timer. `timerWarningMs` briefly opens the output before expiry as a warning.
 - **Scenes:** `"scenes": { "1": 1, "2": 0 }` on a channel defines its states. A `scene` object without a channel applies to all channels. A scene control object (DPT 18.001) also accepts storing: a telegram with the learn bit (value + 128) stores the current state of each channel as the scene, until the simulation restarts; `sceneLearning: false` refuses it.
@@ -87,7 +91,9 @@ The measured power of a circuit is given at start by `initialState.powerW` and c
 
 A detection sends 1 through the `input` object. Each new detection restarts the hold timer (`"parameters": { "holdMs": 10000 }`); when it expires, the object sends 0. Set `retrigger: false` to avoid restarting or `sendOnEnd: false` to suppress the final 0. To model a detector that only sends 1 and relies on the actuator's timer, set `sendOnEnd: false` with a short hold time, as in the [timer example](../examples/timers.html). The presence object may use DPT 1.001 or 1.018 (occupancy).
 
-Several detectors can watch one room as master and slaves: each slave sends 1 on its detections to the `slaveTrigger` object of the master, which counts it as its own detection (switch-on, or a restart of the hold time; its brightness threshold applies).
+A `lock` object at 1 makes the detector ignore its detections. `lockStart` and `lockEnd` set the telegram sent when the lock starts and ends: none (default), 0, or 1 (kept while locked; at the end, followed by the hold time).
+
+Several detectors can watch one room as master and slaves. A slave (`"slave": true`) sends 1 on each of its detections; linked to the `slaveTrigger` object of the master, it counts as a detection of the master (switch-on, or a restart of the hold time), whose brightness threshold and final 0 apply.
 
 A `brightness` object (DPT 9.004) sends the brightness measured by the detector, entered by the reader on a numeric input. With `brightnessThresholdLux`, a detection switches on only while that brightness is below the threshold; a presence already active is still extended. There is no light model: the brightness does not depend on the lamps or on daylight, and constant light regulation is not modeled.
 
@@ -99,8 +105,10 @@ A weather station sends outdoor measurements entered in its numeric `inputs`: wi
 | --- | --- | --- | --- |
 | `windAlarm` | wind ≥ `windThreshold` (10 m/s) | wind ≤ threshold − `windHysteresis` (2 m/s) | `windThreshold`, `windHysteresis` |
 | `sunProtection` | brightness ≥ `brightnessThreshold` (40,000 lx) | brightness ≤ threshold − `brightnessHysteresis` (5,000 lx) | `brightnessThreshold`, `brightnessHysteresis` |
+| `frostAlarm` | outdoor temperature ≤ `frostThresholdC` (3 °C) | temperature ≥ threshold + `frostHysteresisK` (2 K) | `frostThresholdC`, `frostHysteresisK` |
+| `rainAlarm` | rain entered for `rainOnDelayMs` (20 s) | `rainOffDelayMs` (5 min) after the rain stops | `rainOnDelayMs`, `rainOffDelayMs` |
 
-An output is transmitted only when its state changes. Link `windAlarm` to the `windAlarm` port of a [shutter actuator](shutters.html).
+Rain is entered on the numeric input of the `rainAlarm` object (0 or 1): the delays avoid reporting a short shower or a short break, as on common rain sensors. An output is transmitted when its state changes; with `alarmCyclicMs`, the wind, rain, and frost alarms are also sent again at that period, for actuators that monitor them (`alarmMonitoringMs` of a shutter actuator). Link the alarms to the `windAlarm`, `rainAlarm`, and `frostAlarm` ports of a [shutter actuator](shutters.html).
 
 ## Air quality sensor: `airQualitySensor/v1`
 
@@ -122,11 +130,17 @@ A logic module combines the one-bit objects on its `logicIn` port and sends the 
 
 A daily time window restricts the output: with `activeFrom` and `activeTo` (HH:MM, the window may cross midnight) and a `time` object (DPT 10.001) that receives the time from a clock master, the output is 1 only inside the window. The logic module depends on the time received on the bus: without a clock master, the window stays closed. A logic module without inputs simply follows the window.
 
-An optional `enable` object (DPT 1.003) blocks the output while it is 0; setting it back to 1 sends the current result. The [weather protection example](../examples/weather-protection.html) uses AND to apply sun protection only in automatic mode.
+`invertInput1` … `invertInput8` invert the logic inputs, in the order of their objects, and `invertOutput` inverts the result (NAND, NOR, XNOR).
+
+An optional `enable` object (DPT 1.003) blocks the output while it is 0 (`enablePolarity: "inverted"`: while it is 1); enabling it again sends the current result. Before its first telegram, the output is enabled (`enableAtStart`). The [weather protection example](../examples/weather-protection.html) uses AND to apply sun protection only in automatic mode.
 
 ## Clock master: `clockMaster/v1`
 
 A clock master sends the time of day on a `time` object (DPT 10.001: day of week and time) and the date on a `date` object (DPT 11.001), from the scenario's [simulated clock](time.html#simulated-clock). It sends shortly after start (`sendOnStart`, `startDelayMs`), every `sendPeriodMin` clock minutes aligned on the clock (1 by default; 0 disables periodic sending), and after the clock is set. Its objects have the R flag by default, so that other devices can read the current time, as on the clocks of training kits.
+
+## Alarm module: `alarmModule/v1`
+
+An alarm module has one channel per zone. For intrusion and for fire, a trigger object (`intrusionTrigger`, `fireTrigger`) sets a stored alarm (`intrusionState`, `fireState`), sent on each change. The alarm stays stored when the trigger returns to 0, until a reset (`intrusionReset`, `fireReset`, DPT 1.015) receives 1; the reset is refused, and the journal says why, while the trigger is still 1. The alarms are kept through a bus voltage failure and sent again when the voltage returns. See the [alarms example](../examples/alarms.html).
 
 ## Weekly time switch: `timeSwitch/v1`
 
@@ -136,7 +150,9 @@ A time switch sends programmed values on its `output` objects (DPT 1.001, 1.002,
 "parameters": { "program": "Mon-Fri 07:00 = 1; Mon-Fri 22:00 = 0; Sat,Sun 08:30 = 1; Sat,Sun 23:00 = 0" }
 ```
 
-Days are `Mon` … `Sun`, ranges such as `Mon-Fri`, lists such as `Sat,Sun`, or `Daily`. Unreadable entries are ignored and listed in the event log. At start and after the clock is set, the time switch sends the value of the most recent switching point (`sendOnStart`). It uses the simulated clock directly; it does not synchronize from a clock master.
+Days are `Mon` … `Sun`, ranges such as `Mon-Fri`, lists such as `Sat,Sun`, or `Daily`. Unreadable entries are ignored and listed in the event log.
+
+Three overrides, as on common time switches: an `override` object sends a value at once and holds it until the next switching point; an `overrideTimed` object holds it for `overrideDurationMin` clock minutes (60 by default), the switching points meanwhile being held; an `overridePermanent` object at 1 suspends the program, and at 0 resumes it with its current value. At start and after the clock is set, the time switch sends the value of the most recent switching point (`sendOnStart`). It uses the simulated clock directly; it does not synchronize from a clock master.
 
 ## Display and supervisor: `display/v1`
 

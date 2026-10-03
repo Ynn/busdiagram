@@ -1,0 +1,544 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Intrusion and fire alarms · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7">
+<script src="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/search-index.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7"></script>
+
+<script defer src="../assets/docs.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" data-base="../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html">Guide</a>
+    <a href="../examples/index.html" class="cur">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/index.html" hreflang="fr" lang="fr">Français</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.3.1%2Bdev.02d937c.modified.a59fe0f7" download="bus-diagram.js">Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../examples/index.html">All examples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../examples/lighting-control.html">Control several outputs</a></li><li><a href="../examples/status-feedback.html">Status feedback</a></li><li><a href="../examples/shutter-control.html">Shutter control</a></li><li><a href="../examples/venetian-blind.html">Venetian blind</a></li><li><a href="../examples/dimming.html">Dimming</a></li><li><a href="../examples/tunable-white.html">Tunable white</a></li><li><a href="../examples/push-button-interface.html">Push-button interface</a></li><li><a href="../examples/scenes.html">Scenes</a></li><li><a href="../examples/timers.html">Timers</a></li><li><a href="../examples/priority-control.html">Priority control</a></li></ul>
+
+  <h4>Systems and mechanisms</h4>
+  <ul><li><a href="../examples/shutter-calibration.html">Miscalibrated shutter</a></li><li><a href="../examples/object-flags.html">Flags W and T</a></li><li><a href="../examples/topology.html">Full topology</a></li><li><a href="../examples/dali.html">DALI gateway</a></li><li><a href="../examples/hvac.html">Heating per room</a></li><li><a href="../examples/weather-protection.html">Weather protection</a></li><li><a href="../examples/air-quality.html">Air quality</a></li><li><a href="../examples/energy-metering.html">Energy metering</a></li><li><a href="../examples/boiler-room.html">Heat pump behind a gateway</a></li><li><a href="../examples/time-schedule.html">Time schedule</a></li><li><a href="../examples/usb-interface.html">USB interface tool</a></li><li><a href="../examples/bus-voltage.html">Bus voltage failure</a></li><li class="cur"><a href="../examples/alarms.html">Intrusion and fire alarms</a></li><li><a href="../examples/heat-pump.html">Heat pump and hot water</a></li></ul>
+
+  <h4>Integration</h4>
+  <ul><li><a href="../examples/display-options.html">Display options</a></li><li><a href="../examples/fit-diagram.html">Fit the diagram</a></li><li><a href="../examples/slideshow.html">reveal.js slideshow</a></li><li><a href="../examples/two-instances.html">Two independent diagrams</a></li><li><a href="../examples/javascript.html">Create a diagram with JavaScript</a></li><li><a href="../examples/events.html">Telegram events</a></li><li><a href="../examples/programmatic-control.html">Programmatic control</a></li><li><a href="../examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Examples</p>
+
+<h1 id="intrusion-and-fire-alarms"><a class="anchor" href="#intrusion-and-fire-alarms">#</a>Intrusion and fire alarms</h1><p>The alarm module stores the alarms of a zone. The push-button interface stands for the door contact (input 1), the smoke detector (input 2), and the reset keys (inputs 3 and 4).</p>
+<ul>
+<li>Hold <strong>Door</strong>: the intrusion alarm is triggered and stored. The hall light blinks and ignores <strong>Hall light</strong>; the sounder, switched by the stored intrusion alarm, sounds for at most 3 minutes; the office light is not concerned.</li>
+<li>Release <strong>Door</strong>: the alarm stays stored. Press <strong>Reset intrusion</strong>: the alarm ends, and the hall light takes the last command received during the alarm.</li>
+<li>Hold <strong>Smoke</strong>: the fire alarm forces both lights on, steady, even while the intrusion alarm makes the hall light blink: fire has priority. <strong>Reset fire</strong> is refused while <strong>Smoke</strong> is held: the journal explains why.</li>
+</ul>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram><script type="application/json">{"formatVersion":2,"title":"Intrusion and fire alarms","description":"An alarm module stores the intrusion and fire alarms of a zone until they are reset. The hall light blinks and the sounder sounds on intrusion and is forced on by fire; the office light only reacts to fire. A reset is refused while its trigger is still active.","lines":[{"address":"1.1","name":"Ground floor","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"Hall light","dpt":"1.001"},{"address":"1/1/2","name":"Office light","dpt":"1.001"},{"address":"7/0/1","name":"Door contact (intrusion trigger)","dpt":"1.005"},{"address":"7/0/2","name":"Intrusion reset","dpt":"1.015"},{"address":"7/0/3","name":"Intrusion alarm","dpt":"1.005"},{"address":"7/1/1","name":"Smoke detector (fire trigger)","dpt":"1.005"},{"address":"7/1/2","name":"Fire reset","dpt":"1.015"},{"address":"7/1/3","name":"Fire alarm","dpt":"1.005"}],"devices":[{"id":"pushButton","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"door","name":"Door contact","ga":"7/0/1","dpt":"1.005","port":"switch","channel":"in1","flags":{"W":false,"T":true}},{"id":"smoke","name":"Smoke detector","ga":"7/1/1","dpt":"1.005","port":"switch","channel":"in2","flags":{"W":false,"T":true}},{"id":"resetI","name":"Intrusion reset","ga":"7/0/2","dpt":"1.015","port":"switch","channel":"in3","flags":{"W":false,"T":true}},{"id":"resetF","name":"Fire reset","ga":"7/1/2","dpt":"1.015","port":"switch","channel":"in4","flags":{"W":false,"T":true}},{"id":"light","name":"Hall light","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in5","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1","keyLabel":"Door","parameters":{"onPress":"on","onRelease":"off"},"equipment":null},{"id":"in2","label":"Input 2","keyLabel":"Smoke","parameters":{"onPress":"on","onRelease":"off"},"equipment":null},{"id":"in3","label":"Input 3","keyLabel":"Reset intrusion","parameters":{"onPress":"on"},"equipment":null},{"id":"in4","label":"Input 4","keyLabel":"Reset fire","parameters":{"onPress":"on"},"equipment":null},{"id":"in5","label":"Input 5","keyLabel":"Hall light","equipment":null}]},{"id":"alarms","name":"Alarm module","address":"1.1.2","kind":"alarmModule","behavior":"alarmModule/v1","objects":[{"id":"it","name":"Intrusion trigger","ga":"7/0/1","dpt":"1.005","port":"intrusionTrigger","channel":"z1","flags":{"W":true,"T":false}},{"id":"ir","name":"Intrusion reset","ga":"7/0/2","dpt":"1.015","port":"intrusionReset","channel":"z1","flags":{"W":true,"T":false}},{"id":"is","name":"Intrusion alarm","ga":"7/0/3","dpt":"1.005","port":"intrusionState","channel":"z1","flags":{"W":false,"T":true}},{"id":"ft","name":"Fire trigger","ga":"7/1/1","dpt":"1.005","port":"fireTrigger","channel":"z1","flags":{"W":true,"T":false}},{"id":"fr","name":"Fire reset","ga":"7/1/2","dpt":"1.015","port":"fireReset","channel":"z1","flags":{"W":true,"T":false}},{"id":"fs","name":"Fire alarm","ga":"7/1/3","dpt":"1.005","port":"fireState","channel":"z1","flags":{"W":false,"T":true}}],"channels":[{"id":"z1","label":"Ground floor","equipment":null}]},{"id":"actuator","name":"Switch actuator","address":"1.1.3","kind":"switchActuator","behavior":"switchActuator/v1","objects":[{"id":"swA","name":"Hall switching","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"a","flags":{"W":true,"T":false}},{"id":"iaA","name":"Hall intrusion alarm","ga":"7/0/3","dpt":"1.005","port":"intrusionAlarm","channel":"a","flags":{"W":true,"T":false}},{"id":"faA","name":"Hall fire alarm","ga":"7/1/3","dpt":"1.005","port":"fireAlarm","channel":"a","flags":{"W":true,"T":false}},{"id":"swB","name":"Office switching","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"b","flags":{"W":true,"T":false}},{"id":"faB","name":"Office fire alarm","ga":"7/1/3","dpt":"1.005","port":"fireAlarm","channel":"b","flags":{"W":true,"T":false}},{"id":"swC","name":"Sounder switching","ga":"7/0/3","dpt":"1.001","port":"switch","channel":"c","flags":{"W":true,"T":false}}],"channels":[{"id":"a","label":"Hall","equipment":{"type":"lamp"}},{"id":"b","label":"Office","equipment":{"type":"lamp"}},{"id":"c","label":"Sounder","equipment":{"type":"siren"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../designer/index.html#template=alarms" title="Open in designer">Edit in designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Intrusion and fire alarms",
+  "description": "An alarm module stores the intrusion and fire alarms of a zone until they are reset. The hall light blinks and the sounder sounds on intrusion and is forced on by fire; the office light only reacts to fire. A reset is refused while its trigger is still active.",
+  "lines": [{ "address": "1.1", "name": "Ground floor", "powerSupply": { "currentMa": 640 } }],
+  "groupAddresses": [
+    { "address": "1/1/1", "name": "Hall light", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "Office light", "dpt": "1.001" },
+    { "address": "7/0/1", "name": "Door contact (intrusion trigger)", "dpt": "1.005" },
+    { "address": "7/0/2", "name": "Intrusion reset", "dpt": "1.015" },
+    { "address": "7/0/3", "name": "Intrusion alarm", "dpt": "1.005" },
+    { "address": "7/1/1", "name": "Smoke detector (fire trigger)", "dpt": "1.005" },
+    { "address": "7/1/2", "name": "Fire reset", "dpt": "1.015" },
+    { "address": "7/1/3", "name": "Fire alarm", "dpt": "1.005" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "door",
+          "name": "Door contact",
+          "ga": "7/0/1",
+          "dpt": "1.005",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "smoke",
+          "name": "Smoke detector",
+          "ga": "7/1/1",
+          "dpt": "1.005",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "resetI",
+          "name": "Intrusion reset",
+          "ga": "7/0/2",
+          "dpt": "1.015",
+          "port": "switch",
+          "channel": "in3",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "resetF",
+          "name": "Fire reset",
+          "ga": "7/1/2",
+          "dpt": "1.015",
+          "port": "switch",
+          "channel": "in4",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "light",
+          "name": "Hall light",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in5",
+          "flags": { "W": true, "T": true }
+        }
+      ],
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Door",
+          "parameters": { "onPress": "on", "onRelease": "off" },
+          "equipment": null
+        },
+        {
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Smoke",
+          "parameters": { "onPress": "on", "onRelease": "off" },
+          "equipment": null
+        },
+        {
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Reset intrusion",
+          "parameters": { "onPress": "on" },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Reset fire",
+          "parameters": { "onPress": "on" },
+          "equipment": null
+        },
+        { "id": "in5", "label": "Input 5", "keyLabel": "Hall light", "equipment": null }
+      ]
+    },
+    {
+      "id": "alarms",
+      "name": "Alarm module",
+      "address": "1.1.2",
+      "kind": "alarmModule",
+      "behavior": "alarmModule/v1",
+      "objects": [
+        {
+          "id": "it",
+          "name": "Intrusion trigger",
+          "ga": "7/0/1",
+          "dpt": "1.005",
+          "port": "intrusionTrigger",
+          "channel": "z1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "ir",
+          "name": "Intrusion reset",
+          "ga": "7/0/2",
+          "dpt": "1.015",
+          "port": "intrusionReset",
+          "channel": "z1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "is",
+          "name": "Intrusion alarm",
+          "ga": "7/0/3",
+          "dpt": "1.005",
+          "port": "intrusionState",
+          "channel": "z1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "ft",
+          "name": "Fire trigger",
+          "ga": "7/1/1",
+          "dpt": "1.005",
+          "port": "fireTrigger",
+          "channel": "z1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "fr",
+          "name": "Fire reset",
+          "ga": "7/1/2",
+          "dpt": "1.015",
+          "port": "fireReset",
+          "channel": "z1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "fs",
+          "name": "Fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireState",
+          "channel": "z1",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [{ "id": "z1", "label": "Ground floor", "equipment": null }]
+    },
+    {
+      "id": "actuator",
+      "name": "Switch actuator",
+      "address": "1.1.3",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "objects": [
+        {
+          "id": "swA",
+          "name": "Hall switching",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "iaA",
+          "name": "Hall intrusion alarm",
+          "ga": "7/0/3",
+          "dpt": "1.005",
+          "port": "intrusionAlarm",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "faA",
+          "name": "Hall fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireAlarm",
+          "channel": "a",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "swB",
+          "name": "Office switching",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "faB",
+          "name": "Office fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireAlarm",
+          "channel": "b",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "swC",
+          "name": "Sounder switching",
+          "ga": "7/0/3",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "c",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "a", "label": "Hall", "equipment": { "type": "lamp" } },
+        { "id": "b", "label": "Office", "equipment": { "type": "lamp" } },
+        { "id": "c", "label": "Sounder", "equipment": { "type": "siren" } }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Intrusion and fire alarms"</span>,
+  <span class="k">"description"</span>: <span class="s">"An alarm module stores the intrusion and fire alarms of a zone until they are reset. The hall light blinks and the sounder sounds on intrusion and is forced on by fire; the office light only reacts to fire. A reset is refused while its trigger is still active."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Ground floor"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Hall light"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Office light"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Door contact (intrusion trigger)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Intrusion reset"</span>, <span class="k">"dpt"</span>: <span class="s">"1.015"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/0/3"</span>, <span class="k">"name"</span>: <span class="s">"Intrusion alarm"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/1/1"</span>, <span class="k">"name"</span>: <span class="s">"Smoke detector (fire trigger)"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/1/2"</span>, <span class="k">"name"</span>: <span class="s">"Fire reset"</span>, <span class="k">"dpt"</span>: <span class="s">"1.015"</span> },
+    { <span class="k">"address"</span>: <span class="s">"7/1/3"</span>, <span class="k">"name"</span>: <span class="s">"Fire alarm"</span>, <span class="k">"dpt"</span>: <span class="s">"1.005"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Push-button interface"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"door"</span>,
+          <span class="k">"name"</span>: <span class="s">"Door contact"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"smoke"</span>,
+          <span class="k">"name"</span>: <span class="s">"Smoke detector"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"resetI"</span>,
+          <span class="k">"name"</span>: <span class="s">"Intrusion reset"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.015"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"resetF"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fire reset"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.015"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"light"</span>,
+          <span class="k">"name"</span>: <span class="s">"Hall light"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in5"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"in1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 1"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Door"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span>, <span class="k">"onRelease"</span>: <span class="s">"off"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in2"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 2"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Smoke"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span>, <span class="k">"onRelease"</span>: <span class="s">"off"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Reset intrusion"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Input 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Reset fire"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"onPress"</span>: <span class="s">"on"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        { <span class="k">"id"</span>: <span class="s">"in5"</span>, <span class="k">"label"</span>: <span class="s">"Input 5"</span>, <span class="k">"keyLabel"</span>: <span class="s">"Hall light"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"alarms"</span>,
+      <span class="k">"name"</span>: <span class="s">"Alarm module"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"alarmModule"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"alarmModule/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"it"</span>,
+          <span class="k">"name"</span>: <span class="s">"Intrusion trigger"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"intrusionTrigger"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"ir"</span>,
+          <span class="k">"name"</span>: <span class="s">"Intrusion reset"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.015"</span>,
+          <span class="k">"port"</span>: <span class="s">"intrusionReset"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"is"</span>,
+          <span class="k">"name"</span>: <span class="s">"Intrusion alarm"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"intrusionState"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"ft"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fire trigger"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"fireTrigger"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"fr"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fire reset"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.015"</span>,
+          <span class="k">"port"</span>: <span class="s">"fireReset"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"fs"</span>,
+          <span class="k">"name"</span>: <span class="s">"Fire alarm"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"fireState"</span>,
+          <span class="k">"channel"</span>: <span class="s">"z1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [{ <span class="k">"id"</span>: <span class="s">"z1"</span>, <span class="k">"label"</span>: <span class="s">"Ground floor"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> }]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"actuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Switch actuator"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"swA"</span>,
+          <span class="k">"name"</span>: <span class="s">"Hall switching"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"iaA"</span>,
+          <span class="k">"name"</span>: <span class="s">"Hall intrusion alarm"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"intrusionAlarm"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"faA"</span>,
+          <span class="k">"name"</span>: <span class="s">"Hall fire alarm"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"fireAlarm"</span>,
+          <span class="k">"channel"</span>: <span class="s">"a"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"swB"</span>,
+          <span class="k">"name"</span>: <span class="s">"Office switching"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"faB"</span>,
+          <span class="k">"name"</span>: <span class="s">"Office fire alarm"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/1/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.005"</span>,
+          <span class="k">"port"</span>: <span class="s">"fireAlarm"</span>,
+          <span class="k">"channel"</span>: <span class="s">"b"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"swC"</span>,
+          <span class="k">"name"</span>: <span class="s">"Sounder switching"</span>,
+          <span class="k">"ga"</span>: <span class="s">"7/0/3"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"c"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"a"</span>, <span class="k">"label"</span>: <span class="s">"Hall"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        { <span class="k">"id"</span>: <span class="s">"b"</span>, <span class="k">"label"</span>: <span class="s">"Office"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> } },
+        { <span class="k">"id"</span>: <span class="s">"c"</span>, <span class="k">"label"</span>: <span class="s">"Sounder"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"siren"</span> } }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../examples/bus-voltage.html">← Bus voltage failure</a>
+<a href="../examples/heat-pump.html">Heat pump and hot water →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.3.1 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+</body>
+</html>

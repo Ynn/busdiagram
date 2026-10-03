@@ -102,7 +102,7 @@ This example connects a push-button interface (one key that toggles), a switch a
 
 - **Topology:** lines, main lines, backbone, repeaters, segment couplers, and KNXnet/IP routers, laid out from the individual addresses.
 - **Devices:** push-buttons, actuators, gateways, thermostats, weather stations, logic modules, and supervisors with their communication objects, group addresses, and flags.
-- **Connected loads:** lamps, tunable white lights, shutters and venetian blinds, fans, electrical appliances, DALI groups, and radiators attached to actuator channels.
+- **Connected loads:** lamps, tunable white lights, shutters and venetian blinds, fans, electrical appliances, hot water cylinders, heat pumps, alarm sounders, DALI groups, and radiators attached to actuator channels.
 
 ## What can be simulated
 

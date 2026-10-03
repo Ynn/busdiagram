@@ -23,7 +23,7 @@ BusDiagram is a diagram design tool; its simulation layer exists to illustrate t
 - **Relay feedback:** it reports the controlled relay state, not a measured mains voltage.
 - **Scenes:** recall (DPT 17.001 and 18.001) and storing by the learn bit (DPT 18.001) are modeled; a stored scene lasts until the simulation restarts.
 - **Bus voltage:** a line or segment can lose its bus voltage from its power supply on the diagram; devices then stop and run their failure and recovery behavior. Behavior after a download of the configuration is outside the model, and the simulation starts with the installation already in operation, without a recovery reaction.
-- **Push-button interface:** contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Contact type (normally open or closed), debounce, and telegram rate limits are not modeled.
+- **Push-button interface:** contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Debounce and telegram rate limits are not modeled; the contact type of the push-button (normally open or closed) and the contact expected by the input are.
 - **DPTs:** only the [listed data types](../reference/dpt.html) are simulated; passive and display devices can show other standard DPTs as raw bytes.
 - **Other systems:** a gateway models only its KNX side; Modbus, BACnet, and M-Bus are not simulated.
 - **USB interface panel:** group reads and writes are modeled, without programming or downloads.
@@ -34,6 +34,6 @@ BusDiagram is a diagram design tool; its simulation layer exists to illustrate t
 - **Air quality:** measurements are entered by the reader; there is no air or ventilation model.
 - **Venetian blinds:** slats turn before each movement; slat angle restoration after a movement and slat limit positions are not modeled.
 - **Presence detector:** brightness is entered by the reader; there is no light model and no constant light regulation.
-- **Weather station:** measurements are entered by the reader; there is no weather model. Only wind and brightness thresholds are provided.
-- **Logic module:** one-bit AND, OR, XOR, and NOT with an enable object and an optional daily time window; no delay blocks or numeric comparisons.
+- **Weather station:** measurements are entered by the reader; there is no weather model. Wind, brightness, and frost thresholds and a rain alarm with delays are provided; there are no generic comparators on every measurement, no minimum exceedance times, and no lock per threshold.
+- **Logic module:** one-bit AND, OR, XOR, and NOT, with inversion of each input and of the result, an enable object, and an optional daily time window; no delay blocks or numeric comparisons.
 - **Outside scope:** BACnet, KNX Secure, and connection to a real bus.

@@ -16,4 +16,19 @@ export const weatherStationFr: Record<string, string> = {
   "Outdoor temperature applies to the rooms":
     "La température extérieure s'applique aux pièces",
   "Sun protection hysteresis": "Hystérésis de la protection solaire",
+  "{0} °C at or below {1} °C: frost alarm set":
+    "{0} °C inférieur ou égal à {1} °C : alarme gel activée",
+  "{0} °C at or above {1} °C: frost alarm reset":
+    "{0} °C supérieur ou égal à {1} °C : alarme gel levée",
+  "Rain alarm set": "Alarme pluie activée",
+  "Rain alarm reset": "Alarme pluie levée",
+  "Rain detected: alarm after the delay":
+    "Pluie détectée : alarme après le délai",
+  "Rain ended: alarm reset after the delay":
+    "Fin de la pluie : alarme levée après le délai",
+  "Frost alarm threshold": "Seuil d'alarme gel",
+  "Frost alarm hysteresis": "Hystérésis de l'alarme gel",
+  "Delay of the rain alarm": "Délai de l'alarme pluie",
+  "Delay of the end of rain": "Délai de fin de pluie",
+  "Cyclic sending of the alarms": "Envoi cyclique des alarmes",
 };

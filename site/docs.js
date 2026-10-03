@@ -46,7 +46,13 @@
     sel = -1;
     if (q.length < 2 || !window.BUSDIAGRAM_SEARCH) return (list.hidden = true);
     const hits = [];
-    window.BUSDIAGRAM_SEARCH.forEach((p) => {
+    // On a French page: the French pages, then the English pages not translated yet.
+    const fr = document.documentElement.lang === "fr" && window.BUSDIAGRAM_SEARCH_FR;
+    const translated = new Set((fr || []).map((p) => p.o));
+    const pages = fr
+      ? [...fr, ...window.BUSDIAGRAM_SEARCH.filter((p) => !translated.has(p.u))]
+      : window.BUSDIAGRAM_SEARCH;
+    pages.forEach((p) => {
       if (norm(p.t).includes(q))
         hits.push({ t: p.t, u: p.u, s: p.s, score: 0 });
       p.h.forEach(

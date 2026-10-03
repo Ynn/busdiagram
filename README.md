@@ -35,6 +35,18 @@ The documentation is published at <https://ynn.github.io/busdiagram/>. It also w
 - **Generation:** a prompt generator and an authoring reference for language models (`llms.txt`) help write scenarios from a description; see the guide page on language models.
 - **Languages:** the component and designer support English and French. Set the page's `lang` attribute or a component's `lang` attribute; additional catalogs can be registered with `BusDiagram.registerMessages`.
 
+The English pages are the reference. French translations live in `site/pages/fr/`, with the same file names; the French site (`docs/fr/`) shows the English page, marked “EN”, wherever no translation exists yet. Each French page declares its source and the fingerprint of the English version it translates:
+
+```yaml
+---
+title: Installation
+translationOf: guide/01-installation.md
+sourceHash: 05c839992fb5
+---
+```
+
+`npm run docs:translations` lists the translations that are up to date, outdated, or missing. When the English page changes, its French page shows a notice that links to the English version until it is updated; after updating it, record the new version with `node scripts/translations.mjs --stamp fr/guide/01-installation.md`. An up-to-date translation must keep the headings, code blocks, and tables of its source (tested).
+
 ## Versions
 
 BusDiagram follows [Semantic Versioning](https://semver.org/). `BusDiagram.version` and the banner of the distributed files give the version in use; changes are listed in [CHANGELOG.md](CHANGELOG.md). Pin a version in CDN URLs. See the guide page “Versions and releases” for what each kind of version can change.

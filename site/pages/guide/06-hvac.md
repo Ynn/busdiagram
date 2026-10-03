@@ -52,11 +52,12 @@ For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTi
 | `setpointShift` | 9.002 | Receive | Setpoint offset. |
 | `setpointStatus` | 9.001 | Send | Current setpoint. |
 | `hvacMode` / `hvacModeStatus` | 20.102 | Receive / send | Requested and current mode. |
-| `presence` | 1.018 or 1.001 | Receive | Presence requests comfort, except during building protection. |
+| `presence` | 1.018 or 1.001 | Receive | Presence requests comfort, except during building protection. With `presenceType: "button"`, each 1 extends the comfort mode for `comfortExtensionMs` (2 h by default), as a presence button. |
 | `window` | 1.019, 1.001, or 1.009 | Receive | Open window requests protection; with 1.009, 0 means open. |
 | `heatCool` / `heatCoolStatus` | 1.100 | Receive / send | Heating or cooling selection. |
 | `heatingValue` / `coolingValue` | 5.001 | Send | Continuous control value. |
 | `heatingSwitch` / `coolingSwitch` | 1.001 | Send | One-bit control or PWM. |
+| `sensorFault` | 1.005 or 1.001 | Send | 1 when no temperature is usable (external temperature too old, no room sensor); the control value is then `sensorFaultValuePct` (0 % by default) until a temperature comes back. |
 
 ## Heating actuator and valve
 
@@ -96,4 +97,4 @@ scenario: room-heating
 
 ## Model limits
 
-The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, heat production (boiler, heat pump, water circuit, summer or winter changeover), fan coils, or BACnet. The thermostat has no internal time program: schedules come from the bus, for example a [weekly time switch](devices.html#weekly-time-switch-timeswitch-v1) that sends HVAC modes. Humidity and CO₂ are values entered on an [air quality sensor](devices.html#air-quality-sensor-airqualitysensor-v1); ventilation drives a `fan` load but does not change the room temperature or air quality. A radiator with `emitter: "cooling"` removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.
+The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, summer or winter changeover, fan coils, or BACnet. A `heatPump` load heats or cools its room while its output enables it, after the minimum off time of its compressor (`minOffMs`); its coefficient of performance (`cop`) gives the heat shown, the room model uses `powerK`. See the [heat pump example](../examples/heat-pump.html). The thermostat has no internal time program: schedules come from the bus, for example a [weekly time switch](devices.html#weekly-time-switch-timeswitch-v1) that sends HVAC modes. Humidity and CO₂ are values entered on an [air quality sensor](devices.html#air-quality-sensor-airqualitysensor-v1); ventilation drives a `fan` load but does not change the room temperature or air quality. A radiator with `emitter: "cooling"` removes heat without any condensation model or dew-point protection; use it only as a simplified cooling emitter. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.

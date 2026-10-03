@@ -222,6 +222,8 @@ export function toV2(
                 id: c.id,
                 label: c.label !== c.id ? c.label : undefined,
                 keyLabel: c.keyLabel || undefined,
+                keyContact:
+                  c.keyContact === "normallyClosed" ? c.keyContact : undefined,
                 parameters: withoutDefaults(
                   c.parameters,
                   def?.channelParameters,

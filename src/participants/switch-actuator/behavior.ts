@@ -43,6 +43,13 @@ interface SwitchChannelState {
   learned: Record<string, number>;
   /** Condition of the relay when the bus voltage failed. */
   beforeFailure: boolean | null;
+  /** Alarm objects received: intrusion makes the output blink, fire forces it on. */
+  intrusion: boolean;
+  fire: boolean;
+  /** Condition of the relay when the first alarm began. */
+  beforeAlarm: boolean | null;
+  /** Contact of the blinking output during an intrusion alarm. */
+  blinkOn: boolean;
 }
 
 interface MeterChannel {
@@ -119,6 +126,14 @@ function target(ctx: Ctx, ch: string) {
  */
 function follow(ctx: Ctx, ch: string) {
   const st = ctx.state.channels[ch]!;
+  if (st.fire || st.intrusion) {
+    ctx.note(
+      st.fire
+        ? ctx.t`${ch}: fire alarm, command stored without effect`
+        : ctx.t`${ch}: intrusion alarm, command stored without effect`,
+    );
+    return;
+  }
   if (st.forced) {
     ctx.note(
       st.forced === "on"
@@ -167,14 +182,15 @@ function lock(ctx: Ctx, ch: string, locked: boolean) {
     st.beforeLock = st.on;
     ctx.note(ctx.t`${ch}: output locked`);
     const imposed = lockState(ctx, ch);
-    // A forcing in progress keeps priority; the lock applies when it ends.
-    if (!st.forced && imposed !== null) setRelay(ctx, ch, imposed);
+    // A forcing or an alarm in progress keeps priority; the lock applies when it ends.
+    if (!st.forced && !st.fire && !st.intrusion && imposed !== null)
+      setRelay(ctx, ch, imposed);
     return;
   }
   ctx.note(ctx.t`${ch}: output unlocked`);
   const before = st.beforeLock;
   st.beforeLock = null;
-  if (!st.forced)
+  if (!st.forced && !st.fire && !st.intrusion)
     resume(
       ctx,
       ch,
@@ -253,6 +269,51 @@ export function commandSwitch(ctx: Ctx, ch: string, on: boolean) {
 }
 
 /**
+ * Alarm objects: fire forces the output on, intrusion makes it blink (blinkMs); fire has
+ * priority over intrusion, both over forcing and the lock. When the last alarm ends, the
+ * output takes the state set by afterAlarm, or the one forcing or the lock imposes.
+ */
+function alarm(ctx: Ctx, ch: string, kind: "fire" | "intrusion", on: boolean) {
+  const st = ctx.state.channels[ch];
+  if (!st || st[kind] === on) return;
+  const before = st.fire || st.intrusion;
+  if (!before) st.beforeAlarm = st.on;
+  st[kind] = on;
+  ctx.cancel(`${ch}:blink`);
+  if (st.fire) {
+    if (kind === "fire" && on) ctx.note(ctx.t`${ch}: fire alarm, output on`);
+    setRelay(ctx, ch, true);
+    drive(ctx, ch, true);
+    return;
+  }
+  if (st.intrusion) {
+    ctx.note(ctx.t`${ch}: intrusion alarm, output blinking`);
+    setRelay(ctx, ch, true);
+    st.blinkOn = true;
+    drive(ctx, ch, true);
+    ctx.schedule(`${ch}:blink`, numParam(channelParams(ctx, ch).blinkMs, 1000));
+    return;
+  }
+  // The last alarm ended.
+  ctx.note(ctx.t`${ch}: alarm ended`);
+  drive(ctx, ch, st.on);
+  const prev = st.beforeAlarm;
+  st.beforeAlarm = null;
+  if (st.forced) return setRelay(ctx, ch, st.forced === "on");
+  if (st.locked) {
+    const imposed = lockState(ctx, ch);
+    if (imposed !== null) setRelay(ctx, ch, imposed);
+    return;
+  }
+  resume(
+    ctx,
+    ch,
+    (channelParams(ctx, ch).afterAlarm ?? "lastCommand") as AfterForcing,
+    prev,
+  );
+}
+
+/**
  * Priority command (DPT 2.001): bit 1 = control, bit 0 = value.
  * 2 → forced off, 3 → forced on, 0 or 1 → end of forcing.
  */
@@ -262,7 +323,8 @@ function force(ctx: Ctx, ch: string, raw: number) {
   if (raw & 2) {
     if (st.forced === null) st.beforeForcing = st.on;
     st.forced = raw & 1 ? "on" : "off";
-    setRelay(ctx, ch, st.forced === "on");
+    // An alarm keeps priority: the forcing applies when it ends.
+    if (!st.fire && !st.intrusion) setRelay(ctx, ch, st.forced === "on");
     return;
   }
   if (st.forced === null) return;
@@ -271,6 +333,7 @@ function force(ctx: Ctx, ch: string, raw: number) {
   st.forced = null;
   const before = st.beforeForcing;
   st.beforeForcing = null;
+  if (st.fire || st.intrusion) return;
   if (st.locked) {
     // The lock is still active: the output takes the state it imposes.
     const imposed = lockState(ctx, ch);
@@ -636,6 +699,31 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         description:
           "State of the output when the bus voltage returns; the status feedback is then sent.",
       },
+      blinkMs: {
+        title: "Blinking period on intrusion",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        minimum: 1000,
+        default: 1000,
+        description:
+          "Time the contact stays closed, then open, while the intrusion alarm makes the output blink; mind the switching life of the relay.",
+      },
+      afterAlarm: {
+        title: "End of the alarms",
+        type: "string",
+        enum: ["lastCommand", "previous", "unchanged", "on", "off"],
+        enumTitles: [
+          "Last command",
+          "Previous state",
+          "Unchanged",
+          "On",
+          "Off",
+        ],
+        default: "lastCommand",
+        description:
+          "State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off.",
+      },
       afterForcing: {
         title: "End of forcing",
         expert: true,
@@ -751,6 +839,22 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       description:
         "1 when the total power reaches powerLimitW, 0 after hysteresis (load shedding)",
     },
+    intrusionAlarm: {
+      description:
+        "1 makes the output blink and ignore the commands; 0 ends the alarm (afterAlarm). Without channel, applies to all channels.",
+      dpts: ["1.005", "1.001"],
+      channel: "optional",
+      title: "Intrusion alarm",
+      direction: "in",
+    },
+    fireAlarm: {
+      description:
+        "1 forces the output on and ignores the commands, with priority over intrusion; 0 ends the alarm. Without channel, applies to all channels.",
+      dpts: ["1.005", "1.001"],
+      channel: "optional",
+      title: "Fire alarm",
+      direction: "in",
+    },
   },
   output: "switch",
   createState(d) {
@@ -771,6 +875,10 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         delayAtMs: null,
         learned: {},
         beforeFailure: null,
+        intrusion: false,
+        fire: false,
+        beforeAlarm: null,
+        blinkOn: false,
       };
     });
     return {
@@ -801,6 +909,15 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       force(ctx, o.channel, e.newValue);
     else if (o.port === "lock" && o.channel)
       lock(ctx, o.channel, e.newValue === 1);
+    else if (o.port === "intrusionAlarm" || o.port === "fireAlarm")
+      (o.channel ? [o.channel] : channelsFor(ctx.device)).forEach((ch) =>
+        alarm(
+          ctx,
+          ch,
+          o.port === "fireAlarm" ? "fire" : "intrusion",
+          e.newValue === 1,
+        ),
+      );
     else if (o.port === "logic" && o.channel) {
       const st = ctx.state.channels[o.channel];
       if (!st) return;
@@ -852,9 +969,19 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       st.offAtMs = null;
       st.commanded = false;
       follow(ctx, ch);
+    } else if (what === "blink") {
+      const st = ctx.state.channels[ch];
+      if (!st?.intrusion || st.fire) return;
+      // The contact alternates; the switching state (and status) stays on.
+      st.blinkOn = !st.blinkOn;
+      drive(ctx, ch, st.blinkOn);
+      ctx.schedule(
+        `${ch}:blink`,
+        numParam(channelParams(ctx, ch).blinkMs, 1000),
+      );
     } else if (what === "warn") {
       const st = ctx.state.channels[ch];
-      if (!st?.on || st.forced) return;
+      if (!st?.on || st.forced || st.fire || st.intrusion) return;
       // Open the output for one second without status feedback as an expiry warning.
       drive(ctx, ch, false);
       ctx.note(ctx.t`${ch}: switch-off warning`);

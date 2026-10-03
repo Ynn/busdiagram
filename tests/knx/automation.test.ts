@@ -61,7 +61,7 @@ describe("weatherStation/v1 and shutter wind alarm", () => {
     sim.input("weatherStation", "wind", "value", 15);
     sim.advance(settle);
     const locked = sim.channelState("shutterActuator", "s1");
-    expect(locked.windLock).toBe(true);
+    expect(locked.safety).toBe("wind");
     expect(locked.direction).toBe("up");
     sim.advance(20000);
     // Commands are ignored while the alarm is active.
@@ -73,7 +73,7 @@ describe("weatherStation/v1 and shutter wind alarm", () => {
     sim.input("weatherStation", "wind", "value", 2);
     sim.advance(settle);
     const released = sim.channelState("shutterActuator", "s1");
-    expect(released.windLock).toBe(false);
+    expect(released.safety).toBeNull();
     expect(released.phase).toBe("idle");
     sim.input("pushButton", "key2", "long");
     sim.advance(settle);

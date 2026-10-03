@@ -12,6 +12,7 @@ import { windowContactDesigner } from "../../src/participants/window-contact/des
 import { temperatureSensorDesigner } from "../../src/participants/temperature-sensor/designer";
 import { airQualitySensorDesigner } from "../../src/participants/air-quality-sensor/designer";
 import { weatherStationDesigner } from "../../src/participants/weather-station/designer";
+import { alarmModuleDesigner } from "../../src/participants/alarm-module/designer";
 import { logicGateDesigner } from "../../src/participants/logic-gate/designer";
 import { clockMasterDesigner } from "../../src/participants/clock-master/designer";
 import { timeSwitchDesigner } from "../../src/participants/time-switch/designer";
@@ -38,6 +39,7 @@ export const DESIGNER: readonly DesignerContribution[] = [
   airQualitySensorDesigner,
   weatherStationDesigner,
   logicGateDesigner,
+  alarmModuleDesigner,
   clockMasterDesigner,
   timeSwitchDesigner,
   energyMeterDesigner,

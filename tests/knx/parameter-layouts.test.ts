@@ -12,8 +12,9 @@ describe("parameter layouts of the standard behaviors", () => {
     ([, d]) => d.parameterLayout,
   );
 
-  it("are declared by the actuators, the thermostat, and the push-button interface", () => {
+  it("are declared by the actuators, the thermostat, the push-button interface, and the alarm module", () => {
     expect(layouts.map(([id]) => id).sort()).toEqual([
+      "alarmModule/v1",
       "buttonInterface/v1",
       "daliGateway/v1",
       "dimmerActuator/v1",

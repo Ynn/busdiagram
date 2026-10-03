@@ -1,0 +1,144 @@
+{
+  "devices": {
+    "thermostat": {
+      "temp": {
+        "number": 1,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "base": {
+        "number": 2,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sw": {
+        "number": 3,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "pushButton": {
+      "k1": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "actuator": {
+      "swHp": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "pHp": {
+        "number": 7,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "swWh": {
+        "number": 11,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "stWh": {
+        "number": 12,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "state",
+        "drivesLoad": false
+      },
+      "pWh": {
+        "number": 17,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
+    "panel": {
+      "t": {
+        "number": 2,
+        "R": false,
+        "U": true,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "php": {
+        "number": 3,
+        "R": false,
+        "U": true,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "pwh": {
+        "number": 4,
+        "R": false,
+        "U": true,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "sp": {
+        "number": 1,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    }
+  },
+  "diagnostics": [],
+  "filterTables": {}
+}

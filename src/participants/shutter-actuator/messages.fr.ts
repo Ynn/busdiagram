@@ -10,10 +10,6 @@ export const shutterActuatorFr: Record<string, string> = {
     "{0} : volet à l'arrêt, arrêt/pas sans effet (pas de lamelles)",
   "{0}: no slats configured, slat command ignored":
     "{0} : aucune lamelle configurée, commande de lamelles ignorée",
-  "{0}: wind alarm, shutter raised and locked":
-    "{0} : alarme vent, volet remonté et verrouillé",
-  "{0}: wind alarm ended, shutter released in place":
-    "{0} : fin de l'alarme vent, volet libéré sur place",
   "{0}: wind alarm active, command ignored":
     "{0} : alarme vent active, commande ignorée",
   "{0}: stopped, bus voltage failure":
@@ -37,8 +33,6 @@ export const shutterActuatorFr: Record<string, string> = {
   Drive: "Entraînement",
   Slats: "Lamelles",
   Position: "Position",
-  "The wind alarm raises the shutter and blocks it until the alarm ends.":
-    "L'alarme vent remonte le store et le bloque jusqu'à la fin de l'alarme.",
   "{0}: locked, commands ignored": "{0} : verrouillée, commandes ignorées",
   "{0}: lock ended": "{0} : fin du verrouillage",
   "{0}: locked, command ignored": "{0} : verrouillée, commande ignorée",
@@ -50,6 +44,67 @@ export const shutterActuatorFr: Record<string, string> = {
   "Position before the lock": "Position avant le verrouillage",
   "No movement": "Aucun mouvement",
   "Position on bus recovery": "Position au retour de la tension du bus",
-  "The wind alarm has priority over the lock.":
-    "L'alarme vent est prioritaire sur le verrouillage.",
+  "{0}: released, commands accepted again":
+    "{0} : libérée, commandes de nouveau acceptées",
+  "{0}: forced up, commands ignored":
+    "{0} : forçage en montée, commandes ignorées",
+  "{0}: forced down, commands ignored":
+    "{0} : forçage en descente, commandes ignorées",
+  "{0}: wind alarm, commands ignored": "{0} : alarme vent, commandes ignorées",
+  "{0}: rain alarm, commands ignored": "{0} : alarme pluie, commandes ignorées",
+  "{0}: frost alarm, commands ignored": "{0} : alarme gel, commandes ignorées",
+  "{0}: rain alarm active, command ignored":
+    "{0} : alarme pluie active, commande ignorée",
+  "{0}: frost alarm active, command ignored":
+    "{0} : alarme gel active, commande ignorée",
+  "{0}: forced, command ignored": "{0} : forcée, commande ignorée",
+  "{0}: wind alarm ended": "{0} : fin de l'alarme vent",
+  "{0}: rain alarm ended": "{0} : fin de l'alarme pluie",
+  "{0}: frost alarm ended": "{0} : fin de l'alarme gel",
+  "{0}: storing positions disabled, position {1} unchanged":
+    "{0} : mémorisation des positions désactivée, position {1} inchangée",
+  "{0}: position {1} stored ({2} %)": "{0} : position {1} mémorisée ({2} %)",
+  "{0}: to stored position {1}": "{0} : vers la position mémorisée {1}",
+  "{0}: no telegram on the wind alarm in time, alarm assumed":
+    "{0} : pas de télégramme d'alarme vent dans le délai, alarme supposée",
+  "{0}: no telegram on the rain alarm in time, alarm assumed":
+    "{0} : pas de télégramme d'alarme pluie dans le délai, alarme supposée",
+  "{0}: no telegram on the frost alarm in time, alarm assumed":
+    "{0} : pas de télégramme d'alarme gel dans le délai, alarme supposée",
+  "Positions 1/2": "Positions 1/2",
+  "Positions 3/4": "Positions 3/4",
+  "Store positions 1/2": "Mémoriser positions 1/2",
+  "Store positions 3/4": "Mémoriser positions 3/4",
+  "Upper end position": "Fin de course haute",
+  "Lower end position": "Fin de course basse",
+  "On wind alarm": "Sur alarme vent",
+  "On rain alarm": "Sur alarme pluie",
+  "On frost alarm": "Sur alarme gel",
+  "Priority of the weather alarms": "Priorité des alarmes météo",
+  "Frost > Wind > Rain": "Gel > Vent > Pluie",
+  "Frost > Rain > Wind": "Gel > Pluie > Vent",
+  "Wind > Frost > Rain": "Vent > Gel > Pluie",
+  "Wind > Rain > Frost": "Vent > Pluie > Gel",
+  "Rain > Frost > Wind": "Pluie > Gel > Vent",
+  "Rain > Wind > Frost": "Pluie > Vent > Gel",
+  "Monitoring of the alarm objects": "Surveillance des objets d'alarme",
+  "After the weather alarms": "Après les alarmes météo",
+  "Position before the alarm": "Position avant l'alarme",
+  "Position before the forcing": "Position avant le forçage",
+  "Stored position 1": "Position mémorisée 1",
+  "Stored position 2": "Position mémorisée 2",
+  "Stored position 3": "Position mémorisée 3",
+  "Stored position 4": "Position mémorisée 4",
+  "Storing of the positions": "Mémorisation des positions",
+  "Stored positions": "Positions mémorisées",
+  "Weather alarms": "Alarmes météo",
+  "Priority of the safety functions": "Priorité des fonctions de sécurité",
+  "Weather alarms > Lock > Forcing": "Alarmes météo > Verrouillage > Forçage",
+  "Weather alarms > Forcing > Lock": "Alarmes météo > Forçage > Verrouillage",
+  "Lock > Weather alarms > Forcing": "Verrouillage > Alarmes météo > Forçage",
+  "Lock > Forcing > Weather alarms": "Verrouillage > Forçage > Alarmes météo",
+  "Forcing > Lock > Weather alarms": "Forçage > Verrouillage > Alarmes météo",
+  "Forcing > Weather alarms > Lock": "Forçage > Alarmes météo > Verrouillage",
+  "While a weather alarm, the lock, or forcing holds the output, commands are ignored; their order is set by the priority of the safety functions.":
+    "Tant qu'une alarme météo, le verrouillage ou le forçage tient la sortie, les commandes sont ignorées ; leur ordre est fixé par la priorité des fonctions de sécurité.",
 };

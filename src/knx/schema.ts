@@ -692,6 +692,11 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
           keyLabel: text(
             "Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label.",
           ),
+          keyContact: {
+            enum: ["normallyOpen", "normallyClosed"],
+            description:
+              "Contact of the push-button wired to a contact input: normally open (closes when pressed, default) or normally closed.",
+          },
           parameters: {
             type: "object",
             description:

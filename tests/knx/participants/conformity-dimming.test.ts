@@ -108,6 +108,17 @@ describe("KNX/DALI gateway", () => {
     expect(sim.objectValue("gw", "g2err")).toBe(1);
   });
 
+  it("polls the ballasts again after a bus voltage failure", () => {
+    const sim = example("dali-gateway.json");
+    sim.setBusVoltage("L1.1", false);
+    sim.advance(1000);
+    sim.setBusVoltage("L1.1", true);
+    sim.advance(3000);
+    sim.equipmentAction("gw", "g2", "toggleBallast", 1);
+    sim.advance(5000);
+    expect(sim.objectValue("gw", "g2err")).toBe(1);
+  });
+
   it("broadcastValue: sets every group to the value", () => {
     const sim = example("dali-gateway.json", (doc) => {
       device(doc, "gw").objects.push({

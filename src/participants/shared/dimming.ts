@@ -646,6 +646,11 @@ export function base(
         // The actuator reports its state after a restart.
         publish(ctx, c.id);
       });
+      // The gateway polls its ballasts again, from a first poll on restart.
+      if (isGateway(ctx)) {
+        poll(ctx, true);
+        ctx.schedule("poll", num(ctx.device.parameters.pollMs, 2000));
+      }
     },
     onTimer(ctx, key) {
       if (key === "poll") {

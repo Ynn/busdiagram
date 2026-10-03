@@ -114,3 +114,52 @@ describe("push-button interface: LED", () => {
     expect(key.ledInverted).toBe(true);
   });
 });
+
+describe("push-button interface: contact of the wired push-button", () => {
+  const nc = (actuatedContact: "open" | "closed") =>
+    input(
+      { onPress: "on", onRelease: "off", actuatedContact },
+      "in1",
+      (doc) => {
+        device(doc, B).channels!.find((c) => c.id === "in1")!.keyContact =
+          "normallyClosed";
+      },
+    );
+
+  it("a normally closed push-button with an input set to open: works as usual", () => {
+    const sim = nc("open");
+    gesture(sim, "in1", "down");
+    gesture(sim, "in1", "up");
+    expect(sentOn(sim, "1/1/1")).toEqual([1, 0]);
+    expect(
+      sim.getState().diagnostics.some((d) => d.code === "config-contact"),
+    ).toBe(false);
+  });
+
+  it("a mismatch: presses and releases are seen the wrong way round, with a warning", () => {
+    const sim = nc("closed");
+    gesture(sim, "in1", "down"); // seen as a release: nothing (not pressed)
+    gesture(sim, "in1", "up"); // seen as a press: on
+    expect(sentOn(sim, "1/1/1")).toEqual([1]);
+    gesture(sim, "in1", "down"); // seen as a release: off
+    expect(sentOn(sim, "1/1/1")).toEqual([1, 0]);
+    expect(
+      sim.getState().diagnostics.some((d) => d.code === "config-contact"),
+    ).toBe(true);
+  });
+
+  it("a mismatch on a long-press function: at rest, the input sees a long press", () => {
+    const sim = input(
+      { switchLongPress: true, onShort: "on", onLong: "off" },
+      "in1",
+      (doc) => {
+        device(doc, B).channels!.find((c) => c.id === "in1")!.keyContact =
+          "normallyClosed";
+      },
+    );
+    gesture(sim, "in1", "down");
+    gesture(sim, "in1", "up"); // the key is released: held for the input
+    sim.advance(1000);
+    expect(sentOn(sim, "1/1/1")).toEqual([0]);
+  });
+});

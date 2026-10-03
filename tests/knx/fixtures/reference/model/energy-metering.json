@@ -74,7 +74,7 @@
         "drivesLoad": false
       },
       "sw2": {
-        "number": 9,
+        "number": 11,
         "R": false,
         "U": false,
         "C": true,
@@ -84,7 +84,7 @@
         "drivesLoad": true
       },
       "st2": {
-        "number": 10,
+        "number": 12,
         "R": true,
         "U": false,
         "C": true,
@@ -94,7 +94,7 @@
         "drivesLoad": false
       },
       "p2": {
-        "number": 15,
+        "number": 17,
         "R": false,
         "U": false,
         "C": true,
@@ -104,7 +104,7 @@
         "drivesLoad": false
       },
       "e2": {
-        "number": 16,
+        "number": 18,
         "R": false,
         "U": false,
         "C": true,
@@ -114,7 +114,7 @@
         "drivesLoad": false
       },
       "sw3": {
-        "number": 17,
+        "number": 21,
         "R": false,
         "U": false,
         "C": true,
@@ -124,7 +124,7 @@
         "drivesLoad": true
       },
       "st3": {
-        "number": 18,
+        "number": 22,
         "R": true,
         "U": false,
         "C": true,
@@ -134,7 +134,7 @@
         "drivesLoad": false
       },
       "p3": {
-        "number": 23,
+        "number": 27,
         "R": false,
         "U": false,
         "C": true,
@@ -144,7 +144,7 @@
         "drivesLoad": false
       },
       "e3": {
-        "number": 24,
+        "number": 28,
         "R": false,
         "U": false,
         "C": true,
@@ -154,7 +154,7 @@
         "drivesLoad": false
       },
       "total": {
-        "number": 25,
+        "number": 31,
         "R": false,
         "U": false,
         "C": true,
@@ -164,7 +164,7 @@
         "drivesLoad": false
       },
       "limit": {
-        "number": 26,
+        "number": 32,
         "R": false,
         "U": false,
         "C": true,

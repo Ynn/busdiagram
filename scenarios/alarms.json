@@ -1,0 +1,366 @@
+{
+  "formatVersion": 2,
+  "title": "Intrusion and fire alarms",
+  "description": "An alarm module stores the intrusion and fire alarms of a zone until they are reset. The hall light blinks and the sounder sounds on intrusion and is forced on by fire; the office light only reacts to fire. A reset is refused while its trigger is still active.",
+  "lines": [
+    {
+      "address": "1.1",
+      "name": "Ground floor",
+      "powerSupply": {
+        "currentMa": 640
+      }
+    }
+  ],
+  "groupAddresses": [
+    {
+      "address": "1/1/1",
+      "name": "Hall light",
+      "dpt": "1.001"
+    },
+    {
+      "address": "1/1/2",
+      "name": "Office light",
+      "dpt": "1.001"
+    },
+    {
+      "address": "7/0/1",
+      "name": "Door contact (intrusion trigger)",
+      "dpt": "1.005"
+    },
+    {
+      "address": "7/0/2",
+      "name": "Intrusion reset",
+      "dpt": "1.015"
+    },
+    {
+      "address": "7/0/3",
+      "name": "Intrusion alarm",
+      "dpt": "1.005"
+    },
+    {
+      "address": "7/1/1",
+      "name": "Smoke detector (fire trigger)",
+      "dpt": "1.005"
+    },
+    {
+      "address": "7/1/2",
+      "name": "Fire reset",
+      "dpt": "1.015"
+    },
+    {
+      "address": "7/1/3",
+      "name": "Fire alarm",
+      "dpt": "1.005"
+    }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Push-button interface",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "channels": [
+        {
+          "id": "in1",
+          "label": "Input 1",
+          "keyLabel": "Door",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on",
+            "onRelease": "off"
+          }
+        },
+        {
+          "id": "in2",
+          "label": "Input 2",
+          "keyLabel": "Smoke",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on",
+            "onRelease": "off"
+          }
+        },
+        {
+          "id": "in3",
+          "label": "Input 3",
+          "keyLabel": "Reset intrusion",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
+          }
+        },
+        {
+          "id": "in4",
+          "label": "Input 4",
+          "keyLabel": "Reset fire",
+          "parameters": {
+            "function": "switch",
+            "onPress": "on"
+          }
+        },
+        {
+          "id": "in5",
+          "label": "Input 5",
+          "keyLabel": "Hall light",
+          "parameters": {
+            "function": "switch"
+          }
+        }
+      ],
+      "objects": [
+        {
+          "id": "door",
+          "name": "Door contact",
+          "ga": "7/0/1",
+          "dpt": "1.005",
+          "port": "switch",
+          "channel": "in1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "smoke",
+          "name": "Smoke detector",
+          "ga": "7/1/1",
+          "dpt": "1.005",
+          "port": "switch",
+          "channel": "in2",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "resetI",
+          "name": "Intrusion reset",
+          "ga": "7/0/2",
+          "dpt": "1.015",
+          "port": "switch",
+          "channel": "in3",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "resetF",
+          "name": "Fire reset",
+          "ga": "7/1/2",
+          "dpt": "1.015",
+          "port": "switch",
+          "channel": "in4",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "light",
+          "name": "Hall light",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in5",
+          "flags": {
+            "W": true,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "alarms",
+      "name": "Alarm module",
+      "address": "1.1.2",
+      "kind": "alarmModule",
+      "behavior": "alarmModule/v1",
+      "channels": [
+        {
+          "id": "z1",
+          "label": "Ground floor"
+        }
+      ],
+      "objects": [
+        {
+          "id": "it",
+          "name": "Intrusion trigger",
+          "ga": "7/0/1",
+          "dpt": "1.005",
+          "port": "intrusionTrigger",
+          "channel": "z1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "ir",
+          "name": "Intrusion reset",
+          "ga": "7/0/2",
+          "dpt": "1.015",
+          "port": "intrusionReset",
+          "channel": "z1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "is",
+          "name": "Intrusion alarm",
+          "ga": "7/0/3",
+          "dpt": "1.005",
+          "port": "intrusionState",
+          "channel": "z1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        },
+        {
+          "id": "ft",
+          "name": "Fire trigger",
+          "ga": "7/1/1",
+          "dpt": "1.005",
+          "port": "fireTrigger",
+          "channel": "z1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "fr",
+          "name": "Fire reset",
+          "ga": "7/1/2",
+          "dpt": "1.015",
+          "port": "fireReset",
+          "channel": "z1",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "fs",
+          "name": "Fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireState",
+          "channel": "z1",
+          "flags": {
+            "W": false,
+            "T": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "actuator",
+      "name": "Switch actuator",
+      "address": "1.1.3",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "channels": [
+        {
+          "id": "a",
+          "label": "Hall",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "b",
+          "label": "Office",
+          "equipment": {
+            "type": "lamp"
+          }
+        },
+        {
+          "id": "c",
+          "label": "Sounder",
+          "equipment": {
+            "type": "siren"
+          }
+        }
+      ],
+      "objects": [
+        {
+          "id": "swA",
+          "name": "Hall switching",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "iaA",
+          "name": "Hall intrusion alarm",
+          "ga": "7/0/3",
+          "dpt": "1.005",
+          "port": "intrusionAlarm",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "faA",
+          "name": "Hall fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireAlarm",
+          "channel": "a",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "swB",
+          "name": "Office switching",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "b",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "faB",
+          "name": "Office fire alarm",
+          "ga": "7/1/3",
+          "dpt": "1.005",
+          "port": "fireAlarm",
+          "channel": "b",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        },
+        {
+          "id": "swC",
+          "name": "Sounder switching",
+          "ga": "7/0/3",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "c",
+          "flags": {
+            "W": true,
+            "T": false
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -512,6 +512,16 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         default: "always",
         description: "Which value of the switching object is sent cyclically.",
       },
+      actuatedContact: {
+        title: "Input when actuated",
+        expert: true,
+        type: "string",
+        enum: ["closed", "open"],
+        enumTitles: ["Contact closed", "Contact open"],
+        default: "closed",
+        description:
+          "State of the input contact when the push-button is actuated: closed for a normally open push-button, open for a normally closed one.",
+      },
       ledShown: {
         title: "LED on the key",
         type: "boolean",
@@ -635,9 +645,27 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
       ctx.note(ctx.t`${ch}: input locked, press ignored`);
       return;
     }
-    if (input.gesture === "down") press(ctx, ch);
-    else if (input.gesture === "hold") longPress(ctx, ch);
-    else release(ctx, ch);
+    // The contact of the wired push-button (NO closes when pressed, NC opens), read as
+    // the input expects it (actuated when the contact closes, or when it opens).
+    const c = ctx.device.channels.find((x) => x.id === ch);
+    const nc = c?.keyContact === "normallyClosed";
+    const opensWhenActuated = params(ctx, ch).actuatedContact === "open";
+    if (nc === opensWhenActuated) {
+      if (input.gesture === "down") press(ctx, ch);
+      else if (input.gesture === "hold") longPress(ctx, ch);
+      else release(ctx, ch);
+      return;
+    }
+    // Mismatch: a press of the key is seen as a release and the reverse; at rest the
+    // input sees the key held, and measures a long press itself.
+    if (input.gesture === "up") {
+      press(ctx, ch);
+      if (waitsForLong(params(ctx, ch)))
+        ctx.schedule(`${ch}:long`, Number(params(ctx, ch).longPressMs ?? 500));
+    } else if (input.gesture === "down") {
+      ctx.cancel(`${ch}:long`);
+      release(ctx, ch);
+    }
   },
   onObjectWrite(ctx, e) {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
@@ -652,6 +680,10 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
   onTimer(ctx, key) {
     const [ch, what] = key.split(":");
     if (!ch || !ctx.state.inputs[ch]) return;
+    if (what === "long") {
+      longPress(ctx, ch);
+      return;
+    }
     if (what === "recovery") {
       const p = params(ctx, ch);
       react(ctx, ch, isBlind(p) ? p.blindBusRecovery : p.busRecovery);

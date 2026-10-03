@@ -6,15 +6,32 @@ import type { BehaviorContext, BehaviorDefinition } from "../../knx/contracts";
 interface LogicState {
   /** Last transmitted result; null before the first transmission. */
   sent: number | null;
+  /** Value received on the enable object; null before the first one. */
+  enable: number | null;
 }
 
 const OPERATIONS = ["and", "or", "xor", "not"] as const;
 type Operation = (typeof OPERATIONS)[number];
 
+/** Values of the logic inputs, in the order of their objects, each inverted if set. */
 function inputs(ctx: BehaviorContext<LogicState>): number[] {
   return ctx.device.objects
     .filter((o) => o.port === "logicIn")
-    .map((o) => (ctx.getObject(o.id) ? 1 : 0));
+    .map((o, i) => {
+      const v = ctx.getObject(o.id) ? 1 : 0;
+      return ctx.device.parameters[`invertInput${i + 1}`] === true ? 1 - v : v;
+    });
+}
+
+/** The enable object blocks the output (0, or 1 with the inverted polarity). */
+function blocked(ctx: BehaviorContext<LogicState>): boolean {
+  if (!ctx.device.objects.some((o) => o.port === "enable")) return false;
+  const v = ctx.state.enable;
+  // Before the first telegram, the state set for the start applies.
+  if (v === null) return ctx.device.parameters.enableAtStart === "blocked";
+  return ctx.device.parameters.enablePolarity === "inverted"
+    ? v === 1
+    : v === 0;
 }
 
 /** Result of the configured operation; unknown inputs count as 0. */
@@ -69,14 +86,15 @@ function update(
   const op = (OPERATIONS as readonly string[]).includes(String(p.operation))
     ? (p.operation as Operation)
     : "and";
-  const enable = ctx.device.objects.find((o) => o.port === "enable");
-  if (enable && ctx.getObject(enable.id) === 0) {
+  if (blocked(ctx)) {
     ctx.note(ctx.t`Logic module disabled: output not sent`);
     return;
   }
   const values = inputs(ctx);
   // With only a time window, the output follows the window.
-  const logic = values.length ? evaluate(op, values) : 1;
+  const raw = values.length ? evaluate(op, values) : 1;
+  // Inverted output: NAND, NOR, XNOR.
+  const logic = p.invertOutput === true ? 1 - raw : raw;
   const result = logic && windowOpen(ctx) ? 1 : 0;
   const out = ctx.device.objects.find((o) => o.port === "logicOut");
   if (!out) return;
@@ -119,6 +137,44 @@ export const logicGate: BehaviorDefinition<LogicState> = {
         default: "",
         description: "End of the daily time window (HH:MM), excluded.",
       },
+      invertOutput: {
+        title: "Invert the result",
+        type: "boolean",
+        default: false,
+        description:
+          "Send the inverse of the operation: NAND, NOR, or XNOR. Outside a time window, the output stays 0.",
+      },
+      ...Object.fromEntries(
+        [1, 2, 3, 4, 5, 6, 7, 8].map((n) => [
+          `invertInput${n}`,
+          {
+            title: `Invert input ${n}`,
+            expert: true,
+            type: "boolean" as const,
+            default: false,
+            description: `Invert the value of the logic input object number ${n}, in the order of the objects.`,
+          },
+        ]),
+      ),
+      enableAtStart: {
+        title: "Enable at start",
+        expert: true,
+        type: "string",
+        enum: ["enabled", "blocked"],
+        enumTitles: ["Enabled", "Blocked"],
+        default: "enabled",
+        description:
+          "State of the output before the enable object receives a first telegram.",
+      },
+      enablePolarity: {
+        title: "Polarity of the enable object",
+        expert: true,
+        type: "string",
+        enum: ["normal", "inverted"],
+        enumTitles: ["0 = blocked, 1 = enabled", "0 = enabled, 1 = blocked"],
+        default: "normal",
+        description: "Value of the enable object that blocks the output.",
+      },
       sendOnChangeOnly: {
         title: "Send on change only",
         expert: true,
@@ -160,12 +216,16 @@ export const logicGate: BehaviorDefinition<LogicState> = {
       description: "result of the logic function",
     },
   },
-  createState: () => ({ sent: null }),
+  createState: () => ({ sent: null, enable: null }),
   onObjectWrite(ctx, e) {
     const o = ctx.device.objects.find((x) => x.id === e.objectId);
     if (o?.port === "logicIn") update(ctx, false);
     else if (o?.port === "time") update(ctx, false, true);
-    else if (o?.port === "enable" && e.newValue === 1) update(ctx, true);
+    else if (o?.port === "enable") {
+      ctx.state.enable = e.newValue;
+      // Enabled again: the current result is sent at once.
+      if (!blocked(ctx)) update(ctx, true);
+    }
   },
   deviceState(state) {
     return { result: state.sent };

@@ -34,6 +34,7 @@ export default class SearchIndex {
       t: item.data.title,
       u: item.url.replace(/^\//, "").replace(/(^|\/)$/, "$1index.html"),
       s: item.data.section ?? "",
+      o: item.data.otherLanguage ?? undefined,
       h: headingsFromMarkdown(item.inputPath),
     }));
     return `window.BUSDIAGRAM_SEARCH=${JSON.stringify(search)};\n`;

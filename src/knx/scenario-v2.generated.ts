@@ -23,7 +23,7 @@ kind: string
 /**
  * Versioned ID of the device's registered behavior.
  */
-behavior: (("switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1" | "systemGateway/v1" | "energyMeter/v1" | "buttonInterface/v1") | string)
+behavior: (("switchActuator/v1" | "shutterActuator/v1" | "display/v1" | "passive/v1" | "presenceDetector/v1" | "usbInterface/v1" | "dimmerActuator/v1" | "daliGateway/v1" | "roomThermostat/v1" | "heatingActuator/v1" | "windowContact/v1" | "temperatureSensor/v1" | "logicGate/v1" | "weatherStation/v1" | "airQualitySensor/v1" | "clockMaster/v1" | "timeSwitch/v1" | "systemGateway/v1" | "energyMeter/v1" | "buttonInterface/v1" | "alarmModule/v1") | string)
 /**
  * Device parameters defined by its behavior.
  */
@@ -150,7 +150,7 @@ export type Equipment = {
 /**
  * Equipment type: lamp, shutter, or a registered extension type.
  */
-type: (("lamp" | "shutter" | "dimmableLamp" | "daliGroup" | "radiator" | "fan" | "appliance") | string)
+type: (("lamp" | "shutter" | "dimmableLamp" | "daliGroup" | "radiator" | "fan" | "appliance" | "waterHeater" | "heatPump" | "siren") | string)
 /**
  * Name of the load, such as “Ceiling light”; shown in the diagram and the designer.
  */
@@ -421,7 +421,7 @@ name?: string
 /**
  * DPT inherited by objects that do not declare their own.
  */
-dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "18.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
+dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.015" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "18.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
 }
 /**
  * Communication object of a device.
@@ -442,11 +442,11 @@ ga: (string | string[])
 /**
  * Object DPT; defaults to the DPT of its first declared group address.
  */
-dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "18.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
+dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1.010" | "1.011" | "1.012" | "1.015" | "1.017" | "1.018" | "1.019" | "1.100" | "2.001" | "3.007" | "5.001" | "5.004" | "5.010" | "17.001" | "18.001" | "20.102" | "9.001" | "9.002" | "9.004" | "9.005" | "9.007" | "9.008" | "9.024" | "9.028" | "7.600" | "10.001" | "11.001" | "13.010" | "13.013" | "14.056") | string)
 /**
  * Object role in the device's behavior.
  */
-port: ("switch" | "status" | "scene" | "forced" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "slatCommand" | "slatStatus" | "windAlarm" | "display" | "input" | "slaveTrigger" | "brightness" | "dim" | "value" | "valueStatus" | "colourTemperature" | "colourTemperatureStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "command" | "led")
+port: ("switch" | "status" | "scene" | "forced" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "intrusionAlarm" | "fireAlarm" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "slatCommand" | "slatStatus" | "windAlarm" | "rainAlarm" | "frostAlarm" | "recallPosition12" | "recallPosition34" | "storePosition12" | "storePosition34" | "upperLimit" | "lowerLimit" | "display" | "input" | "slaveTrigger" | "brightness" | "dim" | "value" | "valueStatus" | "colourTemperature" | "colourTemperatureStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "sensorFault" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "override" | "overrideTimed" | "overridePermanent" | "command" | "led" | "intrusionTrigger" | "intrusionReset" | "intrusionState" | "fireTrigger" | "fireReset" | "fireState")
 /**
  * Channel ID within the device; required by actuator ports.
  */
@@ -538,6 +538,10 @@ label?: string
  * Text written on the push-button wired to a contact input (push-button interface), drawn on its key; by default the key shows the label.
  */
 keyLabel?: string
+/**
+ * Contact of the push-button wired to a contact input: normally open (closes when pressed, default) or normally closed.
+ */
+keyContact?: ("normallyOpen" | "normallyClosed")
 /**
  * Behavior-specific channel parameters, such as timer or travel time.
  */

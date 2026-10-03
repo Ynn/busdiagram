@@ -74,6 +74,8 @@ describe("model of the examples", () => {
       sceneLearning: true,
       busFailure: "unchanged",
       busRecovery: "previous",
+      blinkMs: 1000,
+      afterAlarm: "lastCommand",
       afterForcing: "lastCommand",
     });
     expect(switchActuator.channels[1]!.parameters.timerMs).toBeNull();

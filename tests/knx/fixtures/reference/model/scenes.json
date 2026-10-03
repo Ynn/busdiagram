@@ -24,7 +24,7 @@
     },
     "switchActuator": {
       "sc": {
-        "number": 33,
+        "number": 41,
         "R": false,
         "U": false,
         "C": true,

@@ -53,16 +53,27 @@ export const switchActuatorFr: Record<string, string> = {
   "OR: on when the command or the logic object is 1":
     "OU : marche quand la commande ou l'objet logique vaut 1",
   "State before the failure": "État avant la coupure",
-  "End of forcing": "Fin du forçage",
   "Metering and load shedding": "Comptage et délestage",
   "Load shedding": "Délestage",
   Delays: "Temporisations",
   "Delays apply to the switching object; scenes, forcing, and the lock act at once.":
     "Les temporisations s'appliquent à l'objet de commutation ; les scènes, le forçage et le verrouillage agissent immédiatement.",
-  "Forcing and lock": "Forçage et verrouillage",
   "Forcing has priority over the lock; while either is active, commands are stored.":
     "Le forçage est prioritaire sur le verrouillage ; tant que l'un des deux est actif, les commandes sont mémorisées.",
   Metering: "Comptage",
   "Shedding applies when the device has a total power limit (page Metering and load shedding).":
     "Le délestage s'applique quand l'appareil a une limite de puissance totale (page Comptage et délestage).",
+  "{0}: fire alarm, command stored without effect":
+    "{0} : alarme incendie, commande mémorisée sans effet",
+  "{0}: intrusion alarm, command stored without effect":
+    "{0} : alarme intrusion, commande mémorisée sans effet",
+  "{0}: fire alarm, output on": "{0} : alarme incendie, sortie allumée",
+  "{0}: intrusion alarm, output blinking":
+    "{0} : alarme intrusion, sortie clignotante",
+  "{0}: alarm ended": "{0} : fin de l'alarme",
+  "Blinking period on intrusion": "Période de clignotement sur intrusion",
+  "End of the alarms": "Fin des alarmes",
+  Alarms: "Alarmes",
+  "Fire forces the output on, intrusion makes it blink; fire has priority over intrusion, and both over forcing and the lock.":
+    "L'incendie force la sortie à l'état allumé, l'intrusion la fait clignoter ; l'incendie est prioritaire sur l'intrusion, et les deux sur le forçage et le verrouillage.",
 };
