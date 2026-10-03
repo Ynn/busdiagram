@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.4.0] - 2026-10-03
+
 ### Added
 
 - Diagram: an icon at the end of the toolbar (full or compact) opens the diagram in the designer, in a new tab, with its scenario compressed in the link after `#` (not sent to a server). The `designer` option (attribute `designer`) gives the address of the designer, the published one by default, or `none` to hide the icon; the diagrams of the documentation and the player open the designer of the site, which also works offline. The designer opens links `#d=…`, in the language of the diagram when no language was chosen before.
