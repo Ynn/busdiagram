@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.5.1] - 2026-10-04
+
 ### Changed
 
 - Designer, **Code to paste into a page**: the code comes in two parts, each with its own **Copy** button: the library and the extensions, to paste once per page, then the diagram, to paste where each one goes. A page with several diagrams no longer needs the script tag removed from each copy.
