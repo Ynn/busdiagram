@@ -46,6 +46,6 @@ A page should load a known version of the library:
 
   The `integrity` attribute holds the SHA-384 hash of the published file (Subresource Integrity). Keep it when copying the tag; when changing the version, take the new tag from the [installation page](installation.html) or the designer, since the hash differs for each version.
 - **Standalone page:** a page exported by the designer embeds the library. It keeps its version and works offline.
-- **Code from the designer:** **Export → Code to paste into a page** loads the version of the designer that produced it from the CDN, with its integrity hash. A diagram designed today keeps working with the library it was checked against.
+- **Code from the designer:** **Export → Code to paste into a page** loads the version of the designer that produced it from the CDN, with its integrity hash. A diagram designed today keeps working with the library it was checked against. A development build of the designer (built from the sources, not released) has no published file of its own: its code loads the last released version, recorded with its hash in `site/release.json`, while its preview and its standalone pages use the library it was built with.
 
 Before updating across a major version (or a minor version before 1.0.0), read the corresponding section of `CHANGELOG.md` and validate your scenarios with the [designer](../designer/index.html) or `npm run validate`.

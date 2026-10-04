@@ -100,7 +100,7 @@ The preview can show a full or compact toolbar, hide the monitor or description,
 
 | Export | Use |
 | --- | --- |
-| Code snippet | Embed the diagram in HTML, Markdown output, or a reveal.js slide. The code loads the designer's library version from a CDN, pinned with its integrity hash; see [versions](versions.html). See [Embedding](embedding.html). |
+| Code snippet | Embed the diagram in HTML, Markdown output, or a reveal.js slide. The code comes in two parts, each with its own **Copy** button: the library (and the extensions) to paste once per page, then the diagram to paste where each one goes, so a page with several diagrams loads the library once. The library is a published version on a CDN, pinned with its integrity hash; see [versions](versions.html). See [Embedding](embedding.html). |
 | Standalone HTML page | A single offline file containing the library, scenario, and loaded extensions. |
 | JSON file | Save the scenario for version control or load it with `src`. |
 | Viewer link | Put a compressed scenario in a URL fragment for an iframe or another web viewer. See [Viewer](viewer.html). |

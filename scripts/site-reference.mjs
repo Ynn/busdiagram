@@ -188,14 +188,31 @@ function examplesIndex(root, lang) {
     .join("\n");
 }
 
-// Version of the built library and the integrity hash of dist/bus-diagram.js. The site is
-// published from release tags, so this file is the one published on npm for this version.
-function release(root) {
+/**
+ * Version and integrity hash of the library that the CDN tags of the site load.
+ *
+ * A release build (banner without "+dev") is the file published on npm for its version:
+ * its own hash is used. A development build differs from every published file, so its
+ * pages point to the last published version, recorded in site/release.json by the release
+ * script; a tag with the hash of a development file would be refused by the browser.
+ */
+export function release(root) {
   const { version } = JSON.parse(
     readFileSync(resolve(root, "package.json"), "utf8"),
   );
   const bundle = readFileSync(resolve(root, "dist/bus-diagram.js"));
+  const published = JSON.parse(
+    readFileSync(resolve(root, "site/release.json"), "utf8"),
+  );
+  const head = bundle.toString("utf8", 0, 200);
+  const label = /BusDiagram v(\S+)/.exec(head)?.[1] ?? "";
+  if (label.includes("+dev")) return published;
   const integrity = `sha384-${createHash("sha384").update(bundle).digest("base64")}`;
+  // Built again from the tag of a recorded release: the file must be the same.
+  if (published.version === version && published.integrity !== integrity)
+    throw new Error(
+      `dist/bus-diagram.js ${version} differs from the published file recorded in site/release.json`,
+    );
   return { version, integrity };
 }
 

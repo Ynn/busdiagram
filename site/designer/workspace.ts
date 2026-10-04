@@ -281,7 +281,7 @@ function objectAssociations(
 ) {
   const gas = E.gasOf(o);
   const linked = new Set(gas);
-  const candidates = doc.groupAddresses.filter((g) => {
+  const candidates = E.gasIn(doc).filter((g) => {
     const gd = E.gaDpt(doc, g.address);
     return (
       !linked.has(g.address) &&
@@ -734,7 +734,7 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
   const sel = p.sel ?? "gar";
   /** Number of addresses under a prefix ("1/" or "1/2/"). */
   const count = (prefix: string) =>
-    doc.groupAddresses.filter((g) => g.address.startsWith(prefix)).length;
+    E.gasIn(doc).filter((g) => g.address.startsWith(prefix)).length;
   const [kind, rest] = [sel.split(":")[0]!, sel.slice(sel.indexOf(":") + 1)];
   const nameField = (address: string, label: string) =>
     html`<label class="g-field"
@@ -751,7 +751,7 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
           )}
     /></label>`;
   if (kind === "ga") {
-    const g = doc.groupAddresses.find((x) => x.address === rest);
+    const g = E.gasIn(doc).find((x) => x.address === rest);
     if (!g)
       return html`<p class="w-empty">
         ${t`This group address no longer exists.`}
@@ -767,7 +767,7 @@ function addressList(host: Host, doc: Doc, p: Panel): TemplateResult {
   }
   if (kind === "mid") {
     const [m, mm] = parts(rest);
-    const gas = doc.groupAddresses
+    const gas = E.gasIn(doc)
       .filter((g) => g.address.startsWith(`${rest}/`))
       .sort((a, b) => parts(a.address)[2]! - parts(b.address)[2]!);
     const links = (g: E.Ga) =>

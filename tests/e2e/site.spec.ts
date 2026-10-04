@@ -20,14 +20,25 @@ const url = (p: string) => {
   );
 };
 
-// Pasted code loads the library from the CDN at the version of the build; serve the local
-// bundle instead, so the integrity hash in the code is checked against the built file.
+// Pasted code loads the library from the CDN; the tests serve the local bundle instead.
 const { version } = JSON.parse(readFileSync("package.json", "utf8")) as {
   version: string;
 };
-const CDN_URL = `https://cdn.jsdelivr.net/npm/bus-diagram@${version}/dist/bus-diagram.js`;
 const BUNDLE = readFileSync(join(DOCS, "assets/bus-diagram.js"));
-const INTEGRITY = `sha384-${createHash("sha384").update(BUNDLE).digest("base64")}`;
+const sha384 = (b: Buffer) =>
+  `sha384-${createHash("sha384").update(b).digest("base64")}`;
+// A development build differs from every published file: its CDN tags load the last
+// published version, recorded in site/release.json. A release build loads itself.
+const DEV_BUILD = /BusDiagram v\S+\+dev/.test(BUNDLE.toString("utf8", 0, 200));
+const PUBLISHED = JSON.parse(readFileSync("site/release.json", "utf8")) as {
+  version: string;
+  integrity: string;
+};
+const CDN_VERSION = DEV_BUILD ? PUBLISHED.version : version;
+const CDN_URL = `https://cdn.jsdelivr.net/npm/bus-diagram@${CDN_VERSION}/dist/bus-diagram.js`;
+const INTEGRITY = DEV_BUILD ? PUBLISHED.integrity : sha384(BUNDLE);
+/** Pasted code, served offline: the fake CDN below serves the local file, with its own hash. */
+const offline = (code: string) => code.replaceAll(INTEGRITY, sha384(BUNDLE));
 const serveCdn = (context: BrowserContext) =>
   context.route(CDN_URL, (route) =>
     route.fulfill({
@@ -661,24 +672,30 @@ test.describe("designer", () => {
     await page.click("#code-close");
     await page.locator(".menu summary").click();
     await page.click("#export-snippet");
-    const snippet = await page.locator("#code-text").inputValue();
-    expect(snippet).toContain(
-      '<bus-diagram fit="contain" style="height:540px">',
+    // Two parts: the library, once per page, then the diagram, where each one goes.
+    const head = await page.locator("#code-head").inputValue();
+    const diagram = await page.locator("#code-text").inputValue();
+    expect(diagram).toMatch(
+      /^<bus-diagram fit="contain" style="height:540px">/,
     );
-    // The library is pinned to the designer's version, with its integrity hash.
-    expect(snippet).toContain(
+    expect(diagram).not.toContain("<script src=");
+    // The library is pinned to a published version, with its integrity hash.
+    expect(head).toBe(
       `<script src="${CDN_URL}" integrity="${INTEGRITY}" crossorigin="anonymous"></script>`,
     );
-    // The code works as pasted into a page.
+    // The code works as pasted into a page: the library once, the diagram twice.
     const host = info.outputPath("colle.html");
     writeFileSync(
       host,
-      `<!doctype html><meta charset="utf-8"><body>${snippet}</body>`,
+      `<!doctype html><meta charset="utf-8"><head>${offline(head)}</head><body>${diagram}${diagram}</body>`,
     );
     await serveCdn(context);
     const pasted = await context.newPage();
+    const wp = watch(pasted);
     await pasted.goto(pathToFileURL(host).href);
-    await expect(pasted.locator("bus-diagram .card")).toHaveCount(2);
+    await expect(pasted.locator("bus-diagram")).toHaveCount(2);
+    await expect(pasted.locator("bus-diagram .card")).toHaveCount(4);
+    expect(wp.errors).toEqual([]);
     expect(w.errors).toEqual([]);
   });
 });
@@ -1235,12 +1252,15 @@ test.describe("guided designer", () => {
     // Pasted code: raw extension files would conflict, so each is wrapped when embedded.
     await page.locator(".menu summary").click();
     await page.click("#export-snippet");
-    await expect(page.locator("#code-text")).toHaveValue(/beta\/v1/);
-    const code = await page.locator("#code-text").inputValue();
+    await expect(page.locator("#code-head")).toHaveValue(/beta\/v1/);
+    const code = `${await page.locator("#code-head").inputValue()}\n${await page.locator("#code-text").inputValue()}`;
     expect(code).not.toContain('<script src="alpha.js">');
     expect(code).toContain('registerBehavior("beta/v1"');
     const host = info.outputPath("host.html");
-    writeFileSync(host, `<!doctype html><meta charset="utf-8">${code}`);
+    writeFileSync(
+      host,
+      `<!doctype html><meta charset="utf-8">${offline(code)}`,
+    );
     await serveCdn(fresh);
     const hostPage = await fresh.newPage();
     const w3 = watch(hostPage);
@@ -1791,7 +1811,7 @@ test("prompt generator builds a request, checks an answer, and prepares a correc
   expect(w.errors).toEqual([]);
 });
 
-test("documentation pins the built version on the CDN with its integrity hash", () => {
+test("documentation pins a published version on the CDN with its integrity hash", () => {
   for (const page of [
     "index.html",
     "guide/installation.html",
@@ -2524,6 +2544,92 @@ test.describe("designer workspace", () => {
       .getByRole("button", { name: "Open the Building panel" })
       .click();
     await expect(top(page).locator(".w-select")).toHaveValue("building");
+    expect(w.errors).toEqual([]);
+  });
+
+  test("group addresses used by objects without being declared are shown and editable", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html"));
+    // A scenario written by hand: 1/1/1 links two objects, groupAddresses is empty.
+    const doc = {
+      formatVersion: 2,
+      title: "Hand-written scenario",
+      lines: [{ address: "1.1", powerSupply: { currentMa: 320 } }],
+      groupAddresses: [],
+      devices: [
+        {
+          id: "pushButton",
+          name: "BP",
+          address: "1.1.1",
+          kind: "buttonInterface",
+          behavior: "buttonInterface/v1",
+          objects: [
+            {
+              id: "b1",
+              name: "Key 1",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "switch",
+              channel: "key1",
+              flags: { W: true, T: true },
+            },
+          ],
+          channels: [
+            {
+              id: "key1",
+              label: "Input 1",
+              keyLabel: "Key 1",
+              parameters: { onPress: "on", ledShown: true },
+              equipment: null,
+            },
+          ],
+        },
+        {
+          id: "switchActuator",
+          name: "Switch",
+          address: "1.1.2",
+          kind: "switchActuator",
+          behavior: "switchActuator/v1",
+          objects: [
+            {
+              id: "c1",
+              name: "Channel 1",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "switch",
+              channel: "s1",
+              flags: { W: true, T: false },
+            },
+          ],
+          channels: [{ id: "s1", label: "L1", equipment: { type: "lamp" } }],
+        },
+      ],
+      options: { speed: 1, filterTables: false },
+    };
+    await page.evaluate(
+      (text) =>
+        (
+          window as unknown as { designer: { setText(t: string): void } }
+        ).designer.setText(text),
+      JSON.stringify(doc, null, 2),
+    );
+    await page.click("#tab-guided");
+    const ga = node(bottom(page), "ga:1/1/1");
+    await expect(ga).toBeVisible();
+    await ga.click();
+    // Its associations: the two objects that use it.
+    await expect(bottom(page).locator(".w-list tbody tr")).toHaveCount(2);
+    // Naming it declares it.
+    await ga.locator(".w-label").dblclick();
+    await ga.locator("input.w-rename").fill("Hall light");
+    await ga.locator("input.w-rename").press("Enter");
+    await expect
+      .poll(async () => (await json(page)).groupAddresses)
+      .toEqual([{ address: "1/1/1", name: "Hall light" }]);
+    await expect(ga).toContainText("Hall light");
     expect(w.errors).toEqual([]);
   });
 

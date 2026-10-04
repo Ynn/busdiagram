@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "db859d8f5f67"
+sourceHash: "24e4bf177b4d"
 order: 7
 ---
 # Designer
@@ -100,7 +100,7 @@ L'aperçu peut afficher une barre d'outils complète ou compacte, masquer le mon
 
 | Export | Usage |
 | --- | --- |
-| Code à coller dans une page | Intégrer le schéma dans du HTML, une sortie Markdown ou une diapositive reveal.js. Le code charge la version de la bibliothèque du designer depuis un CDN, figée par son empreinte d'intégrité ; voir [versions](versions.html). Voir [Intégration](embedding.html). |
+| Code à coller dans une page | Intégrer le schéma dans du HTML, une sortie Markdown ou une diapositive reveal.js. Le code vient en deux parties, chacune avec son bouton **Copier** : la bibliothèque (et les extensions) à coller une fois par page, puis le schéma à coller à l'emplacement de chacun, si bien qu'une page à plusieurs schémas ne charge la bibliothèque qu'une fois. La bibliothèque est une version publiée sur un CDN, figée par son empreinte d'intégrité ; voir [versions](versions.html). Voir [Intégration](embedding.html). |
 | Page autonome (.html) | Un seul fichier hors ligne contenant la bibliothèque, le scénario et les extensions chargées. |
 | Fichier JSON | Enregistrer le scénario pour la gestion de versions ou le charger avec `src`. |
 | Lien de lecture | Mettre un scénario compressé dans le fragment d'une URL pour une iframe ou une autre visionneuse web. Voir [Visionneuse](viewer.html). |

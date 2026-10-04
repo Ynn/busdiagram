@@ -1,5 +1,5 @@
-/*! BusDiagram v0.5.0 | AGPL-3.0-only | Copyright (C) 2026 Yoann Maurel
-Source code of this version: https://github.com/Ynn/busdiagram/tree/v0.5.0
+/*! BusDiagram v0.5.0+dev.2cd849a.modified | AGPL-3.0-only | Copyright (C) 2026 Yoann Maurel
+Development build, not a released version (commit 2cd849a with local changes); source code: https://github.com/Ynn/busdiagram
 
 Third-party components included in this file:
 
@@ -587,6 +587,11 @@ var BusDiagram=(function(e){Object.defineProperty(e,Symbol.toStringTag,{value:`M
   .mini button {
     width: 30px;
     height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
     border-radius: 8px;
     border: 1.5px solid #cfccc1;
     background: rgba(255, 255, 255, 0.92);
@@ -3281,7 +3286,24 @@ var BusDiagram=(function(e){Object.defineProperty(e,Symbol.toStringTag,{value:`M
         ?disabled=${!!e.fault}
         @click=${()=>e.paused?this.play():this.pause()}
       >
-        ${e.paused?`▶`:`❚❚`}
+        ${e.paused?J`<svg
+                viewBox="0 0 12 12"
+                width="12"
+                height="12"
+                aria-hidden="true"
+              >
+                <path d="M3 1.5v9l7.5-4.5z" fill="currentColor" />
+              </svg>`:J`<svg
+                viewBox="0 0 12 12"
+                width="12"
+                height="12"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z"
+                  fill="currentColor"
+                />
+              </svg>`}
       </button>
       <button
         class=${this.stepMode?`on`:``}

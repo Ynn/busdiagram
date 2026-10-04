@@ -285,7 +285,7 @@ export function addressTree(host: Host, doc: Doc): Node[] {
             label: `${mid} ${rangeName(doc, mid)}`,
             text: `${mid} ${rangeName(doc, mid)}`,
             drop: objTarget(host, null, mid),
-            children: doc.groupAddresses
+            children: E.gasIn(doc)
               .filter((g) => g.address.startsWith(`${mid}/`))
               .sort((a, b) => parts(a.address)[2]! - parts(b.address)[2]!)
               .map((g) => ({

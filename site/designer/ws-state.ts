@@ -288,7 +288,7 @@ export function nameOf(
         apply: (d, v) => E.setGroupRangeName(d, rest, v),
       };
     case "ga": {
-      const g = doc.groupAddresses.find((x) => x.address === rest);
+      const g = E.gasIn(doc).find((x) => x.address === rest);
       if (!g) return null;
       return {
         value: g.name ?? "",

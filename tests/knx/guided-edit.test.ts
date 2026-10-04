@@ -43,6 +43,37 @@ describe("guided designer: lines", () => {
   });
 });
 
+describe("guided designer: addresses used without being declared", () => {
+  // The format allows an object to use an address that groupAddresses does not declare.
+  const doc = () => {
+    const d = v2("lighting-control.json");
+    d.groupAddresses = [];
+    return d;
+  };
+
+  it("are listed with the declared ones, in their groups", () => {
+    const d = doc();
+    valid(d);
+    const gas = E.gasIn(d).map((g) => g.address);
+    expect(gas).toContain("1/1/1");
+    expect(new Set(gas).size).toBe(gas.length);
+    const { mains, middles } = E.groupRangesOf(d);
+    expect(mains).toContain(1);
+    expect(middles).toContain("1/1");
+  });
+
+  it("are declared when they get a name or a DPT, and not before", () => {
+    const d = doc();
+    E.setGaField(d, "1/1/1", "name", "");
+    expect(d.groupAddresses).toEqual([]);
+    E.setGaField(d, "1/1/1", "name", "Hall");
+    expect(d.groupAddresses).toEqual([{ address: "1/1/1", name: "Hall" }]);
+    expect(E.gasIn(d).filter((g) => g.address === "1/1/1")).toHaveLength(1);
+    expect(() => E.setGaField(d, "7/7/7", "name", "x")).toThrow(/not declared/);
+    valid(d);
+  });
+});
+
 describe("guided designer: DPT of a group address", () => {
   it("only suggests DPTs matching linked object sizes", () => {
     const doc = v2("lighting-control.json");

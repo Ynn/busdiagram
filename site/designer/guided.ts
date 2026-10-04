@@ -1426,7 +1426,7 @@ export class GuidedEditor extends LitElement implements Host {
 
   /** Available group addresses for a DPT: matching data size; created on demand if needed. */
   compatible(doc: Doc, dpt: string | null) {
-    return doc.groupAddresses.filter((g) => {
+    return E.gasIn(doc).filter((g) => {
       const gd = E.gaDpt(doc, g.address);
       return !dpt || !gd || dptBits(gd) === dptBits(dpt);
     });

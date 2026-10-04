@@ -276,7 +276,7 @@ export function menuFor(
       break;
     case "main": {
       const m = Number(rest);
-      const used = doc.groupAddresses.some((g) => parts(g.address)[0] === m);
+      const used = E.gasIn(doc).some((g) => parts(g.address)[0] === m);
       items.push(
         {
           label: t`Add middle group`,
@@ -302,9 +302,7 @@ export function menuFor(
     }
     case "mid": {
       const [m, mm] = parts(rest);
-      const used = doc.groupAddresses.some((g) =>
-        g.address.startsWith(`${rest}/`),
-      );
+      const used = E.gasIn(doc).some((g) => g.address.startsWith(`${rest}/`));
       items.push(
         {
           label: t`Add group address`,

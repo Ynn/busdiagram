@@ -84,6 +84,11 @@ export const styles = css`
   .mini button {
     width: 30px;
     height: 28px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
     border-radius: 8px;
     border: 1.5px solid #cfccc1;
     background: rgba(255, 255, 255, 0.92);

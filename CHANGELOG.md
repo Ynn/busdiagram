@@ -4,6 +4,16 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Changed
+
+- Designer, **Code to paste into a page**: the code comes in two parts, each with its own **Copy** button: the library and the extensions, to paste once per page, then the diagram, to paste where each one goes. A page with several diagrams no longer needs the script tag removed from each copy.
+
+### Fixed
+
+- CDN tags with a wrong integrity hash: a development build (any build that is not a release) wrote the version number of the package with the hash of its own file, which differs from the published one, in the documentation and in the code of the designer; a browser refuses such a tag. Development builds now point to the last published version, recorded with its hash in `site/release.json` by the release script; a release build checks that its file matches the recorded one.
+- Designer: the Group addresses panel showed only the addresses declared in `groupAddresses`. An address that objects use without declaring it, as the format allows, was missing from the tree, the lists, and **Link with…**, so a scenario written by hand could show an empty panel. Every address used is now shown; giving it a name or a DPT declares it.
+- Compact toolbar: the pause icon could break onto two lines, depending on the fonts of the system, because it was wider than its button. The play and pause icons are now drawn, and every icon is centred in its button.
+
 ## [0.5.0] - 2026-10-04
 
 ### Added

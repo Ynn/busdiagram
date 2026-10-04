@@ -143,12 +143,29 @@
             <span data-t="16:9 slide"></span
           ></label>
         </div>
-        <div id="frame"><bus-diagram id="preview" designer="none"></bus-diagram></div>
+        <div id="frame">
+          <bus-diagram id="preview" designer="none"></bus-diagram>
+        </div>
       </section>
     </main>
     <dialog id="code-dialog">
       <h2 id="code-title"></h2>
       <p id="code-note"></p>
+      <div id="code-head-box" hidden>
+        <div class="code-part">
+          <h3 data-t="Once per page, preferably in <head>"></h3>
+          <button id="code-head-copy" data-t="Copy"></button>
+        </div>
+        <textarea
+          id="code-head"
+          readonly
+          spellcheck="false"
+          data-aria="Once per page, preferably in <head>"
+        ></textarea>
+        <div class="code-part">
+          <h3 data-t="Where each diagram goes"></h3>
+        </div>
+      </div>
       <textarea id="code-text" readonly spellcheck="false"></textarea>
       <div class="actions">
         <a id="code-open" target="_blank" hidden data-t="Open"></a>

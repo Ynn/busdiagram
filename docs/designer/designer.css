@@ -271,6 +271,24 @@ dialog {
   padding: 16px 18px;
   width: min(760px, 94vw);
 }
+/* Code in two parts: a title and its copy button above each field. */
+.code-part {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 10px 0 4px;
+}
+.code-part h3 {
+  margin: 0;
+  font-size: 13.5px;
+}
+#code-head {
+  height: 74px;
+}
+#code-head-box:not([hidden]) + #code-text {
+  height: 220px;
+}
 dialog::backdrop {
   background: rgba(20, 20, 30, 0.35);
 }

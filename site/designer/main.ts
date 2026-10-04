@@ -33,6 +33,7 @@ import {
   decodeShare,
 } from "../shared/embed";
 import { cdnTag } from "../shared/cdn.js";
+import published from "../release.json";
 import { formatJson } from "../shared/format-json";
 import { SchemaNavigator, scenarioCompletion } from "./completion";
 import type { Doc } from "./edit";
@@ -112,6 +113,8 @@ const pageTexts = (): Record<string, string> => ({
   Open: t`Open`,
   Copy: t`Copy`,
   Close: t`Close`,
+  "Once per page, preferably in <head>": t`Once per page, preferably in <head>`,
+  "Where each diagram goes": t`Where each diagram goes`,
 });
 function applyPageTexts() {
   const texts = pageTexts();
@@ -849,19 +852,30 @@ const slug = (data: unknown) =>
     .replace(/^-|-$/g, "")
     .toLowerCase() || "scenario";
 
-function showCode(title: string, text: string, note: string, link?: string) {
+/**
+ * Code dialog. With `head`, the code comes in two parts: what is pasted once per page (the
+ * library and the extensions), and what is pasted where each diagram goes.
+ */
+function showCode(
+  title: string,
+  text: string,
+  note: string,
+  link?: string,
+  head?: string,
+) {
   const dlg = $<HTMLDialogElement>("#code-dialog");
   $("#code-title").textContent = title;
   $("#code-note").textContent = note;
   $<HTMLTextAreaElement>("#code-text").value = text;
+  $("#code-head-box").hidden = head === undefined;
+  $<HTMLTextAreaElement>("#code-head").value = head ?? "";
   const open = $<HTMLAnchorElement>("#code-open");
   open.hidden = !link;
   if (link) open.href = link;
   dlg.showModal();
 }
 
-$("#code-copy").addEventListener("click", async () => {
-  const area = $<HTMLTextAreaElement>("#code-text");
+const copyArea = async (area: HTMLTextAreaElement) => {
   try {
     await navigator.clipboard.writeText(area.value);
     toast(t`Copied to the clipboard.`);
@@ -869,16 +883,27 @@ $("#code-copy").addEventListener("click", async () => {
     area.select();
     toast(t`Selected: press Ctrl+C to copy.`);
   }
-});
+};
+$("#code-copy").addEventListener("click", () =>
+  copyArea($<HTMLTextAreaElement>("#code-text")),
+);
+$("#code-head-copy").addEventListener("click", () =>
+  copyArea($<HTMLTextAreaElement>("#code-head")),
+);
 $("#code-close").addEventListener("click", () =>
   $<HTMLDialogElement>("#code-dialog").close(),
 );
 
-// Subresource Integrity hash of the embedded bundle, which is the file published on npm
-// for this version. Unavailable outside a secure context: the tag is then left without it.
+// Library loaded by the pasted code. A released designer embeds the file published on npm
+// for its version: its own Subresource Integrity hash is used (unavailable outside a secure
+// context: the tag is then left without it). A development build differs from every
+// published file, so its code loads the last published version, recorded with its hash.
+const developmentBuild = (buildInfo(bundleSource).label ?? "").includes("+dev");
+const cdnVersion = developmentBuild ? published.version : BusDiagramApi.version;
 let bundleIntegrity: Promise<string | undefined> | undefined;
 const integrity = () =>
   (bundleIntegrity ??= (async () => {
+    if (developmentBuild) return published.integrity;
     try {
       const digest = await crypto.subtle.digest(
         "SHA-384",
@@ -910,14 +935,16 @@ $("#export-snippet").addEventListener("click", async () => {
     .join("");
   showCode(
     t`Code to paste into the page`,
-    `<!-- ${t`Once per page, preferably in <head>:`} -->\n${cdnTag(BusDiagramApi.version, await integrity())}\n${extScripts}\n${embedSnippet(data, o, style)}`,
-    t`HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the code. The first tag loads version ${BusDiagramApi.version} of the library from a CDN; this exact version stays available and does not change. To work offline, download bus-diagram.js from the Export menu, place it next to the page, and use <script src="bus-diagram.js"></script> instead. The interface language follows the page's lang attribute.` +
+    embedSnippet(data, o, style),
+    t`HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the first part once per page, and the second where each diagram goes. The first part loads version ${cdnVersion} of the library from a CDN; this exact version stays available and does not change. To work offline, download bus-diagram.js from the Export menu, place it next to the page, and use <script src="bus-diagram.js"></script> instead. The interface language follows the page's lang attribute.` +
       (extensions.length && !raw
         ? " " +
           t`The extensions are embedded in the code: loaded as-is through <script src> tags, they would conflict (global variables with the same name).`
         : extensions.length
           ? " " + t`Place the extension files next to the page.`
           : ""),
+    undefined,
+    `${cdnTag(cdnVersion, await integrity())}\n${extScripts}`.trimEnd(),
   );
 });
 $("#export-json").addEventListener("click", () => {

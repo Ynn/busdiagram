@@ -1106,7 +1106,28 @@ export class BusDiagram extends LitElement {
         ?disabled=${!!sim.fault}
         @click=${() => (sim.paused ? this.play() : this.pause())}
       >
-        ${sim.paused ? "▶" : "❚❚"}
+        ${
+          sim.paused
+            ? html`<svg
+                viewBox="0 0 12 12"
+                width="12"
+                height="12"
+                aria-hidden="true"
+              >
+                <path d="M3 1.5v9l7.5-4.5z" fill="currentColor" />
+              </svg>`
+            : html`<svg
+                viewBox="0 0 12 12"
+                width="12"
+                height="12"
+                aria-hidden="true"
+              >
+                <path
+                  d="M2.5 1.5h2.5v9H2.5zM7 1.5h2.5v9H7z"
+                  fill="currentColor"
+                />
+              </svg>`
+        }
       </button>
       <button
         class=${this.stepMode ? "on" : ""}

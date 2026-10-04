@@ -1,7 +1,7 @@
 ---
 title: Versions et publications
 translationOf: guide/11-versions.md
-sourceHash: "4919eb5872cd"
+sourceHash: "d1bbfc673c02"
 order: 11.5
 ---
 # Versions et publications
@@ -46,6 +46,6 @@ Une page doit charger une version connue de la bibliothèque :
 
   L'attribut `integrity` contient l'empreinte SHA-384 du fichier publié (Subresource Integrity). Gardez-le en copiant la balise ; en changeant de version, prenez la nouvelle balise sur la [page d'installation](installation.html) ou dans le designer, car l'empreinte diffère pour chaque version.
 - **Page autonome :** une page exportée par le designer intègre la bibliothèque. Elle garde sa version et fonctionne hors ligne.
-- **Code du designer :** **Exporter → Code à coller dans une page** charge depuis le CDN la version du designer qui l'a produit, avec son empreinte d'intégrité. Un schéma conçu aujourd'hui continue de fonctionner avec la bibliothèque avec laquelle il a été vérifié.
+- **Code du designer :** **Exporter → Code à coller dans une page** charge depuis le CDN la version du designer qui l'a produit, avec son empreinte d'intégrité. Un schéma conçu aujourd'hui continue de fonctionner avec la bibliothèque avec laquelle il a été vérifié. Un build de développement du designer (construit depuis les sources, non publié) n'a pas de fichier publié à lui : son code charge la dernière version publiée, enregistrée avec son empreinte dans `site/release.json`, tandis que son aperçu et ses pages autonomes utilisent la bibliothèque avec laquelle il a été construit.
 
 Avant une mise à jour qui change de version majeure (ou de version mineure avant 1.0.0), lisez la section correspondante de `CHANGELOG.md` et validez vos scénarios avec le [designer](../designer/index.html) ou `npm run validate`.

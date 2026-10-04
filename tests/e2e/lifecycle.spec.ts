@@ -189,3 +189,57 @@ test("copied demo/ directory works offline with its extension", async ({
   expect(errors).toEqual([]);
   expect(external).toEqual([]);
 });
+
+test("compact toolbar: each button keeps its icon on one line, whatever the page styles", async ({
+  page,
+}) => {
+  await page.goto(pathToFileURL(resolve("demo/offline.html")).href);
+  // A host page with large type and letter spacing, inherited through the shadow root.
+  await page.addStyleTag({
+    content: `body { font: 22px/1.8 "DejaVu Serif", Georgia, serif; letter-spacing: 3px; word-spacing: 8px; }`,
+  });
+  const el = page.locator("bus-diagram").first();
+  await el.evaluate((e) => e.setAttribute("toolbar", "compact"));
+  const buttons = el.locator(".mini button, .mini a");
+  await expect(buttons.first()).toBeVisible();
+  const overflow = await buttons.evaluateAll((els) =>
+    els.flatMap((b) => {
+      // Content box: inside the border and the padding.
+      const cs = getComputedStyle(b);
+      const outer = b.getBoundingClientRect();
+      const px = (v: string) => parseFloat(v) || 0;
+      const box = {
+        left: outer.left + px(cs.borderLeftWidth) + px(cs.paddingLeft),
+        right: outer.right - px(cs.borderRightWidth) - px(cs.paddingRight),
+        top: outer.top + px(cs.borderTopWidth) + px(cs.paddingTop),
+        bottom: outer.bottom - px(cs.borderBottomWidth) - px(cs.paddingBottom),
+      };
+      const range = document.createRange();
+      range.selectNodeContents(b);
+      const rects = [...range.getClientRects()].filter(
+        (r) => r.width && r.height,
+      );
+      const top = Math.min(...rects.map((r) => r.top));
+      const bottom = Math.max(...rects.map((r) => r.bottom));
+      const left = Math.min(...rects.map((r) => r.left));
+      const right = Math.max(...rects.map((r) => r.right));
+      // The icon fits in the content box of its button, on one line (half a pixel of rounding).
+      return bottom - top > 20 ||
+        top < box.top - 0.5 ||
+        bottom > box.bottom + 0.5 ||
+        left < box.left - 0.5 ||
+        right > box.right + 0.5
+        ? [
+            `${b.getAttribute("aria-label")}: ${Math.round(bottom - top)} px high`,
+          ]
+        : [];
+    }),
+  );
+  expect(overflow).toEqual([]);
+  // Paused, the play icon fits too.
+  await el.locator(".mini button").first().click();
+  await expect(el.locator(".mini button").first()).toHaveAttribute(
+    "aria-label",
+    "Resume",
+  );
+});

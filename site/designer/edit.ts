@@ -153,6 +153,26 @@ export function device(doc: Doc, id: string): Dev {
   return d;
 }
 
+/**
+ * Group addresses of the installation: those declared in `groupAddresses`, then those that
+ * objects use without declaring them, as the format allows (declaring an address only gives
+ * it a name or a DPT).
+ */
+export function gasIn(doc: Doc): Ga[] {
+  const out = [...doc.groupAddresses];
+  const seen = new Set(out.map((g) => g.address));
+  doc.devices.forEach((d) =>
+    d.objects.forEach((o) =>
+      gasOf(o).forEach((address) => {
+        if (seen.has(address)) return;
+        seen.add(address);
+        out.push({ address });
+      }),
+    ),
+  );
+  return out;
+}
+
 export function gaDpt(doc: Doc, addr: string): string | undefined {
   const g = doc.groupAddresses.find((x) => x.address === addr);
   if (g?.dpt) return g.dpt;
@@ -271,7 +291,7 @@ export function groupRangesOf(doc: Doc): {
 } {
   const mains = new Set<number>();
   const middles = new Set<string>();
-  doc.groupAddresses.forEach((g) => {
+  gasIn(doc).forEach((g) => {
     const [m, mm] = g.address.split("/").map(Number);
     mains.add(m!);
     middles.add(`${m}/${mm}`);
@@ -338,8 +358,15 @@ export function setGaField(
   field: "name" | "dpt",
   value: string,
 ) {
-  const g = doc.groupAddresses.find((x) => x.address === addr);
-  if (!g) throw new EditRefusal(t`address ${addr} not declared`);
+  let g = doc.groupAddresses.find((x) => x.address === addr);
+  if (!g) {
+    // An address that objects use without declaring it: declared when it gets a name or a DPT.
+    if (!gasIn(doc).some((x) => x.address === addr))
+      throw new EditRefusal(t`address ${addr} not declared`);
+    if (!value) return;
+    g = { address: addr };
+    doc.groupAddresses.push(g);
+  }
   if (field === "dpt" && value && !gaAllowedDpts(doc, addr).includes(value))
     throw new EditRefusal(
       t`${addr} links objects of another size: choose a DPT of the same size, or change the objects first`,
