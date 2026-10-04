@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.5.2] - 2026-10-04
+
 ### Added
 
 - Shutter actuator: configuration warning `config-slats` when the output and its shutter disagree on slats (an output set for a roller shutter does not turn the slats of a blind).
