@@ -2397,6 +2397,18 @@ test.describe("designer workspace", () => {
       )
       .toBe(6);
     await expect(top(page).locator(".w-pgroup")).toHaveCount(6);
+    // The added outputs have the switching object of the previous one, without address.
+    const act = (await json(page)).devices.find(
+      (x: { id: string }) => x.id === "switchActuator",
+    );
+    for (const ch of act.channels.slice(4)) {
+      const sw = act.objects.filter(
+        (o: { channel: string; port: string }) =>
+          o.channel === ch.id && o.port === "switch",
+      );
+      expect(sw).toHaveLength(1);
+      expect([sw[0].ga].flat()).toEqual([]);
+    }
     expect(w.errors).toEqual([]);
   });
 
@@ -2730,4 +2742,81 @@ test.describe("designer workspace", () => {
       .not.toContain("lampRoom");
     expect(w.errors).toEqual([]);
   });
+});
+
+test("a venetian blind beside a short card keeps its state and estimate above the bus", async ({
+  page,
+}, info) => {
+  const w = watch(page);
+  // The widest values: 100 % everywhere, French labels, a long output name.
+  const scenario = {
+    formatVersion: 2,
+    title: "Blind",
+    lines: [{ address: "1.1" }],
+    devices: [
+      {
+        id: "act",
+        address: "1.1.2",
+        kind: "shutterActuator",
+        behavior: "shutterActuator/v1",
+        objects: [
+          {
+            id: "move",
+            ga: "1/0/1",
+            dpt: "1.008",
+            port: "move",
+            channel: "s1",
+            flags: { W: true, T: false },
+          },
+          {
+            id: "stop",
+            ga: "1/1/1",
+            dpt: "1.007",
+            port: "stopStep",
+            channel: "s1",
+            flags: { W: true, T: false },
+          },
+        ],
+        channels: [
+          {
+            id: "s1",
+            label: "Volet de la chambre parentale",
+            parameters: { estimatedTravelTimeMs: 20000, slatTravelMs: 2000 },
+            initialState: { estimatedPositionPct: 100, estimatedSlatPct: 100 },
+            equipment: {
+              type: "shutter",
+              parameters: { actualTravelTimeMs: 20000, slatTravelMs: 2000 },
+              initialState: { positionPct: 100, slatPct: 100 },
+            },
+          },
+        ],
+      },
+    ],
+  };
+  const host = info.outputPath("blind.html");
+  writeFileSync(
+    host,
+    `<!doctype html><meta charset="utf-8"><body style="width:900px"><script src="${pathToFileURL(join(DOCS, "assets/bus-diagram.js")).href}"></script><bus-diagram lang="fr" monitor="false" description="false"><script type="application/json">${JSON.stringify(scenario)}</script></bus-diagram>`,
+  );
+  await page.goto(pathToFileURL(host).href);
+  const diagram = page.locator("bus-diagram");
+  await expect(diagram.locator(".est span")).toHaveCount(3);
+  const m = await diagram.evaluate((e) => {
+    const root = e.shadowRoot!;
+    const rows = [
+      ...root.querySelectorAll(".est span, .shutter .slatinfo"),
+    ].map((s) => s.getBoundingClientRect().height);
+    const bottom = root.querySelector(".est")!.getBoundingClientRect().bottom;
+    const bus = Math.min(
+      ...[...root.querySelectorAll("svg *")]
+        .map((x) => x.getBoundingClientRect())
+        .filter((bb) => bb.width > 300 && bb.height < 8)
+        .map((bb) => bb.top),
+    );
+    return { rows, bottom, bus };
+  });
+  // One line per row, and the strip ends above the bus line.
+  for (const h of m.rows) expect(h).toBeLessThan(24); // two lines would be 26 px or more
+  expect(m.bottom).toBeLessThan(m.bus);
+  expect(w.errors).toEqual([]);
 });

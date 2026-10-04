@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Temps et mode pas à pas · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1">
-<script src="../../assets/bus-diagram.js?v=0.5.1"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1%2Bdev.649cd84.modified.24a350d3">
+<script src="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../../assets/search-index.js?v=0.5.1"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.5.1"></script>
-<script defer src="../../assets/docs.js?v=0.5.1" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/docs.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/time.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -90,7 +90,7 @@
 <li><code>speed</code> est le nombre de secondes d&#39;horloge par seconde simulée (1 par défaut, 3600 au plus). Avec 60, une minute d&#39;horloge passe à chaque seconde simulée.</li>
 </ul>
 <p>L&#39;horloge suit le temps simulé : elle s&#39;arrête pendant la pause de la simulation, et les commandes de vitesse s&#39;y appliquent comme à tout le reste. Avec une horloge, le temps simulé continue de s&#39;écouler même quand le bus est inactif.</p>
-<p>Le schéma affiche la date et l&#39;heure dans une barre en haut à gauche de la zone du schéma, au-dessus du dessin. <strong>Régler l&#39;heure</strong> ouvre un champ pour régler l&#39;horloge sur une autre date et heure, par exemple juste avant un point de commutation programmé ; les appareils renvoient alors l&#39;heure et reprogramment leurs programmes. Depuis JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> fait de même.</p>
+<p>Le schéma affiche la date et l&#39;heure dans une barre en haut à gauche de la zone du schéma, au-dessus du dessin. <strong>Régler l&#39;heure</strong> ouvre un champ pour régler l&#39;horloge sur une autre date et heure, par exemple juste avant un point de commutation programmé ; les appareils renvoient alors l&#39;heure et reprogramment leurs programmes. Depuis JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> fait de même. Une horloge maître répond à une lecture (indicateur R) avec l&#39;heure et la date de cet instant, pas celles de sa dernière diffusion.</p>
 <h2 id="step-mode"><a class="anchor" href="#step-mode">#</a>Mode pas à pas</h2><p>Le mode pas à pas s&#39;arrête aux événements explicatifs, dont l&#39;émission d&#39;un télégramme, la décision de routage ou de filtrage d&#39;un coupleur, l&#39;acceptation ou le refus d&#39;un objet selon W, les changements de sortie et l&#39;expiration des temporisations. Appuyez sur <strong>Suivant</strong> pour passer à l&#39;événement suivant.</p>
 <h2 id="timeline"><a class="anchor" href="#timeline">#</a>Chronogramme</h2><p>L&#39;option <code>timeline</code> affiche, sous le schéma, jusqu&#39;à quatre traces sur l&#39;axe du temps simulé : les valeurs d&#39;objets et les états marche/arrêt en escalier, les températures des pièces, les ouvertures et les niveaux en courbes, et les télégrammes d&#39;un objet tracé en marques. Chaque événement est enregistré à son propre instant, quelle que soit la vitesse, y compris en mode pas à pas. Elle aide à lire ce qui dépend du temps : une minuterie d&#39;escalier, la MLI, une boucle de régulation, une priorité. Nommez les premières traces dans l&#39;option, puis ajoutez-en ou retirez-en depuis son menu :</p>
 <pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">src</span>=<span class="s">"room-heating.json"</span>

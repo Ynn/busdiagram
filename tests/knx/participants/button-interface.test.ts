@@ -167,9 +167,11 @@ describe("buttonInterface/v1", () => {
       sim.input("bi", "in1", "up");
       sim.advance(2000);
     }
+    // The short press goes opposite to the last movement (ABB US/U 4.2, one-key
+    // operation): after moving down, it stops the blind or opens the slats by a step.
     expect(out).toEqual([
       ["1/1/3", 1],
-      ["1/1/4", 1],
+      ["1/1/4", 0],
       ["1/1/3", 0],
     ]);
   });

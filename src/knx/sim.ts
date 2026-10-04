@@ -1121,8 +1121,10 @@ export class Simulation {
     const response = tel.service === "GroupValueResponse";
     for (const o of assoc) {
       if (this.fault) break;
-      // Another object of the sending device on the same address: the Application Layer
-      // updates its value whatever its flags; W (or U) only governs the reaction.
+      // Another object of the sending device on the same address is handled as for a
+      // telegram from the bus: the Application Layer informs it (KNX Standard 03_03_07
+      // §3.1.1), and the Group Object Server updates its value only if its flags allow it
+      // (03_04_01 §3.3): W for a write, U for a response.
       if (!o.flags.C) {
         this.log("object-write-ignored", rec.id, {
           deviceId,
@@ -1148,27 +1150,6 @@ export class Simulation {
           message: this.t`payload invalid for DPT ${o.dpt}: value unchanged`,
         });
         reception.objects.push({ objectId: o.id, result: "ignored" });
-        continue;
-      }
-      const allowed = response ? o.flags.U : o.flags.W;
-      if (internal && !allowed) {
-        const cur = this.objects.get(o.key)!;
-        cur.value = decoded.value;
-        cur.updatedAtMs = this.timeMs;
-        this.log("object-write-accepted", rec.id, {
-          deviceId,
-          objectId: o.id,
-          telegramId,
-          ga: tel.ga,
-          value: cur.value,
-          message: response
-            ? this
-                .t`same address in the device: value updated; U flag off, no reaction`
-            : this
-                .t`same address in the device: value updated; W flag off, no reaction`,
-          data: { internal },
-        });
-        reception.objects.push({ objectId: o.id, result: "accepted" });
         continue;
       }
       if (response && !o.flags.U) {
@@ -1245,6 +1226,9 @@ export class Simulation {
     rt.device.objects
       .filter((o) => o.gas.includes(tel.ga))
       .forEach((o) => {
+        // A value that changes between two sends is brought up to date before it is read.
+        if (o.flags.C && o.flags.R && !answered && rt.def.onRead)
+          this.hook(rt, "onRead", () => rt.def.onRead!(rt.ctx, o.id));
         const cur = this.objects.get(o.key)!;
         const why = !o.flags.C
           ? this.t`C flag off: the message is not handled`
@@ -1579,9 +1563,14 @@ export class Simulation {
    * Read on initialisation: when a device starts again, each object with the I flag (and
    * C) reads its value on its sending address; the response updates it if U is set.
    */
+  /**
+   * Read on initialisation: a read request of each object with I, set when the device
+   * starts. Like any request to transmit, it needs C and T (KNX Standard 03_05_01
+   * §4.18.6.2.4.1.3, and §4.18.3.1.2.1: with T off, no A_GroupValue_Read.req is generated).
+   */
   private readOnInit(rt: DeviceRuntime) {
     rt.device.objects
-      .filter((o) => o.flags.I && o.flags.C && o.gas[0])
+      .filter((o) => o.flags.I && o.flags.C && o.flags.T && o.gas[0])
       .forEach((o) =>
         this.emit(rt.device, {
           objectId: o.id,

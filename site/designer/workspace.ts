@@ -411,7 +411,7 @@ function objectProperties(host: Host, d: Dev, o: Dev["objects"][number]) {
       </tr>
     </table>
     <p class="g-hint">
-      ${t`C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts again after a bus voltage failure.`}
+      ${t`C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts (start of the simulation, return of the bus voltage), with C and T.`}
     </p>
     <label class="g-field narrow"
       ><span>${t`Priority`}</span>

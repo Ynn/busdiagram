@@ -1,7 +1,7 @@
 ---
 title: Notions
 translationOf: guide/03-concepts.md
-sourceHash: "2e5b9eabb0c0"
+sourceHash: "09e214ccb0aa"
 order: 3
 ---
 
@@ -32,7 +32,7 @@ Chaque objet a une valeur, un DPT qui détermine comment l'interpréter, une ou 
 | `T` transmission | L'objet peut envoyer sa valeur. | La valeur peut changer localement, mais aucun télégramme n'est envoyé. |
 | `R` lecture | L'objet répond à une lecture sur n'importe laquelle de ses adresses, sur son adresse d'émission. | Aucune réponse n'est envoyée. |
 | `U` mise à jour | Une réponse reçue met à jour l'objet. | Les réponses sont ignorées. |
-| `I` lecture à l'initialisation | Quand l'appareil démarre (au démarrage de la simulation, et de nouveau après une coupure de la tension bus), l'objet lit sa valeur sur son adresse d'émission. | Pas de lecture au démarrage. |
+| `I` lecture à l'initialisation | Quand l'appareil démarre (au démarrage de la simulation, et de nouveau après une coupure de la tension bus), l'objet lit sa valeur sur son adresse d'émission. Comme toute demande d'émission, cette lecture demande C et T. | Pas de lecture au démarrage. |
 
 Quand un appareil émet, ses autres objets sur la même adresse prennent aussitôt la valeur, comme le prévoit la couche application KNX ; leur indicateur `W` décide seulement si l'appareil réagit, pour qu'un objet d'état n'agisse pas comme une commande.
 
@@ -70,7 +70,7 @@ Cette séparation permet de montrer un [volet mal calibré](shutters.html) : l'a
 
 ## Association interne
 
-Quand un objet émet, les autres objets du **même appareil** associés à cette adresse en sont informés aussi, comme pour un télégramme reçu du bus : leur valeur est mise à jour, quel que soit leur indicateur W. W (U pour une réponse) décide seulement si l'appareil réagit. Un objet d'état relié à l'adresse de commande d'une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l'objet de commande, et ne fait sinon que mettre à jour sa valeur. Ce qu'un appareil fait d'une telle valeur, au-delà de la mise à jour, est un choix de son programme d'application.
+Quand un objet émet, les autres objets du **même appareil** associés à cette adresse en sont informés aussi, exactement comme pour un télégramme reçu du bus : un objet ne prend la valeur qu'avec son indicateur W (U pour une réponse). Un objet d'état relié à l'adresse de commande d'une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l'objet de commande, et ne change rien sinon. De même, deux entrées en télérupteur d'une interface de boutons-poussoirs sur la même adresse ne restent synchronisées qu'avec W : sans lui, chaque entrée garde sa propre valeur, et après un appui sur l'une, le premier appui sur l'autre renvoie la même valeur.
 
 ## À l'intérieur d'un télégramme
 

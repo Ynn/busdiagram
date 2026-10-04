@@ -480,7 +480,7 @@ U?: boolean
  */
 C?: boolean
 /**
- * Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address.
+ * Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address; like any request to send, this read needs C and T.
  */
 I?: boolean
 }

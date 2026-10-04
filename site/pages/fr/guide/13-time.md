@@ -1,7 +1,7 @@
 ---
 title: Temps et mode pas à pas
 translationOf: guide/13-time.md
-sourceHash: "5a52f455d9bd"
+sourceHash: "23372eab51c5"
 order: 13
 ---
 # Temps et mode pas à pas
@@ -37,7 +37,7 @@ Un scénario peut déclarer une horloge murale simulée. Les horloges maîtres, 
 
 L'horloge suit le temps simulé : elle s'arrête pendant la pause de la simulation, et les commandes de vitesse s'y appliquent comme à tout le reste. Avec une horloge, le temps simulé continue de s'écouler même quand le bus est inactif.
 
-Le schéma affiche la date et l'heure dans une barre en haut à gauche de la zone du schéma, au-dessus du dessin. **Régler l'heure** ouvre un champ pour régler l'horloge sur une autre date et heure, par exemple juste avant un point de commutation programmé ; les appareils renvoient alors l'heure et reprogramment leurs programmes. Depuis JavaScript, `diagram.setClock("2026-10-01T06:59:30")` fait de même.
+Le schéma affiche la date et l'heure dans une barre en haut à gauche de la zone du schéma, au-dessus du dessin. **Régler l'heure** ouvre un champ pour régler l'horloge sur une autre date et heure, par exemple juste avant un point de commutation programmé ; les appareils renvoient alors l'heure et reprogramment leurs programmes. Depuis JavaScript, `diagram.setClock("2026-10-01T06:59:30")` fait de même. Une horloge maître répond à une lecture (indicateur R) avec l'heure et la date de cet instant, pas celles de sa dernière diffusion.
 
 ## Mode pas à pas
 

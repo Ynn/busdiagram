@@ -791,8 +791,8 @@ export const designerFr: Record<string, string> = {
   "Lighting input {0}": "Éclairage entrée {0}",
   Communication: "Communication",
   "Read on initialisation": "Lecture à l'initialisation",
-  "C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts again after a bus voltage failure.":
-    "C : communication (désactivé : l'objet n'envoie ni ne traite aucun message) · R : répond aux lectures, sur son adresse d'émission · W : accepte les écritures reçues · T : peut émettre · U : une réponse reçue le met à jour · I : lit sa valeur quand l'appareil redémarre après une coupure de la tension du bus.",
+  "C: communication (off: the object neither sends nor handles messages) · R: answers reads, on its sending address · W: accepts received writes · T: can send · U: a received response updates it · I: reads its value when the device starts (start of the simulation, return of the bus voltage), with C and T.":
+    "C : communication (désactivé : l'objet n'envoie ni ne traite aucun message) · R : répond aux lectures, sur son adresse d'émission · W : accepte les écritures reçues · T : peut émettre · U : une réponse reçue le met à jour · I : lit sa valeur quand l'appareil démarre (démarrage de la simulation, retour de la tension du bus), avec C et T.",
   Priority: "Priorité",
   Low: "Basse",
   Urgent: "Urgente",

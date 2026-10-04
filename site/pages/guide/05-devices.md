@@ -18,7 +18,7 @@ The `function` parameter of each input decides its behavior and its group object
 | --- | --- | --- |
 | `switch` | One action when the contact closes (`onPress`) and one when it opens (`onRelease`): `on`, `off`, `toggle`, or `none`. With `switchLongPress`, one action for a short press (`onShort`) and one for a long press (`onLong`). | `switch` (1.001) |
 | `dim` | `dimMode: "single"`: a short press toggles, a long press dims brighter when the light is off and otherwise the other way than last time, release stops. `"brighter"` and `"darker"` share the work between two keys. `dimStep` sets the step code (100 % dims until release). | `switch` (1.001), `dim` (3.007) |
-| `blind` | A long press moves, a short press stops or steps. `blindMode: "single"` alternates the direction at each movement; `"up"` and `"down"` are the keys of a pair. With `stopOnRelease`, releasing the key stops the blind (hold to move). | `move` (1.008), `stopStep` (1.007) |
+| `blind` | A long press moves, a short press stops or steps. `blindMode: "single"` alternates the direction at each movement, and its short press steps opposite to the last movement (after going down, it opens the slats); `"up"` and `"down"` are the keys of a pair. With `stopOnRelease`, releasing the key stops the blind (hold to move). | `move` (1.008), `stopStep` (1.007) |
 | `value` | Sends `shortValue`, or `longValue` after a long press; without `longValue`, the value is sent at once. | `value` (5.001, 5.004, 5.010, 7.600, 9.001, 20.102) |
 | `scene` | A short press recalls `sceneNumber`; with `sceneStore`, a long press stores it (DPT 18.001 with the learn bit). | `value` (17.001 or 18.001) |
 

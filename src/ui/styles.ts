@@ -1044,6 +1044,7 @@ export const styles = css`
     display: flex;
     align-items: center;
     gap: 4px;
+    white-space: nowrap;
     font-size: 11.5px;
     color: ${unsafeCSS(C.mute)};
   }
@@ -1083,11 +1084,22 @@ export const styles = css`
     border-top: 1px dashed #cfccc1;
     padding-top: 2px;
   }
+  /* One line per row, whatever the width of the value: the label gives way (ellipsis,
+     full text in the tooltip), so the strip keeps its height above the bus. */
   .est span {
     display: flex;
     justify-content: space-between;
+    gap: 4px;
+    white-space: nowrap;
+  }
+  .est i {
+    font-style: normal;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .est b {
+    flex: none;
     font-family: var(--mono);
     font-weight: 600;
     color: ${unsafeCSS(C.cpl)};

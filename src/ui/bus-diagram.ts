@@ -1696,20 +1696,20 @@ export class BusDiagram extends LitElement {
           >
             <span
               title="${this.tr`Position estimated by the actuator (${est.toFixed(1)} %)`}"
-              >${this.tr`Estimated`} <b>${pct(est)}</b></span
+              ><i>${this.tr`Estimated`}</i> <b>${pct(est)}</b></span
             >
             ${
               l.view === "venetianBlind" &&
               typeof app.estimatedSlatPct === "number"
                 ? html`<span
                     title="${this.tr`Slat angle estimated by the actuator (${app.estimatedSlatPct.toFixed(1)} %)`}"
-                    >${this.tr`Slats est.`}
+                    ><i>${this.tr`Slats est.`}</i>
                     <b>${pct(app.estimatedSlatPct)}</b></span
                   >`
                 : nothing
             }
             <span title=${this.tr`Motor command applied by the actuator`}
-              >${this.tr`Motor`}
+              ><i>${this.tr`Motor`}</i>
               <b
                 class=${cmd?.type === "motor" && cmd.direction !== "stop" ? "mv" : ""}
                 >${cmd?.type === "motor" ? (cmd.direction === "down" ? "▼" : cmd.direction === "up" ? "▲" : "■") : "—"}</b

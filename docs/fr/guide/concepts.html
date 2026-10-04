@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Notions · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1">
-<script src="../../assets/bus-diagram.js?v=0.5.1"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1%2Bdev.649cd84.modified.24a350d3">
+<script src="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../../assets/search-index.js?v=0.5.1"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.5.1"></script>
-<script defer src="../../assets/docs.js?v=0.5.1" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/docs.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/concepts.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -95,7 +95,7 @@
 </tr>
 <tr>
 <td><code>I</code> lecture à l&#39;initialisation</td>
-<td>Quand l&#39;appareil démarre (au démarrage de la simulation, et de nouveau après une coupure de la tension bus), l&#39;objet lit sa valeur sur son adresse d&#39;émission.</td>
+<td>Quand l&#39;appareil démarre (au démarrage de la simulation, et de nouveau après une coupure de la tension bus), l&#39;objet lit sa valeur sur son adresse d&#39;émission. Comme toute demande d&#39;émission, cette lecture demande C et T.</td>
 <td>Pas de lecture au démarrage.</td>
 </tr>
 </tbody></table>
@@ -137,7 +137,7 @@
     { <span class="k">"type"</span>: <span class="s">"appliance"</span>, <span class="k">"name"</span>: <span class="s">"Socket"</span>, <span class="k">"parameters"</span>: { <span class="k">"powerW"</span>: <span class="n">1000</span> } }
   ]
 }]</code></pre><p>Cette séparation permet de montrer un <a href="shutters.html">volet mal calibré</a> : l&#39;actionneur estime la position d&#39;après la durée de course configurée, alors que le volet raccordé se déplace à sa vitesse réelle.</p>
-<h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Association interne</h2><p>Quand un objet émet, les autres objets du <strong>même appareil</strong> associés à cette adresse en sont informés aussi, comme pour un télégramme reçu du bus : leur valeur est mise à jour, quel que soit leur indicateur W. W (U pour une réponse) décide seulement si l&#39;appareil réagit. Un objet d&#39;état relié à l&#39;adresse de commande d&#39;une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l&#39;objet de commande, et ne fait sinon que mettre à jour sa valeur. Ce qu&#39;un appareil fait d&#39;une telle valeur, au-delà de la mise à jour, est un choix de son programme d&#39;application.</p>
+<h2 id="internal-association"><a class="anchor" href="#internal-association">#</a>Association interne</h2><p>Quand un objet émet, les autres objets du <strong>même appareil</strong> associés à cette adresse en sont informés aussi, exactement comme pour un télégramme reçu du bus : un objet ne prend la valeur qu&#39;avec son indicateur W (U pour une réponse). Un objet d&#39;état relié à l&#39;adresse de commande d&#39;une autre sortie du même actionneur commute donc cette sortie quand W est activé sur l&#39;objet de commande, et ne change rien sinon. De même, deux entrées en télérupteur d&#39;une interface de boutons-poussoirs sur la même adresse ne restent synchronisées qu&#39;avec W : sans lui, chaque entrée garde sa propre valeur, et après un appui sur l&#39;une, le premier appui sur l&#39;autre renvoie la même valeur.</p>
 <h2 id="inside-a-telegram"><a class="anchor" href="#inside-a-telegram">#</a>À l&#39;intérieur d&#39;un télégramme</h2><p>Sélectionnez un télégramme dans le moniteur de groupe : sa carte donne la source, la destination, le service, la valeur, la cause et les octets de sa trame TP1, colorés par champ. Cliquez sur un octet, ou sur <strong>Détails</strong>, pour ouvrir la trame dans quatre vues qui restent synchronisées : sélectionner un octet dans l&#39;une le sélectionne dans les autres.</p>
 <ul>
 <li><strong>Trame :</strong> les champs (contrôle, source, destination, octet de routage, TPCI/APCI, données, octet de contrôle) et, pour l&#39;octet sélectionné, ce que signifie chacun de ses bits. Une valeur sur un bit comme le DPT 1.001 voyage dans l&#39;octet APCI lui-même.</li>

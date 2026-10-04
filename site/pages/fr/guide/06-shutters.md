@@ -1,7 +1,7 @@
 ---
 title: Volets
 translationOf: guide/06-shutters.md
-sourceHash: "0d1f985b02e7"
+sourceHash: "900a3914a389"
 order: 6
 ---
 # Volets : course estimée et course réelle
@@ -63,6 +63,8 @@ Un store à lamelles utilise le même moteur pour orienter ses lamelles et pour 
 
 - sur le canal de l'actionneur (`parameters.slatTravelMs`) : la durée configurée, utilisée pour l'estimation ;
 - sur l'équipement du volet (`equipment.parameters.slatTravelMs`) : la durée réelle du store.
+
+La première règle la sortie pour un store avec réglage des lamelles, comme le paramètre correspondant d'un actionneur ; à 0, la sortie commande un volet roulant, et un arrêt/pas au repos ne fait pas pivoter les lamelles, même si le store en a. Un avertissement de configuration (`config-slats`) apparaît quand un seul côté a des lamelles.
 
 Un mouvement oriente d'abord les lamelles : fermées (100 %) avant de descendre, ouvertes (0 %) avant de monter. Une commande arrêt/pas à l'arrêt oriente les lamelles de `slatStepPct` (20 % par défaut) au lieu de déplacer le store. Le port `slatCommand` (DPT 5.001) oriente les lamelles à un angle sans déplacer le store, et `slatStatus` renvoie l'angle estimé après chaque arrêt. Le schéma dessine les lamelles plus épaisses à mesure qu'elles se ferment. Voir l'[exemple du store à lamelles](../examples/venetian-blind.html).
 

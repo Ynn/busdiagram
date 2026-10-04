@@ -107,4 +107,8 @@ export const shutterActuatorFr: Record<string, string> = {
   "Forcing > Weather alarms > Lock": "Forçage > Alarmes météo > Verrouillage",
   "While a weather alarm, the lock, or forcing holds the output, commands are ignored; their order is set by the priority of the safety functions.":
     "Tant qu'une alarme météo, le verrouillage ou le forçage tient la sortie, les commandes sont ignorées ; leur ordre est fixé par la priorité des fonctions de sécurité.",
+  "{0} · {1}: the blind has slats, but the output is set for a roller shutter (slat rotation time 0); stop/step at rest does not turn the slats.":
+    "{0} · {1} : le store a des lamelles, mais la sortie est réglée pour un volet roulant (temps de rotation des lamelles à 0) ; arrêt/pas au repos ne fait pas pivoter les lamelles.",
+  "{0} · {1}: the output is set for slats, but the connected shutter has none (slat rotation time 0).":
+    "{0} · {1} : la sortie est réglée pour des lamelles, mais le volet raccordé n'en a pas (temps de rotation des lamelles à 0).",
 };

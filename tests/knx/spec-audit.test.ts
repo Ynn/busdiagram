@@ -127,6 +127,66 @@ describe("flag C (communication)", () => {
 });
 
 describe("flag I (read on initialisation)", () => {
+  // KNX Standard 03_05_01 §4.18.6.2.4.1.3: the read is issued through the Group Object
+  // server, which generates no read request when T or C is off (§4.18.3.1.2.1).
+  const reader = (flags: Record<string, boolean>) =>
+    createSimulator(
+      v2(
+        [
+          passive("r", "1.1.1", [
+            {
+              id: "o",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "display",
+              flags: { W: true, U: true, I: true, ...flags },
+            },
+          ]),
+          passive("a", "1.1.2", [
+            {
+              id: "o",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "display",
+              value: 1,
+              flags: { W: true, T: false, R: true },
+            },
+          ]),
+        ],
+        { lines: [{ address: "1.1", powerSupply: { currentMa: 640 } }] },
+      ),
+    );
+
+  it("needs C and T: without them, no read at start nor after a bus voltage failure", () => {
+    for (const [flags, reads] of [
+      [{ C: true, T: true }, true],
+      [{ C: true, T: false }, false],
+      [{ C: false, T: true }, false],
+    ] as const) {
+      const sim = reader(flags);
+      sim.advance(8000);
+      sim.setBusVoltage("L1.1", false);
+      sim.setBusVoltage("L1.1", true);
+      sim.advance(8000);
+      const read = sim.history.filter((t) => t.service === "GroupValueRead");
+      expect(read.length, JSON.stringify(flags)).toBe(reads ? 2 : 0);
+      expect(sim.objectValue("r", "o"), JSON.stringify(flags)).toBe(
+        reads ? 1 : null,
+      );
+    }
+  });
+
+  it("a response needs R and C, not T", () => {
+    const sim = reader({ C: true, T: true });
+    sim.advance(8000);
+    expect(sim.history.map((t) => t.service)).toEqual([
+      "GroupValueRead",
+      "GroupValueResponse",
+    ]);
+    // The responder has T off.
+    expect(sim.scenario.devicesById.get("a")!.objects[0]!.flags.T).toBe(false);
+  });
+
   it("reads the value when the device starts: at the start of the simulation and after a bus voltage failure", () => {
     const sim = createSimulator(
       v2(
@@ -137,7 +197,7 @@ describe("flag I (read on initialisation)", () => {
               ga: "1/1/1",
               dpt: "1.001",
               port: "display",
-              flags: { W: true, T: false, U: true, I: true },
+              flags: { W: true, T: true, U: true, I: true },
             },
           ]),
           passive("a", "1.2.1", [

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Volets · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1">
-<script src="../../assets/bus-diagram.js?v=0.5.1"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.1%2Bdev.649cd84.modified.24a350d3">
+<script src="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../../assets/search-index.js?v=0.5.1"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.5.1"></script>
-<script defer src="../../assets/docs.js?v=0.5.1" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
+<script defer src="../../assets/docs.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/shutters.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -715,6 +715,7 @@
 <li>sur le canal de l&#39;actionneur (<code>parameters.slatTravelMs</code>) : la durée configurée, utilisée pour l&#39;estimation ;</li>
 <li>sur l&#39;équipement du volet (<code>equipment.parameters.slatTravelMs</code>) : la durée réelle du store.</li>
 </ul>
+<p>La première règle la sortie pour un store avec réglage des lamelles, comme le paramètre correspondant d&#39;un actionneur ; à 0, la sortie commande un volet roulant, et un arrêt/pas au repos ne fait pas pivoter les lamelles, même si le store en a. Un avertissement de configuration (<code>config-slats</code>) apparaît quand un seul côté a des lamelles.</p>
 <p>Un mouvement oriente d&#39;abord les lamelles : fermées (100 %) avant de descendre, ouvertes (0 %) avant de monter. Une commande arrêt/pas à l&#39;arrêt oriente les lamelles de <code>slatStepPct</code> (20 % par défaut) au lieu de déplacer le store. Le port <code>slatCommand</code> (DPT 5.001) oriente les lamelles à un angle sans déplacer le store, et <code>slatStatus</code> renvoie l&#39;angle estimé après chaque arrêt. Le schéma dessine les lamelles plus épaisses à mesure qu&#39;elles se ferment. Voir l&#39;<a href="../examples/venetian-blind.html">exemple du store à lamelles</a>.</p>
 <h2 id="parameters"><a class="anchor" href="#parameters">#</a>Paramètres</h2><pre class="code"><code><span class="k">"channels"</span>: [{
   <span class="k">"id"</span>: <span class="s">"s1"</span>,

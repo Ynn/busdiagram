@@ -108,6 +108,13 @@ export const clockMaster: BehaviorDefinition<ClockState> = {
       ctx.schedule("start", num(ctx.device.parameters.startDelayMs, 1000));
     scheduleClock(ctx);
   },
+  // A read gets the time and date of the clock at that moment, not those of the last
+  // broadcast (KNX Standard 07_01_01: the Time output carries the time of the local clock
+  // at the time of transmission; a read gives a slave the master clock at once).
+  onRead(ctx) {
+    const c = ctx.clock();
+    if (c) setValues(ctx, c.nowMs);
+  },
   onTimer(ctx, key) {
     if (key === "start") broadcast(ctx);
     if (key === "send") {

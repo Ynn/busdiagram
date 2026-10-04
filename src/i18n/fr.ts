@@ -22,7 +22,7 @@ export const frMessages: Record<string, string> = {
   "Set time": "Régler l'heure",
   "Slat angle estimated by the actuator ({0} %)":
     "Angle des lamelles estimé par l'actionneur ({0} %)",
-  "Slats est.": "Lamelles est.",
+  "Slats est.": "Lam. est.",
   shed: "délestée",
   Energy: "Énergie",
   "Total power": "Puissance totale",
@@ -365,6 +365,8 @@ export const frMessages: Record<string, string> = {
     "commande de sortie invalide sur {0} : {1}",
   "{0}: no preset for scene {1}, command ignored":
     "{0} : aucun préréglage pour la scène {1}, commande ignorée",
+  "{0}: scene {1} at {2} %, limited to {3} %":
+    "{0} : scène {1} à {2} %, limitée à {3} %",
   "The scenario must be a JSON object.": "Le scénario doit être un objet JSON.",
   "unknown field “{0}”": "champ inconnu « {0} »",
   "required field": "champ requis",
@@ -799,10 +801,6 @@ export const frMessages: Record<string, string> = {
   "timer: off in {0} s": "minuterie : arrêt dans {0} s",
   Delay: "Retard",
   "switching on in {0} s": "allumage dans {0} s",
-  "same address in the device: value updated; W flag off, no reaction":
-    "même adresse dans l'appareil : valeur mise à jour ; indicateur W désactivé, aucune réaction",
-  "same address in the device: value updated; U flag off, no reaction":
-    "même adresse dans l'appareil : valeur mise à jour ; indicateur U désactivé, aucune réaction",
   "standard frame, normal priority": "trame standard, priorité normale",
   "standard frame, urgent priority": "trame standard, priorité urgente",
   "C flag off: no communication, no telegram":

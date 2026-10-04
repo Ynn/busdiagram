@@ -1,7 +1,7 @@
 ---
 title: Extensions
 translationOf: guide/12-extensions.md
-sourceHash: "96e78eee9b86"
+sourceHash: "7d1a01248035"
 order: 12
 ---
 # Extensions
@@ -25,6 +25,7 @@ Un comportement peut mettre en œuvre ces points d'entrée :
 | `onInit(ctx)` | Un appareil est créé ; initialiser les sorties sans émettre. |
 | `onInput(ctx, input)` | Une action locale `press`, `short`, `long`, `release` ou `value` se produit ; pour un comportement avec `contactInputs`, les fronts `down` et `up` de la touche d'un canal. |
 | `onObjectWrite(ctx, event)` | Une écriture reçue est acceptée par un objet ayant l'indicateur W, même si la valeur n'a pas changé. |
+| `onRead(ctx, objectId)` | Une demande de lecture atteint un objet qui y répond (C et R) ; mettre à jour avec `ctx.setObject`, sans émettre, une valeur qui change entre deux envois. |
 | `onTimer(ctx, key, payload)` | Un événement programmé avec `ctx.schedule` arrive à échéance. |
 | `onTick(ctx, dtMs)` | Le temps de simulation avance ; appelé toutes les 20 ms s'il est mis en œuvre. |
 | `onRoomChange(ctx, room)` | La température ou l'état de la fenêtre de la pièce de l'appareil change. |

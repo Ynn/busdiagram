@@ -64,6 +64,8 @@ A venetian blind uses the same motor to turn its slats and to move. Set `slatTra
 - on the actuator channel (`parameters.slatTravelMs`): the configured time used for the estimate;
 - on the shutter equipment (`equipment.parameters.slatTravelMs`): the actual time of the blind.
 
+The first sets the output for a blind with slat adjustment, as the corresponding parameter of an actuator does; with 0, the output drives a roller shutter, and a stop/step at rest does not turn the slats even if the blind has some. A configuration warning (`config-slats`) appears when only one side has slats.
+
 A movement first turns the slats: closed (100 %) before going down, open (0 %) before going up. A stop/step command at rest turns the slats by `slatStepPct` (20 % by default) instead of moving the blind. The `slatCommand` port (DPT 5.001) turns the slats to an angle without moving the blind, and `slatStatus` reports the estimated angle after each stop. The diagram draws the slats thicker as they close. See the [venetian blind example](../examples/venetian-blind.html).
 
 ## Parameters

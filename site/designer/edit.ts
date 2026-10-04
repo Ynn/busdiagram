@@ -1376,10 +1376,42 @@ export function addChannel(
   if (equipment && prev && loadsOf(prev)[0]?.type === equipment.type)
     ch.equipment = copy(prev.equipment);
   d.channels.push(ch);
+  if (prev && !captureRegistry().behaviors.get(d.behavior)?.channelObjects)
+    copyChannelObjects(d, prev, ch);
   // The objects of the function of a new input (behaviors with channelObjects).
   syncChannelObjects(doc, devId, ch.id);
   sortObjects(d);
   return `s${n}`;
+}
+
+/**
+ * The group objects enabled on the previous output, for a new output with the same
+ * settings, as a product with the same parameters has them: same function, DPT, flags, and
+ * priority, without group address, named after the new output.
+ */
+function copyChannelObjects(d: Dev, prev: Chan, ch: Chan) {
+  const spec = designerOf(d.behavior)?.objectIds;
+  const rename = (name: string) => {
+    if (prev.label && ch.label && name.includes(prev.label))
+      return name.replace(prev.label, ch.label);
+    const numbered = /^(.*?)(\d+)$/.exec(name);
+    return numbered
+      ? `${numbered[1]}${num(ch.id)}`
+      : `${name} ${ch.label ?? ch.id}`;
+  };
+  for (const o of d.objects.filter((x) => x.channel === prev.id)) {
+    const base = spec?.[o.port]?.prefix ?? o.port;
+    d.objects.push({
+      id: freeObjectId(d, `${base}${num(ch.id)}`),
+      name: rename(o.name ?? o.id),
+      ga: [],
+      ...(o.dpt ? { dpt: o.dpt } : {}),
+      port: o.port,
+      channel: ch.id,
+      flags: { ...o.flags },
+      ...(o.priority ? { priority: o.priority } : {}),
+    });
+  }
 }
 
 /**

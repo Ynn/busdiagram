@@ -1,7 +1,7 @@
 ---
 title: Chauffage
 translationOf: guide/06-hvac.md
-sourceHash: "afe231bfee1c"
+sourceHash: "5e7705c20315"
 order: 6.3
 ---
 # Chauffage et climatisation (CVC)
@@ -106,7 +106,7 @@ Côté actionneur, `valveMode` reprend les fonctions de vanne d'un actionneur de
 | --- | --- | --- |
 | `"heating"` (par défaut) | Eau chaude : radiateur, batterie chaude. | `value` ou `switch`. |
 | `"cooling"` | Eau froide : batterie froide. | `coolingValue` ou `coolingSwitch`. |
-| `"changeover"` | Une seule vanne pour les deux, sur un système 2 tubes. | Les deux : la vanne suit celle qui n'est pas nulle. Ou une grandeur commune et l'objet `heatCool` de la sortie. |
+| `"changeover"` | Une seule vanne pour les deux, sur un système 2 tubes. | Les deux : la vanne suit celle qui n'est pas nulle, appliquée telle qu'elle est arrivée (modulée, ou ordre sur un bit). Ou une grandeur commune et l'objet `heatCool` de la sortie. |
 
 Liez les grandeurs de chauffage et de refroidissement du thermostat à deux objets distincts d'une sortie à changement de mode, pas à une seule adresse de groupe : lors d'un basculement, le 0 envoyé sur l'autre grandeur fermerait sinon la vanne.
 

@@ -464,6 +464,12 @@ export interface BehaviorDefinition<S = unknown> {
   onInit?(ctx: BehaviorContext<S>): void;
   onInput?(ctx: BehaviorContext<S>, input: InputEvent): void;
   onObjectWrite?(ctx: BehaviorContext<S>, event: ObjectWriteEvent): void;
+  /**
+   * A read request reaches an object that answers it (C and R set): the behavior may first
+   * bring the object's value up to date with setObject, without sending (for example the
+   * time of a clock, which runs between two broadcasts). The response carries the value.
+   */
+  onRead?(ctx: BehaviorContext<S>, objectId: string): void;
   onTick?(ctx: BehaviorContext<S>, dtMs: number): void;
   /**
    * The device room changed a discrete state (for example, window open or closed in

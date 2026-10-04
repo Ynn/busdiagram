@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { cpSync, mkdtempSync, readFileSync } from "node:fs";
+import { cpSync, mkdtempSync, readFileSync, readdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { resolve } from "node:path";
@@ -183,7 +183,10 @@ test("copied demo/ directory works offline with its extension", async ({
   page.on("request", (r) => /^https?:/.test(r.url()) && external.push(r.url()));
   await page.goto(pathToFileURL(join(dir, "offline.html")).href);
   const all = page.locator("bus-diagram");
-  await expect(all).toHaveCount(26);
+  // One diagram per scenario, then the extension example.
+  await expect(all).toHaveCount(
+    readdirSync("scenarios").filter((f) => f.endsWith(".json")).length + 1,
+  );
   await expect(page.locator("bus-diagram .err")).toHaveCount(0);
   await expect(all.last().locator(".card")).toHaveCount(2);
   expect(errors).toEqual([]);

@@ -187,7 +187,10 @@ function release(ctx: Ctx, ch: string) {
     }
     case "blind": {
       const mode = p.blindMode ?? "single";
-      const down = mode === "single" ? st.lowered : mode === "down";
+      // With one key, the step goes opposite to the last movement: after moving down the
+      // slats are closed, and a short press opens them (ABB US/U 4.2, one-key operation,
+      // short = slats).
+      const down = mode === "single" ? !st.lowered : mode === "down";
       if (short || p.stopOnRelease === true)
         send(ctx, ch, "stopStep", down ? 1 : 0);
       break;
@@ -396,7 +399,7 @@ export const buttonInterface: BehaviorDefinition<ButtonInterfaceState> = {
         ],
         default: "single",
         description:
-          "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.",
+          "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram, and a short press steps opposite to the last movement (after going down, it opens the slats).",
       },
       stopOnRelease: {
         title: "Stop on release",

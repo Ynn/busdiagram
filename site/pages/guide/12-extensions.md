@@ -25,6 +25,7 @@ A behavior may implement these entry points:
 | `onInit(ctx)` | A device is created; initialize outputs without transmitting. |
 | `onInput(ctx, input)` | A local `press`, `short`, `long`, `release`, or `value` action occurs; for a behavior with `contactInputs`, the edges `down` and `up` of a channel's key. |
 | `onObjectWrite(ctx, event)` | An incoming write is accepted by an object with flag W, even if the value has not changed. |
+| `onRead(ctx, objectId)` | A read request reaches an object that answers it (C and R); bring a value that changes between two sends up to date with `ctx.setObject`, without sending. |
 | `onTimer(ctx, key, payload)` | An event scheduled with `ctx.schedule` is due. |
 | `onTick(ctx, dtMs)` | Simulation time advances; called every 20 ms when implemented. |
 | `onRoomChange(ctx, room)` | The device's room temperature or window state changes. |

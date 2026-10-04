@@ -1,7 +1,7 @@
 ---
 title: Boutons-poussoirs et actionneurs
 translationOf: guide/05-devices.md
-sourceHash: "3492ed4452a3"
+sourceHash: "ae962cb05507"
 order: 5
 ---
 # Boutons-poussoirs et actionneurs
@@ -18,7 +18,7 @@ Le paramètre `function` de chaque entrée décide de son comportement et de ses
 | --- | --- | --- |
 | `switch` | Une action à la fermeture du contact (`onPress`) et une à son ouverture (`onRelease`) : `on`, `off`, `toggle` ou `none`. Avec `switchLongPress`, une action pour un appui court (`onShort`) et une pour un appui long (`onLong`). | `switch` (1.001) |
 | `dim` | `dimMode: "single"` : un appui court inverse, un appui long fait varier plus clair quand l'éclairage est éteint et sinon dans le sens inverse de la fois précédente, le relâchement arrête. `"brighter"` et `"darker"` répartissent le travail entre deux touches. `dimStep` fixe le code de pas (100 % fait varier jusqu'au relâchement). | `switch` (1.001), `dim` (3.007) |
-| `blind` | Un appui long déplace, un appui court arrête ou fait un pas. `blindMode: "single"` alterne le sens à chaque mouvement ; `"up"` et `"down"` sont les touches d'une paire. Avec `stopOnRelease`, relâcher la touche arrête le store (maintenir pour déplacer). | `move` (1.008), `stopStep` (1.007) |
+| `blind` | Un appui long déplace, un appui court arrête ou fait un pas. `blindMode: "single"` alterne le sens à chaque mouvement, et son appui court fait un pas dans le sens opposé au dernier mouvement (après une descente, il ouvre les lamelles) ; `"up"` et `"down"` sont les touches d'une paire. Avec `stopOnRelease`, relâcher la touche arrête le store (maintenir pour déplacer). | `move` (1.008), `stopStep` (1.007) |
 | `value` | Envoie `shortValue`, ou `longValue` après un appui long ; sans `longValue`, la valeur est envoyée immédiatement. | `value` (5.001, 5.004, 5.010, 7.600, 9.001, 20.102) |
 | `scene` | Un appui court rappelle `sceneNumber` ; avec `sceneStore`, un appui long la mémorise (DPT 18.001 avec le bit d'apprentissage). | `value` (17.001 ou 18.001) |
 

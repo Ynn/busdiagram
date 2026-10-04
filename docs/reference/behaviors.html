@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Behaviors and equipment · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.5.1">
-<script src="../assets/bus-diagram.js?v=0.5.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.5.1%2Bdev.649cd84.modified.24a350d3">
+<script src="../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../assets/search-index.js?v=0.5.1"></script>
+<script defer src="../assets/search-index.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../assets/docs.js?v=0.5.1" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/reference/behaviors.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.5.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -999,14 +999,14 @@
 <td>number</td>
 <td><code>1</code></td>
 <td>≥ 0 ; ≤ 50</td>
-<td>Minimum relative dimming level.</td>
+<td>Lowest level of a value above 0: relative dimming, received values, and scene recalls (a scene at 0 switches off).</td>
 </tr>
 <tr>
 <td><code>maxLevelPct</code></td>
 <td>number</td>
 <td><code>100</code></td>
 <td>≥ 50 ; ≤ 100</td>
-<td>Upper limit for relative dimming and received values.</td>
+<td>Highest level: relative dimming, received values, and scene recalls.</td>
 </tr>
 <tr>
 <td><code>dimSwitchesOn</code></td>
@@ -1254,14 +1254,14 @@
 <td>number</td>
 <td><code>1</code></td>
 <td>≥ 0 ; ≤ 50</td>
-<td>Minimum relative dimming level.</td>
+<td>Lowest level of a value above 0: relative dimming, received values, and scene recalls (a scene at 0 switches off).</td>
 </tr>
 <tr>
 <td><code>maxLevelPct</code></td>
 <td>number</td>
 <td><code>100</code></td>
 <td>≥ 50 ; ≤ 100</td>
-<td>Upper limit for relative dimming and received values.</td>
+<td>Highest level: relative dimming, received values, and scene recalls.</td>
 </tr>
 <tr>
 <td><code>dimSwitchesOn</code></td>
@@ -2711,7 +2711,7 @@
 <td>string</td>
 <td><code>&quot;single&quot;</code></td>
 <td>&quot;single&quot; (One key: up and down in turn), &quot;up&quot; (Two keys: this key raises), &quot;down&quot; (Two keys: this key lowers)</td>
-<td>A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram.</td>
+<td>A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram, and a short press steps opposite to the last movement (after going down, it opens the slats).</td>
 </tr>
 <tr>
 <td><code>stopOnRelease</code></td>

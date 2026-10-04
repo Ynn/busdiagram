@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model and limits · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.5.1">
-<script src="../assets/bus-diagram.js?v=0.5.1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.5.1%2Bdev.649cd84.modified.24a350d3">
+<script src="../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../assets/search-index.js?v=0.5.1"></script>
+<script defer src="../assets/search-index.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3"></script>
 
-<script defer src="../assets/docs.js?v=0.5.1" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/limits.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.5.1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.5.1%2Bdev.649cd84.modified.24a350d3" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -59,8 +59,8 @@
 <li><strong>Timing:</strong> propagation is slowed for inspection; it does not reproduce real twisted-pair bus timing.</li>
 <li><strong>Group services:</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code>, and <code>GroupValueResponse</code> are modeled. Individual-address programming telegrams are outside the model.</li>
 <li><strong>TP exchange:</strong> the frame view shows a group data frame, with the priority of the sending object (low by default; the KNX data link layer gives normal as the default for short frames, and the priority is a setting of each object). Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model; the telegram details draw the acknowledgement for illustration, and their TP1 signal is schematic, not an electrical simulation.</li>
-<li><strong>Object flags:</strong> C, R, W, T, U, and I are modeled. Read on initialisation (I) runs when a device starts: at the start of the simulation and after a bus voltage failure. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
-<li><strong>Internal associations:</strong> when a device sends, its other objects on the same group address take the value, as the KNX Application Layer specifies; their W flag (U for a response) decides only whether the device reacts.</li>
+<li><strong>Object flags:</strong> C, R, W, T, U, and I are modeled. Read on initialisation (I) runs when a device starts: at the start of the simulation and after a bus voltage failure; like any request to send, it needs C and T. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
+<li><strong>Internal associations:</strong> when a device sends, its other objects on the same group address are informed, as the KNX Application Layer specifies, and handled as for a telegram from the bus: an object takes the value only with its W flag (U for a response).</li>
 <li><strong>Power supplies:</strong> drawn on lines and segments that declare one; a TP segment without one gets the warning <code>config-no-power-supply</code>. Main lines and the backbone are not given one, and the bus load (consumption against rated current) and voltage drop are not computed.</li>
 <li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
 <li><strong>Couplers:</strong> filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see <a href="couplers.html">couplers and repeaters</a>.</li>

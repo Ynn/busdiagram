@@ -356,6 +356,62 @@ describe("scene storing (DPT 18.001) in the dimmer and the shutter actuator", ()
     expect(sim.channelState("dim", "a").levelPct).toBe(40);
   });
 
+  it("a scene recall stays within the minimum and maximum levels; a scene at 0 switches off", () => {
+    // KNX Lighting Actuators §3.6.13–3.6.14 (lowest and highest possible set value); a
+    // dimming actuator applies them to scene recalls, and 0 always switches off.
+    const channel = (id: string) => ({
+      id,
+      parameters: { minLevelPct: 20, maxLevelPct: 60 },
+      equipment: { type: "dimmableLamp" },
+      scenes: { "1": 100, "2": 5, "3": 0, "4": 45 },
+    });
+    const sim = scenario(
+      {
+        id: "dim",
+        kind: "dimmerActuator",
+        behavior: "dimmerActuator/v1",
+        channels: [channel("a"), channel("b")],
+        objects: [
+          {
+            id: "sc",
+            port: "scene",
+            ga: "1/5/1",
+            dpt: "18.001",
+            flags: flags(true, false),
+          },
+          {
+            id: "v",
+            port: "value",
+            channel: "a",
+            ga: "1/5/2",
+            dpt: "5.001",
+            flags: flags(true, false),
+          },
+        ],
+      },
+      "5.001",
+    );
+    const level = (ch: string) => sim.equipmentState("dim", ch)?.levelPct;
+    const recall = (scene: number) => {
+      sim.groupWrite("usb", "1/5/1", scene - 1);
+      sim.advance(3000);
+      return [level("a"), level("b")];
+    };
+    expect(recall(1)).toEqual([60, 60]); // maximum
+    expect(recall(2)).toEqual([20, 20]); // minimum
+    expect(recall(4)).toEqual([45, 45]); // within the limits
+    expect(recall(3)).toEqual([0, 0]); // 0 switches off
+    // A learned scene is limited the same way when recalled.
+    sim.groupWrite("usb", "1/5/2", 55);
+    sim.advance(3000);
+    sim.groupWrite("usb", "1/5/1", 128 | 0);
+    sim.advance(3000);
+    // The scene object serves both outputs: B, off, learns 0, which switches it off.
+    expect(sim.channelState("dim", "a").learnedScenes).toEqual({ "1": 55 });
+    expect(sim.channelState("dim", "b").learnedScenes).toEqual({ "1": 0 });
+    expect(recall(1)).toEqual([55, 0]);
+  });
+
   it("the shutter actuator stores its position", () => {
     const sim = scenario(
       {

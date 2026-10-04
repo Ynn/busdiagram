@@ -414,3 +414,112 @@ describe("2-pipe system with a single control value", () => {
     expect(codes(createSimulator(doc))).toContain("config-valve-mode");
   });
 });
+
+describe("change-over output without heating/cooling object: kind of order", () => {
+  // Each control value keeps its kind of order (continuous or 1 bit): a 0 on the other
+  // input is ignored for the value and does not change how the selected one is applied.
+  const valve = (heatPort: string, coolPort: string) =>
+    createSimulator({
+      formatVersion: 2,
+      title: "Change-over",
+      lines: [{ address: "1.1" }],
+      devices: [
+        {
+          id: "act",
+          address: "1.1.1",
+          kind: "heatingActuator",
+          behavior: "heatingActuator/v1",
+          channels: [
+            {
+              id: "h",
+              parameters: { valveMode: "changeover", cycleMs: 20000 },
+              equipment: {
+                type: "fanCoil",
+                room: "r",
+                parameters: { coil: "changeover" },
+              },
+            },
+          ],
+          objects: [
+            {
+              id: "heat",
+              port: heatPort,
+              channel: "h",
+              ga: "3/0/1",
+              dpt: heatPort === "value" ? "5.001" : "1.001",
+              flags: { W: true, T: false },
+            },
+            {
+              id: "cool",
+              port: coolPort,
+              channel: "h",
+              ga: "3/0/2",
+              dpt: coolPort === "coolingValue" ? "5.001" : "1.001",
+              flags: { W: true, T: false },
+            },
+          ],
+        },
+        {
+          id: "usb",
+          address: "1.1.2",
+          kind: "generic",
+          behavior: "usbInterface/v1",
+          objects: [],
+        },
+      ],
+      rooms: [{ id: "r", name: "Room" }],
+    });
+  const state = (sim: ReturnType<typeof valve>) =>
+    sim.channelState("act", "h") as Record<string, unknown>;
+  const energizedOver = (sim: ReturnType<typeof valve>, ms: number) => {
+    let on = 0;
+    for (let t = 0; t < ms; t += 500) {
+      sim.advance(500);
+      if (state(sim).energized) on += 500;
+    }
+    return on / ms;
+  };
+
+  it("heating 30 % stays modulated when the cooling switch receives 0", () => {
+    const sim = valve("value", "coolingSwitch");
+    sim.groupWrite("usb", "3/0/1", 30);
+    sim.advance(9000); // past the open phase of the cycle
+    expect(state(sim)).toMatchObject({ energized: false });
+    sim.groupWrite("usb", "3/0/2", 0);
+    sim.advance(2000);
+    expect(state(sim)).toMatchObject({ medium: "heating", energized: false });
+    // Over the next cycles the valve is open about 30 % of the time, not permanently.
+    const ratio = energizedOver(sim, 60000);
+    expect(ratio).toBeGreaterThan(0.2);
+    expect(ratio).toBeLessThan(0.4);
+  });
+
+  it("cooling 30 % stays modulated when the heating switch receives 0", () => {
+    const sim = valve("switch", "coolingValue");
+    sim.groupWrite("usb", "3/0/2", 30);
+    sim.advance(9000);
+    sim.groupWrite("usb", "3/0/1", 0);
+    sim.advance(2000);
+    expect(state(sim)).toMatchObject({ medium: "cooling" });
+    const ratio = energizedOver(sim, 60000);
+    expect(ratio).toBeGreaterThan(0.2);
+    expect(ratio).toBeLessThan(0.4);
+  });
+
+  it("a 1-bit heating order stays permanent when the cooling value receives 0; a cooling value then modulates", () => {
+    const sim = valve("switch", "coolingValue");
+    sim.groupWrite("usb", "3/0/1", 1);
+    sim.advance(3000);
+    sim.groupWrite("usb", "3/0/2", 0);
+    sim.advance(3000);
+    expect(state(sim)).toMatchObject({ medium: "heating", energized: true });
+    expect(energizedOver(sim, 30000)).toBe(1);
+    sim.groupWrite("usb", "3/0/1", 0);
+    sim.groupWrite("usb", "3/0/2", 40);
+    sim.advance(3000);
+    expect(state(sim)).toMatchObject({ medium: "cooling" });
+    const ratio = energizedOver(sim, 60000);
+    expect(ratio).toBeGreaterThan(0.3);
+    expect(ratio).toBeLessThan(0.5);
+  });
+});

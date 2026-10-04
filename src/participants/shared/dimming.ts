@@ -264,8 +264,19 @@ function scene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
       ctx.note(ctx.t`${ch}: no preset for scene ${n}, command ignored`);
       return;
     }
-    dali(ctx, ch, ctx.t`GO TO SCENE ${n - 1} (${Math.round(preset)} %)`);
-    go(ctx, ch, preset, num(params(ctx, ch).valueFadeMs, 0));
+    // A scene recall stays within the minimum and maximum levels, as any set value
+    // (KNX Dimming Actuator Basic, Minimum/Maximum Set Value); a scene at 0 switches off.
+    const p = params(ctx, ch);
+    const lvl =
+      preset <= 0
+        ? 0
+        : clamp(preset, num(p.minLevelPct, 1), num(p.maxLevelPct, 100));
+    if (lvl !== preset)
+      ctx.note(
+        ctx.t`${ch}: scene ${n} at ${Math.round(preset)} %, limited to ${Math.round(lvl)} %`,
+      );
+    dali(ctx, ch, ctx.t`GO TO SCENE ${n - 1} (${Math.round(lvl)} %)`);
+    go(ctx, ch, lvl, num(p.valueFadeMs, 0));
   });
 }
 
@@ -370,7 +381,8 @@ const channelParameters: ParamSchema = {
       minimum: 0,
       maximum: 50,
       default: 1,
-      description: "Minimum relative dimming level.",
+      description:
+        "Lowest level of a value above 0: relative dimming, received values, and scene recalls (a scene at 0 switches off).",
     },
     maxLevelPct: {
       title: "Maximum level",
@@ -380,7 +392,8 @@ const channelParameters: ParamSchema = {
       minimum: 50,
       maximum: 100,
       default: 100,
-      description: "Upper limit for relative dimming and received values.",
+      description:
+        "Highest level: relative dimming, received values, and scene recalls.",
     },
     dimSwitchesOn: {
       title: "Switch on by dimming",

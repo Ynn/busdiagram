@@ -21,8 +21,11 @@ interface HeatChannel {
   coolPct: number;
   /** Water that the valve lets through: the medium of the control value applied. */
   medium: Medium;
-  /** Order received in 1 bit (two points): no modulation. */
+  /** The control value applied is a 1-bit order (two points): no modulation. */
   direct: boolean;
+  /** Whether the last heating and cooling control values were 1-bit orders. */
+  heatDirect: boolean;
+  coolDirect: boolean;
   cycleStartMs: number;
   /** Current PWM cycle. */
   cycling: boolean;
@@ -88,6 +91,9 @@ function selectValue(st: HeatChannel, last: Medium) {
   const medium = pct(last) > 0 || pct(other) === 0 ? last : other;
   st.medium = medium;
   st.valuePct = pct(medium);
+  // The kind of order goes with the value selected: a 0 on the other input, ignored for
+  // the value, does not turn a modulated value into a permanent order.
+  st.direct = medium === "heating" ? st.heatDirect : st.coolDirect;
 }
 
 /** Apply the command size: PWM over the period, immediately resume in the cycle. */
@@ -276,6 +282,8 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
           coolPct: 0,
           medium: c.parameters.valveMode === "cooling" ? "cooling" : "heating",
           direct: false,
+          heatDirect: false,
+          coolDirect: false,
           cycleStartMs: 0,
           cycling: false,
           energized: false,
@@ -325,14 +333,21 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
     // A heating output ignores the cooling control value, and the reverse.
     if ((mode === "heating" && cooling) || (mode === "cooling" && !cooling))
       return;
-    st.direct = o.port === "switch" || o.port === "coolingSwitch";
-    const pct = st.direct ? (e.newValue ? 100 : 0) : clamp(e.newValue);
-    if (cooling) st.coolPct = pct;
-    else st.heatPct = pct;
+    const direct = o.port === "switch" || o.port === "coolingSwitch";
+    const pct = direct ? (e.newValue ? 100 : 0) : clamp(e.newValue);
+    if (cooling) {
+      st.coolPct = pct;
+      st.coolDirect = direct;
+    } else {
+      st.heatPct = pct;
+      st.heatDirect = direct;
+    }
     // With a heating/cooling object, the last control value received applies and the
     // object gives the water; otherwise the value that is not zero selects it.
-    if (mode === "changeover" && heatCoolObject(ctx, ch)) st.valuePct = pct;
-    else selectValue(st, cooling ? "cooling" : "heating");
+    if (mode === "changeover" && heatCoolObject(ctx, ch)) {
+      st.valuePct = pct;
+      st.direct = direct;
+    } else selectValue(st, cooling ? "cooling" : "heating");
     if (st.emergency) {
       st.emergency = false;
       ctx.note(ctx.t`control value received: emergency mode ended`);

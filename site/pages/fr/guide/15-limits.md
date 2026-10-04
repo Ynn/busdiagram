@@ -1,7 +1,7 @@
 ---
 title: Modèle et limites
 translationOf: guide/15-limits.md
-sourceHash: "aecec8af491a"
+sourceHash: "8968f80f196b"
 order: 15
 ---
 # Modèle et limites
@@ -13,8 +13,8 @@ Ce qui s'exécute et ce qui est seulement montré : les fonctions des appareils,
 - **Cadence :** la propagation est ralentie pour l'observation ; elle ne reproduit pas la cadence réelle d'un bus à paire torsadée.
 - **Services de groupe :** `GroupValueWrite`, `GroupValueRead` et `GroupValueResponse` sont modélisés. Les télégrammes de programmation à adresse individuelle sont hors du modèle.
 - **Échange TP :** la vue des trames montre une trame de données de groupe, avec la priorité de l'objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L'arbitrage du bus, l'ordonnancement par priorité, les acquittements TP (`ACK`, `NACK`, `BUSY`) et les répétitions automatiques sont hors du modèle ; les détails des télégrammes dessinent l'acquittement à titre d'illustration, et leur signal TP1 est schématique, pas une simulation électrique.
-- **Indicateurs des objets :** C, R, W, T, U et I sont modélisés. La lecture à l'initialisation (I) s'exécute quand un appareil démarre : au démarrage de la simulation et après une coupure de la tension bus. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l'ordre de ses objets, qui a l'indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d'émission.
-- **Associations internes :** quand un appareil émet, ses autres objets sur la même adresse de groupe prennent la valeur, comme le prévoit la couche application KNX ; leur indicateur W (U pour une réponse) décide seulement si l'appareil réagit.
+- **Indicateurs des objets :** C, R, W, T, U et I sont modélisés. La lecture à l'initialisation (I) s'exécute quand un appareil démarre : au démarrage de la simulation et après une coupure de la tension bus ; comme toute demande d'émission, elle demande C et T. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l'ordre de ses objets, qui a l'indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d'émission.
+- **Associations internes :** quand un appareil émet, ses autres objets sur la même adresse de groupe en sont informés, comme le prévoit la couche application KNX, et traités comme pour un télégramme reçu du bus : un objet ne prend la valeur qu'avec son indicateur W (U pour une réponse).
 - **Alimentations :** dessinées sur les lignes et segments qui en déclarent une ; un segment TP qui n'en a pas reçoit l'avertissement `config-no-power-supply`. Les lignes principales et la ligne de zone n'en reçoivent pas, et la charge du bus (consommation comparée au courant nominal) et la chute de tension ne sont pas calculées.
 - **Topologie :** les lignes 0.1 à 0.15, reliées directement à la ligne de zone, sont permises en KNX mais non prises en charge ; les lignes appartiennent aux zones 1 à 15.
 - **Coupleurs :** les tables de filtrage découlent des associations déclarées. Le compteur de routage part de 6 et diminue à chaque coupleur modélisé. Un répéteur ne filtre pas. Chaque ligne a au plus une extension (répéteur ou coupleur de segment), reliée à son segment principal ; voir [coupleurs et répéteurs](couplers.html).

@@ -1,9 +1,13 @@
 import { expect, test } from "@playwright/test";
 import type { Locator, Page } from "@playwright/test";
+import { readdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DEMO = pathToFileURL(resolve("demo/offline.html")).href;
+/** Diagrams of the offline demo: one per scenario, then the extension example. */
+const DIAGRAMS =
+  readdirSync("scenarios").filter((f) => f.endsWith(".json")).length + 1;
 
 const viz = (page: Page, title: string) =>
   page.locator("bus-diagram", {
@@ -66,8 +70,8 @@ test("all scenarios and extension example load without error", async ({
 }) => {
   await page.goto(DEMO);
   const all = page.locator("bus-diagram");
-  await expect(all).toHaveCount(26);
-  for (let i = 0; i < 21; i++) {
+  await expect(all).toHaveCount(DIAGRAMS);
+  for (let i = 0; i < DIAGRAMS; i++) {
     await expect(all.nth(i).locator(".card").first()).toBeVisible();
     await expect(all.nth(i).locator(".err")).toHaveCount(0);
   }
@@ -324,7 +328,7 @@ for (const width of [1280, 768]) {
     await page.setViewportSize({ width, height: 900 });
     await page.goto(DEMO);
     const all = page.locator("bus-diagram");
-    await expect(all).toHaveCount(26);
+    await expect(all).toHaveCount(DIAGRAMS);
     // Heating changes autonomously with temperature; freeze every diagram at t = 0 before screenshots.
     await page.evaluate(() =>
       document.querySelectorAll("bus-diagram").forEach((el) => {

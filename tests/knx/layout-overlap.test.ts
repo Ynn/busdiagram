@@ -130,4 +130,54 @@ describe("diagram layout without overlaps", () => {
     expectNoOverlap(s);
     expect(layout(s).devices.get("shutterActuator")!.loads).toHaveLength(4);
   });
+
+  it("a venetian blind beside a card with two objects stays above the bus", () => {
+    const s = buildScenario({
+      formatVersion: 2,
+      title: "Blind",
+      lines: [{ address: "1.1" }],
+      devices: [
+        {
+          id: "act",
+          address: "1.1.2",
+          kind: "shutterActuator",
+          behavior: "shutterActuator/v1",
+          objects: [
+            {
+              id: "move",
+              ga: "1/0/1",
+              dpt: "1.008",
+              port: "move",
+              channel: "s1",
+              flags: { W: true, T: false },
+            },
+            {
+              id: "stop",
+              ga: "1/1/1",
+              dpt: "1.007",
+              port: "stopStep",
+              channel: "s1",
+              flags: { W: true, T: false },
+            },
+          ],
+          channels: [
+            {
+              id: "s1",
+              label: "Blind",
+              parameters: { estimatedTravelTimeMs: 20000, slatTravelMs: 2000 },
+              equipment: {
+                type: "shutter",
+                parameters: { actualTravelTimeMs: 20000, slatTravelMs: 2000 },
+              },
+            },
+          ],
+        },
+      ],
+    });
+    expectNoOverlap(s);
+    const d = layout(s).devices.get("act")!;
+    const l = d.loads[0]!;
+    // Its state and estimate texts end above the bus line, with a margin.
+    expect(l.top + l.h).toBeLessThanOrEqual(d.at[1] - 8);
+  });
 });

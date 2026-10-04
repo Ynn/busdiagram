@@ -102,7 +102,7 @@ On the actuator side, `valveMode` follows the valve functions of a KNX HVAC valv
 | --- | --- | --- |
 | `"heating"` (default) | Hot water: radiator, heating coil. | `value` or `switch`. |
 | `"cooling"` | Cold water: cooling coil. | `coolingValue` or `coolingSwitch`. |
-| `"changeover"` | One valve for both, on a 2-pipe system. | Both: the valve follows the value that is not zero. Or a common value and the `heatCool` object of the output. |
+| `"changeover"` | One valve for both, on a 2-pipe system. | Both: the valve follows the value that is not zero, applied as it came (modulated, or a 1-bit order). Or a common value and the `heatCool` object of the output. |
 
 Link the heating and cooling values of the thermostat to two separate objects of a change-over output, not to one group address. On a change, the 0 sent on the other value would otherwise close the valve.
 

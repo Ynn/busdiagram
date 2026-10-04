@@ -119,7 +119,7 @@ describe("internal links and flags", () => {
       },
     ]);
 
-  it("one internal delivery updates every value; the W flag decides the reaction", () => {
+  it("an internal delivery is handled as a bus reception: without W, the value does not change", () => {
     const sim = createSimulator(scenario(true, false));
     sim.input("pushButton", "b1", "press");
     sim.advance(5000);
@@ -128,17 +128,71 @@ describe("internal links and flags", () => {
     const internal = st[0]!.receptions.filter((r) => r.internal);
     expect(internal).toHaveLength(1);
     expect(internal[0]!.objects).toEqual([
-      { objectId: "c2", result: "accepted" },
+      { objectId: "c2", result: "ignored" },
       { objectId: "c3", result: "accepted" },
     ]);
-    // c2 has no W flag: its value follows the address, its channel does not react.
+    // c2 has no W flag: neither its value nor its channel follows the address.
     expect(lampOn(sim, "switchActuator", "s2")).toBe(false);
     expect(lampOn(sim, "switchActuator", "s3")).toBe(true);
     expect([
       obj(sim, "switchActuator", "e1"),
       obj(sim, "switchActuator", "c2"),
       obj(sim, "switchActuator", "c3"),
-    ]).toEqual([1, 1, 1]);
+    ]).toEqual([1, 0, 1]);
+  });
+
+  it("two toggle inputs of one device on one address, without W: they get out of step", () => {
+    const toggle = (W: boolean) =>
+      createSimulator(
+        v2([
+          keypad("buttonInterface", "1.1.1", [
+            { id: "in1", object: "sw1", ga: "0/0/1", flags: flags(W, true) },
+            { id: "in2", object: "sw2", ga: "0/0/1", flags: flags(W, true) },
+          ]),
+          {
+            id: "switchActuator",
+            name: "Actuator",
+            address: "1.1.2",
+            kind: "switchActuator",
+            behavior: "switchActuator/v1",
+            objects: [
+              {
+                id: "c1",
+                name: "L1",
+                ga: "0/0/1",
+                dpt: "1.001",
+                port: "switch",
+                channel: "s1",
+                flags: flags(true, false),
+              },
+            ],
+            channels: [{ id: "s1", equipment: { type: "lamp" } }],
+          },
+        ]),
+      );
+    const sim = toggle(false);
+    for (const o of sim.scenario.devicesById.get("buttonInterface")!.objects)
+      expect(o.flags.W).toBe(false);
+    sim.input("buttonInterface", "in1", "press");
+    sim.advance(3000);
+    expect(lampOn(sim, "switchActuator", "s1")).toBe(true);
+    // Input 2 did not see the 1 sent by input 1: its toggle sends 1 again, and the lamp
+    // stays on; a second press is needed to switch it off.
+    expect(obj(sim, "buttonInterface", "sw2")).toBe(0);
+    sim.input("buttonInterface", "in2", "press");
+    sim.advance(3000);
+    expect(lampOn(sim, "switchActuator", "s1")).toBe(true);
+    sim.input("buttonInterface", "in2", "press");
+    sim.advance(3000);
+    expect(lampOn(sim, "switchActuator", "s1")).toBe(false);
+    // With W, each input follows the address and switches the lamp at the first press.
+    const synced = toggle(true);
+    synced.input("buttonInterface", "in1", "press");
+    synced.advance(3000);
+    expect(obj(synced, "buttonInterface", "sw2")).toBe(1);
+    synced.input("buttonInterface", "in2", "press");
+    synced.advance(3000);
+    expect(lampOn(synced, "switchActuator", "s1")).toBe(false);
   });
 
   it("T disabled on status: relay and local value change, neither telegram nor internal link", () => {

@@ -931,7 +931,7 @@
             },
             "I": {
               "type": "boolean",
-              "description": "Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address."
+              "description": "Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address; like any request to send, this read needs C and T."
             }
           }
         },
@@ -3273,7 +3273,7 @@
                           "minimum": 0,
                           "maximum": 50,
                           "default": 1,
-                          "description": "Minimum relative dimming level."
+                          "description": "Lowest level of a value above 0: relative dimming, received values, and scene recalls (a scene at 0 switches off)."
                         },
                         "maxLevelPct": {
                           "title": "Maximum level",
@@ -3283,7 +3283,7 @@
                           "minimum": 50,
                           "maximum": 100,
                           "default": 100,
-                          "description": "Upper limit for relative dimming and received values."
+                          "description": "Highest level: relative dimming, received values, and scene recalls."
                         },
                         "dimSwitchesOn": {
                           "title": "Switch on by dimming",
@@ -3538,7 +3538,7 @@
                           "minimum": 0,
                           "maximum": 50,
                           "default": 1,
-                          "description": "Minimum relative dimming level."
+                          "description": "Lowest level of a value above 0: relative dimming, received values, and scene recalls (a scene at 0 switches off)."
                         },
                         "maxLevelPct": {
                           "title": "Maximum level",
@@ -3548,7 +3548,7 @@
                           "minimum": 50,
                           "maximum": 100,
                           "default": 100,
-                          "description": "Upper limit for relative dimming and received values."
+                          "description": "Highest level: relative dimming, received values, and scene recalls."
                         },
                         "dimSwitchesOn": {
                           "title": "Switch on by dimming",
@@ -5292,7 +5292,7 @@
                             "down"
                           ],
                           "default": "single",
-                          "description": "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram."
+                          "description": "A long press moves the blind and a short press stops it or steps; with one key the direction changes at each movement, and follows the up/down object when it receives a telegram, and a short press steps opposite to the last movement (after going down, it opens the slats)."
                         },
                         "stopOnRelease": {
                           "title": "Stop on release",

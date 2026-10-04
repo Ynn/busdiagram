@@ -4,6 +4,22 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Shutter actuator: configuration warning `config-slats` when the output and its shutter disagree on slats (an output set for a roller shutter does not turn the slats of a blind).
+- Extensions: `onRead(ctx, objectId)` entry point, called before an object answers a read, to bring a value that changes between two sends up to date without sending.
+
+### Fixed
+
+- Diagram: a tall load beside a card with few objects, such as a venetian blind on a shutter actuator with two objects, could cross the bus line with its state texts. Its bottom now stays above the bus; the row grows upwards instead. Each row of the actuator estimate under a shutter stays on one line, whatever the width of its value.
+- Push-button interface, blind on one key: the short press stepped in the direction of the last movement, so after going down it closed slats already closed, and at the top it opened slats already open: the slats seemed impossible to control. It now steps opposite to the last movement, as push-button interfaces whose one-key mode adjusts slats do; this mode varies between manufacturers, and some offer no slat adjustment on one key.
+- Read on initialisation (flag I) was sent even with T off. Like any request to send, it now needs C and T (KNX Standard 03_05_01, Transmit Enable); a response to a read still needs only C and R.
+- Dimming actuator and DALI gateway: a scene recall ignored the minimum and maximum levels (a scene at 100 % reached 100 % with a maximum of 60 %). A scene above 0 now stays within them, as any set value; a scene at 0 switches off.
+- Clock master: a read between two broadcasts got the time and date of the last broadcast. It now gets those of that moment, after midnight too; the broadcasts keep their period.
+- Heating actuator, change-over output without heating/cooling object: a 0 received on a 1-bit input of the other mode turned the modulated control value in use into a permanent order. Each control value now keeps its kind (modulated or 1 bit), and the selected one is applied as such.
+- Designer: a new output of an actuator repeated the settings and the load of the previous one, but not its group objects; with a single output left, added outputs had no switching object. A new output now has the group objects enabled on the previous one, without group address.
+- Objects of the device that sends: another object of the same device on the same address took the value even without its W flag (U for a response). It is now handled exactly as for a telegram from the bus, as in real devices: without W, its value does not change. Two toggle inputs on one address without W therefore get out of step, as on a real installation.
+
 ## [0.5.1] - 2026-10-04
 
 ### Changed

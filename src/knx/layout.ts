@@ -18,6 +18,8 @@ export const DROP = 42;
 export const PLATE_W = 120;
 /** Vertical space between two loads of the same device. */
 const LOAD_STACK_GAP = 6;
+/** Space kept between the bottom of a load and the bus line. */
+const BUS_CLEARANCE = 10;
 export const KEY_GAP = 12;
 export const LOAD_GAP = 34;
 export const LOAD_W = 84;
@@ -322,9 +324,14 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   }
   let minRel = 0;
   const anchorOf = (l: LoadG) => sizeOf(l.view).anchorY ?? l.h / 2;
-  // Lowest allowed top of each load: keep it above the connector and the bus.
+  // Lowest allowed top of each load: keep it above the connector and the bus. A tall load
+  // beside a short card may go below the card, but its bottom (state and estimate texts)
+  // stays above the bus line; the row grows upwards instead.
   const maxTop = (l: LoadG) =>
-    h - Math.min(l.h - anchorOf(l), 60) - anchorOf(l);
+    Math.min(
+      h - Math.min(l.h - anchorOf(l), 60) - anchorOf(l),
+      h + DROP - BUS_CLEARANCE - l.h,
+    );
   loads.forEach((l) => {
     l.top = Math.min(l.cy - anchorOf(l), maxTop(l));
   });

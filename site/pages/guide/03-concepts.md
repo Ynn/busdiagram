@@ -31,7 +31,7 @@ Each object has a value, a DPT that determines how to interpret it, one or more 
 | `T` transmit | The object can send its value. | The value may change locally, but no telegram is sent. |
 | `R` read | The object responds to a read on any of its addresses, on its sending address. | No response is sent. |
 | `U` update | A received response updates the object. | Responses are ignored. |
-| `I` read on initialisation | When the device starts (at the start of the simulation, and again after a bus voltage failure), the object reads its value on its sending address. | No read at start. |
+| `I` read on initialisation | When the device starts (at the start of the simulation, and again after a bus voltage failure), the object reads its value on its sending address. Like any request to send, this read needs C and T. | No read at start. |
 
 When a device sends, its other objects on the same address take the value at once, as the KNX Application Layer specifies; their `W` flag only decides whether the device reacts, so that a status object does not act as a command.
 
@@ -69,7 +69,7 @@ The separation makes it possible to show a [miscalibrated shutter](shutters.html
 
 ## Internal association
 
-When an object transmits, the other objects of the **same device** associated with that address are informed as well, as for a telegram received from the bus: their value is updated, whatever their W flag. W (U for a response) decides only whether the device reacts. A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and only updates its value otherwise. What a device does with such a value, beyond the update, is a choice of its application program.
+When an object transmits, the other objects of the **same device** associated with that address are informed as well, exactly as for a telegram received from the bus: an object takes the value only with its W flag (U for a response). A status object linked to the command address of another output of the same actuator therefore switches that output when W is set on the command object, and changes nothing otherwise. Likewise, two toggle inputs of one push-button interface on the same address stay in step only with W: without it, each input keeps its own value, and after a press on one, the first press on the other sends the same value again.
 
 ## Inside a telegram
 

@@ -43,6 +43,43 @@ describe("guided designer: lines", () => {
   });
 });
 
+describe("guided designer: a new output", () => {
+  it("has the group objects enabled on the previous output, without address", () => {
+    const doc = v2("lighting-control.json");
+    const act = doc.devices.find((d) => d.id === "switchActuator")!;
+    // A single output left, with its switching object.
+    while (act.channels!.length > 1)
+      E.removeChannel(doc, act.id, act.channels!.at(-1)!.id);
+    const first = act.objects.filter((o) => o.channel === act.channels![0]!.id);
+    expect(first.map((o) => o.port)).toContain("switch");
+    E.setOutputCount(doc, act.id, 3, { type: "lamp" });
+    for (const ch of act.channels!.slice(1)) {
+      const objs = act.objects.filter((o) => o.channel === ch.id);
+      expect(objs.map((o) => o.port)).toEqual(first.map((o) => o.port));
+      expect(objs.every((o) => E.gasOf(o).length === 0)).toBe(true);
+      expect(objs.map((o) => o.flags)).toEqual(first.map((o) => o.flags));
+    }
+    // Unique identifiers, named after their output.
+    const ids = act.objects.map((o) => o.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    const named = (ch: number) =>
+      act.objects.find(
+        (o) => o.channel === act.channels![ch]!.id && o.port === "switch",
+      )!.name;
+    // A name ending with the number of the output takes the new number.
+    expect(named(0)).toBe("Channel 1");
+    expect(named(2)).toBe("Channel 3");
+    // A name that contains the label of the output takes the new label.
+    act.objects.find((o) => o.port === "switch")!.name = "Command L1";
+    act.channels![0]!.label = "L1";
+    E.setOutputCount(doc, act.id, 1, null);
+    E.setOutputCount(doc, act.id, 2, { type: "lamp" });
+    expect(act.channels![1]!.label).toBe("L2");
+    expect(named(1)).toBe("Command L2");
+    valid(doc);
+  });
+});
+
 describe("guided designer: addresses used without being declared", () => {
   // The format allows an object to use an address that groupAddresses does not declare.
   const doc = () => {
