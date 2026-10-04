@@ -24,13 +24,14 @@ All notable changes to BusDiagram are documented in this file. The format follow
 ### Changed
 
 - Read on initialisation (flag I): the objects also read their value when the simulation starts, as when a device starts again after a bus voltage failure.
-- Radiator: it only heats; its `emitter` parameter is removed. Cooling uses a `fanCoil` load.
+- Radiator: it only heats; its `emitter` parameter is removed, and a scenario that still sets it is refused. To migrate, remove `emitter` from heating radiators, and replace a cooling radiator with a `fanCoil` load whose `coil` is `cooling` (check its `fanPowerW`).
 - Room thermostat: the dead zone between the heating and cooling setpoints (`deadZoneK`) is no longer an expert parameter.
 - Telegram card: the **Details** button stands out from the octets (coloured, with a magnifier icon).
 - Presence detector, slave: it has its own hold time (`holdMs`), restarted by each detection. It sends 1 at the first detection, then every `slaveCyclicMs` while its hold time runs, so the master switches off one hold time after the last 1. It used to send 1 once per detection.
 
 ### Fixed
 
+- Designer, device parameters: the list of pages and the page scroll independently, so that going down a long page or a long list of pages keeps the other in view; another page or participant opens at its top.
 - Designer: with **16:9 slide**, the diagram in the preview became a thin strip. The preview now lays the diagram out on a 1280 × 720 slide, scaled to the width of the preview, as it will look in a presentation.
 - French documentation: in the side menu, **Tous les exemples** and **Vue d'ensemble** led to the English pages.
 - French documentation: a page whose source hash has only digits was always marked as an outdated translation, the YAML front matter reading it as a number (or, for some hashes, as an octal or scientific number). The hashes are now written between quotes, by `npm run docs:translations -- --stamp` too.

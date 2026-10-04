@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "fa6d1b14c138"
+sourceHash: "db859d8f5f67"
 order: 7
 ---
 # Designer
@@ -50,6 +50,8 @@ Un clic droit sur un nœud de l'arborescence ou une ligne de liste (ou la touche
 ### Paramètres de l'appareil
 
 L'onglet **Paramètres** est organisé comme le dialogue de paramètres d'un produit KNX : une arborescence de pages à gauche, la page choisie à droite avec un paramètre par ligne, le libellé à gauche et la valeur à droite. Une page de paramètres n'affiche jamais d'adresse de groupe : trois niveaux restent séparés.
+
+La liste des pages et la page choisie défilent indépendamment. Choisir une autre page ou un autre appareil ouvre sa page en haut.
 
 1. **Paramètres de l'appareil.** **Général** donne le nom, la ligne et l'adresse individuelle. **Configuration** fixe le nombre de sorties (ou d'entrées) et les liste dans un tableau avec leurs charges raccordées et les fonctions qu'elles activent. Chaque type d'appareil organise ses paramètres par fonction : pour un actionneur de commutation, une page pour le comptage et le délestage, puis pour chaque sortie un groupe (**+** / **−**) avec **Fonction**, **Temporisations**, **Minuterie**, **Forçage et verrouillage**, **Liaison logique**, **Scènes**, **Tension du bus**, **Comptage** et **Charges raccordées**. Les réglages dépendants n'apparaissent que lorsqu'ils s'appliquent : les options de la minuterie une fois une durée réglée, la fin du forçage une fois l'objet de forçage activé.
 2. **Objets de groupe activés par les paramètres.** **Activer l'objet de groupe « … »** crée l'objet, comme le paramètre correspondant d'un produit ; décocher la case supprime l'objet. Les objets activés apparaissent dans l'onglet **Objets de groupe**, où on les relie aux adresses de groupe (ou par glisser-déposer, ou depuis une adresse de groupe avec **Lier à…**).

@@ -2527,6 +2527,70 @@ test.describe("designer workspace", () => {
     expect(w.errors).toEqual([]);
   });
 
+  test("device parameters: the list of pages and the page scroll independently", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1280, height: 720 });
+    await page.goto(url("designer/index.html#template=heating-cooling"));
+    await page.click("#tab-guided");
+    await node(top(page), "dev:valveActuator").click();
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    const menu = top(page).locator(".w-pmenu");
+    const content = top(page).locator(".w-content:has(> .w-params)");
+    // Open every output so that the list of pages is long, then a long page.
+    const closed = menu.locator(".w-ptog[aria-expanded=false]");
+    while (await closed.count()) await closed.first().click();
+    await menu.locator(".w-pitem.inst").last().click();
+    const pg = top(page).locator(".w-ppage");
+    const [full, shown] = await pg.evaluate(
+      (el) => [el.scrollHeight, el.clientHeight] as const,
+    );
+    expect(full).toBeGreaterThan(shown); // the page needs to scroll
+    // Scrolling the page leaves the list of pages where it is, and the reverse.
+    // A list of pages taller than the panel scrolls; its items keep their height.
+    const heights = await menu
+      .locator(".w-pitem")
+      .evaluateAll((els) => els.map((e) => e.getBoundingClientRect().height));
+    expect(Math.min(...heights)).toBeGreaterThan(18);
+    const menuTop = await menu.evaluate((el) => el.scrollTop);
+    await pg.evaluate((el) => (el.scrollTop = el.scrollHeight));
+    expect(await pg.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    expect(await menu.evaluate((el) => el.scrollTop)).toBe(menuTop);
+    expect(await content.evaluate((el) => el.scrollTop)).toBe(0);
+    await expect(menu.locator(".w-pitem[aria-current=page]")).toBeInViewport();
+    const pageTop = await pg.evaluate((el) => el.scrollTop);
+    await menu.evaluate((el) => (el.scrollTop = 0));
+    expect(await pg.evaluate((el) => el.scrollTop)).toBe(pageTop);
+    // Another page starts at its top.
+    await menu.locator(".w-pitem", { hasText: "General" }).first().click();
+    expect(
+      await top(page)
+        .locator(".w-ppage")
+        .evaluate((el) => el.scrollTop),
+    ).toBe(0);
+    // General has the same page key on another participant; it is still a new page.
+    await top(page)
+      .locator(".w-ppage")
+      .evaluate((el) => (el.scrollTop = el.scrollHeight));
+    expect(
+      await top(page)
+        .locator(".w-ppage")
+        .evaluate((el) => el.scrollTop),
+    ).toBeGreaterThan(0);
+    await node(top(page), "dev:officeThermostat").click();
+    await expect(top(page).locator(".w-ppage")).toHaveAttribute(
+      "data-page",
+      "general",
+    );
+    expect(
+      await top(page)
+        .locator(".w-ppage")
+        .evaluate((el) => el.scrollTop),
+    ).toBe(0);
+    expect(w.errors).toEqual([]);
+  });
+
   test("building: a room named by a load that does not heat it can be deleted", async ({
     page,
   }) => {

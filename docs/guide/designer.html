@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.f429168.modified.35c34370">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.14d49b8.modified.4a054236">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.f429168.modified.35c34370" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/designer.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -113,6 +113,7 @@
 <p>A right-click on any tree node or list row (or the context-menu key, or Shift+F10 in a tree) opens the commands of that element; the same element has the same commands wherever it appears, and a list row also offers <strong>Open</strong>. A right-click on the empty part of a list opens the commands of the element it shows. The commands include: add an area, a line, or devices from the catalog; add or remove a line extension; open the group objects or parameters of a device; <strong>Link with…</strong>; <strong>Rename</strong>; unlink all addresses of an object; add or delete groups and addresses; delete the element; add a catalog entry on a line.</p>
 <p><strong>Rename</strong> an area, a line, a device, a group object, a group, or a group address by double-clicking its name (in a tree or a list), with <strong>F2</strong> in a tree, or with <strong>Rename</strong> in the context menu. <strong>Enter</strong> confirms, <strong>Escape</strong> cancels.</p>
 <h3 id="device-parameters"><a class="anchor" href="#device-parameters">#</a>Device parameters</h3><p>The <strong>Parameters</strong> tab is organized as the parameter dialog of a KNX product: a tree of pages on the left, the selected page on the right with one parameter per row, label on the left and value on the right. A parameter page never shows a group address: three levels stay apart.</p>
+<p>The page list and the selected page scroll independently. Selecting another page or device opens its page at the top.</p>
 <ol>
 <li><strong>Parameters of the device.</strong> <strong>General</strong> gives the name, the line, and the individual address. <strong>Configuration</strong> sets the number of outputs (or of inputs) and lists them in a table with their connected loads and the functions they enable. Each device type organizes its parameters by function: for a switch actuator, a page for metering and load shedding, then for each output a group (<strong>+</strong> / <strong>−</strong>) with <strong>Function</strong>, <strong>Delays</strong>, <strong>Timer</strong>, <strong>Forcing and lock</strong>, <strong>Logic link</strong>, <strong>Scenes</strong>, <strong>Bus voltage</strong>, <strong>Metering</strong>, and <strong>Connected loads</strong>. Dependent settings appear only when they apply: the timer options once a duration is set, the end of forcing once the forcing object is enabled.</li>
 <li><strong>Group objects enabled by the parameters.</strong> <strong>Enable group object “…”</strong> creates the object, as the corresponding parameter of a product does; unticking it deletes the object. The enabled objects appear in the <strong>Group objects</strong> tab, which is where they are linked to group addresses (or by drag and drop, or from a group address with <strong>Link with…</strong>).</li>

@@ -2,6 +2,7 @@
 // key or output, and the objects shared by all outputs, with their port rows.
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
+import { keyed } from "lit/directives/keyed.js";
 import { live } from "lit/directives/live.js";
 import type {
   BehaviorDefinition,
@@ -334,20 +335,23 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
           : items([p], false),
       )}
     </nav>
-    <div class="w-ppage" data-page=${cur.key}>
-      ${
-        cur.key === "general"
-          ? cur.body!()
-          : html`<section class="g-sec ${cur.installation ? "inst" : ""}">
-              <h3>
-                ${cur.installation ? html`<span class="w-inst-tag">${PLUG} ${t`Installation`}</span>` : nothing}
-                ${group ? html`${group.label} › ` : nothing}${cur.label}
-                ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
-              </h3>
-              ${cur.body!()}
-            </section>`
-      }
-    </div>
+    ${keyed(
+      `${d.id}/${cur.key}`,
+      html`<div class="w-ppage" data-page=${cur.key}>
+        ${
+          cur.key === "general"
+            ? cur.body!()
+            : html`<section class="g-sec ${cur.installation ? "inst" : ""}">
+                <h3>
+                  ${cur.installation ? html`<span class="w-inst-tag">${PLUG} ${t`Installation`}</span>` : nothing}
+                  ${group ? html`${group.label} › ` : nothing}${cur.label}
+                  ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
+                </h3>
+                ${cur.body!()}
+              </section>`
+        }
+      </div>`,
+    )}
   </div>`;
 }
 

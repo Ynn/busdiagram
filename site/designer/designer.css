@@ -1544,7 +1544,18 @@ bd-guided > .g-notice {
 .w-params {
   display: grid;
   grid-template-columns: minmax(9em, 13em) 1fr;
-  min-height: 100%;
+  grid-template-rows: minmax(0, 1fr);
+  height: 100%;
+}
+/* The list of pages and the page scroll each on its own: going down a long page keeps the
+   pages in view, and going down a long list of pages keeps the page. */
+.w-content:has(> .w-params) {
+  overflow: hidden;
+  padding: 0;
+}
+/* In a list of pages shorter than its content, the items keep their height and scroll. */
+.w-pmenu > * {
+  flex: none;
 }
 .w-pmenu {
   display: flex;
