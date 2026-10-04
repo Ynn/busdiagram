@@ -36,7 +36,7 @@ Each direction can be set independently in `topology.couplers`: `down` for prima
 
 Every telegram starts with a routing counter of 6, the usual default value (each device has it as a parameter of its Network Layer). Each coupler, line repeater, or router that forwards it decrements the counter; a telegram that arrives with a counter of 0 is not forwarded. The current routing rules give 7 no special meaning: it is decremented like the other values. A TP1 bridge, another kind of line extension, forwards without changing the counter; it is not modeled.
 
-In the diagram, **Filter tables** in the toolbar shows the table of each coupler, and the telegram details list every coupler crossed with its decision and routing counter.
+In the diagram, **Filter tables** in the toolbar shows the table of each coupler, and the telegram details list every coupler crossed with its decision, its routing counter, and the reason for the decision: the address is or is not in the filter table, the coupler forwards or blocks every group telegram, the routing counter is 0, or the other side has no bus voltage.
 
 ## Line repeaters and segment couplers
 

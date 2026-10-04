@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Comportements et équipements · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../reference/behaviors.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -1414,6 +1414,30 @@
 <td>Mode choisi (20.102 : 0 auto, 1 confort, 2 veille, 3 économie, 4 protection).</td>
 </tr>
 <tr>
+<td><code>comfortMode</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>1 choisit le confort, prioritaire sur la nuit ; avec les autres objets de mode sur un bit, remplace la présélection sur un octet</td>
+</tr>
+<tr>
+<td><code>nightMode</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>1 choisit la nuit (économie), 0 la veille, sauf si le confort ou la protection vaut 1</td>
+</tr>
+<tr>
+<td><code>protectionMode</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>1 choisit la protection hors gel ou chaleur, prioritaire sur le confort et la nuit</td>
+</tr>
+<tr>
+<td><code>forcedMode</code></td>
+<td>20.102</td>
+<td>aucune</td>
+<td>1 à 4 force le confort, la veille, l&#39;économie ou la protection au-dessus de tout le reste, fenêtre comprise ; 0 (auto) termine le forçage</td>
+</tr>
+<tr>
 <td><code>hvacModeStatus</code></td>
 <td>20.102</td>
 <td>aucune</td>
@@ -1429,7 +1453,7 @@
 <td><code>window</code></td>
 <td>1.019, 1.001, 1.009</td>
 <td>aucune</td>
-<td>fenêtre ouverte (1.019 / 1.001 : 1 = ouverte ; 1.009 : 0 = ouverte) : mode protection, priorité la plus haute</td>
+<td>fenêtre ouverte (1.019 / 1.001 : 1 = ouverte ; 1.009 : 0 = ouverte) : mode protection, au-dessus de tout sauf du mode forcé</td>
 </tr>
 <tr>
 <td><code>heatCool</code></td>
@@ -1466,6 +1490,18 @@
 <td>1.001</td>
 <td>aucune</td>
 <td>Commande de refroidissement sur un bit.</td>
+</tr>
+<tr>
+<td><code>controlValue</code></td>
+<td>5.001</td>
+<td>aucune</td>
+<td>grandeur de commande du mode actif, chauffage ou refroidissement, sur un seul objet (système 2 tubes) ; heatCoolStatus indique lequel</td>
+</tr>
+<tr>
+<td><code>controlSwitch</code></td>
+<td>1.001</td>
+<td>aucune</td>
+<td>commande sur un bit du mode actif, chauffage ou refroidissement, sur un seul objet (système 2 tubes)</td>
 </tr>
 </tbody></table>
 </div><p><strong>Paramètres de l&#39;appareil</strong> (<code>parameters</code>)</p>
@@ -1675,6 +1711,12 @@
 <td>1.005</td>
 <td>obligatoire</td>
 <td>grandeur de commande absente : programme de secours</td>
+</tr>
+<tr>
+<td><code>heatCool</code></td>
+<td>1.100</td>
+<td>obligatoire</td>
+<td>sortie à changement de mode : 1 eau chaude, 0 eau froide ; la dernière grandeur reçue s&#39;applique, la même valeur chauffant ou refroidissant</td>
 </tr>
 <tr>
 <td><code>coolingValue</code></td>

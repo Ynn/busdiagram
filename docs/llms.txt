@@ -405,15 +405,21 @@ Accepts `buttons` and numeric `inputs`.
 | `setpointShift` | 9.002 | none | in | base setpoint = configured setpoint + offset |
 | `setpointStatus` | 9.001 | none | out | Current setpoint (9.001). |
 | `hvacMode` | 20.102 | none | in | Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection). |
+| `comfortMode` | 1.001 | none | in | 1 selects comfort, which has priority over night; with the other 1-bit mode objects, replaces the 1-byte preselection |
+| `nightMode` | 1.001 | none | in | 1 selects night (economy), 0 standby, unless comfort or protection is 1 |
+| `protectionMode` | 1.001 | none | in | 1 selects frost or heat protection, which has priority over comfort and night |
+| `forcedMode` | 20.102 | none | in | 1–4 forces comfort, standby, economy, or protection over everything else, the window included; 0 (auto) ends the forcing |
 | `hvacModeStatus` | 20.102 | none | out | Current mode (20.102). |
 | `presence` | 1.018, 1.001 | none | in | 1 = presence: comfort mode |
-| `window` | 1.019, 1.001, 1.009 | none | in | open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority |
+| `window` | 1.019, 1.001, 1.009 | none | in | open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, over everything but the forced mode |
 | `heatCool` | 1.100 | none | in | 1 = heating, 0 = cooling; not used with the automatic change-over |
 | `heatCoolStatus` | 1.100 | none | out | Current mode: 1 heating, 0 cooling (1.100). |
 | `heatingValue` | 5.001 | none | out | continuous control value from 0 to 100% |
 | `heatingSwitch` | 1.001 | none | out | two-point control, or PWM under PI control |
 | `coolingValue` | 5.001 | none | out | Continuous cooling control value (5.001). |
 | `coolingSwitch` | 1.001 | none | out | One-bit cooling command. |
+| `controlValue` | 5.001 | none | out | control value of the active mode, heating or cooling, on one object (2-pipe system); heatCoolStatus tells which |
+| `controlSwitch` | 1.001 | none | out | one-bit control of the active mode, heating or cooling, on one object (2-pipe system) |
 
 Device `parameters`:
 - `presenceType` (string, default "detector"; "detector" (Presence detector), "button" (Presence button)): detector: comfort while the presence object is 1; button: each 1 extends the comfort mode for comfortExtensionMs.
@@ -452,6 +458,7 @@ Drives channel outputs with `switch` commands; connect a compatible equipment ty
 | `switch` | 1.001 | required | in | two-point or thermostat PWM heating control |
 | `valueStatus` | 5.001 | required | out | Control value applied to the valve (5.001). |
 | `fault` | 1.005 | required | out | missing control value: fallback program |
+| `heatCool` | 1.100 | required | in | change-over output: 1 hot water, 0 cold water; the last control value received applies, the same value heating or cooling |
 | `coolingValue` | 5.001 | required | in | Cooling control value of the valve (5.001), for a cooling or change-over output. |
 | `coolingSwitch` | 1.001 | required | in | two-point or thermostat PWM cooling control |
 

@@ -36,7 +36,12 @@ export {
 } from "./knx/registry";
 export type { Registry } from "./knx/registry";
 export { Network, buildTopology, TIMING, RC0 } from "./knx/network";
-export type { Topology, TransportPlan } from "./knx/network";
+export type {
+  CouplerPlan,
+  CouplerReason,
+  Topology,
+  TransportPlan,
+} from "./knx/network";
 export {
   SUPPORTED_DPTS,
   canonical,

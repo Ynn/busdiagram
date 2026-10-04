@@ -49,7 +49,7 @@ These warnings do not stop the simulation. They are shown above the diagram, and
 | Code | Meaning |
 | --- | --- |
 | `config-valve` | The heating actuator output (`valveType`) and the connected radiator or fan coil valve (`normallyOpen`) disagree; the valve opens when no heat is requested. |
-| `config-valve-mode` | A control value is linked to a heating actuator output whose function (`valveMode`) ignores it: a cooling value on a heating valve, or a heating value on a cooling valve. |
+| `config-valve-mode` | A control value is linked to a heating actuator output whose function (`valveMode`) ignores it: a cooling value on a heating valve, a heating value on a cooling valve, or a heating/cooling object on an output that is not change-over. |
 | `config-emitter` | The emitter does not suit the function of its valve: a radiator on a cooling valve, a fan coil coil of the other kind, or an emitter that only heats or only cools on a change-over valve. |
 | `config-wiring` | The shutter actuator output inversion (`invertOutput`) and the motor wiring of the shutter (`wiringReversed`) disagree; the shutter moves opposite to the commands. |
 | `config-contact` | The window contact type (`contactType`) and the input inversion (`invert`) disagree, or the contact of a push-button wired to a push-button interface (`keyContact`) and the contact its input expects when actuated (`actuatedContact`) disagree; open and closed, or presses and releases, are seen the wrong way round. |

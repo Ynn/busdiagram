@@ -110,8 +110,16 @@ test("French documentation: language, navigation, search, and language switch", 
   // The index pages of the sections have a French version too, and every French page
   // is translated: no page is marked English, and none is marked stale.
   const indexes: [string, string, string][] = [
-    ["fr/examples/hvac.html", "Tous les exemples", "../../fr/examples/index.html"],
-    ["fr/reference/json.html", "Vue d'ensemble", "../../fr/reference/index.html"],
+    [
+      "fr/examples/hvac.html",
+      "Tous les exemples",
+      "../../fr/examples/index.html",
+    ],
+    [
+      "fr/reference/json.html",
+      "Vue d'ensemble",
+      "../../fr/reference/index.html",
+    ],
   ];
   for (const [path, title, href] of indexes) {
     await page.goto(url(path));
@@ -131,6 +139,101 @@ test("French documentation: language, navigation, search, and language switch", 
       hasText: "Interface de boutons-poussoirs",
     }),
   ).toHaveCount(1);
+  expect(errors).toEqual([]);
+});
+
+test("timeline: traces of the option, then added and removed from its menu", async ({
+  page,
+}) => {
+  const { errors } = watch(page);
+  await page.goto(url("examples/hvac.html"));
+  const diagram = page.locator("bus-diagram").first();
+  const lanes = diagram.locator(".timeline .tl-lane");
+  await expect(lanes).toHaveCount(4);
+  await diagram.evaluate((el: HTMLElement & { advance(ms: number): void }) =>
+    el.advance(120_000),
+  );
+  // The valve opening traced as a curve, the control value as steps with telegram marks.
+  await expect(diagram.locator(".timeline .tl-mark").first()).toBeAttached();
+  await diagram.locator(".timeline .tl-x").first().click();
+  await expect(lanes).toHaveCount(3);
+  await diagram.locator(".timeline .tl-add select").selectOption("@livingRoom");
+  await expect(lanes).toHaveCount(4);
+  await expect(diagram.locator(".timeline .tl-add")).toHaveCount(0);
+  expect(errors).toEqual([]);
+});
+
+test("timeline: advance keeps its contract, and step mode updates the traces", async ({
+  page,
+}) => {
+  const { errors } = watch(page);
+  await page.goto(url("examples/hvac.html"));
+  const diagram = page.locator("bus-diagram").first();
+  await expect(diagram.locator(".timeline .tl-lane")).toHaveCount(4);
+  type El = HTMLElement & {
+    advance(ms: number): void;
+    pause(): void;
+    stepToNextEvent(): unknown;
+    getState(): { timeMs: number };
+  };
+  const rejected = await diagram.evaluate((el: El) => {
+    el.pause();
+    const t0 = el.getState().timeMs;
+    return [-1, Number.NaN, 500.5, Number.POSITIVE_INFINITY].map((ms) => {
+      try {
+        el.advance(ms);
+        return "accepted";
+      } catch {
+        return el.getState().timeMs === t0 ? "rejected" : "advanced";
+      }
+    });
+  });
+  expect(rejected).toEqual(["rejected", "rejected", "rejected", "rejected"]);
+  // Paused, step by step until the control value changes: its lane shows the new value.
+  const value = await diagram.evaluate((el: El) => {
+    const read = () =>
+      (
+        el.getState() as unknown as {
+          objects: Record<string, { value: number | null }>;
+        }
+      ).objects["livingThermostat/val"]!.value;
+    for (let i = 0; i < 60 && !read(); i++) el.stepToNextEvent();
+    return read();
+  });
+  expect(value).toBeGreaterThan(0);
+  await expect(
+    diagram
+      .locator(".timeline .tl-label", { hasText: "Heating control" })
+      .locator("b"),
+  ).toHaveText(String(value));
+  expect(errors).toEqual([]);
+});
+
+test("a group address outlines the objects linked to it", async ({ page }) => {
+  const { errors } = watch(page);
+  await page.goto(url("examples/lighting-control.html"));
+  const diagram = page.locator("bus-diagram").first();
+  await diagram.locator(".cell.ga", { hasText: "1/1/1" }).first().click();
+  await expect(diagram.locator(".cell.ga.focus")).toHaveCount(4);
+  await expect(diagram.locator(".gafocus")).toContainText(
+    "send on it (C, T, sending address): 2",
+  );
+  await page.keyboard.press("Escape");
+  await expect(diagram.locator(".cell.ga.focus")).toHaveCount(0);
+  // A second address of an object, chosen with the keyboard.
+  const second = diagram.locator(".cell.ga small button.gab", {
+    hasText: "1/1/2",
+  });
+  await second.first().focus();
+  await page.keyboard.press("Enter");
+  await expect(diagram.locator(".gafocus b")).toHaveText("1/1/2");
+  await page.keyboard.press("Escape");
+  // From the telegram card: its destination address.
+  await diagram.locator("button.key", { hasText: "Key 3" }).click();
+  await diagram.locator("button.galink").click();
+  await expect(diagram.locator(".gafocus")).toContainText("1/1/2");
+  await diagram.locator(".gafocus .tl-x").click();
+  await expect(diagram.locator(".gafocus")).toHaveCount(0);
   expect(errors).toEqual([]);
 });
 
@@ -197,16 +300,22 @@ test("telegram details: frame, bits, TP1 signal, and checksum stay in step", asy
   await expect(dlg.locator(".signal g.char.sel")).toHaveCount(1);
   await expect(dlg.locator(".signal .ack")).toHaveCount(1);
   // The selected octet, written b7 first and sent b0 first: pointing at a bit shows it in both.
-  await expect(dlg.locator(".lsb .cells").first().locator(".cellb")).toHaveCount(8);
+  await expect(
+    dlg.locator(".lsb .cells").first().locator(".cellb"),
+  ).toHaveCount(8);
   // S, b0…b7, P, Stop, then the 2 bit times that separate it from the next character.
-  await expect(dlg.locator(".lsb .cells").last().locator(".cellb")).toHaveCount(13);
+  await expect(dlg.locator(".lsb .cells").last().locator(".cellb")).toHaveCount(
+    13,
+  );
   await expect(dlg.locator(".signal g.sep")).toHaveCount(8);
   await expect(dlg.locator("footer")).toContainText(
     "9 octets, sent as 9 TP1 characters of 11 bits, + 8 separations of 2 bit times = 115 bit times = 11.98 ms",
   );
   await dlg.locator(".lsb .cells").last().locator(".cellb").nth(1).hover();
   await expect(dlg.locator(".lsb .cellb.hl")).toHaveCount(2);
-  await expect(dlg.locator(".lsb .cells").first().locator(".cellb").last()).toHaveClass(/hl/);
+  await expect(
+    dlg.locator(".lsb .cells").first().locator(".cellb").last(),
+  ).toHaveClass(/hl/);
   await expect(dlg.locator(".signal g.bit.hl")).toHaveCount(1);
   await dlg.locator(".signal g.char").first().click();
   await expect(dlg.locator(".strip button.sel")).toHaveText(/BC/);
@@ -494,7 +603,9 @@ test.describe("designer", () => {
     const frame = (await page.locator("#frame").boundingBox())!;
     // Height of the diagram area, as drawn on the screen.
     const box = await page.locator("#preview").evaluate((el) => {
-      const b = el.shadowRoot!.querySelector(".scroller")!.getBoundingClientRect();
+      const b = el
+        .shadowRoot!.querySelector(".scroller")!
+        .getBoundingClientRect();
       return { height: b.height };
     });
     // The frame keeps 16:9, and the diagram keeps the proportion it has on a 1280 × 720

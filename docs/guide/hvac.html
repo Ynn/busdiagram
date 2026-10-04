@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heating · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/hvac.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -105,7 +105,7 @@
 </tbody></table>
 </div><p>A DPT 9.001 value uses two payload bytes after the APCI. Until an object receives or measures a value, a 9.xxx object can remain unknown.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Room thermostat</h2><p><code>roomThermostat/v1</code> measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.</p>
-<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by <code>hvacMode</code> (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint. See <a href="#heating-and-cooling">heating and cooling</a> for how the thermostat chooses between them.</p>
+<p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: a forced mode (<code>forcedMode</code>, 1–4) overrides everything, a faulty window contact included, until it receives 0 (auto); an open window requests building protection; a building protection preselected (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the preselection applies. The preselection comes from the 1-byte <code>hvacMode</code> object or from the 1-bit objects <code>comfortMode</code>, <code>nightMode</code>, and <code>protectionMode</code>, whichever received a telegram last: among the 1-bit objects, protection has priority over comfort, comfort over night, and standby applies when all are 0, as on the room controllers that offer them. Before any telegram, the 1-bit objects decide when one of them starts at 1, and the preselection otherwise. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint. See <a href="#heating-and-cooling">heating and cooling</a> for how the thermostat chooses between them.</p>
 <p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output off at the setpoint and on again <code>hysteresisK</code> below it (above it in cooling). Some room controllers centre the hysteresis on the setpoint instead: with 21 °C and 2 K, on at 20 °C and off at 22 °C.</p>
 <div class="table"><table>
 <thead>
@@ -132,7 +132,7 @@
 <td><code>baseSetpoint</code></td>
 <td>9.001</td>
 <td>Receive</td>
-<td>Base comfort setpoint.</td>
+<td>Base comfort setpoint. With the T flag, a value entered on the device is also sent: two thermostats that share this address keep the same base, each applying its own setbacks. Do not link <code>setpointStatus</code> instead: it carries the current setpoint, setback included.</td>
 </tr>
 <tr>
 <td><code>setpointShift</code></td>
@@ -151,6 +151,18 @@
 <td>20.102</td>
 <td>Receive / send</td>
 <td>Requested and current mode.</td>
+</tr>
+<tr>
+<td><code>comfortMode</code>, <code>nightMode</code>, <code>protectionMode</code></td>
+<td>1.001</td>
+<td>Receive</td>
+<td>Mode preselection by 1-bit objects (night: 1 economy, 0 standby).</td>
+</tr>
+<tr>
+<td><code>forcedMode</code></td>
+<td>20.102</td>
+<td>Receive</td>
+<td>Forced mode over every other input; 0 (auto) ends it.</td>
 </tr>
 <tr>
 <td><code>presence</code></td>
@@ -234,10 +246,11 @@
 <tr>
 <td><code>&quot;changeover&quot;</code></td>
 <td>One valve for both, on a 2-pipe system.</td>
-<td>Both: the valve follows the value that is not zero.</td>
+<td>Both: the valve follows the value that is not zero. Or a common value and the <code>heatCool</code> object of the output.</td>
 </tr>
 </tbody></table>
-</div><p>Link the heating and cooling values of the thermostat to two separate objects of a change-over output, not to one group address. On a change, the 0 sent on the other value would otherwise close the valve. A configuration warning appears when a value is linked to an output that ignores it, or when the emitter does not suit the valve.</p>
+</div><p>Link the heating and cooling values of the thermostat to two separate objects of a change-over output, not to one group address. On a change, the 0 sent on the other value would otherwise close the valve.</p>
+<p>A 2-pipe system can also use a single control value, as many room controllers and actuators offer. The thermostat sends the value of its active mode on <code>controlValue</code> (or <code>controlSwitch</code> in one bit), and <code>heatCoolStatus</code> tells which mode it is. On the change-over output of the actuator, link that value to <code>value</code> and the heating/cooling information to <code>heatCool</code> (DPT 1.100). The water then comes from this object, and the last control value received applies: the same 60 % heats with hot water and cools with cold water. Until the object receives a telegram, the output takes the value it starts with, or hot water if it has none; read or send the season at start so that the valve gets the right water. In a building, this object comes from the plant that supplies the water, or from a central change-over that also reaches the thermostats. A configuration warning appears when a value is linked to an output that ignores it, or when the emitter does not suit the valve.</p>
 <p>A <code>fanCoil</code> load is a fan coil unit: a water coil behind a thermoelectric valve, and a fan that runs while water flows in the coil (<code>fanPowerW</code>, 40 W by default, seen by a metering actuator). Its <code>coil</code> parameter has three values:</p>
 <ul>
 <li><code>&quot;changeover&quot;</code>: the coil of a 2-pipe unit. It heats with hot water and cools with cold water, as the change-over valve gives.</li>
@@ -742,7 +755,7 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, water temperatures, humidity, condensation or dew-point protection, or BACnet. A <code>heatPump</code> load heats or cools its room while its output enables it, after the minimum off time of its compressor (<code>minOffMs</code>); its coefficient of performance (<code>cop</code>) gives the heat shown, the room model uses <code>powerK</code>. See the <a href="../examples/heat-pump.html">heat pump example</a>. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. In a 2-pipe system, the water of a change-over fan coil follows the control value that its valve applies, as if the plant always supplied the water the room asks for. A fan coil runs its fan at one speed, without the fan speed objects of a fan coil controller. The operating mode of a heat pump is a parameter: the bus switches it on and off but does not change it over. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with a DPT 20.102 object only: the separate forced-mode object and the one-bit mode objects (comfort, night, frost protection) offered by many room controllers are not modeled.</p>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Model limits</h2><p>The thermal model uses one time constant per room. It does not simulate room-to-room heat transfer, solar gains, equipment inertia, a water circuit or a boiler, water temperatures, humidity, condensation or dew-point protection, or BACnet. A <code>heatPump</code> load heats or cools its room while its output enables it, after the minimum off time of its compressor (<code>minOffMs</code>); its coefficient of performance (<code>cop</code>) gives the heat shown, the room model uses <code>powerK</code>. See the <a href="../examples/heat-pump.html">heat pump example</a>. The thermostat has no internal time program: schedules come from the bus, for example a <a href="devices.html#weekly-time-switch-timeswitch-v1">weekly time switch</a> that sends HVAC modes. Humidity and CO₂ are values entered on an <a href="devices.html#air-quality-sensor-airqualitysensor-v1">air quality sensor</a>; ventilation drives a <code>fan</code> load but does not change the room temperature or air quality. In a 2-pipe system, the water of a change-over fan coil follows the control value that its valve applies, as if the plant always supplied the water the room asks for. A fan coil runs its fan at one speed, without the fan speed objects of a fan coil controller. The operating mode of a heat pump is a parameter: the bus switches it on and off but does not change it over. Auto mode selects comfort; a bus telegram can change the mode preselection. The operating mode is selected with the DPT 20.102 preselection, the 1-bit mode objects, or the forced mode; the priority between them is fixed (no parameter to choose another order).</p>
 
 <nav class="pager">
 <a href="../guide/dali.html">← Dimming and DALI</a>

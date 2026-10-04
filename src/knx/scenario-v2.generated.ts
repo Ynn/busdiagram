@@ -446,7 +446,7 @@ dpt?: (("1.001" | "1.002" | "1.003" | "1.005" | "1.007" | "1.008" | "1.009" | "1
 /**
  * Object role in the device's behavior.
  */
-port: ("switch" | "status" | "scene" | "forced" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "intrusionAlarm" | "fireAlarm" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "slatCommand" | "slatStatus" | "windAlarm" | "rainAlarm" | "frostAlarm" | "recallPosition12" | "recallPosition34" | "storePosition12" | "storePosition34" | "upperLimit" | "lowerLimit" | "display" | "input" | "slaveTrigger" | "brightness" | "dim" | "value" | "valueStatus" | "colourTemperature" | "colourTemperatureStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "sensorFault" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "fault" | "contact" | "temperature" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "override" | "overrideTimed" | "overridePermanent" | "command" | "led" | "intrusionTrigger" | "intrusionReset" | "intrusionState" | "fireTrigger" | "fireReset" | "fireState")
+port: ("switch" | "status" | "scene" | "forced" | "lock" | "logic" | "power" | "energy" | "totalPower" | "powerLimit" | "intrusionAlarm" | "fireAlarm" | "move" | "stopStep" | "positionCommand" | "positionStatus" | "slatCommand" | "slatStatus" | "windAlarm" | "rainAlarm" | "frostAlarm" | "recallPosition12" | "recallPosition34" | "storePosition12" | "storePosition34" | "upperLimit" | "lowerLimit" | "display" | "input" | "slaveTrigger" | "brightness" | "dim" | "value" | "valueStatus" | "colourTemperature" | "colourTemperatureStatus" | "error" | "broadcastSwitch" | "broadcastValue" | "generalError" | "actualTemp" | "sensorFault" | "externalTemp" | "baseSetpoint" | "setpointShift" | "setpointStatus" | "hvacMode" | "comfortMode" | "nightMode" | "protectionMode" | "forcedMode" | "hvacModeStatus" | "presence" | "window" | "heatCool" | "heatCoolStatus" | "heatingValue" | "heatingSwitch" | "coolingValue" | "coolingSwitch" | "controlValue" | "controlSwitch" | "fault" | "contact" | "temperature" | "logicIn" | "enable" | "time" | "logicOut" | "wind" | "outdoorTemp" | "sunProtection" | "humidity" | "co2" | "co2Alarm" | "humidityAlarm" | "ventilation" | "date" | "output" | "override" | "overrideTimed" | "overridePermanent" | "command" | "led" | "intrusionTrigger" | "intrusionReset" | "intrusionState" | "fireTrigger" | "fireReset" | "fireState")
 /**
  * Channel ID within the device; required by actuator ports.
  */
@@ -480,7 +480,7 @@ U?: boolean
  */
 C?: boolean
 /**
- * Read on initialisation: when the device starts again after a bus voltage failure, it reads the object's value on its sending address.
+ * Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address.
  */
 I?: boolean
 }

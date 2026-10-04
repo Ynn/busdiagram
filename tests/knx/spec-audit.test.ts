@@ -127,7 +127,7 @@ describe("flag C (communication)", () => {
 });
 
 describe("flag I (read on initialisation)", () => {
-  it("reads the value when the device starts again after a bus voltage failure", () => {
+  it("reads the value when the device starts: at the start of the simulation and after a bus voltage failure", () => {
     const sim = createSimulator(
       v2(
         [
@@ -159,18 +159,24 @@ describe("flag I (read on initialisation)", () => {
         },
       ),
     );
-    // No read at the start of the simulation: the installation is already running.
-    sim.advance(3000);
-    expect(sim.history).toHaveLength(0);
-    sim.setBusVoltage("L1.1", false);
-    sim.setBusVoltage("L1.1", true);
-    // Read and response through two line couplers, at the slowed timing of the diagram.
+    // The devices start with the simulation: the I object reads its value. Read and
+    // response cross two line couplers, at the slowed timing of the diagram.
     sim.advance(15000);
     expect(sim.history.map((t) => t.service)).toEqual([
       "GroupValueRead",
       "GroupValueResponse",
     ]);
     expect(sim.objectValue("r", "o")).toBe(1);
+    // It reads again when its device starts after a bus voltage failure.
+    sim.setBusVoltage("L1.1", false);
+    sim.setBusVoltage("L1.1", true);
+    sim.advance(15000);
+    expect(sim.history.map((t) => t.service)).toEqual([
+      "GroupValueRead",
+      "GroupValueResponse",
+      "GroupValueRead",
+      "GroupValueResponse",
+    ]);
   });
 });
 

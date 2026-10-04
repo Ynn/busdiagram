@@ -206,6 +206,21 @@ export interface FrontPlan {
   path: string[];
 }
 
+/**
+ * Why a coupler forwards or discards a group telegram (KNX Standard 03_03_03, Network
+ * Layer of couplers): a repeater forwards everything; a coupler set to route or block
+ * every group telegram does so; otherwise its filter table decides. A telegram whose
+ * routing counter is 0 is not forwarded, nor one for a side without bus voltage.
+ */
+export type CouplerReason =
+  | "repeater"
+  | "routeAll"
+  | "blockAll"
+  | "inTable"
+  | "notInTable"
+  | "rcZero"
+  | "noVoltage";
+
 export interface CouplerPlan {
   couplerId: string;
   from: Side;
@@ -215,6 +230,8 @@ export interface CouplerPlan {
   tOutMs: number;
   pass: boolean;
   tag: Tag;
+  /** What decided: filter table, routing mode, routing counter, or bus voltage. */
+  reason: CouplerReason;
   /** Blocked because the segment on the other side has no bus voltage. */
   noVoltage?: boolean;
   rcBefore: number;
@@ -370,14 +387,17 @@ export class Network {
     return (to === "B" ? set?.down : set?.up) ?? "filter";
   }
 
-  private passes(c: TopoCoupler, to: Side, ga: string) {
-    if (this.isRepeater(c)) return true;
+  /** Decision of the filter of a coupler for a group address, without the counter. */
+  private filterReason(c: TopoCoupler, to: Side, ga: string): CouplerReason {
+    if (this.isRepeater(c)) return "repeater";
     const mode = this.routing(c, to);
-    if (mode === "route") return true;
-    if (mode === "block") return false;
+    if (mode === "route") return "routeAll";
+    if (mode === "block") return "blockAll";
     // The filter table holds the addresses used on both sides (line-crossing addresses);
     // it applies in both directions.
-    return this.sideGAs(c, "A").has(ga) && this.sideGAs(c, "B").has(ga);
+    return this.sideGAs(c, "A").has(ga) && this.sideGAs(c, "B").has(ga)
+      ? "inTable"
+      : "notInTable";
   }
 
   /** Full propagation schedule of a group telegram; filter decisions are frozen. */
@@ -457,7 +477,16 @@ export class Network {
           const to: Side = from === "A" ? "B" : "A";
           // Without bus voltage on the other side, the coupler cannot send the telegram.
           const noVoltage = !this.powered(c[to].seg);
-          const pass = this.passes(c, to, ga) && e.rc > 0 && !noVoltage;
+          const filter = this.filterReason(c, to, ga);
+          const filtered = filter === "blockAll" || filter === "notInTable";
+          const reason: CouplerReason = filtered
+            ? filter
+            : e.rc <= 0
+              ? "rcZero"
+              : noVoltage
+                ? "noVoltage"
+                : filter;
+          const pass = !filtered && e.rc > 0 && !noVoltage;
           const tInMs = ta + T.couplerInMs;
           const tDecisionMs = tInMs + T.decisionMs;
           const tOutMs = tDecisionMs + T.couplerOutMs;
@@ -477,6 +506,7 @@ export class Network {
             tOutMs,
             pass,
             tag,
+            reason,
             ...(noVoltage ? { noVoltage } : {}),
             rcBefore: e.rc,
             rcAfter: pass ? e.rc - 1 : e.rc,

@@ -1,7 +1,7 @@
 ---
 title: Coupleurs et répéteurs
 translationOf: guide/06-couplers.md
-sourceHash: "6b8d42dc4ebc"
+sourceHash: "447201926055"
 order: 6.6
 ---
 # Coupleurs et répéteurs
@@ -36,7 +36,7 @@ Chaque sens se règle indépendamment dans `topology.couplers` : `down` du prima
 
 Tout télégramme part avec un compteur de routage de 6, la valeur par défaut usuelle (chaque appareil l'a comme paramètre de sa couche réseau). Chaque coupleur, répéteur de ligne ou routeur qui le transmet décrémente le compteur ; un télégramme qui arrive avec un compteur à 0 n'est pas retransmis. Les règles de routage actuelles ne donnent pas de sens particulier à 7 : il est décrémenté comme les autres valeurs. Un pont TP1 (bridge), autre type d'extension de ligne, transmet sans changer le compteur ; il n'est pas modélisé.
 
-Sur le schéma, **Tables de filtrage** dans la barre d'outils affiche la table de chaque coupleur, et le détail d'un télégramme liste chaque coupleur traversé avec sa décision et le compteur de routage.
+Sur le schéma, **Tables de filtrage** dans la barre d'outils affiche la table de chaque coupleur, et le détail d'un télégramme liste chaque coupleur traversé avec sa décision, le compteur de routage et la raison de la décision : l'adresse figure ou non dans la table de filtrage, le coupleur transmet ou bloque tous les télégrammes de groupe, le compteur de routage vaut 0, ou l'autre côté n'a pas de tension bus.
 
 ## Répéteurs de ligne et coupleurs de segment
 

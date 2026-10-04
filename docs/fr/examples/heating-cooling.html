@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chauffage et refroidissement · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../examples/heating-cooling.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -47,7 +47,7 @@
 <main>
 <p class="crumb">Exemples</p>
 
-<h1 id="heating-and-cooling"><a class="anchor" href="#heating-and-cooling">#</a>Chauffage et refroidissement</h1><p>Deux pièces en été : 27 °C à l&#39;intérieur, 30 °C à l&#39;extérieur. Chaque thermostat a une consigne de chauffage de 21 °C et une consigne de refroidissement de 24 °C ; la zone neutre se trouve entre les deux.</p>
+<h1 id="heating-and-cooling"><a class="anchor" href="#heating-and-cooling">#</a>Chauffage et refroidissement</h1><p>Trois pièces en été : 27 °C à l&#39;intérieur, 30 °C à l&#39;extérieur. Chaque thermostat a une consigne de chauffage de 21 °C et une consigne de refroidissement de 24 °C ; la zone neutre se trouve entre les deux.</p>
 <ul>
 <li><p><strong>Bureau, basculement automatique.</strong> Au-dessus de 24 °C, le thermostat refroidit :</p>
 <ul>
@@ -59,17 +59,19 @@
 </li>
 <li><p><strong>Salle de réunion, basculement par objet.</strong> Le thermostat démarre en chauffage : aussi chaude que soit la pièce, il ne demande rien, et la pièce continue de se réchauffer. Appuyez sur <strong>Saison</strong> (☀❄) : la touche écrit 0 (refroidissement) sur 3/1/0, DPT 1.100, comme le ferait un commutateur central été/hiver. La grandeur de refroidissement ouvre alors la vanne de la batterie froide, et la vanne du radiateur reste fermée. Dans un bâtiment, cet objet vient d&#39;un basculement central, ou de la production qui fournit de l&#39;eau chaude ou froide.</p>
 </li>
+<li><p><strong>Salle de classe, système 2 tubes à grandeur unique.</strong> La même touche atteint le thermostat de la salle de classe et l&#39;actionneur. Le thermostat envoie une seule grandeur pour le chauffage ou le refroidissement (3/0/5) ; la sortie à changement de mode prend de l&#39;eau chaude ou froide selon l&#39;objet de saison 3/1/0, si bien que la même valeur chauffe ou refroidit.</p>
+</li>
 </ul>
 <p>Les grandeurs de chauffage et de refroidissement de chaque thermostat vont à des objets distincts de l&#39;actionneur. Sur une vanne à changement de mode, l&#39;actionneur suit la grandeur qui n&#39;est pas nulle : le 0 envoyé sur l&#39;autre grandeur quand le thermostat bascule ne ferme donc pas la vanne.</p>
 <figure class="example" id="ex1">
-<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Chauffage et refroidissement","description":"Deux pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage.","lines":[{"address":"1.1","name":"Exemple chauffage et refroidissement","powerSupply":{"currentMa":640}}],"rooms":[{"id":"office","name":"Bureau","temperatureC":27,"outsideTemperatureC":30},{"id":"meetingRoom","name":"Salle de réunion","temperatureC":27,"outsideTemperatureC":30}],"groupAddresses":[{"address":"3/0/1","name":"Commande chauffage du bureau","dpt":"5.001"},{"address":"3/0/2","name":"Commande refroidissement du bureau","dpt":"5.001"},{"address":"3/0/3","name":"Commande chauffage de la salle de réunion","dpt":"5.001"},{"address":"3/0/4","name":"Commande refroidissement de la salle de réunion","dpt":"5.001"},{"address":"3/1/0","name":"Chauffage / refroidissement de la salle de réunion","dpt":"1.100"},{"address":"3/4/1","name":"Température du bureau","dpt":"9.001"},{"address":"3/4/2","name":"Consigne en cours du bureau","dpt":"9.001"},{"address":"3/4/3","name":"État chauffage / refroidissement du bureau","dpt":"1.100"},{"address":"3/4/4","name":"État de la vanne du bureau","dpt":"5.001"},{"address":"3/4/5","name":"Température de la salle de réunion","dpt":"9.001"},{"address":"3/4/6","name":"Consigne en cours de la salle de réunion","dpt":"9.001"},{"address":"3/4/7","name":"État chauffage / refroidissement de la salle de réunion","dpt":"1.100"}],"devices":[{"id":"usbInterface","name":"Interface USB","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"officeThermostat","name":"Thermostat du bureau","address":"1.1.1","kind":"thermostat","behavior":"roomThermostat/v1","parameters":{"changeover":"automatic"},"room":"office","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/1","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"sp","name":"Consigne actuelle","ga":"3/4/2","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"hcs","name":"État chauffage / refroidissement","ga":"3/4/3","dpt":"1.100","port":"heatCoolStatus","flags":{"W":false,"T":true}},{"id":"heat","name":"Commande de chauffage","ga":"3/0/1","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}},{"id":"cool","name":"Commande refroidissement","ga":"3/0/2","dpt":"5.001","port":"coolingValue","flags":{"W":false,"T":true}}]},{"id":"meetingThermostat","name":"Thermostat de la salle de réunion","address":"1.1.2","kind":"thermostat","behavior":"roomThermostat/v1","room":"meetingRoom","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/5","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"sp","name":"Consigne actuelle","ga":"3/4/6","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"hc","name":"Chauffage / refroidissement","ga":"3/1/0","dpt":"1.100","port":"heatCool","value":1,"flags":{"W":true,"T":true}},{"id":"hcs","name":"État chauffage / refroidissement","ga":"3/4/7","dpt":"1.100","port":"heatCoolStatus","flags":{"W":false,"T":true}},{"id":"heat","name":"Commande de chauffage","ga":"3/0/3","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}},{"id":"cool","name":"Commande refroidissement","ga":"3/0/4","dpt":"5.001","port":"coolingValue","flags":{"W":false,"T":true}}],"buttons":[{"id":"heatCool","label":"Saison","icon":"heatCool","press":{"object":"hc","value":"toggle"},"led":"hc"}]},{"id":"valveActuator","name":"Actionneur de chauffage","address":"1.1.3","kind":"heatingActuator","behavior":"heatingActuator/v1","objects":[{"id":"h1","name":"H1 grandeur de chauffage","ga":"3/0/1","dpt":"5.001","port":"value","channel":"h1","flags":{"W":true,"T":false}},{"id":"c1","name":"H1 grandeur de refroidissement","ga":"3/0/2","dpt":"5.001","port":"coolingValue","channel":"h1","flags":{"W":true,"T":false}},{"id":"s1","name":"H1 état de la commande","ga":"3/4/4","dpt":"5.001","port":"valueStatus","channel":"h1","flags":{"W":false,"T":true}},{"id":"h2","name":"H2 grandeur de chauffage","ga":"3/0/3","dpt":"5.001","port":"value","channel":"h2","flags":{"W":true,"T":false}},{"id":"c3","name":"H3 grandeur de refroidissement","ga":"3/0/4","dpt":"5.001","port":"coolingValue","channel":"h3","flags":{"W":true,"T":false}}],"channels":[{"id":"h1","label":"H1 ventilo-convecteur du bureau","parameters":{"valveMode":"changeover"},"equipment":{"type":"fanCoil","room":"office"}},{"id":"h2","label":"H2 radiateur de la salle de réunion","equipment":{"type":"radiator","room":"meetingRoom"}},{"id":"h3","label":"H3 batterie froide de la salle de réunion","parameters":{"valveMode":"cooling"},"equipment":{"type":"fanCoil","room":"meetingRoom","parameters":{"coil":"cooling"}}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Chauffage et refroidissement","description":"Trois pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. La même touche fait aussi basculer la salle de classe, un système 2 tubes à grandeur unique : son thermostat envoie une seule valeur pour le chauffage ou le refroidissement, et l'actionneur prend de l'eau chaude ou froide selon l'objet de saison. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage.","lines":[{"address":"1.1","name":"Exemple chauffage et refroidissement","powerSupply":{"currentMa":640}}],"rooms":[{"id":"office","name":"Bureau","temperatureC":27,"outsideTemperatureC":30},{"id":"meetingRoom","name":"Salle de réunion","temperatureC":27,"outsideTemperatureC":30},{"id":"classroom","name":"Salle de classe","temperatureC":27,"outsideTemperatureC":30}],"groupAddresses":[{"address":"3/0/1","name":"Commande chauffage du bureau","dpt":"5.001"},{"address":"3/0/2","name":"Commande refroidissement du bureau","dpt":"5.001"},{"address":"3/0/3","name":"Commande chauffage de la salle de réunion","dpt":"5.001"},{"address":"3/0/4","name":"Commande refroidissement de la salle de réunion","dpt":"5.001"},{"address":"3/0/5","name":"Commande chauffage/refroidissement de la salle de classe","dpt":"5.001"},{"address":"3/1/0","name":"Saison : chauffage / refroidissement","dpt":"1.100"},{"address":"3/4/1","name":"Température du bureau","dpt":"9.001"},{"address":"3/4/2","name":"Consigne en cours du bureau","dpt":"9.001"},{"address":"3/4/3","name":"État chauffage / refroidissement du bureau","dpt":"1.100"},{"address":"3/4/4","name":"État de la vanne du bureau","dpt":"5.001"},{"address":"3/4/5","name":"Température de la salle de réunion","dpt":"9.001"},{"address":"3/4/6","name":"Consigne en cours de la salle de réunion","dpt":"9.001"},{"address":"3/4/7","name":"État chauffage / refroidissement de la salle de réunion","dpt":"1.100"},{"address":"3/4/8","name":"Température de la salle de classe","dpt":"9.001"}],"devices":[{"id":"usbInterface","name":"Interface USB","address":"1.1.255","kind":"interface","behavior":"usbInterface/v1","objects":[]},{"id":"officeThermostat","name":"Thermostat du bureau","address":"1.1.1","kind":"thermostat","behavior":"roomThermostat/v1","parameters":{"changeover":"automatic"},"room":"office","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/1","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"sp","name":"Consigne actuelle","ga":"3/4/2","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"hcs","name":"État chauffage / refroidissement","ga":"3/4/3","dpt":"1.100","port":"heatCoolStatus","flags":{"W":false,"T":true}},{"id":"heat","name":"Commande de chauffage","ga":"3/0/1","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}},{"id":"cool","name":"Commande refroidissement","ga":"3/0/2","dpt":"5.001","port":"coolingValue","flags":{"W":false,"T":true}}]},{"id":"meetingThermostat","name":"Thermostat de la salle de réunion","address":"1.1.2","kind":"thermostat","behavior":"roomThermostat/v1","room":"meetingRoom","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/5","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"sp","name":"Consigne actuelle","ga":"3/4/6","dpt":"9.001","port":"setpointStatus","flags":{"W":false,"T":true}},{"id":"hc","name":"Chauffage / refroidissement","ga":"3/1/0","dpt":"1.100","port":"heatCool","value":1,"flags":{"W":true,"T":true}},{"id":"hcs","name":"État chauffage / refroidissement","ga":"3/4/7","dpt":"1.100","port":"heatCoolStatus","flags":{"W":false,"T":true}},{"id":"heat","name":"Commande de chauffage","ga":"3/0/3","dpt":"5.001","port":"heatingValue","flags":{"W":false,"T":true}},{"id":"cool","name":"Commande refroidissement","ga":"3/0/4","dpt":"5.001","port":"coolingValue","flags":{"W":false,"T":true}}],"buttons":[{"id":"heatCool","label":"Saison","icon":"heatCool","press":{"object":"hc","value":"toggle"},"led":"hc"}]},{"id":"classThermostat","name":"Thermostat de la salle de classe","address":"1.1.4","kind":"thermostat","behavior":"roomThermostat/v1","room":"classroom","objects":[{"id":"temp","name":"Température mesurée","ga":"3/4/8","dpt":"9.001","port":"actualTemp","flags":{"W":false,"T":true}},{"id":"hc","name":"Chauffage / refroidissement","ga":"3/1/0","dpt":"1.100","port":"heatCool","flags":{"W":true,"T":false}},{"id":"ctl","name":"Commande chauffage/refroidissement","ga":"3/0/5","dpt":"5.001","port":"controlValue","flags":{"W":false,"T":true}}]},{"id":"valveActuator","name":"Actionneur de chauffage","address":"1.1.3","kind":"heatingActuator","behavior":"heatingActuator/v1","objects":[{"id":"h1","name":"H1 grandeur de chauffage","ga":"3/0/1","dpt":"5.001","port":"value","channel":"h1","flags":{"W":true,"T":false}},{"id":"c1","name":"H1 grandeur de refroidissement","ga":"3/0/2","dpt":"5.001","port":"coolingValue","channel":"h1","flags":{"W":true,"T":false}},{"id":"s1","name":"H1 état de la commande","ga":"3/4/4","dpt":"5.001","port":"valueStatus","channel":"h1","flags":{"W":false,"T":true}},{"id":"h2","name":"H2 grandeur de chauffage","ga":"3/0/3","dpt":"5.001","port":"value","channel":"h2","flags":{"W":true,"T":false}},{"id":"c3","name":"H3 grandeur de refroidissement","ga":"3/0/4","dpt":"5.001","port":"coolingValue","channel":"h3","flags":{"W":true,"T":false}},{"id":"h4","name":"H4 grandeur de chauffage/refroidissement","ga":"3/0/5","dpt":"5.001","port":"value","channel":"h4","flags":{"W":true,"T":false}},{"id":"hc4","name":"H4 chauffage / refroidissement","ga":"3/1/0","dpt":"1.100","port":"heatCool","channel":"h4","flags":{"W":true,"T":false}}],"channels":[{"id":"h1","label":"H1 ventilo-convecteur du bureau","parameters":{"valveMode":"changeover"},"equipment":{"type":"fanCoil","room":"office"}},{"id":"h2","label":"H2 radiateur de la salle de réunion","equipment":{"type":"radiator","room":"meetingRoom"}},{"id":"h3","label":"H3 batterie froide de la salle de réunion","parameters":{"valveMode":"cooling"},"equipment":{"type":"fanCoil","room":"meetingRoom","parameters":{"coil":"cooling"}}},{"id":"h4","label":"H4 ventilo-convecteur de la salle de classe","parameters":{"valveMode":"changeover"},"equipment":{"type":"fanCoil","room":"classroom"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 <div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=heating-cooling" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
 <pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
 &lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
 {
   "formatVersion": 2,
   "title": "Chauffage et refroidissement",
-  "description": "Deux pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage.",
+  "description": "Trois pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. La même touche fait aussi basculer la salle de classe, un système 2 tubes à grandeur unique : son thermostat envoie une seule valeur pour le chauffage ou le refroidissement, et l'actionneur prend de l'eau chaude ou froide selon l'objet de saison. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage.",
   "lines": [
     {
       "address": "1.1",
@@ -84,7 +86,8 @@
       "name": "Salle de réunion",
       "temperatureC": 27,
       "outsideTemperatureC": 30
-    }
+    },
+    { "id": "classroom", "name": "Salle de classe", "temperatureC": 27, "outsideTemperatureC": 30 }
   ],
   "groupAddresses": [
     { "address": "3/0/1", "name": "Commande chauffage du bureau", "dpt": "5.001" },
@@ -96,10 +99,11 @@
       "dpt": "5.001"
     },
     {
-      "address": "3/1/0",
-      "name": "Chauffage / refroidissement de la salle de réunion",
-      "dpt": "1.100"
+      "address": "3/0/5",
+      "name": "Commande chauffage/refroidissement de la salle de classe",
+      "dpt": "5.001"
     },
+    { "address": "3/1/0", "name": "Saison : chauffage / refroidissement", "dpt": "1.100" },
     { "address": "3/4/1", "name": "Température du bureau", "dpt": "9.001" },
     { "address": "3/4/2", "name": "Consigne en cours du bureau", "dpt": "9.001" },
     { "address": "3/4/3", "name": "État chauffage / refroidissement du bureau", "dpt": "1.100" },
@@ -110,7 +114,8 @@
       "address": "3/4/7",
       "name": "État chauffage / refroidissement de la salle de réunion",
       "dpt": "1.100"
-    }
+    },
+    { "address": "3/4/8", "name": "Température de la salle de classe", "dpt": "9.001" }
   ],
   "devices": [
     {
@@ -241,6 +246,40 @@
       ]
     },
     {
+      "id": "classThermostat",
+      "name": "Thermostat de la salle de classe",
+      "address": "1.1.4",
+      "kind": "thermostat",
+      "behavior": "roomThermostat/v1",
+      "room": "classroom",
+      "objects": [
+        {
+          "id": "temp",
+          "name": "Température mesurée",
+          "ga": "3/4/8",
+          "dpt": "9.001",
+          "port": "actualTemp",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "hc",
+          "name": "Chauffage / refroidissement",
+          "ga": "3/1/0",
+          "dpt": "1.100",
+          "port": "heatCool",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "ctl",
+          "name": "Commande chauffage/refroidissement",
+          "ga": "3/0/5",
+          "dpt": "5.001",
+          "port": "controlValue",
+          "flags": { "W": false, "T": true }
+        }
+      ]
+    },
+    {
       "id": "valveActuator",
       "name": "Actionneur de chauffage",
       "address": "1.1.3",
@@ -291,6 +330,24 @@
           "port": "coolingValue",
           "channel": "h3",
           "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "h4",
+          "name": "H4 grandeur de chauffage/refroidissement",
+          "ga": "3/0/5",
+          "dpt": "5.001",
+          "port": "value",
+          "channel": "h4",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "hc4",
+          "name": "H4 chauffage / refroidissement",
+          "ga": "3/1/0",
+          "dpt": "1.100",
+          "port": "heatCool",
+          "channel": "h4",
+          "flags": { "W": true, "T": false }
         }
       ],
       "channels": [
@@ -314,6 +371,12 @@
             "room": "meetingRoom",
             "parameters": { "coil": "cooling" }
           }
+        },
+        {
+          "id": "h4",
+          "label": "H4 ventilo-convecteur de la salle de classe",
+          "parameters": { "valveMode": "changeover" },
+          "equipment": { "type": "fanCoil", "room": "classroom" }
         }
       ]
     }
@@ -324,7 +387,7 @@
 &lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
   <span class="k">"formatVersion"</span>: <span class="n">2</span>,
   <span class="k">"title"</span>: <span class="s">"Chauffage et refroidissement"</span>,
-  <span class="k">"description"</span>: <span class="s">"Deux pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage."</span>,
+  <span class="k">"description"</span>: <span class="s">"Trois pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. La même touche fait aussi basculer la salle de classe, un système 2 tubes à grandeur unique : son thermostat envoie une seule valeur pour le chauffage ou le refroidissement, et l'actionneur prend de l'eau chaude ou froide selon l'objet de saison. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage."</span>,
   <span class="k">"lines"</span>: [
     {
       <span class="k">"address"</span>: <span class="s">"1.1"</span>,
@@ -339,7 +402,8 @@
       <span class="k">"name"</span>: <span class="s">"Salle de réunion"</span>,
       <span class="k">"temperatureC"</span>: <span class="n">27</span>,
       <span class="k">"outsideTemperatureC"</span>: <span class="n">30</span>
-    }
+    },
+    { <span class="k">"id"</span>: <span class="s">"classroom"</span>, <span class="k">"name"</span>: <span class="s">"Salle de classe"</span>, <span class="k">"temperatureC"</span>: <span class="n">27</span>, <span class="k">"outsideTemperatureC"</span>: <span class="n">30</span> }
   ],
   <span class="k">"groupAddresses"</span>: [
     { <span class="k">"address"</span>: <span class="s">"3/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Commande chauffage du bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"5.001"</span> },
@@ -351,10 +415,11 @@
       <span class="k">"dpt"</span>: <span class="s">"5.001"</span>
     },
     {
-      <span class="k">"address"</span>: <span class="s">"3/1/0"</span>,
-      <span class="k">"name"</span>: <span class="s">"Chauffage / refroidissement de la salle de réunion"</span>,
-      <span class="k">"dpt"</span>: <span class="s">"1.100"</span>
+      <span class="k">"address"</span>: <span class="s">"3/0/5"</span>,
+      <span class="k">"name"</span>: <span class="s">"Commande chauffage/refroidissement de la salle de classe"</span>,
+      <span class="k">"dpt"</span>: <span class="s">"5.001"</span>
     },
+    { <span class="k">"address"</span>: <span class="s">"3/1/0"</span>, <span class="k">"name"</span>: <span class="s">"Saison : chauffage / refroidissement"</span>, <span class="k">"dpt"</span>: <span class="s">"1.100"</span> },
     { <span class="k">"address"</span>: <span class="s">"3/4/1"</span>, <span class="k">"name"</span>: <span class="s">"Température du bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"3/4/2"</span>, <span class="k">"name"</span>: <span class="s">"Consigne en cours du bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> },
     { <span class="k">"address"</span>: <span class="s">"3/4/3"</span>, <span class="k">"name"</span>: <span class="s">"État chauffage / refroidissement du bureau"</span>, <span class="k">"dpt"</span>: <span class="s">"1.100"</span> },
@@ -365,7 +430,8 @@
       <span class="k">"address"</span>: <span class="s">"3/4/7"</span>,
       <span class="k">"name"</span>: <span class="s">"État chauffage / refroidissement de la salle de réunion"</span>,
       <span class="k">"dpt"</span>: <span class="s">"1.100"</span>
-    }
+    },
+    { <span class="k">"address"</span>: <span class="s">"3/4/8"</span>, <span class="k">"name"</span>: <span class="s">"Température de la salle de classe"</span>, <span class="k">"dpt"</span>: <span class="s">"9.001"</span> }
   ],
   <span class="k">"devices"</span>: [
     {
@@ -496,6 +562,40 @@
       ]
     },
     {
+      <span class="k">"id"</span>: <span class="s">"classThermostat"</span>,
+      <span class="k">"name"</span>: <span class="s">"Thermostat de la salle de classe"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.4"</span>,
+      <span class="k">"kind"</span>: <span class="s">"thermostat"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"roomThermostat/v1"</span>,
+      <span class="k">"room"</span>: <span class="s">"classroom"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"temp"</span>,
+          <span class="k">"name"</span>: <span class="s">"Température mesurée"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/4/8"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"9.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"actualTemp"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"hc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Chauffage / refroidissement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.100"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatCool"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"ctl"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commande chauffage/refroidissement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"controlValue"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ]
+    },
+    {
       <span class="k">"id"</span>: <span class="s">"valveActuator"</span>,
       <span class="k">"name"</span>: <span class="s">"Actionneur de chauffage"</span>,
       <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
@@ -546,6 +646,24 @@
           <span class="k">"port"</span>: <span class="s">"coolingValue"</span>,
           <span class="k">"channel"</span>: <span class="s">"h3"</span>,
           <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"h4"</span>,
+          <span class="k">"name"</span>: <span class="s">"H4 grandeur de chauffage/refroidissement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/5"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"5.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"hc4"</span>,
+          <span class="k">"name"</span>: <span class="s">"H4 chauffage / refroidissement"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/1/0"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.100"</span>,
+          <span class="k">"port"</span>: <span class="s">"heatCool"</span>,
+          <span class="k">"channel"</span>: <span class="s">"h4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
         }
       ],
       <span class="k">"channels"</span>: [
@@ -569,6 +687,12 @@
             <span class="k">"room"</span>: <span class="s">"meetingRoom"</span>,
             <span class="k">"parameters"</span>: { <span class="k">"coil"</span>: <span class="s">"cooling"</span> }
           }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"h4"</span>,
+          <span class="k">"label"</span>: <span class="s">"H4 ventilo-convecteur de la salle de classe"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"valveMode"</span>: <span class="s">"changeover"</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"fanCoil"</span>, <span class="k">"room"</span>: <span class="s">"classroom"</span> }
         }
       ]
     }

@@ -21,6 +21,11 @@ export const thermostatLayout: ParameterLayout = {
         { groupObject: "setpointStatus" },
         { groupObject: "hvacMode" },
         { groupObject: "hvacModeStatus" },
+        { groupObject: "forcedMode" },
+        { heading: "Mode objects (1 bit)" },
+        { groupObject: "comfortMode" },
+        { groupObject: "nightMode" },
+        { groupObject: "protectionMode" },
       ],
     },
     {
@@ -48,6 +53,8 @@ export const thermostatLayout: ParameterLayout = {
         { groupObject: "heatingSwitch" },
         { groupObject: "coolingValue" },
         { groupObject: "coolingSwitch" },
+        { groupObject: "controlValue" },
+        { groupObject: "controlSwitch" },
         { heading: "Heating and cooling" },
         { parameter: "changeover" },
         {

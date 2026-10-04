@@ -3,7 +3,8 @@ import { layout, segLength, segPos } from "../../src/knx/layout";
 import type { Geometry } from "../../src/knx/layout";
 import { TIMING, buildTopology } from "../../src/knx/network";
 import { animate } from "../../src/ui/animation";
-import { load } from "./helpers";
+import { createSimulator } from "../../src/core";
+import { load, raw } from "./helpers";
 
 describe("logical topology", () => {
   it("canonical order: upper connection, declared devices, lower connections", () => {
@@ -147,6 +148,17 @@ describe("full topology", () => {
       "LC2.2": "block:3→3",
       "EXT2.1": "rep:2→1",
     });
+    // Why each coupler decided: its filter table, or no filter at all for the repeater.
+    expect(
+      Object.fromEntries(
+        move.plan.couplers.map((c) => [c.couplerId, c.reason]),
+      ),
+    ).toMatchObject({
+      "LC1.1": "inTable",
+      AC1: "inTable",
+      "LC2.2": "notInTable",
+      "EXT2.1": "repeater",
+    });
     const rc = Object.fromEntries(
       move.plan.deliveries
         .filter((d) => d.objectIds.length)
@@ -156,6 +168,37 @@ describe("full topology", () => {
     // One transmission produces one monitor row, even with multiple fronts.
     expect(sim.history.filter((t) => t.ga === "2/1/1")).toHaveLength(1);
     expect(move.plan.fronts.length).toBeGreaterThan(4);
+  });
+
+  it("a voltage cut after the emission changes the decision and its reason", () => {
+    const sim = load("full-topology.json");
+    const move = sim.press("p1", 1, "long")!; // 2/1/1, through LC2.1
+    const lc = move.plan.couplers.find((c) => c.couplerId === "LC2.1")!;
+    expect([lc.pass, lc.reason]).toEqual([true, "inTable"]);
+    sim.setBusVoltage("L2.1", false); // before the telegram reaches LC2.1
+    sim.advance(lc.tDecisionMs + 2000);
+    expect([lc.pass, lc.noVoltage, lc.reason]).toEqual([
+      false,
+      true,
+      "noVoltage",
+    ]);
+  });
+
+  it("a coupler set to route or block every group telegram says so", () => {
+    const doc = raw("full-topology.json") as Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
+    doc.topology = {
+      ...doc.topology,
+      couplers: [
+        { address: "2.2.0", down: "route" },
+        { address: "2.1.0", down: "block" },
+      ],
+    };
+    const sim = createSimulator(doc);
+    const move = sim.press("p1", 1, "long")!;
+    const by = (id: string) =>
+      move.plan.couplers.find((c) => c.couplerId === id)!;
+    expect(by("LC2.2")).toMatchObject({ reason: "routeAll", pass: true });
+    expect(by("LC2.1")).toMatchObject({ reason: "blockAll", pass: false });
   });
 
   it("a mode change affects only subsequent transmissions", () => {

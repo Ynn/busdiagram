@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "2c76b18dd891"
+sourceHash: "6f6557c29227"
 order: 7
 ---
 # Designer
@@ -98,6 +98,8 @@ L'aperçu peut afficher une barre d'outils complète ou compacte, masquer le mon
 | Fichier JSON | Enregistrer le scénario pour la gestion de versions ou le charger avec `src`. |
 | Lien de lecture | Mettre un scénario compressé dans le fragment d'une URL pour une iframe ou une autre visionneuse web. Voir [Visionneuse](viewer.html). |
 | Bibliothèque | Télécharger `bus-diagram.js` pour l'héberger à côté de votre page. |
+
+Pour préparer une variante d'un exemple, comme une adresse changée, un indicateur retiré ou un coupleur réglé pour bloquer, partez de cet exemple dans **Partir d'un modèle**, modifiez-le, puis partagez-le en lien de visionneuse ou en page autonome. Chaque copie s'exécute avec son propre état.
 
 ## Extensions
 

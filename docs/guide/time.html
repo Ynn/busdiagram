@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Time and step mode · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/time.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -92,6 +92,9 @@
 <p>The clock follows simulated time: it stops while the simulation is paused, and the speed controls apply to it as to everything else. With a clock, simulated time keeps running even when the bus is idle.</p>
 <p>The diagram shows the date and time in a bar at the top left of the diagram area, above the drawing. <strong>Set time</strong> opens a field to move the clock to another date and time, for example just before a programmed switching point; devices then send the time again and reschedule their programs. From JavaScript, <code>diagram.setClock(&quot;2026-10-01T06:59:30&quot;)</code> does the same.</p>
 <h2 id="step-mode"><a class="anchor" href="#step-mode">#</a>Step mode</h2><p>Step mode stops at explanatory events, including telegram transmission, a coupler&#39;s route/filter decision, an object&#39;s acceptance or rejection due to W, output changes, and timer expiry. Press <strong>Next</strong> to continue to the following event.</p>
+<h2 id="timeline"><a class="anchor" href="#timeline">#</a>Timeline</h2><p>The <code>timeline</code> option shows, below the diagram, up to four traces on the axis of simulated time: object values and on/off states as steps, room temperatures, openings, and levels as curves, and the telegrams of a traced object as marks. Every event is recorded at its own time, whatever the speed, also in step mode. It helps to read what depends on time: a staircase timer, PWM, a control loop, a priority. Name the first traces in the option, then add or remove them from its menu:</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">src</span>=<span class="s">"room-heating.json"</span>
+  <span class="a">timeline</span>=<span class="s">"livingThermostat/temp livingThermostat/val heatingActuator:h1 @livingRoom"</span>&gt;&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><p><code>device/object</code> traces an object, <code>device:channel</code> the equipment of an output, and <code>@room</code> the temperature of a room. See the <a href="../examples/hvac.html">heating example</a>.</p>
 <h2 id="determinism"><a class="anchor" href="#determinism">#</a>Determinism</h2><p>Time advances in whole milliseconds through an event queue. Advancing by 20 seconds in one call or in smaller steps gives the same final state for the same inputs.</p>
 
 <nav class="pager">
@@ -99,7 +102,7 @@
 <a href="../guide/errors.html">Diagnosing an error →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#observable-timing">Observable timing</a></li><li><a href="#speed-and-pause">Speed and pause</a></li><li><a href="#simulated-clock">Simulated clock</a></li><li><a href="#step-mode">Step mode</a></li><li><a href="#determinism">Determinism</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#observable-timing">Observable timing</a></li><li><a href="#speed-and-pause">Speed and pause</a></li><li><a href="#simulated-clock">Simulated clock</a></li><li><a href="#step-mode">Step mode</a></li><li><a href="#timeline">Timeline</a></li><li><a href="#determinism">Determinism</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.4.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

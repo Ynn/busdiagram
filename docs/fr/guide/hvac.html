@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chauffage · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/hvac.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -105,7 +105,7 @@
 </tbody></table>
 </div><p>Une valeur DPT 9.001 utilise deux octets de données après l&#39;APCI. Tant qu&#39;un objet n&#39;a pas reçu ou mesuré de valeur, un objet 9.xxx peut rester inconnu.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Thermostat d&#39;ambiance</h2><p><code>roomThermostat/v1</code> mesure une pièce et commande le chauffage ou le refroidissement. Son afficheur montre la température mesurée, le mode, la consigne et la demande. Des touches et des entrées numériques facultatives agissent sur les objets de présence et de consigne.</p>
-<p>Le thermostat comprend un gestionnaire de consignes avec une politique fixe. Cette politique est un choix du modèle, pas une règle du DPT 20.102. Le mode est choisi par priorité : une fenêtre ouverte demande la protection du bâtiment ; une protection du bâtiment présélectionnée par <code>hvacMode</code> (absence, vacances) reste en vigueur ; sinon la présence demande le confort ; sinon la présélection <code>hvacMode</code> s&#39;applique. Le mode auto utilise le confort dans ce modèle. La consigne de confort en chauffage vaut par défaut <code>comfortC: 21</code>. Les modes veille et économie l&#39;abaissent de <code>standbyShiftK</code> et <code>economyShiftK</code> ; la protection hors gel vaut par défaut <code>frostProtectionC: 7</code>. Le refroidissement utilise <code>deadZoneK</code> entre les consignes de chauffage et de refroidissement, et une consigne de protection contre les fortes chaleurs. Voir <a href="#heating-and-cooling">chauffage et refroidissement</a> pour la façon dont le thermostat choisit entre les deux.</p>
+<p>Le thermostat comprend un gestionnaire de consignes avec une politique fixe. Cette politique est un choix du modèle, pas une règle du DPT 20.102. Le mode est choisi par priorité : un mode forcé (<code>forcedMode</code>, 1 à 4) l&#39;emporte sur tout, un contact de fenêtre défaillant compris, jusqu&#39;à ce qu&#39;il reçoive 0 (auto) ; une fenêtre ouverte demande la protection du bâtiment ; une protection du bâtiment présélectionnée (absence, vacances) reste en vigueur ; sinon la présence demande le confort ; sinon la présélection s&#39;applique. La présélection vient de l&#39;objet <code>hvacMode</code> sur un octet ou des objets sur un bit <code>comfortMode</code>, <code>nightMode</code> et <code>protectionMode</code>, selon ceux qui ont reçu un télégramme en dernier : parmi les objets sur un bit, la protection l&#39;emporte sur le confort, le confort sur la nuit, et la veille s&#39;applique quand tous valent 0, comme sur les régulateurs d&#39;ambiance qui les proposent. Avant tout télégramme, les objets sur un bit décident quand l&#39;un d&#39;eux démarre à 1, et la présélection sinon. Le mode auto utilise le confort dans ce modèle. La consigne de confort en chauffage vaut par défaut <code>comfortC: 21</code>. Les modes veille et économie l&#39;abaissent de <code>standbyShiftK</code> et <code>economyShiftK</code> ; la protection hors gel vaut par défaut <code>frostProtectionC: 7</code>. Le refroidissement utilise <code>deadZoneK</code> entre les consignes de chauffage et de refroidissement, et une consigne de protection contre les fortes chaleurs. Voir <a href="#heating-and-cooling">chauffage et refroidissement</a> pour la façon dont le thermostat choisit entre les deux.</p>
 <p>Pour la <strong>régulation PI</strong>, <code>controlType: &quot;pi&quot;</code> utilise <code>proportionalBandK</code> et <code>integralTimeMs</code>. Il envoie une valeur DPT 5.001 sur <code>heatingValue</code> ou <code>coolingValue</code> quand la variation atteint <code>valueSendDeltaPct</code> ; une sortie sur un bit <code>heatingSwitch</code> ou <code>coolingSwitch</code> utilise la MLI sur <code>pwmCycleMs</code>. Pour la <strong>régulation tout ou rien</strong>, <code>controlType: &quot;twoPoint&quot;</code> coupe une sortie sur un bit à la consigne et la réenclenche <code>hysteresisK</code> en dessous (au-dessus en refroidissement). Certains régulateurs d&#39;ambiance centrent plutôt l&#39;hystérésis sur la consigne : avec 21 °C et 2 K, marche à 20 °C et arrêt à 22 °C.</p>
 <div class="table"><table>
 <thead>
@@ -132,7 +132,7 @@
 <td><code>baseSetpoint</code></td>
 <td>9.001</td>
 <td>Réception</td>
-<td>Consigne de base de confort.</td>
+<td>Consigne de base de confort. Avec l&#39;indicateur T, une valeur saisie sur l&#39;appareil est aussi envoyée : deux thermostats qui partagent cette adresse gardent la même base, chacun appliquant ses propres abaissements. Ne reliez pas <code>setpointStatus</code> à la place : il porte la consigne actuelle, abaissement compris.</td>
 </tr>
 <tr>
 <td><code>setpointShift</code></td>
@@ -151,6 +151,18 @@
 <td>20.102</td>
 <td>Réception / émission</td>
 <td>Mode demandé et mode actuel.</td>
+</tr>
+<tr>
+<td><code>comfortMode</code>, <code>nightMode</code>, <code>protectionMode</code></td>
+<td>1.001</td>
+<td>Réception</td>
+<td>Présélection du mode par objets sur un bit (nuit : 1 économie, 0 veille).</td>
+</tr>
+<tr>
+<td><code>forcedMode</code></td>
+<td>20.102</td>
+<td>Réception</td>
+<td>Mode forcé, au-dessus de toute autre entrée ; 0 (auto) le termine.</td>
 </tr>
 <tr>
 <td><code>presence</code></td>
@@ -239,10 +251,11 @@
 <tr>
 <td><code>&quot;changeover&quot;</code></td>
 <td>Une seule vanne pour les deux, sur un système 2 tubes.</td>
-<td>Les deux : la vanne suit celle qui n&#39;est pas nulle.</td>
+<td>Les deux : la vanne suit celle qui n&#39;est pas nulle. Ou une grandeur commune et l&#39;objet <code>heatCool</code> de la sortie.</td>
 </tr>
 </tbody></table>
-</div><p>Liez les grandeurs de chauffage et de refroidissement du thermostat à deux objets distincts d&#39;une sortie à changement de mode, pas à une seule adresse de groupe : lors d&#39;un basculement, le 0 envoyé sur l&#39;autre grandeur fermerait sinon la vanne. Un avertissement de configuration apparaît dans deux cas :</p>
+</div><p>Liez les grandeurs de chauffage et de refroidissement du thermostat à deux objets distincts d&#39;une sortie à changement de mode, pas à une seule adresse de groupe : lors d&#39;un basculement, le 0 envoyé sur l&#39;autre grandeur fermerait sinon la vanne.</p>
+<p>Un système 2 tubes peut aussi utiliser une seule grandeur de commande, comme le proposent de nombreux régulateurs et actionneurs. Le thermostat envoie la valeur de son mode actif sur <code>controlValue</code> (ou <code>controlSwitch</code> sur un bit), et <code>heatCoolStatus</code> indique de quel mode il s&#39;agit. Sur la sortie à changement de mode de l&#39;actionneur, liez cette valeur à <code>value</code> et l&#39;information chauffage/refroidissement à <code>heatCool</code> (DPT 1.100). L&#39;eau vient alors de cet objet, et la dernière grandeur reçue s&#39;applique : les mêmes 60 % chauffent avec de l&#39;eau chaude et refroidissent avec de l&#39;eau froide. Tant que l&#39;objet n&#39;a pas reçu de télégramme, la sortie prend la valeur avec laquelle il démarre, ou l&#39;eau chaude s&#39;il n&#39;en a pas ; lisez ou envoyez la saison au démarrage pour que la vanne reçoive la bonne eau. Dans un bâtiment, cet objet vient de la production qui fournit l&#39;eau, ou d&#39;un basculement central qui atteint aussi les thermostats. Un avertissement de configuration apparaît dans deux cas :</p>
 <ul>
 <li>une grandeur est liée à une sortie qui l&#39;ignore ;</li>
 <li>l&#39;émetteur ne convient pas à la vanne.</li>
@@ -755,7 +768,7 @@
   ],
   <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
 }</code></pre>
-</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Limites du modèle</h2><p>Le modèle thermique utilise une constante de temps par pièce. Il ne simule pas les échanges de chaleur entre pièces, les apports solaires, l&#39;inertie des équipements, un circuit d&#39;eau ou une chaudière, les températures d&#39;eau, l&#39;humidité, la condensation ou la protection au point de rosée, ni BACnet. Une charge <code>heatPump</code> chauffe ou refroidit sa pièce tant que sa sortie la valide, après la durée minimale d&#39;arrêt de son compresseur (<code>minOffMs</code>) ; son coefficient de performance (<code>cop</code>) donne la chaleur affichée, et le modèle de la pièce utilise <code>powerK</code>. Voir l&#39;<a href="../examples/heat-pump.html">exemple de pompe à chaleur</a>. Le thermostat n&#39;a pas de programme horaire interne : les horaires viennent du bus, par exemple d&#39;un <a href="devices.html#weekly-time-switch-timeswitch-v1">programmateur hebdomadaire</a> qui envoie des modes CVC. L&#39;humidité et le CO₂ sont des valeurs saisies sur un <a href="devices.html#air-quality-sensor-airqualitysensor-v1">capteur de qualité de l&#39;air</a> ; la ventilation commande une charge <code>fan</code> mais ne change ni la température de la pièce ni la qualité de l&#39;air. Dans un système 2 tubes, l&#39;eau d&#39;un ventilo-convecteur à changement de mode suit la grandeur que sa vanne applique, comme si la production fournissait toujours l&#39;eau que la pièce demande. Un ventilo-convecteur fait tourner son ventilateur à une seule vitesse, sans les objets de vitesse d&#39;un régulateur de ventilo-convecteur. Le mode de fonctionnement d&#39;une pompe à chaleur est un paramètre : le bus la met en marche et l&#39;arrête, mais ne la fait pas basculer. Le mode auto choisit le confort ; un télégramme du bus peut changer la présélection de mode. Le mode de fonctionnement se choisit seulement avec un objet DPT 20.102 : l&#39;objet de mode forcé séparé et les objets de mode sur un bit (confort, nuit, hors gel) proposés par de nombreux régulateurs d&#39;ambiance ne sont pas modélisés.</p>
+</figure><h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Limites du modèle</h2><p>Le modèle thermique utilise une constante de temps par pièce. Il ne simule pas les échanges de chaleur entre pièces, les apports solaires, l&#39;inertie des équipements, un circuit d&#39;eau ou une chaudière, les températures d&#39;eau, l&#39;humidité, la condensation ou la protection au point de rosée, ni BACnet. Une charge <code>heatPump</code> chauffe ou refroidit sa pièce tant que sa sortie la valide, après la durée minimale d&#39;arrêt de son compresseur (<code>minOffMs</code>) ; son coefficient de performance (<code>cop</code>) donne la chaleur affichée, et le modèle de la pièce utilise <code>powerK</code>. Voir l&#39;<a href="../examples/heat-pump.html">exemple de pompe à chaleur</a>. Le thermostat n&#39;a pas de programme horaire interne : les horaires viennent du bus, par exemple d&#39;un <a href="devices.html#weekly-time-switch-timeswitch-v1">programmateur hebdomadaire</a> qui envoie des modes CVC. L&#39;humidité et le CO₂ sont des valeurs saisies sur un <a href="devices.html#air-quality-sensor-airqualitysensor-v1">capteur de qualité de l&#39;air</a> ; la ventilation commande une charge <code>fan</code> mais ne change ni la température de la pièce ni la qualité de l&#39;air. Dans un système 2 tubes, l&#39;eau d&#39;un ventilo-convecteur à changement de mode suit la grandeur que sa vanne applique, comme si la production fournissait toujours l&#39;eau que la pièce demande. Un ventilo-convecteur fait tourner son ventilateur à une seule vitesse, sans les objets de vitesse d&#39;un régulateur de ventilo-convecteur. Le mode de fonctionnement d&#39;une pompe à chaleur est un paramètre : le bus la met en marche et l&#39;arrête, mais ne la fait pas basculer. Le mode auto choisit le confort ; un télégramme du bus peut changer la présélection de mode. Le mode de fonctionnement se choisit avec la présélection DPT 20.102, les objets de mode sur un bit ou le mode forcé ; la priorité entre eux est fixe (pas de paramètre pour choisir un autre ordre).</p>
 
 <nav class="pager">
 <a href="../../fr/guide/dali.html">← Variation et DALI</a>

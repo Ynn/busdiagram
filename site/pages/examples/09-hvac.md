@@ -20,6 +20,9 @@ Try these interactions:
 - Set the living-room thermostat to 22.5 °C and watch its current setpoint on 3/4/2.
 - Lower the outside temperature and observe the valve opening further to maintain the setpoint.
 
+The timeline below the diagram traces the measured temperature, the current setpoint, the control value with its telegrams, and the opening of the valve, which follows the control value by PWM. Each room is a simplified thermal model: the `powerK` of a radiator is the temperature difference it can hold above the outside, not a power in watts.
+
 ```knx
 scenario: room-heating
+attrs: timeline="livingThermostat/temp livingThermostat/sp livingThermostat/val heatingActuator:h1"
 ```

@@ -13,12 +13,19 @@ All notable changes to BusDiagram are documented in this file. The format follow
   - **Configuration warnings:** `config-valve-mode` for a control value that an output ignores, `config-emitter` for an emitter that does not suit its valve.
   - **New example:** “Heating and cooling”.
 - Extensions: the `switch` output command can carry the water of a valve (`medium`: heating or cooling).
+- Room thermostat, operating modes: 1-bit mode objects (`comfortMode`, `nightMode`, `protectionMode`) besides the 1-byte preselection, the one received last deciding (before any telegram, the 1-bit objects when one of them starts at 1); a forced mode (`forcedMode`, DPT 20.102) over every other input, the window included, until 0 (auto).
+- Room thermostat: common control value of the active mode (`controlValue`, `controlSwitch`) for a 2-pipe system. Heating actuator: heating/cooling object on a change-over output (`heatCool`), which gives the water while the last control value received applies (until a telegram, the value it starts with, otherwise hot water); example “Heating and cooling” with a third room.
+- Timeline (`timeline` option, hidden by default): up to four traces on the axis of simulated time, named `device/object`, `device:channel`, or `@room`. Object values and on/off states are drawn as steps, room temperatures, openings, and levels as curves, and the telegrams of a traced object as marks; every event is recorded at its own time, also in step mode. A menu adds or removes traces. The heating example uses it.
+- Diagram: a click on a group address in a device (any of its addresses, also with the keyboard), or on the destination of the telegram card, outlines every object linked to it. A badge tells whether the object sends on it (C, T, sending address) or is written by it (C, W); Escape clears it.
+- Telegram details: each coupler crossed shows why it forwarded or filtered the telegram (filter table, routing mode, routing counter, bus voltage).
 - Switch actuator: release time of forcing (`forcedReleaseMs`). The forcing ends by itself that long after its last forcing telegram, as if a release telegram had arrived.
 
 ### Changed
 
+- Read on initialisation (flag I): the objects also read their value when the simulation starts, as when a device starts again after a bus voltage failure.
 - Radiator: it only heats; its `emitter` parameter is removed. Cooling uses a `fanCoil` load.
 - Room thermostat: the dead zone between the heating and cooling setpoints (`deadZoneK`) is no longer an expert parameter.
+- Telegram card: the **Details** button stands out from the octets (coloured, with a magnifier icon).
 - Presence detector, slave: it has its own hold time (`holdMs`), restarted by each detection. It sends 1 at the first detection, then every `slaveCyclicMs` while its hold time runs, so the master switches off one hold time after the last 1. It used to send 1 once per detection.
 
 ### Fixed

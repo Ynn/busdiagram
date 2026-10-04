@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Couplers and repeaters · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/couplers.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -101,7 +101,7 @@
 <pre class="code"><code><span class="k">"topology"</span>: {
   <span class="k">"couplers"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1.0"</span>, <span class="k">"up"</span>: <span class="s">"route"</span> }]
 }</code></pre><p>Every telegram starts with a routing counter of 6, the usual default value (each device has it as a parameter of its Network Layer). Each coupler, line repeater, or router that forwards it decrements the counter; a telegram that arrives with a counter of 0 is not forwarded. The current routing rules give 7 no special meaning: it is decremented like the other values. A TP1 bridge, another kind of line extension, forwards without changing the counter; it is not modeled.</p>
-<p>In the diagram, <strong>Filter tables</strong> in the toolbar shows the table of each coupler, and the telegram details list every coupler crossed with its decision and routing counter.</p>
+<p>In the diagram, <strong>Filter tables</strong> in the toolbar shows the table of each coupler, and the telegram details list every coupler crossed with its decision, its routing counter, and the reason for the decision: the address is or is not in the filter table, the coupler forwards or blocks every group telegram, the routing counter is 0, or the other side has no bus voltage.</p>
 <h2 id="line-repeaters-and-segment-couplers"><a class="anchor" href="#line-repeaters-and-segment-couplers">#</a>Line repeaters and segment couplers</h2><p>A line can be extended by a second segment, connected to its main segment:</p>
 <pre class="code"><code><span class="k">"lines"</span>: [
   { <span class="k">"address"</span>: <span class="s">"2.1"</span>, <span class="k">"extension"</span>: { <span class="k">"address"</span>: <span class="s">"2.1.64"</span>, <span class="k">"mode"</span>: <span class="s">"repeater"</span> } }

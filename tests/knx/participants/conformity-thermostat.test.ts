@@ -190,3 +190,117 @@ describe("room thermostat: presence button", () => {
     expect(value(sim, "ms")).toBe(3);
   });
 });
+
+describe("room thermostat: mode objects", () => {
+  // Default setpoints of the example: comfort 21, standby 19, economy 17, protection 7.
+  const bits = (edit: (doc: Doc) => void = () => {}) =>
+    thermostat(
+      {},
+      [
+        ["mc", "comfortMode", "3/6/1", "1.001", true],
+        ["mn", "nightMode", "3/6/2", "1.001", true],
+        ["mp", "protectionMode", "3/6/3", "1.001", true],
+        ["fm", "forcedMode", "3/6/4", "20.102", true],
+      ],
+      edit,
+    );
+
+  it("1-bit objects: protection over comfort over night; standby when all are 0", () => {
+    const sim = bits();
+    write(sim, "3/6/1", 1);
+    expect(value(sim, "ms")).toBe(1);
+    write(sim, "3/6/2", 1); // comfort and night: comfort
+    expect(value(sim, "ms")).toBe(1);
+    write(sim, "3/6/1", 0); // night alone
+    expect(value(sim, "ms")).toBe(3);
+    expect(value(sim, "sp")).toBe(17);
+    write(sim, "3/6/2", 0); // all 0: standby
+    expect(value(sim, "ms")).toBe(2);
+    expect(value(sim, "sp")).toBe(19);
+    write(sim, "3/6/1", 1);
+    write(sim, "3/6/3", 1); // protection and comfort: protection
+    expect(value(sim, "ms")).toBe(4);
+    expect(value(sim, "sp")).toBe(7);
+  });
+
+  it("the objects received last decide: the 1-byte preselection or the 1-bit objects", () => {
+    const sim = bits();
+    write(sim, "3/6/2", 1); // night by 1 bit
+    expect(value(sim, "ms")).toBe(3);
+    write(sim, "3/2/0", 2); // standby by 1 byte
+    expect(value(sim, "ms")).toBe(2);
+    write(sim, "3/6/1", 1); // comfort by 1 bit; night still 1
+    expect(value(sim, "ms")).toBe(1);
+  });
+
+  it("at start, a 1-bit object at 1 selects the mode; otherwise the 1-byte preselection", () => {
+    const start = (values: Record<string, number>) =>
+      bits((doc) => {
+        for (const o of device(doc, T).objects as Record<string, unknown>[])
+          if (typeof o.id === "string" && o.id in values)
+            o.value = values[o.id];
+      });
+    let sim = start({ mn: 1 });
+    expect(value(sim, "ms")).toBe(3);
+    expect(value(sim, "sp")).toBe(17);
+    sim = start({ mp: 1, mc: 1 }); // protection over comfort
+    expect(value(sim, "ms")).toBe(4);
+    sim = start({ mn: 0 }); // all 0 at start: the preselection, comfort
+    expect(value(sim, "ms")).toBe(1);
+    sim = start({ mn: 1 });
+    write(sim, "3/6/2", 0); // released: standby on the 1-bit objects
+    expect(value(sim, "ms")).toBe(2);
+    sim.reset();
+    expect(value(sim, "ms")).toBe(3); // the start values again
+    sim = start({ mn: 1, ms0: 0 });
+    write(sim, "3/2/0", 1); // a 1-byte telegram then decides
+    expect(value(sim, "ms")).toBe(1);
+  });
+
+  it("forced mode: over everything, the window included; 0 (auto) ends it", () => {
+    const sim = bits();
+    write(sim, "3/6/4", 3); // economy forced
+    expect(value(sim, "ms")).toBe(3);
+    write(sim, "3/2/1", 1); // presence would give comfort
+    expect(value(sim, "ms")).toBe(3);
+    sim.roomAction("livingRoom", "window", 1); // the window contact sends 1
+    sim.advance(3000);
+    expect(value(sim, "ms")).toBe(3);
+    write(sim, "3/6/4", 0); // auto: the window applies again
+    expect(value(sim, "ms")).toBe(4);
+    sim.roomAction("livingRoom", "window", 0);
+    sim.advance(3000);
+    expect(value(sim, "ms")).toBe(1); // presence
+  });
+});
+
+describe("room thermostat: two thermostats with one base setpoint", () => {
+  it("the base setpoint object, shared on one address, carries the base, not the current setpoint", () => {
+    const sim = thermostat({}, [], (doc) => {
+      // The living-room base object also transmits (W and T, as on room controllers);
+      // the bedroom thermostat listens to the same address.
+      device(doc, T).objects.find((o) => o.id === "base")!.flags = {
+        W: true,
+        T: true,
+      };
+      device(doc, "bedroomThermostat").objects.push({
+        id: "base",
+        name: "Base setpoint",
+        ga: "3/1/1",
+        dpt: "9.001",
+        port: "baseSetpoint",
+        flags: { W: true, T: false },
+      });
+    });
+    // Central economy mode for both rooms, then a new base entered in the living room.
+    write(sim, "3/2/0", 3);
+    sim.input(T, "setpoint", "value", 22);
+    sim.advance(3000);
+    // Each thermostat applies its own economy setback to the shared base.
+    expect(value(sim, "sp")).toBe(18);
+    expect(sim.deviceState("bedroomThermostat")).toMatchObject({
+      baseC: 22,
+      setpointC: 18,
+    });
+  });
+});

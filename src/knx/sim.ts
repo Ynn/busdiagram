@@ -240,6 +240,7 @@ export class Simulation {
   private cascadeAt = -1;
   private cascadeCount = 0;
   private listeners = new Set<(e: JournalEvent) => void>();
+  private stepListeners = new Set<() => void>();
   private readonly maxSameTime: number;
   private readonly historyLimit: number;
   private readonly journalLimit: number;
@@ -320,6 +321,11 @@ export class Simulation {
       this.hook(rt, "onInit", () => rt.def.onInit?.(rt.ctx)),
     );
     this.initializing = false;
+    // Read on initialisation: each device starts here, as after a restart (KNX Standard
+    // 03_05_01 §4.18.6.2.4.1.3, conformance test 08_03_07 §1.4.1.6).
+    this.devices.forEach((rt) => {
+      if (!rt.down) this.readOnInit(rt);
+    });
     if (this.tickers.length) this.queue.push(TICK_MS, { type: "tick" });
   }
 
@@ -362,6 +368,16 @@ export class Simulation {
   subscribe(fn: (e: JournalEvent) => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /**
+   * Called after each event of the queue is handled, at its simulated time: the state then
+   * includes the physics up to that time and the effects of the event (for a view that
+   * follows values over time, such as the timeline).
+   */
+  onStep(fn: () => void): () => void {
+    this.stepListeners.add(fn);
+    return () => this.stepListeners.delete(fn);
   }
 
   // ── Time ────────────────────────────────────────────────────────────────
@@ -456,6 +472,13 @@ export class Simulation {
     this.queue.pop();
     const before = this.nextEventId;
     this.process(next.item);
+    this.stepListeners.forEach((fn) => {
+      try {
+        fn();
+      } catch {
+        // A failing listener must not stop the simulation.
+      }
+    });
     if (!stopOnExplain) return null;
     const events = this.journal.filter(
       (e) => e.id >= before && EXPLANATORY.has(e.kind),
@@ -573,6 +596,7 @@ export class Simulation {
         ) {
           c.pass = false;
           c.noVoltage = true;
+          c.reason = "noVoltage";
           c.tag = "block";
           c.rcAfter = c.rcBefore;
           a.tel.plan.cut.push(c.couplerId);

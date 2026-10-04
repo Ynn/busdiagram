@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model and limits · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/limits.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -54,11 +54,12 @@
 <p class="crumb">Guide</p>
 
 <h1 id="model-and-limits"><a class="anchor" href="#model-and-limits">#</a>Model and limits</h1><p>BusDiagram is a diagram design tool; its simulation layer exists to illustrate the diagrams and makes the following choices. They describe the software model and should not be taken as a complete account of a physical KNX installation.</p>
+<p>What runs and what is only shown: the functions of the devices, their objects and flags, the group services, and the routing through couplers run in the simulation; the TP frame and its signal are computed for display; the electrical bus, programming, and the other media are not simulated.</p>
 <ul>
 <li><strong>Timing:</strong> propagation is slowed for inspection; it does not reproduce real twisted-pair bus timing.</li>
 <li><strong>Group services:</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code>, and <code>GroupValueResponse</code> are modeled. Individual-address programming telegrams are outside the model.</li>
 <li><strong>TP exchange:</strong> the frame view shows a group data frame, with the priority of the sending object (low by default; the KNX data link layer gives normal as the default for short frames, and the priority is a setting of each object). Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model; the telegram details draw the acknowledgement for illustration, and their TP1 signal is schematic, not an electrical simulation.</li>
-<li><strong>Object flags:</strong> C, R, W, T, U, and I are modeled. Read on initialisation (I) runs when a device starts again after a bus voltage failure, not at the start of the simulation. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
+<li><strong>Object flags:</strong> C, R, W, T, U, and I are modeled. Read on initialisation (I) runs when a device starts: at the start of the simulation and after a bus voltage failure. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
 <li><strong>Internal associations:</strong> when a device sends, its other objects on the same group address take the value, as the KNX Application Layer specifies; their W flag (U for a response) decides only whether the device reacts.</li>
 <li><strong>Power supplies:</strong> drawn on lines and segments that declare one; a TP segment without one gets the warning <code>config-no-power-supply</code>. Main lines and the backbone are not given one, and the bus load (consumption against rated current) and voltage drop are not computed.</li>
 <li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
@@ -76,7 +77,7 @@
 <li><strong>USB interface panel:</strong> group reads and writes are modeled, without programming or downloads.</li>
 <li><strong>DALI:</strong> group and broadcast control are modeled, without DALI commissioning, color control, or emergency lighting. See <a href="dali.html#model-limits">DALI</a>.</li>
 <li><strong>Configuration warnings:</strong> parameters that compensate a property of the load (valve type, motor wiring, contact type) are compared with that property; a mismatch is simulated and shown as a warning. See the <a href="../reference/errors.html#configuration-warnings">warning codes</a>.</li>
-<li><strong>Heating:</strong> each room uses a simplified thermal time constant, and heating or cooling power is assumed to be available. Operating modes use a DPT 20.102 object; forced-mode and one-bit mode objects are not modeled. The thermostat has no built-in schedule; a time switch can send mode telegrams. A fan coil has a heating, cooling, or change-over coil and a fan at one speed: fan speed control, water temperatures, dew point, and air-conditioning gateways are not modeled. See <a href="hvac.html#model-limits">HVAC</a>.</li>
+<li><strong>Heating:</strong> each room uses a simplified thermal time constant, and heating or cooling power is assumed to be available. Operating modes use a DPT 20.102 preselection, 1-bit mode objects, or a forced mode, in a fixed order of priority. The thermostat has no built-in schedule; a time switch can send mode telegrams. A fan coil has a heating, cooling, or change-over coil and a fan at one speed: fan speed control, water temperatures, dew point, and air-conditioning gateways are not modeled. See <a href="hvac.html#model-limits">HVAC</a>.</li>
 <li><strong>Metering:</strong> power comes from the rated power of each load, without measurement tolerance or power factor; energy is counted with a time scale (<code>energyTimeScale</code>).</li>
 <li><strong>Air quality:</strong> measurements are entered by the reader; there is no air or ventilation model.</li>
 <li><strong>Venetian blinds:</strong> slats turn before each movement; slat angle restoration after a movement and slat limit positions are not modeled.</li>

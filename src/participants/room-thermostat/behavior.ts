@@ -25,6 +25,12 @@ export interface ThermostatState {
   baseC: number;
   /** Preselected mode (hvacMode object or local key). */
   preset: number;
+  /** One-bit mode objects: comfort, night (otherwise standby), frost/heat protection. */
+  modeBits: { comfort: boolean; night: boolean; protection: boolean };
+  /** The mode objects received last: the 1-byte preselection or the 1-bit objects. */
+  modeChannel: "byte" | "bits";
+  /** Forced (override) mode, 1–4; 0 = automatic, no override. */
+  forced: number;
   presence: boolean;
   window: boolean;
   /** Heating mode when true; cooling mode otherwise. */
@@ -75,16 +81,37 @@ function publish(ctx: BehaviorContext<unknown>, port: string, value: number) {
 }
 
 /**
- * Mode priority in this simulator: open window > protection preselected > presence >
- * preselection. As on most room controllers, presence extends comfort from the
+ * Mode priority in this simulator: forced mode > open window > protection preselected >
+ * presence > preselection (the forced mode overrides everything, for example a faulty
+ * window contact, as the override mode of common room controllers). As on most room controllers, presence extends comfort from the
  * standby or economy mode, but does not end a building protection mode (absence,
  * holidays) set centrally.
  */
 function modeOf(st: ThermostatState): number {
+  if (st.forced >= HVAC.comfort && st.forced <= HVAC.protection)
+    return st.forced;
   if (st.window) return HVAC.protection;
-  if (st.preset === HVAC.protection) return HVAC.protection;
+  const preset = presetOf(st);
+  if (preset === HVAC.protection) return HVAC.protection;
   if (st.presence) return HVAC.comfort;
-  return st.preset === HVAC.auto ? HVAC.comfort : st.preset;
+  return preset === HVAC.auto ? HVAC.comfort : preset;
+}
+
+/**
+ * Preselection from the objects received last. With the 1-bit objects, protection has
+ * priority over comfort, comfort over night, and standby applies when all are 0, as on
+ * the room controllers that offer them.
+ */
+function presetOf(st: ThermostatState): number {
+  if (st.modeChannel === "byte") return st.preset;
+  const b = st.modeBits;
+  return b.protection
+    ? HVAC.protection
+    : b.comfort
+      ? HVAC.comfort
+      : b.night
+        ? HVAC.economy
+        : HVAC.standby;
 }
 
 /** Mode consignment: reduced in heating, raised in cooling, absolute protection. */
@@ -107,11 +134,14 @@ function update(ctx: TCtx) {
   const mode = modeOf(st);
   const sp = setpointOf(ctx, st, mode);
   if (mode !== st.mode) {
-    const why = st.window
-      ? ctx.t`window open`
-      : st.presence
-        ? ctx.t`presence`
-        : ctx.t`preset`;
+    const why =
+      st.forced >= HVAC.comfort && st.forced <= HVAC.protection
+        ? ctx.t`forced mode`
+        : st.window
+          ? ctx.t`window open`
+          : st.presence
+            ? ctx.t`presence`
+            : ctx.t`preset`;
     ctx.note(
       ctx.t`thermostat: ${modeName(ctx, mode)} mode (${why}), setpoint ${fmt(sp)} °C`,
     );
@@ -308,6 +338,11 @@ function sendValue(ctx: TCtx) {
     ctx.transmit(o.id);
   });
   publish(ctx, idle, 0);
+  // Common output (2-pipe system): the value of the active mode, whichever it is.
+  objectsOf(ctx, "controlValue").forEach((o) => {
+    ctx.setObject(o.id, v);
+    ctx.transmit(o.id);
+  });
 }
 
 /**
@@ -331,6 +366,7 @@ function pwm(ctx: TCtx) {
     : ["coolingSwitch", "heatingSwitch"];
   publish(ctx, active, on ? 1 : 0);
   publish(ctx, idle, 0);
+  publish(ctx, "controlSwitch", on ? 1 : 0);
 }
 
 /** Writing received from the bus or local action, depending on the port of the object. */
@@ -357,7 +393,25 @@ function apply(ctx: TCtx, port: string, value: number, dpt = "") {
       );
       break;
     case "hvacMode":
-      if (value >= 0 && value <= 4) st.preset = value;
+      if (value >= 0 && value <= 4) {
+        st.preset = value;
+        st.modeChannel = "byte";
+      }
+      break;
+    case "comfortMode":
+    case "nightMode":
+    case "protectionMode":
+      st.modeBits[
+        port === "comfortMode"
+          ? "comfort"
+          : port === "nightMode"
+            ? "night"
+            : "protection"
+      ] = value !== 0;
+      st.modeChannel = "bits";
+      break;
+    case "forcedMode":
+      st.forced = value >= 1 && value <= 4 ? value : 0;
       break;
     case "presence":
       if (p.presenceType === "button") {
@@ -680,6 +734,38 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       title: "Mode (preset)",
       direction: "in",
     },
+    comfortMode: {
+      dpts: ["1.001"],
+      channel: "none",
+      title: "Comfort mode (1 bit)",
+      direction: "in",
+      description:
+        "1 selects comfort, which has priority over night; with the other 1-bit mode objects, replaces the 1-byte preselection",
+    },
+    nightMode: {
+      dpts: ["1.001"],
+      channel: "none",
+      title: "Night mode (1 bit)",
+      direction: "in",
+      description:
+        "1 selects night (economy), 0 standby, unless comfort or protection is 1",
+    },
+    protectionMode: {
+      dpts: ["1.001"],
+      channel: "none",
+      title: "Frost/heat protection (1 bit)",
+      direction: "in",
+      description:
+        "1 selects frost or heat protection, which has priority over comfort and night",
+    },
+    forcedMode: {
+      dpts: ["20.102"],
+      channel: "none",
+      title: "Forced mode",
+      direction: "in",
+      description:
+        "1–4 forces comfort, standby, economy, or protection over everything else, the window included; 0 (auto) ends the forcing",
+    },
     hvacModeStatus: {
       defaultFlags: { R: true },
       description: "Current mode (20.102).",
@@ -701,7 +787,7 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       title: "Window",
       direction: "in",
       description:
-        "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority",
+        "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, over everything but the forced mode",
     },
     heatCool: {
       // Its value is unknown until one is received: the thermostat starts in heating mode,
@@ -754,12 +840,33 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       title: "Cooling 1-bit control",
       direction: "out",
     },
+    controlValue: {
+      defaultFlags: { R: true },
+      dpts: ["5.001"],
+      channel: "none",
+      title: "Heating/cooling control value",
+      direction: "out",
+      description:
+        "control value of the active mode, heating or cooling, on one object (2-pipe system); heatCoolStatus tells which",
+    },
+    controlSwitch: {
+      defaultFlags: { R: true },
+      dpts: ["1.001"],
+      channel: "none",
+      title: "Heating/cooling 1-bit control",
+      direction: "out",
+      description:
+        "one-bit control of the active mode, heating or cooling, on one object (2-pipe system)",
+    },
   },
   createState(d) {
     const base = num(d.parameters.comfortC, 21);
     return {
       baseC: base,
       preset: HVAC.comfort,
+      modeBits: { comfort: false, night: false, protection: false },
+      modeChannel: "byte",
+      forced: 0,
       presence: false,
       window: false,
       heating: true,
@@ -790,12 +897,20 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       const v = ctx.getObject(o.id);
       if (v === null) return;
       if (o.port === "hvacMode" && v >= 0 && v <= 4) st.preset = v;
+      if (o.port === "forcedMode" && v >= 1 && v <= 4) st.forced = v;
       if (o.port === "presence") st.presence = v !== 0;
       if (o.port === "window") st.window = windowOpenOf(o.dpt, v);
       if (o.port === "heatCool" && P(ctx).changeover !== "automatic")
         st.heating = v !== 0;
       if (o.port === "baseSetpoint") st.baseC = v;
+      if (o.port === "comfortMode") st.modeBits.comfort = v !== 0;
+      if (o.port === "nightMode") st.modeBits.night = v !== 0;
+      if (o.port === "protectionMode") st.modeBits.protection = v !== 0;
     });
+    // No telegram has been received yet: the 1-bit objects select the mode when one of
+    // them starts at 1; otherwise the 1-byte preselection (or its default) applies.
+    const b = st.modeBits;
+    if (b.comfort || b.night || b.protection) st.modeChannel = "bits";
     st.mode = modeOf(st);
     st.setpointC = setpointOf(ctx, st, st.mode);
     objectsOf(ctx, "hvacModeStatus").forEach((o) =>

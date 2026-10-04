@@ -1,7 +1,7 @@
 ---
 title: Temps et mode pas à pas
 translationOf: guide/13-time.md
-sourceHash: "2b9f4eb366ad"
+sourceHash: "5a52f455d9bd"
 order: 13
 ---
 # Temps et mode pas à pas
@@ -42,6 +42,17 @@ Le schéma affiche la date et l'heure dans une barre en haut à gauche de la zon
 ## Mode pas à pas
 
 Le mode pas à pas s'arrête aux événements explicatifs, dont l'émission d'un télégramme, la décision de routage ou de filtrage d'un coupleur, l'acceptation ou le refus d'un objet selon W, les changements de sortie et l'expiration des temporisations. Appuyez sur **Suivant** pour passer à l'événement suivant.
+
+## Chronogramme
+
+L'option `timeline` affiche, sous le schéma, jusqu'à quatre traces sur l'axe du temps simulé : les valeurs d'objets et les états marche/arrêt en escalier, les températures des pièces, les ouvertures et les niveaux en courbes, et les télégrammes d'un objet tracé en marques. Chaque événement est enregistré à son propre instant, quelle que soit la vitesse, y compris en mode pas à pas. Elle aide à lire ce qui dépend du temps : une minuterie d'escalier, la MLI, une boucle de régulation, une priorité. Nommez les premières traces dans l'option, puis ajoutez-en ou retirez-en depuis son menu :
+
+```html
+<bus-diagram src="room-heating.json"
+  timeline="livingThermostat/temp livingThermostat/val heatingActuator:h1 @livingRoom"></bus-diagram>
+```
+
+`device/object` trace un objet, `device:channel` l'équipement d'une sortie, et `@room` la température d'une pièce. Voir l'[exemple de chauffage](../examples/hvac.html).
 
 ## Déterminisme
 

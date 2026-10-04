@@ -31,7 +31,7 @@ Each object has a value, a DPT that determines how to interpret it, one or more 
 | `T` transmit | The object can send its value. | The value may change locally, but no telegram is sent. |
 | `R` read | The object responds to a read on any of its addresses, on its sending address. | No response is sent. |
 | `U` update | A received response updates the object. | Responses are ignored. |
-| `I` read on initialisation | When the device starts again after a bus voltage failure, the object reads its value on its sending address. | No read at start. |
+| `I` read on initialisation | When the device starts (at the start of the simulation, and again after a bus voltage failure), the object reads its value on its sending address. | No read at start. |
 
 When a device sends, its other objects on the same address take the value at once, as the KNX Application Layer specifies; their `W` flag only decides whether the device reacts, so that a status object does not act as a command.
 
@@ -81,3 +81,5 @@ Select a telegram in the group monitor: its card gives the source, the destinati
 - **Checksum:** two checks cross. The parity bit P, sent after the eight data bits of each character, makes the number of 1 even in its row; the check octet, the last character, makes the number of 1 odd in each data column, bits 7 to 0 (not in the column of the parity bits). Click a column to follow its calculation, beside the equivalent XOR of the octets followed by an inversion.
 
 When the telegram crosses couplers, choose the segment: each coupler lowers the routing counter, so the routing octet and the check octet change from one line to the next.
+
+To see who is linked to a group address, click it in a device, or click the destination in the telegram card: every object linked to it is outlined. Its badge reads T when the object sends on that address (C and T set, and it is its sending address), W when a write on it updates the object (C and W set), and a dash when neither. Each address of a cell can be chosen, with the mouse or the keyboard; Escape clears the selection.

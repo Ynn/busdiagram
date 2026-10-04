@@ -16,6 +16,11 @@ export interface ViewOptions {
   stepMode: boolean;
   /** Address of the designer opened by the toolbar icon, or "none" to hide the icon. */
   designer: string;
+  /**
+   * Timeline below the diagram: "" hides it; otherwise its first traces, separated by
+   * spaces ("on" shows it without traces).
+   */
+  timeline: string;
 }
 
 /** The published designer, which keeps up with the latest version of the format. */
@@ -33,6 +38,7 @@ export const DEFAULT_OPTIONS: ViewOptions = {
   speed: null,
   stepMode: false,
   designer: PUBLISHED_DESIGNER,
+  timeline: "",
 };
 
 export interface OptionDoc {
@@ -145,6 +151,16 @@ export const OPTION_DOCS: OptionDoc[] = [
       "The icon opens the designer in a new tab with the scenario, carried compressed in the link after #, which is not sent to the server. Give the address of a copy of the designer (for example a relative path, to work offline), or none to hide the icon. Hidden when the toolbar is.",
     example: '<bus-diagram designer="designer/index.html">',
   },
+  {
+    name: "timeline",
+    attribute: "timeline",
+    type: "trace identifiers | true",
+    default: "hidden",
+    summary: "Timeline of up to four traces on the axis of simulated time.",
+    details:
+      "Shows object values and on/off states as steps, room temperatures, openings, and levels as curves, and the telegrams of a traced object as marks. List the first traces: device/object for an object, device:channel for the equipment of an output, @room for the temperature of a room; with no list (or true), the timeline starts empty. A menu adds or removes traces.",
+    example: '<bus-diagram timeline="livingThermostat/temp @livingRoom">',
+  },
 ];
 
 const BOOL_TRUE = ["", "true", "1", "yes", "oui"];
@@ -173,6 +189,12 @@ function parseAttr(doc: OptionDoc, raw: string | null): unknown {
     return ["full", "compact", "none"].includes(raw) ? raw : undefined;
   if (doc.name === "fit")
     return ["width", "contain"].includes(raw) ? raw : undefined;
+  if (doc.name === "timeline") {
+    const v = raw.trim();
+    if (BOOL_FALSE.includes(v.toLowerCase()) || v.toLowerCase() === "none")
+      return "";
+    return BOOL_TRUE.includes(v.toLowerCase()) ? "on" : v;
+  }
   if (doc.name === "designer") {
     const v = raw.trim();
     return v ? (BOOL_FALSE.includes(v.toLowerCase()) ? "none" : v) : undefined;

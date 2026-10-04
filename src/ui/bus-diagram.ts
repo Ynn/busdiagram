@@ -27,8 +27,14 @@ import {
 } from "../knx/layout";
 import type { CouplerG, DevG, Geometry, KeyG, LoadG, Pt } from "../knx/layout";
 import { buildTopology } from "../knx/network";
-import type { TopoCoupler, Topology } from "../knx/network";
-import type { Button, Device, NumberInput, Scenario } from "../knx/scenario";
+import type { CouplerReason, TopoCoupler, Topology } from "../knx/network";
+import type {
+  Button,
+  Device,
+  KnxObject,
+  NumberInput,
+  Scenario,
+} from "../knx/scenario";
 import {
   ScenarioError,
   buildScenario,
@@ -40,9 +46,18 @@ import type { StepStop, Telegram } from "../knx/sim";
 import { animate, easeOut } from "./animation";
 import type { Glow } from "./animation";
 import { equipmentView } from "./equipment";
+import { gaRoles } from "./ga-roles";
 import type { Translate } from "../i18n";
 import { translator } from "../i18n";
 import { resolveOptions } from "./options";
+import {
+  MAX_TRACES,
+  parseTraces,
+  renderTimeline,
+  traceOf,
+  TimelineRecorder,
+  type TraceSpec,
+} from "./timeline";
 import { toV2 } from "../knx/export";
 import { encodeShare } from "../share";
 import type { ViewOptions } from "./options";
@@ -55,6 +70,9 @@ import {
 
 const win = (t: number, a: number, b: number, fi = 250, fo = 400) =>
   Math.min(easeOut((t - a) / fi), 1 - easeOut((t - b) / fo));
+
+/** With a timeline, advance() goes by slices of this length, to draw room temperatures. */
+const TIMELINE_SLICE_MS = 250;
 
 /** Maximum real-time step per frame; do not catch up after suspension. */
 const MAX_FRAME_MS = 100;
@@ -151,6 +169,7 @@ export class BusDiagram extends LitElement {
     speedAttr: { type: String, attribute: "speed" },
     stepModeAttr: { type: String, attribute: "step-mode" },
     designerAttr: { type: String, attribute: "designer" },
+    timelineAttr: { type: String, attribute: "timeline" },
   };
 
   declare scenario: string;
@@ -183,6 +202,27 @@ export class BusDiagram extends LitElement {
     return resolveOptions((n) => this.getAttribute(n), this.options);
   }
 
+  /** Traces of the timeline (null: from the option, at the next render). */
+  private traces: TraceSpec[] | null = null;
+  private tracesFrom = "";
+  private readonly recorder = new TimelineRecorder();
+
+  /** Traces shown: those of the option, until the reader adds or removes one. */
+  private timelineTraces(s: Scenario): TraceSpec[] {
+    const opt = this.view.timeline;
+    if (this.traces === null || this.tracesFrom !== opt) {
+      this.traces = parseTraces(opt, s, this.sim ?? undefined);
+      this.tracesFrom = opt;
+    }
+    return this.traces;
+  }
+
+  /** Record the traces of the timeline at the current simulated time. */
+  private sampleTimeline() {
+    if (!this.sim || !this.model || !this.view.timeline) return;
+    this.recorder.sample(this.sim, this.timelineTraces(this.model));
+  }
+
   private model: Scenario | null = null;
   private topo: Topology | null = null;
   private geo: Geometry | null = null;
@@ -207,6 +247,8 @@ export class BusDiagram extends LitElement {
   private scrolledDetail = "";
   private info: string | null = null;
   private selId: number | null = null;
+  /** Group address whose linked objects are outlined in the diagram. */
+  private focusGa: string | null = null;
   private seenTels = 0;
   private loadToken = 0;
   /** Link to the scenario in the designer, prepared when the scenario loads. */
@@ -235,6 +277,7 @@ export class BusDiagram extends LitElement {
     this.ro.observe(this);
     document.addEventListener("visibilitychange", this.onVisibility);
     document.addEventListener("fullscreenchange", this.onFullscreen);
+    document.addEventListener("keydown", this.onEscape);
     if (this.sim) this.kick();
   }
 
@@ -248,7 +291,15 @@ export class BusDiagram extends LitElement {
     this.hold = null;
     document.removeEventListener("visibilitychange", this.onVisibility);
     document.removeEventListener("fullscreenchange", this.onFullscreen);
+    document.removeEventListener("keydown", this.onEscape);
   }
+
+  /** Escape clears the address in focus. */
+  private onEscape = (e: KeyboardEvent) => {
+    if (e.key !== "Escape" || !this.focusGa) return;
+    this.focusGa = null;
+    this.requestUpdate();
+  };
 
   /** The diagram area is shown full screen (Fullscreen API on .stage-wrap). */
   private fullscreen = false;
@@ -401,7 +452,18 @@ export class BusDiagram extends LitElement {
 
   /** Manually advance by an integer number of milliseconds, including while paused. */
   advance(dtMs: number) {
-    this.sim?.advance(dtMs);
+    const sim = this.sim;
+    if (sim && this.view.timeline && Number.isInteger(dtMs) && dtMs >= 0) {
+      // With a timeline, advance in slices so that room temperatures, which change between
+      // events, have their shape; events themselves are sampled through onStep.
+      this.sampleTimeline();
+      for (let left = dtMs; left > 0 && !sim.fault;) {
+        const step = Math.min(TIMELINE_SLICE_MS, left);
+        sim.advance(step);
+        this.sampleTimeline();
+        left -= step;
+      }
+    } else sim?.advance(dtMs); // the engine rejects a duration that is not valid
     this.requestUpdate();
   }
 
@@ -477,9 +539,12 @@ export class BusDiagram extends LitElement {
     const offJournal = sim.subscribe((e) => {
       if (e.kind === "diagnostic" && sim.fault) this.requestUpdate();
     });
+    // The timeline records each event at its own time, whatever the speed or frame rate.
+    const offStep = sim.onStep(() => this.sampleTimeline());
     this.unsubscribe = () => {
       offTel();
       offJournal();
+      offStep();
     };
   }
 
@@ -549,6 +614,9 @@ export class BusDiagram extends LitElement {
   }
 
   private clearUi() {
+    this.focusGa = null;
+    this.recorder.clear();
+    this.traces = null;
     this.selId = null;
     this.info = null;
     this.seenTels = 0;
@@ -645,6 +713,7 @@ export class BusDiagram extends LitElement {
           } else sim.advance(step);
         }
       }
+      this.sampleTimeline();
       this.requestUpdate();
       const animating = sim.visibleTelegrams().length > 0;
       // With a simulated clock, time keeps running even when the bus is idle.
@@ -999,9 +1068,10 @@ export class BusDiagram extends LitElement {
                 </div>`
               : nothing
         }
-        ${this.renderInfo(s, g, sim)}
+        ${this.renderGaFocus(s)} ${this.renderInfo(s, g, sim)}
       </div>
       ${v.hints && hasLong ? html`<div class="hint">${this.tr`Click = short press · hold 0.5 s = long press (keyboard: Enter / Shift+Enter)`}</div>` : nothing}
+      ${v.timeline ? this.renderTimelinePanel(s, sim) : nothing}
       ${
         v.monitor || this.interfaces().length || s.rooms.length
           ? html`<div class="bottom">
@@ -1339,13 +1409,23 @@ export class BusDiagram extends LitElement {
       const room = wide
         ? `padding-${d.receiver ? "left" : "right"}:${Math.max(30, sv.length * 6 + 10)}px`
         : "";
+      const linked = this.focusGa !== null && o.gas.includes(this.focusGa);
       const ga = html`<div
-        class="cell ga ${fresh ? "hi" : ""} ${wide ? (d.receiver ? "pl" : "pr") : ""}"
+        class="cell ga ${fresh ? "hi" : ""} ${wide ? (d.receiver ? "pl" : "pr") : ""} ${linked ? "focus" : ""}"
         style=${room}
         title=${o.gas.map((x) => `${x} ${gaName(this.model!, x)}`).join("\n")}
+        @click=${(e: Event) => {
+          // The cell chooses its sending address; beside the other addresses, nothing.
+          if ((e.target as Element).closest("small"))
+            return e.stopPropagation();
+          if (o.gas[0]) this.toggleFocus(e, o.gas[0]);
+        }}
       >
-        <span>${o.gas[0] ?? "—"}</span
-        >${others.length ? html`<small>${others.join(" ")}</small>` : nothing}${valBox}
+        ${o.gas[0] ? this.gaButton(o.gas[0]) : html`<span>—</span>`}${
+          others.length
+            ? html`<small>${others.map((x) => this.gaButton(x))}</small>`
+            : nothing
+        }${valBox}${linked ? this.flagChip(o, this.focusGa!) : nothing}
       </div>`;
       // Limit long names to two lines, or one beside a supervisor display value.
       const lab = html`<div class="cell ${fresh ? "hi" : ""}" title=${o.name}>
@@ -1923,6 +2003,68 @@ export class BusDiagram extends LitElement {
     return html`${this.explain(main, s, sim)}${extra > 0 ? html` <small class="more">${extra > 1 ? this.tr`(+${extra} details)` : this.tr`(+${extra} detail)`}</small>` : nothing}`;
   }
 
+  /** A click on an address outlines every object linked to it; again, clears it. */
+  private toggleFocus(e: Event, ga: string) {
+    e.stopPropagation();
+    this.focusGa = this.focusGa === ga ? null : ga;
+    this.requestUpdate();
+  }
+
+  /** One address of an object cell, which can be put in focus by mouse or keyboard. */
+  private gaButton(ga: string) {
+    return html`<button
+      class="gab ${this.focusGa === ga ? "on" : ""}"
+      aria-pressed=${this.focusGa === ga ? "true" : "false"}
+      title=${this.tr`Show the objects linked to this address in the diagram`}
+      @click=${(e: Event) => this.toggleFocus(e, ga)}
+    >
+      ${ga}
+    </button>`;
+  }
+
+  /**
+   * What an object does with the address in focus: T when it sends on it (C and T, and it
+   * is its sending address), W when a write updates it (C and W); a dash otherwise.
+   */
+  private flagChip(o: KnxObject, ga: string) {
+    const r = gaRoles(o, ga);
+    const text = [r.sends ? "T" : "", r.written ? "W" : ""]
+      .filter(Boolean)
+      .join(" ");
+    return html`<b class="flagchip ${text ? "" : "none"}">${text || "—"}</b>`;
+  }
+
+  /** The address in focus, with how many linked objects send on it and are written by it. */
+  private renderGaFocus(s: Scenario) {
+    const ga = this.focusGa;
+    if (!ga) return nothing;
+    const objs = s.devices.flatMap((d) =>
+      d.objects.filter((o) => o.gas.includes(ga)),
+    );
+    const send = objs.filter((o) => gaRoles(o, ga).sends).length;
+    const listen = objs.filter((o) => gaRoles(o, ga).written).length;
+    const close = () => ((this.focusGa = null), this.requestUpdate());
+    return html`<div
+      class="gafocus"
+      role="status"
+      @click=${(e: Event) => e.stopPropagation()}
+      @keydown=${(e: KeyboardEvent) => e.key === "Escape" && close()}
+    >
+      <b>${ga}</b> ${gaName(s, ga)}
+      <span
+        >${this.tr`${objs.length} linked objects · send on it (C, T, sending address): ${send} · written by it (C, W): ${listen}`}</span
+      >
+      <button
+        class="tl-x"
+        title=${this.tr`Clear`}
+        aria-label=${this.tr`Clear`}
+        @click=${close}
+      >
+        ×
+      </button>
+    </div>`;
+  }
+
   private renderInfo(s: Scenario, g: Geometry, sim: Simulation) {
     if (!this.info) return nothing;
     const close = () => ((this.info = null), this.requestUpdate());
@@ -2463,6 +2605,51 @@ export class BusDiagram extends LitElement {
     </div>`;
   }
 
+  private renderTimelinePanel(s: Scenario, sim: Simulation) {
+    const traces = this.timelineTraces(s);
+    // Each render records the current state too: after a step, a write, or a pause.
+    this.recorder.sample(sim, traces);
+    return renderTimeline({
+      sim,
+      traces,
+      recorder: this.recorder,
+      tr: this.tr,
+      add: (id) => {
+        const t = traceOf(id, s, sim);
+        if (!t || traces.length >= MAX_TRACES) return;
+        this.traces = [...traces, t];
+        this.recorder.sample(sim, this.traces);
+        this.requestUpdate();
+      },
+      remove: (id) => {
+        this.traces = traces.filter((t) => t.id !== id);
+        this.recorder.series.delete(id);
+        this.requestUpdate();
+      },
+    });
+  }
+
+  /** Why a coupler forwarded or discarded the telegram, in one line. */
+  private couplerReason(reason: CouplerReason, ga: string) {
+    switch (reason) {
+      case "inTable":
+        return this.tr`${ga} is used on both sides: it is in the filter table`;
+      case "notInTable":
+        return this
+          .tr`${ga} is not used on both sides: it is not in the filter table`;
+      case "routeAll":
+        return this.tr`set to forward every group telegram`;
+      case "blockAll":
+        return this.tr`set to block every group telegram`;
+      case "repeater":
+        return this.tr`no filter table: a repeater forwards every telegram`;
+      case "rcZero":
+        return this.tr`routing counter at 0: the telegram is not forwarded`;
+      case "noVoltage":
+        return this.tr`no bus voltage on the other side`;
+    }
+  }
+
   private openDetail(tel: Telegram, octet: number | null) {
     this.detail = {
       telId: tel.id,
@@ -2690,7 +2877,16 @@ export class BusDiagram extends LitElement {
       <div class="kv-row">
         <span>${this.tr`Destination`}</span
         ><b
-          >${tel.ga}<small
+          ><button
+            class="galink"
+            title=${this.tr`Show the objects linked to this address in the diagram`}
+            @click=${() => {
+              this.focusGa = tel.ga;
+              this.requestUpdate();
+            }}
+          >
+            ${tel.ga}</button
+          ><small
             >${this.tr`group addr.`}${gaName(s, tel.ga) ? " · " + gaName(s, tel.ga) : ""}</small
           ></b
         >
@@ -2740,10 +2936,14 @@ export class BusDiagram extends LitElement {
           </div>`;
         })}
         <button
-          class="btn details"
+          class="btn primary details"
           title=${this.tr`Frame, bits, TP1 signal, and checksum of this telegram`}
           @click=${() => this.openDetail(tel, null)}
         >
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <circle cx="6.5" cy="6.5" r="4.5" />
+            <path d="M10 10l4.5 4.5" />
+          </svg>
           ${this.tr`Details`}
         </button>
       </div>
@@ -2760,12 +2960,15 @@ export class BusDiagram extends LitElement {
                 const col =
                   e.tag === "block" ? C.red : e.tag === "rep" ? C.rep : C.cpl;
                 return html`<div class="line">
-                  <span>${sim.network.couplerName(c)} ${c.address}</span>
-                  <span
-                    style="font-family:var(--mono);color:${col};font-weight:600"
-                    >${e.tag === "block" ? `✕ ${this.tr`filtered`}` : (e.tag === "rep" ? this.tr`repeated` : this.tr`forwarded`) + ` · RC ${e.rcBefore}→${e.rcAfter}`}</span
-                  >
-                </div>`;
+                    <span>${sim.network.couplerName(c)} ${c.address}</span>
+                    <span
+                      style="font-family:var(--mono);color:${col};font-weight:600"
+                      >${e.tag === "block" ? `✕ ${this.tr`filtered`}` : (e.tag === "rep" ? this.tr`repeated` : this.tr`forwarded`) + ` · RC ${e.rcBefore}→${e.rcAfter}`}</span
+                    >
+                  </div>
+                  <div class="why">
+                    ${this.couplerReason(e.reason, tel.ga)}
+                  </div>`;
               })}
             </div>`
           : nothing

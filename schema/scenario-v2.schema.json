@@ -715,6 +715,22 @@
               "description": "Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
             },
             {
+              "const": "comfortMode",
+              "description": "1 selects comfort, which has priority over night; with the other 1-bit mode objects, replaces the 1-byte preselection"
+            },
+            {
+              "const": "nightMode",
+              "description": "1 selects night (economy), 0 standby, unless comfort or protection is 1"
+            },
+            {
+              "const": "protectionMode",
+              "description": "1 selects frost or heat protection, which has priority over comfort and night"
+            },
+            {
+              "const": "forcedMode",
+              "description": "1–4 forces comfort, standby, economy, or protection over everything else, the window included; 0 (auto) ends the forcing"
+            },
+            {
               "const": "hvacModeStatus",
               "description": "Current mode (20.102)."
             },
@@ -724,7 +740,7 @@
             },
             {
               "const": "window",
-              "description": "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority"
+              "description": "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, over everything but the forced mode"
             },
             {
               "const": "heatCool",
@@ -749,6 +765,14 @@
             {
               "const": "coolingSwitch",
               "description": "One-bit cooling command."
+            },
+            {
+              "const": "controlValue",
+              "description": "control value of the active mode, heating or cooling, on one object (2-pipe system); heatCoolStatus tells which"
+            },
+            {
+              "const": "controlSwitch",
+              "description": "one-bit control of the active mode, heating or cooling, on one object (2-pipe system)"
             },
             {
               "const": "fault",
@@ -907,7 +931,7 @@
             },
             "I": {
               "type": "boolean",
-              "description": "Read on initialisation: when the device starts again after a bus voltage failure, it reads the object's value on its sending address."
+              "description": "Read on initialisation: when the device starts (start of the simulation, recovery after a bus voltage failure), it reads the object's value on its sending address."
             }
           }
         },
@@ -3960,6 +3984,22 @@
                           "description": "Selected mode (20.102: 0 auto, 1 comfort, 2 standby, 3 economy, 4 protection)."
                         },
                         {
+                          "const": "comfortMode",
+                          "description": "1 selects comfort, which has priority over night; with the other 1-bit mode objects, replaces the 1-byte preselection"
+                        },
+                        {
+                          "const": "nightMode",
+                          "description": "1 selects night (economy), 0 standby, unless comfort or protection is 1"
+                        },
+                        {
+                          "const": "protectionMode",
+                          "description": "1 selects frost or heat protection, which has priority over comfort and night"
+                        },
+                        {
+                          "const": "forcedMode",
+                          "description": "1–4 forces comfort, standby, economy, or protection over everything else, the window included; 0 (auto) ends the forcing"
+                        },
+                        {
                           "const": "hvacModeStatus",
                           "description": "Current mode (20.102)."
                         },
@@ -3969,7 +4009,7 @@
                         },
                         {
                           "const": "window",
-                          "description": "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, highest priority"
+                          "description": "open window (1.019 / 1.001: 1 = open; 1.009: 0 = open): protection mode, over everything but the forced mode"
                         },
                         {
                           "const": "heatCool",
@@ -3994,6 +4034,14 @@
                         {
                           "const": "coolingSwitch",
                           "description": "One-bit cooling command."
+                        },
+                        {
+                          "const": "controlValue",
+                          "description": "control value of the active mode, heating or cooling, on one object (2-pipe system); heatCoolStatus tells which"
+                        },
+                        {
+                          "const": "controlSwitch",
+                          "description": "one-bit control of the active mode, heating or cooling, on one object (2-pipe system)"
                         }
                       ]
                     }
@@ -4104,6 +4152,10 @@
                         {
                           "const": "fault",
                           "description": "missing control value: fallback program"
+                        },
+                        {
+                          "const": "heatCool",
+                          "description": "change-over output: 1 hot water, 0 cold water; the last control value received applies, the same value heating or cooling"
                         },
                         {
                           "const": "coolingValue",

@@ -3,7 +3,7 @@ title: Chauffage pièce par pièce
 summary: "Régulation PI et tout ou rien par pièce, vanne commandée en MLI, contact de fenêtre et modes de fonctionnement."
 covers: "DPT 9.001 · DPT 5.001 · DPT 20.102"
 translationOf: examples/09-hvac.md
-sourceHash: "d665b8b0f127"
+sourceHash: "7d7dc1eba4f1"
 order: 9.3
 ---
 # Chauffage pièce par pièce
@@ -20,6 +20,9 @@ Essayez ces manipulations :
 - Réglez le thermostat du séjour sur 22,5 °C et suivez sa consigne actuelle sur 3/4/2.
 - Baissez la température extérieure et observez la vanne s'ouvrir davantage pour maintenir la consigne.
 
+Le chronogramme sous le schéma trace la température mesurée, la consigne actuelle, la grandeur de commande avec ses télégrammes, et l'ouverture de la vanne, qui suit la grandeur de commande en MLI. Chaque pièce est un modèle thermique simplifié : le `powerK` d'un radiateur est l'écart de température qu'il peut maintenir au-dessus de l'extérieur, pas une puissance en watts.
+
 ```knx
 scenario: room-heating
+attrs: timeline="livingThermostat/temp livingThermostat/sp livingThermostat/val heatingActuator:h1"
 ```

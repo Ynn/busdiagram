@@ -25,6 +25,10 @@ export const heatingLayout: ParameterLayout = {
             {
               note: "Link the heating and the cooling control values of the room controller: the valve follows the one that is not zero, and the water it lets through is hot or cold accordingly.",
             },
+            { groupObject: "heatCool" },
+            {
+              note: "With the heating/cooling object, the water comes from it, and the last control value received applies: link a common control value of the room controller to the heating control value.",
+            },
           ],
         },
         { groupObject: "valueStatus" },

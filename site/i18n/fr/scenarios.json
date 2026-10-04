@@ -457,7 +457,6 @@
   "Office cooling control": "Commande refroidissement du bureau",
   "Meeting-room heating control": "Commande chauffage de la salle de réunion",
   "Meeting-room cooling control": "Commande refroidissement de la salle de réunion",
-  "Meeting-room heating / cooling": "Chauffage / refroidissement de la salle de réunion",
   "Office temperature": "Température du bureau",
   "Office current setpoint": "Consigne en cours du bureau",
   "Office heating / cooling status": "État chauffage / refroidissement du bureau",
@@ -479,5 +478,14 @@
   "H2 meeting-room radiator": "H2 radiateur de la salle de réunion",
   "H3 meeting-room cooling coil": "H3 batterie froide de la salle de réunion",
   "Season": "Saison",
-  "Two rooms in summer, 27 °C inside and 30 °C outside. The office thermostat changes over automatically: above its cooling setpoint (24 °C) it cools, below its heating setpoint (21 °C) it heats. Its two control values reach one change-over valve, which feeds a 2-pipe fan coil with cold or hot water. The meeting-room thermostat starts in heating mode and does nothing: press its Season key, which writes the heating/cooling object (DPT 1.100) as a central summer/winter switch would, and its cooling value opens the valve of the cooling coil. Lower the outside temperature in the Rooms panel to see the office change over to heating.": "Deux pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage."
+  "Three rooms in summer, 27 °C inside and 30 °C outside. The office thermostat changes over automatically: above its cooling setpoint (24 °C) it cools, below its heating setpoint (21 °C) it heats. Its two control values reach one change-over valve, which feeds a 2-pipe fan coil with cold or hot water. The meeting-room thermostat starts in heating mode and does nothing: press its Season key, which writes the heating/cooling object (DPT 1.100) as a central summer/winter switch would, and its cooling value opens the valve of the cooling coil. The same key also changes over the classroom, a 2-pipe system with a single control value: its thermostat sends one value for heating or cooling, and the actuator takes hot or cold water from the season object. Lower the outside temperature in the Rooms panel to see the office change over to heating.": "Trois pièces en été, 27 °C à l'intérieur et 30 °C à l'extérieur. Le thermostat du bureau bascule automatiquement : au-dessus de sa consigne de refroidissement (24 °C) il refroidit, sous sa consigne de chauffage (21 °C) il chauffe. Ses deux grandeurs de commande arrivent sur une seule vanne à changement de mode, qui alimente un ventilo-convecteur 2 tubes en eau froide ou chaude. Le thermostat de la salle de réunion démarre en chauffage et ne fait rien : appuyez sur sa touche Saison, qui écrit l'objet chauffage/refroidissement (DPT 1.100) comme le ferait un commutateur central été/hiver, et sa grandeur de refroidissement ouvre la vanne de la batterie froide. La même touche fait aussi basculer la salle de classe, un système 2 tubes à grandeur unique : son thermostat envoie une seule valeur pour le chauffage ou le refroidissement, et l'actionneur prend de l'eau chaude ou froide selon l'objet de saison. Abaissez la température extérieure dans le panneau Pièces pour voir le bureau basculer en chauffage.",
+  "Classroom": "Salle de classe",
+  "Classroom heating/cooling control": "Commande chauffage/refroidissement de la salle de classe",
+  "Season: heating / cooling": "Saison : chauffage / refroidissement",
+  "Classroom temperature": "Température de la salle de classe",
+  "Classroom thermostat": "Thermostat de la salle de classe",
+  "Heating/cooling control": "Commande chauffage/refroidissement",
+  "H4 heating/cooling control value": "H4 grandeur de chauffage/refroidissement",
+  "H4 heating / cooling": "H4 chauffage / refroidissement",
+  "H4 classroom fan coil": "H4 ventilo-convecteur de la salle de classe"
 }

@@ -38,4 +38,8 @@ export const heatingActuatorFr: Record<string, string> = {
   "Emergency control value": "Commande de secours",
   Valve: "Vanne",
   Safety: "Sécurité",
+  "{0}: a heating/cooling object is linked, but the output is not a change-over valve and ignores it.":
+    "{0} : un objet chauffage/refroidissement est lié, mais la sortie n'est pas une vanne à changement de mode et l'ignore.",
+  "With the heating/cooling object, the water comes from it, and the last control value received applies: link a common control value of the room controller to the heating control value.":
+    "Avec l'objet chauffage/refroidissement, l'eau vient de cet objet, et la dernière grandeur reçue s'applique : liez une grandeur commune du régulateur à la grandeur de chauffage.",
 };

@@ -99,6 +99,8 @@ The preview can show a full or compact toolbar, hide the monitor or description,
 | Viewer link | Put a compressed scenario in a URL fragment for an iframe or another web viewer. See [Viewer](viewer.html). |
 | Library | Download `bus-diagram.js` to host alongside your page. |
 
+To prepare a variant of an example, such as an address changed, a flag removed, or a coupler set to block, start from it in **Start from a template**, change it, and share it as a viewer link or a standalone page. Each copy runs with its own state.
+
 ## Extensions
 
 The extension manager loads, replaces, and removes `.js` files. An extension can add a behavior, form fields, and a custom view. The designer remembers loaded extensions in the browser.

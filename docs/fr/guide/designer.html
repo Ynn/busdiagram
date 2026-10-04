@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/designer.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -157,7 +157,8 @@
 <td>Télécharger <code>bus-diagram.js</code> pour l&#39;héberger à côté de votre page.</td>
 </tr>
 </tbody></table>
-</div><h2 id="extensions"><a class="anchor" href="#extensions">#</a>Extensions</h2><p>Le gestionnaire d&#39;extensions charge, remplace et retire des fichiers <code>.js</code>. Une extension peut ajouter un comportement, des champs de formulaire et une vue personnalisée. Le designer mémorise les extensions chargées dans le navigateur.</p>
+</div><p>Pour préparer une variante d&#39;un exemple, comme une adresse changée, un indicateur retiré ou un coupleur réglé pour bloquer, partez de cet exemple dans <strong>Partir d&#39;un modèle</strong>, modifiez-le, puis partagez-le en lien de visionneuse ou en page autonome. Chaque copie s&#39;exécute avec son propre état.</p>
+<h2 id="extensions"><a class="anchor" href="#extensions">#</a>Extensions</h2><p>Le gestionnaire d&#39;extensions charge, remplace et retire des fichiers <code>.js</code>. Une extension peut ajouter un comportement, des champs de formulaire et une vue personnalisée. Le designer mémorise les extensions chargées dans le navigateur.</p>
 <p>Une mise à jour n&#39;est acceptée que si toutes les extensions chargées, dépendances comprises, peuvent encore se charger ensemble. Le designer les vérifie dans un environnement isolé équivalent à la page autonome exportée. Si une mise à jour échoue, les définitions existantes et les sources enregistrées restent en place. Les scripts d&#39;extension s&#39;exécutent dans leurs propres portées de fonction : ils peuvent réutiliser des noms de variables internes.</p>
 <p>Les paramètres obligatoires et les états initiaux se saisissent avant l&#39;ajout d&#39;un nouvel appareil d&#39;extension. L&#39;éditeur distingue une valeur omise, une chaîne vide et <code>null</code> là où le schéma les permet.</p>
 <p>Ne chargez que des scripts de confiance : une extension s&#39;exécute comme une partie de la page. Les pages autonomes incluent les extensions chargées. Les codes à coller référencent des fichiers d&#39;extension que vous devez héberger à côté de la page ; les liens de lecture ne transportent pas le code des extensions.</p>

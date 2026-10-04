@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>DALI gateway · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
 </head>
 <body class="examples">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/examples/dali.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -47,7 +47,7 @@
 <main>
 <p class="crumb">Examples</p>
 
-<h1 id="knx-dali-gateway"><a class="anchor" href="#knx-dali-gateway">#</a>KNX/DALI gateway</h1><p>A push-button interface with four keys controls two DALI groups. A short press switches a group on or off; a long press sends DPT 3.007 relative dimming commands until release. The gateway translates KNX telegrams into DALI commands such as <code>RECALL MAX LEVEL</code>, <code>DAPC</code>, <code>UP</code>, <code>DOWN</code>, and <code>OFF</code>. Use step mode to follow this sequence.</p>
+<h1 id="knx-dali-gateway"><a class="anchor" href="#knx-dali-gateway">#</a>KNX/DALI gateway</h1><p>A push-button interface with four keys controls two DALI groups. A short press switches a group on or off; a long press sends DPT 3.007 relative dimming commands until release. The gateway translates KNX telegrams into DALI commands such as <code>RECALL MAX LEVEL</code>, <code>DAPC</code>, <code>UP</code>, <code>DOWN</code>, and <code>OFF</code>. Use step mode to follow this sequence. The groups are already configured: addressing and commissioning the DALI line are not simulated.</p>
 <ul>
 <li>Hold Key 1 to brighten the office group (ballasts A0–A3). Status telegrams on 1/5/1 report the resulting level.</li>
 <li>Click a luminaire to simulate a ballast fault. On its next poll, the gateway reports a group fault on 1/7/x and a general fault on 1/7/0.</li>

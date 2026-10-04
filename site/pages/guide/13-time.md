@@ -43,6 +43,17 @@ The diagram shows the date and time in a bar at the top left of the diagram area
 
 Step mode stops at explanatory events, including telegram transmission, a coupler's route/filter decision, an object's acceptance or rejection due to W, output changes, and timer expiry. Press **Next** to continue to the following event.
 
+## Timeline
+
+The `timeline` option shows, below the diagram, up to four traces on the axis of simulated time: object values and on/off states as steps, room temperatures, openings, and levels as curves, and the telegrams of a traced object as marks. Every event is recorded at its own time, whatever the speed, also in step mode. It helps to read what depends on time: a staircase timer, PWM, a control loop, a priority. Name the first traces in the option, then add or remove them from its menu:
+
+```html
+<bus-diagram src="room-heating.json"
+  timeline="livingThermostat/temp livingThermostat/val heatingActuator:h1 @livingRoom"></bus-diagram>
+```
+
+`device/object` traces an object, `device:channel` the equipment of an output, and `@room` the temperature of a room. See the [heating example](../examples/hvac.html).
+
 ## Determinism
 
 Time advances in whole milliseconds through an event queue. Advancing by 20 seconds in one call or in smaller steps gives the same final state for the same inputs.

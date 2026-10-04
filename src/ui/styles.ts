@@ -402,9 +402,81 @@ export const styles = css`
     font-size: 14px;
     flex-direction: column;
   }
+  .cell.ga {
+    cursor: pointer;
+  }
+  .cell.ga.focus {
+    outline: 3px solid ${unsafeCSS(C.tg)};
+    outline-offset: -3px;
+    background: #e4eefb;
+  }
+  .flagchip {
+    position: absolute;
+    top: 1px;
+    right: 3px;
+    font-size: 9.5px;
+    font-family: var(--mono);
+    color: #fff;
+    background: ${unsafeCSS(C.tg)};
+    border-radius: 3px;
+    padding: 0 3px;
+  }
+  .gafocus {
+    position: absolute;
+    left: 12px;
+    top: 10px;
+    z-index: 5;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    background: #fff;
+    border: 2px solid ${unsafeCSS(C.tg)};
+    font-size: 12.5px;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  .gafocus b {
+    font-family: var(--mono);
+    color: ${unsafeCSS(C.tg)};
+  }
+  .gafocus span {
+    color: ${unsafeCSS(C.mute)};
+  }
+  button.galink {
+    font: inherit;
+    color: ${unsafeCSS(C.tg)};
+    background: none;
+    border: 0;
+    padding: 0;
+    text-decoration: underline dotted;
+    cursor: pointer;
+  }
   .cell.ga small {
     font-size: 10.5px;
     color: #8a7a4c;
+  }
+  button.gab {
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0 1px;
+    margin: 0;
+    cursor: pointer;
+    border-radius: 2px;
+  }
+  button.gab.on {
+    text-decoration: underline;
+  }
+  button.gab:focus-visible {
+    outline: 2px solid ${unsafeCSS(C.tg)};
+  }
+  .cell.ga small button.gab + button.gab {
+    margin-left: 4px;
+  }
+  .flagchip.none {
+    background: ${unsafeCSS(C.mute)};
   }
   /* Free text of a cell: no more than two lines, the rest of them in infobulle. */
   .cell .txt {
@@ -1266,6 +1338,95 @@ export const styles = css`
   .rooms {
     grid-column: 1 / -1;
   }
+  .timeline {
+    margin-top: 8px;
+  }
+  .timeline header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .tl-row {
+    display: grid;
+    grid-template-columns: minmax(120px, 210px) minmax(0, 1fr) 40px;
+    gap: 8px;
+    align-items: center;
+    margin-top: 4px;
+  }
+  .tl-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    min-width: 0;
+  }
+  .tl-label i {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+  }
+  .tl-label span {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .tl-label b {
+    font-family: var(--mono);
+    font-weight: 600;
+  }
+  .tl-x {
+    border: 0;
+    background: none;
+    cursor: pointer;
+    color: ${unsafeCSS(C.mute)};
+    font-size: 15px;
+    line-height: 1;
+    padding: 0 2px;
+  }
+  .tl-lane {
+    width: 100%;
+    height: 40px;
+    background: ${unsafeCSS(hexA(C.ink, 0.025))};
+    border-radius: 4px;
+  }
+  .tl-scale {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 40px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .tl-ticks {
+    position: relative;
+    height: 14px;
+    font-family: var(--mono);
+    font-size: 10px;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .tl-ticks span {
+    position: absolute;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+  .tl-add {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 12px;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .tl-add select {
+    max-width: 320px;
+    font-size: 12px;
+  }
   .room-list {
     display: flex;
     flex-wrap: wrap;
@@ -1566,15 +1727,39 @@ export const styles = css`
     background: var(--f);
     color: #fff;
   }
+  /* Opens the telegram details: set apart from the octets by its colour and its icon. */
   .frame .btn.details {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-left: 4px;
     font-size: 12px;
-    padding: 2px 8px;
+    font-weight: 600;
+    padding: 3px 10px 3px 8px;
+    border-radius: 999px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.18);
+  }
+  .frame .btn.details svg {
+    width: 13px;
+    height: 13px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .frame .btn.details:hover {
+    filter: brightness(1.1);
   }
   .sep {
     border-top: 1px solid #ecebe5;
     margin-top: 6px;
     padding-top: 5px;
     font-size: 12.5px;
+  }
+  .sep .why {
+    font-size: 11.5px;
+    color: ${unsafeCSS(C.mute)};
+    margin: -1px 0 3px;
   }
   .sep .line {
     display: flex;

@@ -717,6 +717,7 @@ export const frMessages: Record<string, string> = {
   "Group objects": "Objets de groupe",
   // Shared by the heating actuator, the room thermostat, the radiator, and the fan coil.
   "Heating control value": "Commande chauffage",
+  "Heating / cooling": "Chauffage / refroidissement",
   "Cooling control value": "Commande refroidissement",
   valve: "vanne",
   "Valve travel time": "Course de la vanne",
@@ -969,4 +970,28 @@ export const frMessages: Record<string, string> = {
   Details: "Détails",
   "With the bus idle before it and the acknowledgement: {0} ms":
     "Avec le repos du bus avant et l'acquittement : {0} ms",
+  "{0} is used on both sides: it is in the filter table":
+    "{0} est utilisée des deux côtés : elle figure dans la table de filtrage",
+  "{0} is not used on both sides: it is not in the filter table":
+    "{0} n'est pas utilisée des deux côtés : elle ne figure pas dans la table de filtrage",
+  "set to forward every group telegram":
+    "réglé pour transmettre tous les télégrammes de groupe",
+  "set to block every group telegram":
+    "réglé pour bloquer tous les télégrammes de groupe",
+  "no filter table: a repeater forwards every telegram":
+    "pas de table de filtrage : un répéteur transmet tous les télégrammes",
+  "routing counter at 0: the telegram is not forwarded":
+    "compteur de routage à 0 : le télégramme n'est pas transmis",
+  "no bus voltage on the other side": "pas de tension bus de l'autre côté",
+  "Remove this trace": "Retirer cette trace",
+  Timeline: "Chronogramme",
+  "simulated time · steps: object values · curves: physical quantities · marks: telegrams":
+    "temps simulé · escaliers : valeurs d'objets · courbes : grandeurs physiques · marques : télégrammes",
+  "Add a trace": "Ajouter une trace",
+  "object, room, or output…": "objet, pièce ou sortie…",
+  "{0} linked objects · send on it (C, T, sending address): {1} · written by it (C, W): {2}":
+    "{0} objets liés · émettent dessus (C, T, adresse d'émission) : {1} · écrits par elle (C, W) : {2}",
+  Clear: "Effacer",
+  "Show the objects linked to this address in the diagram":
+    "Montrer dans le schéma les objets liés à cette adresse",
 };

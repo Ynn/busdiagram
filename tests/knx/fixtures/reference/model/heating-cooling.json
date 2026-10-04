@@ -115,6 +115,38 @@
         "drivesLoad": false
       }
     },
+    "classThermostat": {
+      "temp": {
+        "number": 1,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "hc": {
+        "number": 2,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      },
+      "ctl": {
+        "number": 3,
+        "R": true,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
+      }
+    },
     "valveActuator": {
       "h1": {
         "number": 1,
@@ -127,7 +159,7 @@
         "drivesLoad": true
       },
       "c1": {
-        "number": 5,
+        "number": 6,
         "R": false,
         "U": false,
         "C": true,
@@ -147,7 +179,7 @@
         "drivesLoad": false
       },
       "h2": {
-        "number": 7,
+        "number": 8,
         "R": false,
         "U": false,
         "C": true,
@@ -157,7 +189,7 @@
         "drivesLoad": true
       },
       "c3": {
-        "number": 17,
+        "number": 20,
         "R": false,
         "U": false,
         "C": true,
@@ -165,6 +197,26 @@
         "priority": "low",
         "telegram": "cmd",
         "drivesLoad": true
+      },
+      "h4": {
+        "number": 22,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": true
+      },
+      "hc4": {
+        "number": 26,
+        "R": false,
+        "U": false,
+        "C": true,
+        "I": false,
+        "priority": "low",
+        "telegram": "cmd",
+        "drivesLoad": false
       }
     }
   },

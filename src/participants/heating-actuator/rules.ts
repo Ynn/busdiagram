@@ -29,6 +29,12 @@ export function valveWarnings(d: RuleDeviceInfo, t: Translate): RuleWarning[] {
         channelId: c.id,
         message: t`${who(c.label)}: a cooling control value is linked, but the output is a heating valve and ignores it; set its function to cooling or change-over.`,
       });
+    if (mode !== "changeover" && ports.includes("heatCool"))
+      out.push({
+        code: "config-valve-mode",
+        channelId: c.id,
+        message: t`${who(c.label)}: a heating/cooling object is linked, but the output is not a change-over valve and ignores it.`,
+      });
     if (
       mode === "cooling" &&
       ports.some((p) => p === "value" || p === "switch")

@@ -135,7 +135,7 @@ describe("change-over by the heating / cooling object (DPT 1.100)", () => {
       heating: false,
       setpointC: 24,
     });
-    expect(last(sim, "3/4/7")).toBe(0);
+    expect(sim.objectValue("meetingThermostat", "hcs")).toBe(0);
     // Only the cooling coil works: the radiator valve stays closed.
     expect(sim.equipmentState("valveActuator", "h2")).toMatchObject({
       openPct: 0,
@@ -300,5 +300,117 @@ describe("fan coil", () => {
         { type: "switch", on: true, medium: "steam" },
       ),
     ).toThrow(/invalid output command/);
+  });
+});
+
+describe("2-pipe system with a single control value", () => {
+  it("the season object changes over the thermostat and the water of the valve together", () => {
+    const sim = load("heating-cooling.json");
+    sim.advance(120_000);
+    expect(sim.deviceState("classThermostat")).toMatchObject({
+      heating: true,
+      valuePct: 0,
+    });
+    sim.press("meetingThermostat", "heatCool", "press"); // season: cooling
+    sim.advance(600_000);
+    expect(sim.deviceState("classThermostat")).toMatchObject({
+      heating: false,
+      setpointC: 24,
+    });
+    expect(sim.channelState("valveActuator", "h4")).toMatchObject({
+      medium: "cooling",
+    });
+    expect(Number(last(sim, "3/0/5"))).toBeGreaterThan(0);
+    expect(temp(sim, "classroom")).toBeLessThan(24.4);
+  });
+
+  it("the same control value heats or cools with the heating/cooling object; 0 closes without changing the water", () => {
+    const doc = raw("heating-cooling.json") as Doc;
+    doc.devices = doc.devices.filter((d: Doc) => !/Thermostat$/.test(d.id));
+    const sim = createSimulator(doc);
+    sim.groupWrite("usbInterface", "3/1/0", 1); // hot water
+    sim.groupWrite("usbInterface", "3/0/5", 60);
+    sim.advance(3000);
+    expect(sim.channelState("valveActuator", "h4")).toMatchObject({
+      valuePct: 60,
+      medium: "heating",
+    });
+    sim.groupWrite("usbInterface", "3/1/0", 0); // cold water, same value
+    sim.advance(3000);
+    expect(sim.channelState("valveActuator", "h4")).toMatchObject({
+      valuePct: 60,
+      medium: "cooling",
+    });
+    expect(sim.output("valveActuator", "h4")).toMatchObject({
+      medium: "cooling",
+    });
+    sim.groupWrite("usbInterface", "3/0/5", 0);
+    sim.advance(3000);
+    expect(sim.channelState("valveActuator", "h4")).toMatchObject({
+      valuePct: 0,
+      medium: "cooling",
+    });
+  });
+
+  it("before any telegram, the start value of the heating/cooling object gives the water", () => {
+    const start = (value?: number) => {
+      const doc = raw("heating-cooling.json") as Doc;
+      doc.devices = doc.devices.filter((d: Doc) => !/Thermostat$/.test(d.id));
+      const hc = dev(doc, "valveActuator").objects.find(
+        (o: Doc) => o.id === "hc4",
+      );
+      if (value !== undefined) hc.value = value;
+      const sim = createSimulator(doc);
+      sim.groupWrite("usbInterface", "3/0/5", 60);
+      sim.advance(3000);
+      return sim.channelState("valveActuator", "h4");
+    };
+    expect(start(0)).toMatchObject({ valuePct: 60, medium: "cooling" });
+    expect(start(1)).toMatchObject({ valuePct: 60, medium: "heating" });
+    expect(start()).toMatchObject({ valuePct: 60, medium: "heating" });
+  });
+
+  it("the thermostat sends on its common output the value of its active mode", () => {
+    const doc = raw("heating-cooling.json") as Doc;
+    // A separate cooling value on the classroom thermostat, for comparison.
+    dev(doc, "classThermostat").objects.push({
+      id: "cool",
+      name: "Cooling control",
+      ga: "3/0/9",
+      dpt: "5.001",
+      port: "coolingValue",
+      flags: { W: false, T: true },
+    });
+    doc.groupAddresses.push({ address: "3/0/9", dpt: "5.001" });
+    const sim = createSimulator(doc);
+    sim.advance(5000);
+    // In heating mode at 27 °C, the common output already reports 0.
+    expect(
+      sim.history.filter((t) => t.ga === "3/0/5").map((t) => t.value),
+    ).toEqual([0]);
+    const from = sim.timeMs;
+    sim.groupWrite("usbInterface", "3/1/0", 0);
+    sim.advance(60_000);
+    const after = (ga: string) =>
+      sim.history
+        .filter((t) => t.ga === ga && t.timeMs >= from)
+        .map((t) => t.value);
+    expect(after("3/0/5").length).toBeGreaterThan(0);
+    expect(after("3/0/5")).toEqual(after("3/0/9"));
+  });
+
+  it("a heating/cooling object on an output that is not change-over is reported", () => {
+    const doc = raw("heating-cooling.json") as Doc;
+    const a = dev(doc, "valveActuator");
+    a.objects.push({
+      id: "hc2",
+      name: "H2 heating / cooling",
+      ga: "3/1/0",
+      dpt: "1.100",
+      port: "heatCool",
+      channel: "h2",
+      flags: { W: true, T: false },
+    });
+    expect(codes(createSimulator(doc))).toContain("config-valve-mode");
   });
 });

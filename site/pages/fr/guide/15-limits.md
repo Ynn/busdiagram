@@ -1,17 +1,19 @@
 ---
 title: Modèle et limites
 translationOf: guide/15-limits.md
-sourceHash: "8e364e8ffa82"
+sourceHash: "aecec8af491a"
 order: 15
 ---
 # Modèle et limites
 
 BusDiagram est un outil de conception de schémas ; sa couche de simulation sert à illustrer les schémas et fait les choix suivants. Ils décrivent le modèle logiciel et ne doivent pas être pris pour une description complète d'une installation KNX physique.
 
+Ce qui s'exécute et ce qui est seulement montré : les fonctions des appareils, leurs objets et indicateurs, les services de groupe et le routage à travers les coupleurs s'exécutent dans la simulation ; la trame TP et son signal sont calculés pour l'affichage ; le bus électrique, la programmation et les autres médias ne sont pas simulés.
+
 - **Cadence :** la propagation est ralentie pour l'observation ; elle ne reproduit pas la cadence réelle d'un bus à paire torsadée.
 - **Services de groupe :** `GroupValueWrite`, `GroupValueRead` et `GroupValueResponse` sont modélisés. Les télégrammes de programmation à adresse individuelle sont hors du modèle.
 - **Échange TP :** la vue des trames montre une trame de données de groupe, avec la priorité de l'objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L'arbitrage du bus, l'ordonnancement par priorité, les acquittements TP (`ACK`, `NACK`, `BUSY`) et les répétitions automatiques sont hors du modèle ; les détails des télégrammes dessinent l'acquittement à titre d'illustration, et leur signal TP1 est schématique, pas une simulation électrique.
-- **Indicateurs des objets :** C, R, W, T, U et I sont modélisés. La lecture à l'initialisation (I) s'exécute quand un appareil redémarre après une coupure de la tension bus, pas au démarrage de la simulation. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l'ordre de ses objets, qui a l'indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d'émission.
+- **Indicateurs des objets :** C, R, W, T, U et I sont modélisés. La lecture à l'initialisation (I) s'exécute quand un appareil démarre : au démarrage de la simulation et après une coupure de la tension bus. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l'ordre de ses objets, qui a l'indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d'émission.
 - **Associations internes :** quand un appareil émet, ses autres objets sur la même adresse de groupe prennent la valeur, comme le prévoit la couche application KNX ; leur indicateur W (U pour une réponse) décide seulement si l'appareil réagit.
 - **Alimentations :** dessinées sur les lignes et segments qui en déclarent une ; un segment TP qui n'en a pas reçoit l'avertissement `config-no-power-supply`. Les lignes principales et la ligne de zone n'en reçoivent pas, et la charge du bus (consommation comparée au courant nominal) et la chute de tension ne sont pas calculées.
 - **Topologie :** les lignes 0.1 à 0.15, reliées directement à la ligne de zone, sont permises en KNX mais non prises en charge ; les lignes appartiennent aux zones 1 à 15.
@@ -29,7 +31,7 @@ BusDiagram est un outil de conception de schémas ; sa couche de simulation sert
 - **Panneau de l'interface USB :** les lectures et écritures de groupe sont modélisées, sans programmation ni téléchargement.
 - **DALI :** la commande de groupe et la diffusion générale sont modélisées, sans mise en service DALI, commande de couleur ni éclairage de sécurité. Voir [DALI](dali.html#model-limits).
 - **Avertissements de configuration :** les paramètres qui compensent une propriété de la charge (type de vanne, câblage du moteur, type de contact) sont comparés à cette propriété ; une discordance est simulée et affichée comme avertissement. Voir les [codes d'avertissement](../reference/errors.html#configuration-warnings).
-- **Chauffage :** chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent un objet DPT 20.102 ; les objets de mode forcé et les objets de mode sur un bit ne sont pas modélisés. Le thermostat n'a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Un ventilo-convecteur a une batterie chaude, froide ou à changement de mode et un ventilateur à une seule vitesse : la commande de vitesse du ventilateur, les températures d'eau, le point de rosée et les passerelles de climatisation ne sont pas modélisés. Voir [CVC](hvac.html#model-limits).
+- **Chauffage :** chaque pièce utilise une constante de temps thermique simplifiée, et la puissance de chauffage ou de refroidissement est supposée disponible. Les modes de fonctionnement utilisent une présélection DPT 20.102, des objets de mode sur un bit ou un mode forcé, dans un ordre de priorité fixe. Le thermostat n'a pas de programme intégré ; un programmateur peut envoyer des télégrammes de mode. Un ventilo-convecteur a une batterie chaude, froide ou à changement de mode et un ventilateur à une seule vitesse : la commande de vitesse du ventilateur, les températures d'eau, le point de rosée et les passerelles de climatisation ne sont pas modélisés. Voir [CVC](hvac.html#model-limits).
 - **Mesure :** la puissance vient de la puissance nominale de chaque charge, sans tolérance de mesure ni facteur de puissance ; l'énergie est comptée avec une échelle de temps (`energyTimeScale`).
 - **Qualité de l'air :** les mesures sont saisies par le lecteur ; il n'y a pas de modèle de l'air ni de la ventilation.
 - **Stores à lamelles :** les lamelles s'orientent avant chaque mouvement ; le rétablissement de l'angle des lamelles après un mouvement et les positions limites des lamelles ne sont pas modélisés.

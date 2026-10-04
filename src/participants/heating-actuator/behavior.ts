@@ -73,6 +73,10 @@ function drive(ctx: HCtx, ch: string, open: boolean) {
   ctx.setOutput(ch, { type: "switch", on: energized, medium: st.medium });
 }
 
+/** The change-over output has a heating/cooling object: the water comes from it. */
+const heatCoolObject = (ctx: HCtx, ch: string) =>
+  chObjects(ctx, "heatCool", ch).find((o) => o.channel === ch && o.gas.length);
+
 /**
  * Control value of a change-over valve: the controller sends the value of its active
  * mode and sets the other one to 0, so the valve follows the one that is not zero; when
@@ -233,6 +237,16 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
       direction: "out",
       description: "missing control value: fallback program",
     },
+    heatCool: {
+      // Unknown until a value is received: the water stays the one of the output's start.
+      initialUnknown: true,
+      dpts: ["1.100"],
+      channel: "required",
+      title: "Heating / cooling",
+      direction: "in",
+      description:
+        "change-over output: 1 hot water, 0 cold water; the last control value received applies, the same value heating or cooling",
+    },
     coolingValue: {
       description:
         "Cooling control value of the valve (5.001), for a cooling or change-over output.",
@@ -273,6 +287,12 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
   onInit(ctx) {
     ctx.device.channels.forEach((c) => {
       const st = ctx.state.channels[c.id]!;
+      // A heating/cooling object given a value at start sets the water of a change-over
+      // output; without one, it is heating until the first telegram.
+      const hc = heatCoolObject(ctx, c.id);
+      const hcValue = hc ? ctx.getObject(hc.id) : null;
+      if (valveMode(ctx, c.id) === "changeover" && hcValue !== null)
+        st.medium = hcValue ? "heating" : "cooling";
       // Initially closed valve: An open valve off voltage must be supplied.
       st.energized = chParams(ctx, c.id).valveType === "normallyOpen";
       ctx.setOutput(c.id, {
@@ -292,6 +312,14 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
     if (!o || !ch || !ctx.state.channels[ch]) return;
     const st = ctx.state.channels[ch];
     const mode = valveMode(ctx, ch);
+    if (o.port === "heatCool") {
+      // Heating/cooling object of a change-over output: the water the valve lets
+      // through; the control value applied stays the same.
+      if (mode !== "changeover") return;
+      st.medium = e.newValue ? "heating" : "cooling";
+      applyValue(ctx, ch);
+      return;
+    }
     const cooling = COOLING_PORTS.includes(o.port);
     if (!cooling && !HEATING_PORTS.includes(o.port)) return;
     // A heating output ignores the cooling control value, and the reverse.
@@ -301,7 +329,10 @@ export const heatingActuator: BehaviorDefinition<HeatingActuatorState> = {
     const pct = st.direct ? (e.newValue ? 100 : 0) : clamp(e.newValue);
     if (cooling) st.coolPct = pct;
     else st.heatPct = pct;
-    selectValue(st, cooling ? "cooling" : "heating");
+    // With a heating/cooling object, the last control value received applies and the
+    // object gives the water; otherwise the value that is not zero selects it.
+    if (mode === "changeover" && heatCoolObject(ctx, ch)) st.valuePct = pct;
+    else selectValue(st, cooling ? "cooling" : "heating");
     if (st.emergency) {
       st.emergency = false;
       ctx.note(ctx.t`control value received: emergency mode ended`);

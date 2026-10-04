@@ -1,7 +1,7 @@
 ---
 title: Notions
 translationOf: guide/03-concepts.md
-sourceHash: "751a5bd7e909"
+sourceHash: "2e5b9eabb0c0"
 order: 3
 ---
 
@@ -32,7 +32,7 @@ Chaque objet a une valeur, un DPT qui détermine comment l'interpréter, une ou 
 | `T` transmission | L'objet peut envoyer sa valeur. | La valeur peut changer localement, mais aucun télégramme n'est envoyé. |
 | `R` lecture | L'objet répond à une lecture sur n'importe laquelle de ses adresses, sur son adresse d'émission. | Aucune réponse n'est envoyée. |
 | `U` mise à jour | Une réponse reçue met à jour l'objet. | Les réponses sont ignorées. |
-| `I` lecture à l'initialisation | Quand l'appareil redémarre après une coupure de la tension bus, l'objet lit sa valeur sur son adresse d'émission. | Pas de lecture au démarrage. |
+| `I` lecture à l'initialisation | Quand l'appareil démarre (au démarrage de la simulation, et de nouveau après une coupure de la tension bus), l'objet lit sa valeur sur son adresse d'émission. | Pas de lecture au démarrage. |
 
 Quand un appareil émet, ses autres objets sur la même adresse prennent aussitôt la valeur, comme le prévoit la couche application KNX ; leur indicateur `W` décide seulement si l'appareil réagit, pour qu'un objet d'état n'agisse pas comme une commande.
 
@@ -82,3 +82,5 @@ Sélectionnez un télégramme dans le moniteur de groupe : sa carte donne la sou
 - **Contrôle de trame :** deux contrôles se croisent. Le bit de parité P, envoyé après les huit bits de données de chaque caractère, rend pair le nombre de 1 de sa ligne ; l'octet de contrôle, dernier caractère, rend impair le nombre de 1 dans chaque colonne de données, bits 7 à 0 (pas dans la colonne des bits de parité). Cliquez sur une colonne pour suivre son calcul, à côté du calcul équivalent : OU exclusif des octets suivi d'une inversion.
 
 Quand le télégramme traverse des coupleurs, choisissez le segment : chaque coupleur abaisse le compteur de routage, si bien que l'octet de routage et l'octet de contrôle changent d'une ligne à l'autre.
+
+Pour voir qui est lié à une adresse de groupe, cliquez dessus dans un appareil, ou cliquez sur la destination dans la carte du télégramme : chaque objet lié est entouré. Son badge indique T quand l'objet émet sur cette adresse (C et T cochés, et c'est son adresse d'émission), W quand une écriture sur elle met l'objet à jour (C et W cochés), et un tiret sinon. Chaque adresse d'une cellule peut être choisie, à la souris ou au clavier ; Échap efface la sélection.
