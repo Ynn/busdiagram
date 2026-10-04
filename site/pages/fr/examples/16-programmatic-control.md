@@ -3,7 +3,7 @@ title: Pilotage par programme
 summary: "Mettre en pause, avancer, réinitialiser et lire l'état depuis des boutons de la page."
 covers: "pause · advance · getState"
 translationOf: examples/16-programmatic-control.md
-sourceHash: ad5b1494d680
+sourceHash: "ad5b1494d680"
 order: 16
 ---
 # Pilotage par programme

@@ -1,7 +1,7 @@
 ---
 title: API JavaScript
 translationOf: reference/06-api.md
-sourceHash: ee4eb08018a2
+sourceHash: "ee4eb08018a2"
 order: 6
 ---
 # API JavaScript

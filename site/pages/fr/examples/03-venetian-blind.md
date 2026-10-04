@@ -3,7 +3,7 @@ title: Store à lamelles
 summary: "Un appui long déplace le store une fois les lamelles orientées ; un appui court oriente les lamelles ; consigne et retour de l'angle des lamelles."
 covers: "DPT 1.008 · DPT 1.007 · DPT 5.001 lamelles"
 translationOf: examples/03-venetian-blind.md
-sourceHash: 1bdaefa689a1
+sourceHash: "1bdaefa689a1"
 order: 3.2
 ---
 # Store à lamelles

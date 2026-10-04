@@ -1,7 +1,7 @@
 ---
 title: Volets
 translationOf: guide/06-shutters.md
-sourceHash: 0d1f985b02e7
+sourceHash: "0d1f985b02e7"
 order: 6
 ---
 # Volets : course estimée et course réelle

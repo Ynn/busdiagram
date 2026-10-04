@@ -1,7 +1,7 @@
 ---
 title: Page autonome et lien
 translationOf: guide/10-viewer.md
-sourceHash: 9eac7e1c2d2f
+sourceHash: "9eac7e1c2d2f"
 order: 10
 ---
 # Page autonome et lien de lecture

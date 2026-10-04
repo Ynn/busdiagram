@@ -1,7 +1,7 @@
 ---
 title: Générateur de prompt
 translationOf: guide/07-prompt-generator.md
-sourceHash: a88fcd0aee8b
+sourceHash: "a88fcd0aee8b"
 order: 7.9
 scripts: assets/llm-reference.js, assets/prompt-generator.js
 ---

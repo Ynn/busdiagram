@@ -3,7 +3,7 @@ title: Pompe à chaleur et eau chaude
 summary: "Commuter une pompe à chaleur depuis un thermostat d'ambiance ; chauffer un ballon d'eau chaude avec son propre thermostat."
 covers: "Pompe à chaleur · durée minimale d'arrêt · ballon d'eau chaude · sorties mesurées"
 translationOf: examples/09-heat-pump.md
-sourceHash: c036d62ba7ec
+sourceHash: "c036d62ba7ec"
 order: 9.67
 ---
 # Pompe à chaleur et eau chaude

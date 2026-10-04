@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Heating · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/hvac.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -106,7 +106,7 @@
 </div><p>A DPT 9.001 value uses two payload bytes after the APCI. Until an object receives or measures a value, a 9.xxx object can remain unknown.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Room thermostat</h2><p><code>roomThermostat/v1</code> measures a room and controls heating or cooling. Its display shows measured temperature, mode, setpoint, and demand. Optional buttons and digital inputs affect presence and setpoint objects.</p>
 <p>The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by <code>hvacMode</code> (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the <code>hvacMode</code> preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to <code>comfortC: 21</code>. Standby and economy lower it through <code>standbyShiftK</code> and <code>economyShiftK</code>; frost protection defaults to <code>frostProtectionC: 7</code>. Cooling uses <code>deadZoneK</code> between heating and cooling setpoints and a high-temperature protection setpoint. See <a href="#heating-and-cooling">heating and cooling</a> for how the thermostat chooses between them.</p>
-<p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output at the setpoint and restarts below the <code>hysteresisK</code> threshold.</p>
+<p>For <strong>PI control</strong>, <code>controlType: &quot;pi&quot;</code> uses <code>proportionalBandK</code> and <code>integralTimeMs</code>. It sends a DPT 5.001 value on <code>heatingValue</code> or <code>coolingValue</code> when the change reaches <code>valueSendDeltaPct</code>; a one-bit <code>heatingSwitch</code> or <code>coolingSwitch</code> output uses PWM over <code>pwmCycleMs</code>. For <strong>two-point control</strong>, <code>controlType: &quot;twoPoint&quot;</code> switches a one-bit output off at the setpoint and on again <code>hysteresisK</code> below it (above it in cooling). Some room controllers centre the hysteresis on the setpoint instead: with 21 °C and 2 K, on at 20 °C and off at 22 °C.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -209,7 +209,7 @@
 <p><code>changeover</code> chooses who decides between heating and cooling:</p>
 <ul>
 <li><code>&quot;object&quot;</code>, the default: the <code>heatCool</code> object (DPT 1.100, 1 heating, 0 cooling). It comes from a central change-over, for example a season switch, or from the plant that tells a 2-pipe system whether it supplies hot or cold water. A thermostat in heating mode does nothing in summer, however warm the room.</li>
-<li><code>&quot;automatic&quot;</code>: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode and requests nothing. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).</li>
+<li><code>&quot;automatic&quot;</code>: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode. In this model, PI control keeps its integral term as long as the mode does not change: a demand can persist after the room has passed the setpoint, then decreases to 0, and the 0 is sent so that the valve closes. The zone between the setpoints serves to change over between the modes; it does not force the output to 0 at once, as some room controllers do. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).</li>
 </ul>
 <p><code>heatCoolStatus</code> sends the current mode. On a change, the thermostat sends the value of its new mode and sets the other value to 0.</p>
 <p>On the actuator side, <code>valveMode</code> follows the valve functions of a KNX HVAC valve actuator:</p>

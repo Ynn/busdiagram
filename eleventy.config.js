@@ -34,6 +34,10 @@ const sectionPages = (docs, section) =>
 const FR = translations(root, "fr").interface;
 const tr = (text, lang) => (lang === "fr" ? FR(text) : text);
 
+/** Path of a page as the French pages record it (otherLanguage): a directory URL ends with index.html. */
+const pagePath = (url) =>
+  url.replace(/^\//, "").replace(/(^|\/)$/, "$1index.html");
+
 /**
  * Pages of a section in a language: the English order; in French, each page translated
  * if a translation exists, otherwise the English page (marked as such).
@@ -45,7 +49,7 @@ function localizedPages(collections, section, lang) {
     collections.docsFr.map((item) => [item.data.otherLanguage, item]),
   );
   return english.map((item) => {
-    const fr = byUrl.get(item.url.replace(/^\//, ""));
+    const fr = byUrl.get(pagePath(item.url));
     return fr ?? { ...item, untranslated: true };
   });
 }
@@ -67,9 +71,7 @@ export default function (eleventyConfig) {
   eleventyConfig.addFilter("sectionPages", sectionPages);
   eleventyConfig.addFilter("tr", tr);
   // Relative link to a page; directory URLs get index.html so that file:// works.
-  eleventyConfig.addFilter("stripLeadingSlash", (url) =>
-    url.replace(/^\//, "").replace(/(^|\/)$/, "$1index.html"),
-  );
+  eleventyConfig.addFilter("stripLeadingSlash", pagePath);
   eleventyConfig.addFilter("sectionTitle", (section, lang) =>
     tr(
       { guide: "Guide", examples: "Examples", reference: "Reference" }[
@@ -85,7 +87,7 @@ export default function (eleventyConfig) {
       const english = item.untranslated
         ? item
         : (collections.docs.find(
-            (x) => x.url.replace(/^\//, "") === item.data.otherLanguage,
+            (x) => pagePath(x.url) === item.data.otherLanguage,
           ) ?? item);
       const name = tr(english.data.group ?? "", lang);
       if (!groups.has(name)) groups.set(name, []);

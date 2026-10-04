@@ -3,7 +3,7 @@ title: Indicateurs W et T
 summary: "Écritures ignorées et émissions bloquées sur un actionneur à six sorties."
 covers: "Indicateurs W et T · examen des objets"
 translationOf: examples/08-object-flags.md
-sourceHash: 00bf6c7ff3ff
+sourceHash: "00bf6c7ff3ff"
 order: 8
 ---
 # Indicateurs W et T

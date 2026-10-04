@@ -3,7 +3,7 @@ title: Retour d'état
 summary: "Deux touches en bascule sur la même sortie, avec et sans retour d'état."
 covers: "Bascule · objet d'état · touches désynchronisées"
 translationOf: examples/02-status-feedback.md
-sourceHash: aacb801bde2a
+sourceHash: "aacb801bde2a"
 order: 2
 ---
 # Retour d'état

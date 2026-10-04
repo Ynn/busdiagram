@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Chauffage · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/hvac.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -106,7 +106,7 @@
 </div><p>Une valeur DPT 9.001 utilise deux octets de données après l&#39;APCI. Tant qu&#39;un objet n&#39;a pas reçu ou mesuré de valeur, un objet 9.xxx peut rester inconnu.</p>
 <h2 id="room-thermostat"><a class="anchor" href="#room-thermostat">#</a>Thermostat d&#39;ambiance</h2><p><code>roomThermostat/v1</code> mesure une pièce et commande le chauffage ou le refroidissement. Son afficheur montre la température mesurée, le mode, la consigne et la demande. Des touches et des entrées numériques facultatives agissent sur les objets de présence et de consigne.</p>
 <p>Le thermostat comprend un gestionnaire de consignes avec une politique fixe. Cette politique est un choix du modèle, pas une règle du DPT 20.102. Le mode est choisi par priorité : une fenêtre ouverte demande la protection du bâtiment ; une protection du bâtiment présélectionnée par <code>hvacMode</code> (absence, vacances) reste en vigueur ; sinon la présence demande le confort ; sinon la présélection <code>hvacMode</code> s&#39;applique. Le mode auto utilise le confort dans ce modèle. La consigne de confort en chauffage vaut par défaut <code>comfortC: 21</code>. Les modes veille et économie l&#39;abaissent de <code>standbyShiftK</code> et <code>economyShiftK</code> ; la protection hors gel vaut par défaut <code>frostProtectionC: 7</code>. Le refroidissement utilise <code>deadZoneK</code> entre les consignes de chauffage et de refroidissement, et une consigne de protection contre les fortes chaleurs. Voir <a href="#heating-and-cooling">chauffage et refroidissement</a> pour la façon dont le thermostat choisit entre les deux.</p>
-<p>Pour la <strong>régulation PI</strong>, <code>controlType: &quot;pi&quot;</code> utilise <code>proportionalBandK</code> et <code>integralTimeMs</code>. Il envoie une valeur DPT 5.001 sur <code>heatingValue</code> ou <code>coolingValue</code> quand la variation atteint <code>valueSendDeltaPct</code> ; une sortie sur un bit <code>heatingSwitch</code> ou <code>coolingSwitch</code> utilise la MLI sur <code>pwmCycleMs</code>. Pour la <strong>régulation tout ou rien</strong>, <code>controlType: &quot;twoPoint&quot;</code> commute une sortie sur un bit à la consigne et se réenclenche sous le seuil <code>hysteresisK</code>.</p>
+<p>Pour la <strong>régulation PI</strong>, <code>controlType: &quot;pi&quot;</code> utilise <code>proportionalBandK</code> et <code>integralTimeMs</code>. Il envoie une valeur DPT 5.001 sur <code>heatingValue</code> ou <code>coolingValue</code> quand la variation atteint <code>valueSendDeltaPct</code> ; une sortie sur un bit <code>heatingSwitch</code> ou <code>coolingSwitch</code> utilise la MLI sur <code>pwmCycleMs</code>. Pour la <strong>régulation tout ou rien</strong>, <code>controlType: &quot;twoPoint&quot;</code> coupe une sortie sur un bit à la consigne et la réenclenche <code>hysteresisK</code> en dessous (au-dessus en refroidissement). Certains régulateurs d&#39;ambiance centrent plutôt l&#39;hystérésis sur la consigne : avec 21 °C et 2 K, marche à 20 °C et arrêt à 22 °C.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -214,7 +214,7 @@
 <p><code>changeover</code> choisit qui décide entre chauffage et refroidissement :</p>
 <ul>
 <li><code>&quot;object&quot;</code>, par défaut : l&#39;objet <code>heatCool</code> (DPT 1.100, 1 chauffage, 0 refroidissement). Il vient d&#39;un basculement central, par exemple un commutateur de saison, ou de la production qui indique à un système 2 tubes si elle fournit de l&#39;eau chaude ou froide. Un thermostat en chauffage ne fait rien en été, aussi chaude que soit la pièce.</li>
-<li><code>&quot;automatic&quot;</code> : le thermostat bascule lui-même. Il refroidit quand la pièce dépasse la consigne de refroidissement et chauffe de nouveau quand elle passe sous la consigne de chauffage. Dans la zone neutre, il garde son mode et ne demande rien. Les régulateurs d&#39;ambiance KNX décrivent ce fonctionnement comme la séquence de régulation automatique (DPT 20.107).</li>
+<li><code>&quot;automatic&quot;</code> : le thermostat bascule lui-même. Il refroidit quand la pièce dépasse la consigne de refroidissement et chauffe de nouveau quand elle passe sous la consigne de chauffage. Dans la zone neutre, il garde son mode. Dans ce modèle, la régulation PI conserve son terme intégral tant que le mode ne change pas : une demande peut persister après le franchissement de la consigne, puis diminuer jusqu&#39;à 0, et ce 0 est envoyé pour que la vanne se ferme. La zone entre les consignes sert au basculement des modes ; elle n&#39;impose pas immédiatement une sortie nulle, comme le font certains régulateurs d&#39;ambiance. Les régulateurs d&#39;ambiance KNX décrivent ce fonctionnement comme la séquence de régulation automatique (DPT 20.107).</li>
 </ul>
 <p><code>heatCoolStatus</code> envoie le mode en cours. À chaque basculement, le thermostat envoie la valeur de son nouveau mode et met l&#39;autre à 0.</p>
 <p>Côté actionneur, <code>valveMode</code> reprend les fonctions de vanne d&#39;un actionneur de vanne CVC KNX :</p>

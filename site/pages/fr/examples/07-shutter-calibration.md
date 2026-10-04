@@ -3,7 +3,7 @@ title: Volet mal calibré
 summary: "L'actionneur estime la position du volet d'après sa durée de course configurée ; comparez-la avec la position réelle."
 covers: "Position estimée et position réelle"
 translationOf: examples/07-shutter-calibration.md
-sourceHash: 95521dfe432f
+sourceHash: "95521dfe432f"
 order: 7
 ---
 # Volet mal calibré

@@ -1,7 +1,7 @@
 ---
 title: Comportements et équipements
 translationOf: reference/03-behaviors.md
-sourceHash: 3ee6e1243faf
+sourceHash: "3ee6e1243faf"
 order: 3
 ---
 # Comportements et équipements

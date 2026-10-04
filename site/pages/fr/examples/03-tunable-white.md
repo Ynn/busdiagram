@@ -3,7 +3,7 @@ title: Blanc variable
 summary: "Un actionneur de variation règle le niveau et la température de couleur d'un éclairage à blanc variable."
 covers: "DPT 5.001 · DPT 7.600"
 translationOf: examples/03-tunable-white.md
-sourceHash: 689405d68366
+sourceHash: "689405d68366"
 order: 3.7
 ---
 # Blanc variable

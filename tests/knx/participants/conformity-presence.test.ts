@@ -111,7 +111,7 @@ describe("presence detector: two detectors, master and slave", () => {
               flags: { W: true, T: false },
             },
           ]),
-          detector("slave", "1.1.2", { slave: true }, [
+          detector("slave", "1.1.2", { slave: true, holdMs: 4000 }, [
             {
               id: "p",
               ga: "1/1/1",
@@ -130,20 +130,128 @@ describe("presence detector: two detectors, master and slave", () => {
       ),
     );
 
-  it("each detection of the slave restarts the hold time of the master", () => {
+  it("the slave repeats 1 during its own hold time; the master holds after the last 1", () => {
     const sim = room();
     sim.advance(1000);
-    sim.input("slave", "move", "press");
+    sim.input("slave", "move", "press"); // 1 s: hold of the slave until 5 s
     sim.advance(6000);
-    sim.input("slave", "move", "press");
-    sim.advance(5500); // 12.5 s: 6.5 s after the last detection
+    sim.input("slave", "move", "press"); // 7 s: hold of the slave until 11 s
+    sim.advance(11_000); // 18 s
+    // Last 1 sent at 10 s, received about 1.3 s later: the master holds 10 s more.
     expect(sim.objectValue("master", "p")).toBe(1);
-    // The telegram arrives 1.3 s later: the hold time ends near 18.3 s.
-    sim.advance(7000);
+    sim.advance(5000); // 23 s
     expect(sim.objectValue("master", "p")).toBe(0);
-    // The slave sends 1 on each detection and never 0.
+    // The slave sends 1 at each first detection and every 3 s during its hold time,
+    // and never 0.
     const fromSlave = sim.history.filter((t) => t.sourceDeviceId === "slave");
-    expect(fromSlave.map((t) => t.value)).toEqual([1, 1]);
+    expect(fromSlave.map((t) => t.value)).toEqual([1, 1, 1, 1]);
+    expect(fromSlave.map((t) => Math.round(t.timeMs / 1000))).toEqual([
+      1, 4, 7, 10,
+    ]);
+  });
+
+  it("a detection during the hold time of the slave restarts it without a new telegram", () => {
+    const sim = room();
+    sim.input("slave", "move", "press");
+    sim.advance(2000);
+    sim.input("slave", "move", "press"); // hold until 6 s
+    sim.advance(10_000);
+    const times = sim.history
+      .filter((t) => t.sourceDeviceId === "slave")
+      .map((t) => Math.round(t.timeMs / 1000));
+    expect(times).toEqual([0, 3]);
+  });
+
+  it("without repetition, the slave sends 1 at each detection", () => {
+    // A slave alone, with slaveCyclicMs 0.
+    const doc = v2(
+      [
+        detector(
+          "slave",
+          "1.1.2",
+          { slave: true, holdMs: 4000, slaveCyclicMs: 0 },
+          [
+            {
+              id: "p",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "input",
+              flags: { W: false, T: true },
+            },
+          ],
+        ),
+      ],
+      { groupAddresses: [{ address: "1/1/1", dpt: "1.001" }] },
+    );
+    const s = createSimulator(doc);
+    s.input("slave", "move", "press");
+    s.advance(2000);
+    s.input("slave", "move", "press");
+    s.advance(8000);
+    expect(
+      s.history
+        .filter((t) => t.sourceDeviceId === "slave")
+        .map((t) => Math.round(t.timeMs / 1000)),
+    ).toEqual([0, 2]);
+  });
+
+  it("after a bus voltage failure, a slave still in its hold time repeats again", () => {
+    const sim = room();
+    sim.input("slave", "move", "press");
+    sim.advance(2000);
+    sim.setBusVoltage("L1.1", false);
+    sim.advance(1000);
+    sim.setBusVoltage("L1.1", true); // 3 s: the hold time runs again
+    sim.advance(5000);
+    const times = sim.history
+      .filter((t) => t.sourceDeviceId === "slave")
+      .map((t) => Math.round(t.timeMs / 1000));
+    expect(times).toEqual([0, 3, 6]);
+  });
+
+  it("a locked slave stops repeating", () => {
+    const sim = createSimulator(
+      v2(
+        [
+          detector("slave", "1.1.2", { slave: true, holdMs: 20_000 }, [
+            {
+              id: "p",
+              ga: "1/1/1",
+              dpt: "1.001",
+              port: "input",
+              flags: { W: false, T: true },
+            },
+            {
+              id: "lock",
+              ga: "1/1/3",
+              dpt: "1.001",
+              port: "lock",
+              flags: { W: true, T: false },
+            },
+          ]),
+          {
+            id: "tool",
+            name: "tool",
+            address: "1.1.255",
+            kind: "interface",
+            behavior: "usbInterface/v1",
+            objects: [],
+          },
+        ],
+        {
+          groupAddresses: [
+            { address: "1/1/1", dpt: "1.001" },
+            { address: "1/1/3", dpt: "1.001" },
+          ],
+        },
+      ),
+    );
+    sim.input("slave", "move", "press");
+    sim.advance(4000);
+    sim.groupWrite("tool", "1/1/3", 1);
+    sim.advance(10_000);
+    const sent = sim.history.filter((t) => t.sourceDeviceId === "slave");
+    expect(sent.map((t) => Math.round(t.timeMs / 1000))).toEqual([0, 3]);
   });
 });
 

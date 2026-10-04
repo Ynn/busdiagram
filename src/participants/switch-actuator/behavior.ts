@@ -323,11 +323,15 @@ function force(ctx: Ctx, ch: string, raw: number) {
   if (raw & 2) {
     if (st.forced === null) st.beforeForcing = st.on;
     st.forced = raw & 1 ? "on" : "off";
+    // Release time: the forcing ends by itself, counted from its last telegram.
+    const release = numParam(channelParams(ctx, ch).forcedReleaseMs, 0);
+    if (release > 0) ctx.schedule(`${ch}:release`, release);
     // An alarm keeps priority: the forcing applies when it ends.
     if (!st.fire && !st.intrusion) setRelay(ctx, ch, st.forced === "on");
     return;
   }
   if (st.forced === null) return;
+  ctx.cancel(`${ch}:release`);
   const after = (channelParams(ctx, ch).afterForcing ??
     "lastCommand") as AfterForcing;
   st.forced = null;
@@ -725,6 +729,16 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         description:
           "State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off.",
       },
+      forcedReleaseMs: {
+        title: "Release time of forcing",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        minimum: 0,
+        default: 0,
+        description:
+          "Time after which a forcing ends by itself, counted from its last forcing telegram, as if a release telegram had arrived (0: only a release telegram ends it). Actuators offer up to several hours.",
+      },
       afterForcing: {
         title: "End of forcing",
         expert: true,
@@ -955,6 +969,11 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       follow(ctx, ch);
       return;
     }
+    if (what === "release") {
+      ctx.note(ctx.t`${ch}: release time elapsed, end of forcing`);
+      force(ctx, ch, 0);
+      return;
+    }
     if (what === "delay") {
       const st = ctx.state.channels[ch];
       if (!st || st.delayed === null) return;
@@ -1016,6 +1035,9 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
         a === "on" || a === "off" ? a === "on" : (st.beforeFailure ?? st.on);
       st.beforeFailure = null;
       commandSwitch(ctx, ch, on);
+      // The release time stopped with the bus voltage: it runs again in full.
+      const release = numParam(channelParams(ctx, ch).forcedReleaseMs, 0);
+      if (st.forced && release > 0) ctx.schedule(`${ch}:release`, release);
       // Alarms and load shedding kept through the failure act again on the output.
       if (st.fire) {
         setRelay(ctx, ch, true);

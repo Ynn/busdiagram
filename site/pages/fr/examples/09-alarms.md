@@ -3,7 +3,7 @@ title: Alarmes intrusion et incendie
 summary: "Mémoriser les alarmes intrusion et incendie jusqu'à leur réinitialisation ; faire clignoter un éclairage ou le forcer en marche."
 covers: "Module d'alarme · déclencheur, alarme mémorisée, réinitialisation · intrusion et incendie sur un actionneur"
 translationOf: examples/09-alarms.md
-sourceHash: f09a879fa418
+sourceHash: "f09a879fa418"
 order: 9.65
 ---
 # Alarmes intrusion et incendie

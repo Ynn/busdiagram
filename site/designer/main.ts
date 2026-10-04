@@ -532,9 +532,19 @@ function refresh() {
   preview.load(a.data);
 }
 
+/** Width of the slide on which the 16:9 preview lays out the diagram, in CSS pixels. */
+const SLIDE_WIDTH = 1280;
+const frame = $("#frame");
+new ResizeObserver(() =>
+  frame.style.setProperty(
+    "--slide-scale",
+    String(frame.clientWidth / SLIDE_WIDTH),
+  ),
+).observe(frame);
+
 function applyOptions() {
   preview.options = options();
-  $("#frame").classList.toggle("slide", options().fit === "contain");
+  frame.classList.toggle("slide", options().fit === "contain");
 }
 
 function renderProblems(a: Analysis) {

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Push buttons and actuators · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/devices.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -916,7 +916,7 @@
 </li>
 <li><p><strong>Scenes:</strong> <code>&quot;scenes&quot;: { &quot;1&quot;: 1, &quot;2&quot;: 0 }</code> on a channel defines its states. A <code>scene</code> object without a channel applies to all channels. A scene control object (DPT 18.001) also accepts storing: a telegram with the learn bit (value + 128) stores the current state of each channel as the scene, until the simulation restarts; <code>sceneLearning: false</code> refuses it.</p>
 </li>
-<li><p><strong>Priority override:</strong> DPT 2.001 values 2 and 3 force off and on; 0 or 1 ends the override. Normal commands are stored during the override. <code>afterForcing</code> controls what happens afterward: <code>&quot;lastCommand&quot;</code> (default), <code>&quot;on&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;unchanged&quot;</code>, <code>&quot;previous&quot;</code>, or <code>&quot;toggle&quot;</code>.</p>
+<li><p><strong>Priority override:</strong> DPT 2.001 values 2 and 3 force off and on; 0 or 1 ends the override. Normal commands are stored during the override. <code>afterForcing</code> controls what happens afterward: <code>&quot;lastCommand&quot;</code> (default), <code>&quot;on&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;unchanged&quot;</code>, <code>&quot;previous&quot;</code>, or <code>&quot;toggle&quot;</code>. With <code>forcedReleaseMs</code>, the forcing also ends by itself that long after its last forcing telegram, as on many actuators (0, the default, waits for a release telegram).</p>
 </li>
 <li><p><strong>Lock:</strong> a <code>lock</code> object (1 = locked) holds the output in the state set by <code>lockStart</code> (<code>&quot;unchanged&quot;</code>, <code>&quot;on&quot;</code>, or <code>&quot;off&quot;</code>); commands are stored meanwhile, and <code>afterLock</code> takes the same values as <code>afterForcing</code>. Forcing has priority over the lock.</p>
 </li>
@@ -1582,7 +1582,7 @@
 <p>The measured power of a circuit is given at start by <code>initialState.powerW</code> and changed by a numeric input on its <code>power</code> object, entered in the unit of that object. <code>initialState.energyWh</code> sets the meter index. Energy is integrated with the same time scale as actuator metering (<code>energyTimeScale</code>, 60 by default); power is sent when it changes by <code>powerSendDeltaW</code>, and energy every <code>meterIntervalMs</code>. The meter does not add the power of the circuits it measures to that of actuators: a sub-meter and the actuator that switches the same load report the same power. See the <a href="../examples/boiler-room.html">heat pump example</a>.</p>
 <h2 id="presence-detector-presencedetector-v1"><a class="anchor" href="#presence-detector-presencedetector-v1">#</a>Presence detector: <code>presenceDetector/v1</code></h2><p>A detection sends 1 through the <code>input</code> object. Each new detection restarts the hold timer (<code>&quot;parameters&quot;: { &quot;holdMs&quot;: 10000 }</code>); when it expires, the object sends 0. Set <code>retrigger: false</code> to avoid restarting or <code>sendOnEnd: false</code> to suppress the final 0. To model a detector that only sends 1 and relies on the actuator&#39;s timer, set <code>sendOnEnd: false</code> with a short hold time, as in the <a href="../examples/timers.html">timer example</a>. The presence object may use DPT 1.001 or 1.018 (occupancy).</p>
 <p>A <code>lock</code> object at 1 makes the detector ignore its detections. <code>lockStart</code> and <code>lockEnd</code> set the telegram sent when the lock starts and ends: none (default), 0, or 1 (kept while locked; at the end, followed by the hold time).</p>
-<p>Several detectors can watch one room as master and slaves. A slave (<code>&quot;slave&quot;: true</code>) sends 1 on each of its detections; linked to the <code>slaveTrigger</code> object of the master, it counts as a detection of the master (switch-on, or a restart of the hold time), whose brightness threshold and final 0 apply.</p>
+<p>Several detectors can watch one room as master and slaves. A slave (<code>&quot;slave&quot;: true</code>) has its own hold time (<code>holdMs</code>), restarted by each of its detections: it sends 1 at its first detection, then again every <code>slaveCyclicMs</code> (3 s by default) while its hold time runs, and never 0; with <code>slaveCyclicMs: 0</code> it sends 1 at each detection instead. Linked to the <code>slaveTrigger</code> object of the master, each 1 counts as a detection of the master (switch-on, or a restart of the hold time), whose brightness threshold and final 0 apply: the master switches off one hold time after the last 1 of its slaves. Give the slave a hold time shorter than that of the master; manufacturers suggest repeating about every 30 s, compressed here like the hold times.</p>
 <p>A <code>brightness</code> object (DPT 9.004) sends the brightness measured by the detector, entered by the reader on a numeric input. With <code>brightnessThresholdLux</code>, a detection switches on only while that brightness is below the threshold; a presence already active is still extended. There is no light model: the brightness does not depend on the lamps or on daylight, and constant light regulation is not modeled.</p>
 <h2 id="weather-station-weatherstation-v1"><a class="anchor" href="#weather-station-weatherstation-v1">#</a>Weather station: <code>weatherStation/v1</code></h2><p>A weather station sends outdoor measurements entered in its numeric <code>inputs</code>: wind speed on a <code>wind</code> object (DPT 9.005 in m/s, or 9.028 in km/h; thresholds stay in m/s; the KNX description of weather data encodes wind speed in 9.005 and allows 9.028 only as an extra datapoint next to it), brightness on <code>brightness</code> (DPT 9.004, lux), and temperature on <code>outdoorTemp</code> (DPT 9.001). Two one-bit outputs follow thresholds with hysteresis; an output is reset only strictly beyond threshold and hysteresis, so that a value at the threshold keeps it set even with no hysteresis:</p>
 <div class="table"><table>
@@ -1619,7 +1619,7 @@
 <td><code>rainOnDelayMs</code>, <code>rainOffDelayMs</code></td>
 </tr>
 </tbody></table>
-</div><p>Rain is entered on the numeric input of the <code>rainAlarm</code> object (0 or 1): the delays avoid reporting a short shower or a short break, as on common rain sensors. An output is transmitted when its state changes; with <code>alarmCyclicMs</code>, the wind, rain, and frost alarms are also sent again at that period, for actuators that monitor them (<code>alarmMonitoringMs</code> of a shutter actuator). Link the alarms to the <code>windAlarm</code>, <code>rainAlarm</code>, and <code>frostAlarm</code> ports of a <a href="shutters.html">shutter actuator</a>.</p>
+</div><p>Rain is entered on the numeric input of the <code>rainAlarm</code> object (0 or 1): the delays avoid reporting a short shower or a short break, as on common rain sensors. The wind alarm, by contrast, follows the entered wind at once: weather stations usually also require the wind to stay above or below its threshold for some minutes, which the model does not. An output is transmitted when its state changes; with <code>alarmCyclicMs</code>, the wind, rain, and frost alarms are also sent again at that period, for actuators that monitor them (<code>alarmMonitoringMs</code> of a shutter actuator). Link the alarms to the <code>windAlarm</code>, <code>rainAlarm</code>, and <code>frostAlarm</code> ports of a <a href="shutters.html">shutter actuator</a>.</p>
 <h2 id="air-quality-sensor-airqualitysensor-v1"><a class="anchor" href="#air-quality-sensor-airqualitysensor-v1">#</a>Air quality sensor: <code>airQualitySensor/v1</code></h2><p>An air quality sensor sends temperature (<code>temperature</code>, DPT 9.001), relative humidity (<code>humidity</code>, DPT 9.007, or 5.001 in one byte as many sensors do), and CO₂ concentration (<code>co2</code>, DPT 9.008) entered in its numeric <code>inputs</code>. It sets <code>co2Alarm</code> and <code>humidityAlarm</code> at their thresholds, with hysteresis, and its step controller sends a <code>ventilation</code> control value (DPT 5.001):</p>
 <div class="table"><table>
 <thead>

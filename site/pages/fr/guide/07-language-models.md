@@ -1,7 +1,7 @@
 ---
 title: Générer avec un modèle de langage
 translationOf: guide/07-language-models.md
-sourceHash: 0fce7ec27554
+sourceHash: "0fce7ec27554"
 order: 7.8
 ---
 # Générer des schémas avec un modèle de langage

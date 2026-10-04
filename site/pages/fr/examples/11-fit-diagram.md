@@ -3,7 +3,7 @@ title: Ajuster le schéma
 summary: "Garder un grand schéma dans un cadre fixe."
 covers: "fit=\"contain\""
 translationOf: examples/11-fit-diagram.md
-sourceHash: 3d9c7f79e7fc
+sourceHash: "3d9c7f79e7fc"
 order: 11
 ---
 # Ajuster le schéma

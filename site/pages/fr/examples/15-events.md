@@ -3,7 +3,7 @@ title: Événements des télégrammes
 summary: "Construire un journal des événements à côté du schéma."
 covers: "on(\"telegram\") · bd-telegram"
 translationOf: examples/15-events.md
-sourceHash: 77f165e3f219
+sourceHash: "77f165e3f219"
 order: 15
 ---
 # Événements des télégrammes

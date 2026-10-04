@@ -3,7 +3,7 @@ title: Pompe à chaleur derrière une passerelle
 summary: "Une pompe à chaleur et un ballon d'eau chaude commandés par leur propre système : une passerelle les relie à KNX, et un compteur indépendant les mesure."
 covers: "Passerelle vers Modbus · compteur d'énergie · DPT 9.024 · DPT 13.013"
 translationOf: examples/09-boiler-room.md
-sourceHash: 604edc162e27
+sourceHash: "604edc162e27"
 order: 9.47
 ---
 # Pompe à chaleur et eau chaude derrière une passerelle

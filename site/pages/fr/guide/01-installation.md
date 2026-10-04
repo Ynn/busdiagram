@@ -1,7 +1,7 @@
 ---
 title: Installation
 translationOf: guide/01-installation.md
-sourceHash: 05c839992fb5
+sourceHash: "05c839992fb5"
 order: 1
 ---
 

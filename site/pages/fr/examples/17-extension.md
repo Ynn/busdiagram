@@ -3,7 +3,7 @@ title: Extension
 summary: "Ajouter un comportement et une vue d'équipement sans modifier la bibliothèque."
 covers: "registerBehavior · registerEquipmentView"
 translationOf: examples/17-extension.md
-sourceHash: 59602fd02c50
+sourceHash: "59602fd02c50"
 order: 17
 scripts: assets/extensions/delayed-switch.js, assets/extensions/led-lamp-view.js
 ---

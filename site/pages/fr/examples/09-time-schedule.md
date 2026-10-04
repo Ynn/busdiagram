@@ -3,7 +3,7 @@ title: Programme horaire
 summary: "Une horloge simulée pilote une horloge maître, un programmateur hebdomadaire et une plage horaire de nuit dans un module logique."
 covers: "DPT 10.001 · DPT 11.001 · programmateur · plage horaire"
 translationOf: examples/09-time-schedule.md
-sourceHash: cf303a1f91c0
+sourceHash: "cf303a1f91c0"
 order: 9.47
 ---
 # Programme horaire

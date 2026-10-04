@@ -3,7 +3,7 @@ title: Variation
 summary: "Un actionneur de variation commandé par commutation, variation relative et niveau absolu."
 covers: "DPT 1.001 · DPT 3.007 · DPT 5.001"
 translationOf: examples/03-dimming.md
-sourceHash: a994893ac087
+sourceHash: "a994893ac087"
 order: 3.5
 ---
 # Actionneur de variation

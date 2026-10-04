@@ -3,7 +3,7 @@ title: Diaporama reveal.js
 summary: "Des schémas interactifs dans des diapositives de présentation."
 covers: "reveal.js · focus clavier"
 translationOf: examples/12-slideshow.md
-sourceHash: fcbf399155ed
+sourceHash: "fcbf399155ed"
 order: 12
 ---
 # Diaporama reveal.js

@@ -1,7 +1,7 @@
 ---
 title: Extensions
 translationOf: guide/12-extensions.md
-sourceHash: 96e78eee9b86
+sourceHash: "96e78eee9b86"
 order: 12
 ---
 # Extensions

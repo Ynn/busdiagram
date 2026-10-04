@@ -3,7 +3,7 @@ title: Protection météo
 summary: "Une station météo monte le volet en cas de vent ; un module logique applique la protection solaire en mode automatique."
 covers: "DPT 9.004 · DPT 9.005 · DPT 1.005 · ET logique"
 translationOf: examples/09-weather-protection.md
-sourceHash: 3a907a9275e1
+sourceHash: "3a907a9275e1"
 order: 9.4
 ---
 # Protection météo et module logique

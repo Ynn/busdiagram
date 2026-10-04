@@ -1,7 +1,7 @@
 ---
 title: Intégrer dans une page
 translationOf: guide/08-embedding.md
-sourceHash: 815ca69e9dc4
+sourceHash: "815ca69e9dc4"
 order: 8
 ---
 # Intégrer dans une page

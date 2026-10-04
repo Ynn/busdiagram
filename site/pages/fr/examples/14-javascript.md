@@ -3,7 +3,7 @@ title: Créer un schéma en JavaScript
 summary: "Créer un schéma dans un élément depuis un script."
 covers: "BusDiagram.create"
 translationOf: examples/14-javascript.md
-sourceHash: e2ce2635c7ff
+sourceHash: "e2ce2635c7ff"
 order: 14
 ---
 # Créer un schéma en JavaScript

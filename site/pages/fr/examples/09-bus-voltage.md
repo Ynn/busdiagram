@@ -3,7 +3,7 @@ title: Coupure de la tension bus
 summary: "Couper et rétablir la tension bus d'une ligne ; verrouiller une sortie et temporiser sa commutation."
 covers: "Coupure et retour du bus · verrouillage · temporisations"
 translationOf: examples/09-bus-voltage.md
-sourceHash: 534c22a61ddc
+sourceHash: "534c22a61ddc"
 order: 9.6
 ---
 # Coupure de la tension bus, verrouillage et temporisations

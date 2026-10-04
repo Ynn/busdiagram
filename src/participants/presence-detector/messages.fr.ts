@@ -22,4 +22,7 @@ export const presenceDetectorFr: Record<string, string> = {
   "Detector locked": "Détecteur verrouillé",
   "Detector unlocked": "Détecteur déverrouillé",
   "No telegram": "Pas de télégramme",
+  "Detection: hold time of the slave restarted":
+    "Détection : temporisation de l'esclave relancée",
+  "Repetition of the slave": "Répétition de l'esclave",
 };

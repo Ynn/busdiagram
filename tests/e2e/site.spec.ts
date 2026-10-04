@@ -107,6 +107,23 @@ test("French documentation: language, navigation, search, and language switch", 
   await expect(page).toHaveURL(
     /\/fr\/guide\/devices\.html#weather-station-weatherstation-v1$/,
   );
+  // The index pages of the sections have a French version too, and every French page
+  // is translated: no page is marked English, and none is marked stale.
+  const indexes: [string, string, string][] = [
+    ["fr/examples/hvac.html", "Tous les exemples", "../../fr/examples/index.html"],
+    ["fr/reference/json.html", "Vue d'ensemble", "../../fr/reference/index.html"],
+  ];
+  for (const [path, title, href] of indexes) {
+    await page.goto(url(path));
+    await expect(page.locator(".side a", { hasText: title })).toHaveAttribute(
+      "href",
+      href,
+    );
+    await expect(page.locator(".side small.en")).toHaveCount(0);
+  }
+  // A source hash made of digits only is still compared as text.
+  await page.goto(url("fr/examples/heating-cooling.html"));
+  await expect(page.locator("main p.stale")).toHaveCount(0);
   // The diagrams of the French pages are in French.
   await page.goto(url("fr/examples/lighting-control.html"));
   await expect(
@@ -464,6 +481,31 @@ test.describe("designer", () => {
       "switch",
       "totalPower",
     ]);
+    expect(w.errors).toEqual([]);
+  });
+
+  test("16:9 preview lays the diagram out on a slide, scaled to the preview", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.goto(url("designer/index.html#template=lighting-control"));
+    await expect(page.locator("#status")).toHaveText(/Valid scenario/);
+    await page.check("#opt-slide");
+    const frame = (await page.locator("#frame").boundingBox())!;
+    // Height of the diagram area, as drawn on the screen.
+    const box = await page.locator("#preview").evaluate((el) => {
+      const b = el.shadowRoot!.querySelector(".scroller")!.getBoundingClientRect();
+      return { height: b.height };
+    });
+    // The frame keeps 16:9, and the diagram keeps the proportion it has on a 1280 × 720
+    // slide instead of being squeezed into a thin strip.
+    expect(frame.width / frame.height).toBeCloseTo(16 / 9, 1);
+    expect(box.height / frame.height).toBeGreaterThan(0.35);
+    // A click through the scaled slide still reaches the key.
+    await page.locator("#preview button.key", { hasText: "Key 1" }).click();
+    await expect(page.locator("#preview .lamp.on")).toHaveCount(2, {
+      timeout: 5000,
+    });
     expect(w.errors).toEqual([]);
   });
 

@@ -1,7 +1,7 @@
 ---
 title: Chauffage
 translationOf: guide/06-hvac.md
-sourceHash: 0b62050540c3
+sourceHash: "79682497c50a"
 order: 6.3
 ---
 # Chauffage et climatisation (CVC)
@@ -42,7 +42,7 @@ Une valeur DPT 9.001 utilise deux octets de données après l'APCI. Tant qu'un o
 
 Le thermostat comprend un gestionnaire de consignes avec une politique fixe. Cette politique est un choix du modèle, pas une règle du DPT 20.102. Le mode est choisi par priorité : une fenêtre ouverte demande la protection du bâtiment ; une protection du bâtiment présélectionnée par `hvacMode` (absence, vacances) reste en vigueur ; sinon la présence demande le confort ; sinon la présélection `hvacMode` s'applique. Le mode auto utilise le confort dans ce modèle. La consigne de confort en chauffage vaut par défaut `comfortC: 21`. Les modes veille et économie l'abaissent de `standbyShiftK` et `economyShiftK` ; la protection hors gel vaut par défaut `frostProtectionC: 7`. Le refroidissement utilise `deadZoneK` entre les consignes de chauffage et de refroidissement, et une consigne de protection contre les fortes chaleurs. Voir [chauffage et refroidissement](#heating-and-cooling) pour la façon dont le thermostat choisit entre les deux.
 
-Pour la **régulation PI**, `controlType: "pi"` utilise `proportionalBandK` et `integralTimeMs`. Il envoie une valeur DPT 5.001 sur `heatingValue` ou `coolingValue` quand la variation atteint `valueSendDeltaPct` ; une sortie sur un bit `heatingSwitch` ou `coolingSwitch` utilise la MLI sur `pwmCycleMs`. Pour la **régulation tout ou rien**, `controlType: "twoPoint"` commute une sortie sur un bit à la consigne et se réenclenche sous le seuil `hysteresisK`.
+Pour la **régulation PI**, `controlType: "pi"` utilise `proportionalBandK` et `integralTimeMs`. Il envoie une valeur DPT 5.001 sur `heatingValue` ou `coolingValue` quand la variation atteint `valueSendDeltaPct` ; une sortie sur un bit `heatingSwitch` ou `coolingSwitch` utilise la MLI sur `pwmCycleMs`. Pour la **régulation tout ou rien**, `controlType: "twoPoint"` coupe une sortie sur un bit à la consigne et la réenclenche `hysteresisK` en dessous (au-dessus en refroidissement). Certains régulateurs d'ambiance centrent plutôt l'hystérésis sur la consigne : avec 21 °C et 2 K, marche à 20 °C et arrêt à 22 °C.
 
 | Port | DPT | Sens | Rôle |
 | --- | --- | --- | --- |
@@ -94,7 +94,7 @@ Entre les deux se trouve la zone neutre. Les modes veille et économie élargiss
 `changeover` choisit qui décide entre chauffage et refroidissement :
 
 - `"object"`, par défaut : l'objet `heatCool` (DPT 1.100, 1 chauffage, 0 refroidissement). Il vient d'un basculement central, par exemple un commutateur de saison, ou de la production qui indique à un système 2 tubes si elle fournit de l'eau chaude ou froide. Un thermostat en chauffage ne fait rien en été, aussi chaude que soit la pièce.
-- `"automatic"` : le thermostat bascule lui-même. Il refroidit quand la pièce dépasse la consigne de refroidissement et chauffe de nouveau quand elle passe sous la consigne de chauffage. Dans la zone neutre, il garde son mode et ne demande rien. Les régulateurs d'ambiance KNX décrivent ce fonctionnement comme la séquence de régulation automatique (DPT 20.107).
+- `"automatic"` : le thermostat bascule lui-même. Il refroidit quand la pièce dépasse la consigne de refroidissement et chauffe de nouveau quand elle passe sous la consigne de chauffage. Dans la zone neutre, il garde son mode. Dans ce modèle, la régulation PI conserve son terme intégral tant que le mode ne change pas : une demande peut persister après le franchissement de la consigne, puis diminuer jusqu'à 0, et ce 0 est envoyé pour que la vanne se ferme. La zone entre les consignes sert au basculement des modes ; elle n'impose pas immédiatement une sortie nulle, comme le font certains régulateurs d'ambiance. Les régulateurs d'ambiance KNX décrivent ce fonctionnement comme la séquence de régulation automatique (DPT 20.107).
 
 `heatCoolStatus` envoie le mode en cours. À chaque basculement, le thermostat envoie la valeur de son nouveau mode et met l'autre à 0.
 

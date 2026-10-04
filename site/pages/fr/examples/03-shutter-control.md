@@ -3,7 +3,7 @@ title: Commande de volets
 summary: "Un appui long déplace le volet, un appui court l'arrête ou oriente les lamelles ; un superviseur IP affiche la position."
 covers: "DPT 1.008 · DPT 1.007 · retour de position"
 translationOf: examples/03-shutter-control.md
-sourceHash: e1af6676874a
+sourceHash: "e1af6676874a"
 order: 3
 ---
 # Commande de volets

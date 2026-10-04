@@ -2360,6 +2360,15 @@
                           "default": "lastCommand",
                           "description": "State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off."
                         },
+                        "forcedReleaseMs": {
+                          "title": "Release time of forcing",
+                          "unit": "ms",
+                          "expert": true,
+                          "type": "integer",
+                          "minimum": 0,
+                          "default": 0,
+                          "description": "Time after which a forcing ends by itself, counted from its last forcing telegram, as if a release telegram had arrived (0: only a release telegram ends it). Actuators offer up to several hours."
+                        },
                         "afterForcing": {
                           "title": "End of forcing",
                           "expert": true,
@@ -3026,7 +3035,16 @@
                     "title": "Slave detector",
                     "type": "boolean",
                     "default": false,
-                    "description": "Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0."
+                    "description": "Sends 1 to the slaveTrigger object of a master detector of the same room, at the first detection and then every slaveCyclicMs while its own hold time runs; the master keeps the brightness threshold, the final 0, and its hold time after the last 1."
+                  },
+                  "slaveCyclicMs": {
+                    "title": "Repetition of the slave",
+                    "unit": "ms",
+                    "expert": true,
+                    "type": "integer",
+                    "minimum": 0,
+                    "default": 3000,
+                    "description": "Interval at which a slave detector repeats 1 while its hold time runs; shorter than the hold time of the master. Manufacturers suggest about 30 s, compressed here like the hold times. 0: no repetition, the slave sends 1 at each detection instead."
                   },
                   "holdMs": {
                     "title": "Hold time",

@@ -42,7 +42,7 @@ export default {
     translationStale: (data) => {
       if (!isFrench(data) || !data.translationOf) return false;
       try {
-        return sourceHash(data.translationOf) !== data.sourceHash;
+        return sourceHash(data.translationOf) !== String(data.sourceHash);
       } catch {
         return true;
       }

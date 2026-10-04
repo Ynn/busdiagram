@@ -3,7 +3,7 @@ title: Chauffage pièce par pièce
 summary: "Régulation PI et tout ou rien par pièce, vanne commandée en MLI, contact de fenêtre et modes de fonctionnement."
 covers: "DPT 9.001 · DPT 5.001 · DPT 20.102"
 translationOf: examples/09-hvac.md
-sourceHash: d665b8b0f127
+sourceHash: "d665b8b0f127"
 order: 9.3
 ---
 # Chauffage pièce par pièce

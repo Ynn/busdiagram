@@ -1,7 +1,7 @@
 ---
 title: Langues
 translationOf: guide/10-languages.md
-sourceHash: 4a44f2ded770
+sourceHash: "4a44f2ded770"
 order: 10.5
 ---
 # Langues

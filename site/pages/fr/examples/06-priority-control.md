@@ -3,7 +3,7 @@ title: Commande prioritaire
 summary: "Une commande prioritaire l'emporte sur la commutation normale jusqu'à sa levée."
 covers: "DPT 2.001 · marche/arrêt forcés"
 translationOf: examples/06-priority-control.md
-sourceHash: dbeb054373b5
+sourceHash: "dbeb054373b5"
 order: 6
 ---
 # Commande prioritaire

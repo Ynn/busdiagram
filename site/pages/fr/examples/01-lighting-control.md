@@ -3,7 +3,7 @@ title: Commander plusieurs sorties
 summary: "Un bouton-poussoir et un actionneur à quatre sorties ; un seul télégramme commute plusieurs sorties."
 covers: "DPT 1.001 · plusieurs adresses écoutées par objet"
 translationOf: examples/01-lighting-control.md
-sourceHash: ea8f6e01925a
+sourceHash: "ea8f6e01925a"
 order: 1
 ---
 # Commander plusieurs sorties

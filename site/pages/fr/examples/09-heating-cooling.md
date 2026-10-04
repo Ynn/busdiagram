@@ -3,7 +3,7 @@ title: Chauffage et refroidissement
 summary: "Basculement automatique ou par objet d'un thermostat d'ambiance, vanne à changement de mode et ventilo-convecteurs."
 covers: "DPT 1.100 · DPT 5.001 · ventilo-convecteur · 2 tubes et 4 tubes"
 translationOf: examples/09-heating-cooling.md
-sourceHash: 499910764015
+sourceHash: "499910764015"
 order: 9.35
 ---
 # Chauffage et refroidissement

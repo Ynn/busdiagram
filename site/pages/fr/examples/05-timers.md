@@ -3,7 +3,7 @@ title: Minuteries
 summary: "Sorties temporisées, horloge et détecteur de présence gérés par l'actionneur."
 covers: "Minuterie d'escalier · redéclenchement · présence"
 translationOf: examples/05-timers.md
-sourceHash: 570b2e2ad560
+sourceHash: "570b2e2ad560"
 order: 5
 ---
 # Minuteries

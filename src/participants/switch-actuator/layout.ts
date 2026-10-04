@@ -76,7 +76,10 @@ export const switchLayout: ParameterLayout = {
         { groupObject: "forced" },
         {
           when: { groupObject: "forced" },
-          items: [{ parameter: "afterForcing" }],
+          items: [
+            { parameter: "forcedReleaseMs" },
+            { parameter: "afterForcing" },
+          ],
         },
         { heading: "Lock" },
         { groupObject: "lock" },

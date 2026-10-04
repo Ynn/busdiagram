@@ -21,11 +21,23 @@ function detect(ctx: Ctx, object: string) {
     ctx.note(ctx.t`Detection ignored: detector locked`);
     return;
   }
-  // A slave reports every detection to its master, which keeps the hold time.
+  // A slave has its own hold time, during which it repeats 1 to its master, which keeps
+  // the brightness threshold, the final 0, and its own hold time after the last 1.
   if (p.slave === true) {
+    ctx.schedule("slaveEnd", Number(p.holdMs ?? 10000));
+    if (ctx.state.active) {
+      // Without repetition, each detection sends 1 again, so that the master holds.
+      if (Number(p.slaveCyclicMs ?? 3000) === 0) {
+        ctx.note(ctx.t`Detection sent to the master detector`);
+        slaveSend(ctx, object);
+        return;
+      }
+      ctx.note(ctx.t`Detection: hold time of the slave restarted`);
+      return;
+    }
+    ctx.state.active = true;
     ctx.note(ctx.t`Detection sent to the master detector`);
-    ctx.setObject(object, 1);
-    ctx.transmit(object);
+    slaveSend(ctx, object);
     return;
   }
   const hold = Number(p.holdMs ?? 10000);
@@ -50,6 +62,14 @@ function detect(ctx: Ctx, object: string) {
   ctx.state.active = true;
   ctx.setObject(object, 1);
   ctx.transmit(object);
+}
+
+/** A slave sends 1 to its master, then again every slaveCyclicMs while its hold time runs. */
+function slaveSend(ctx: Ctx, object: string) {
+  ctx.setObject(object, 1);
+  ctx.transmit(object);
+  const cyclic = Number(ctx.device.parameters.slaveCyclicMs ?? 3000);
+  if (cyclic > 0) ctx.schedule("slaveCycle", cyclic, object);
 }
 
 /**
@@ -87,7 +107,17 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
         type: "boolean",
         default: false,
         description:
-          "Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0.",
+          "Sends 1 to the slaveTrigger object of a master detector of the same room, at the first detection and then every slaveCyclicMs while its own hold time runs; the master keeps the brightness threshold, the final 0, and its hold time after the last 1.",
+      },
+      slaveCyclicMs: {
+        title: "Repetition of the slave",
+        unit: "ms",
+        expert: true,
+        type: "integer",
+        minimum: 0,
+        default: 3000,
+        description:
+          "Interval at which a slave detector repeats 1 while its hold time runs; shorter than the hold time of the master. Manufacturers suggest about 30 s, compressed here like the hold times. 0: no repetition, the slave sends 1 at each detection instead.",
       },
       holdMs: {
         title: "Hold time",
@@ -185,6 +215,15 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
       if (on === ctx.state.locked) return;
       ctx.state.locked = on;
       ctx.note(on ? ctx.t`Detector locked` : ctx.t`Detector unlocked`);
+      // A locked slave stops repeating 1 to its master.
+      if (ctx.device.parameters.slave === true) {
+        if (on) {
+          ctx.state.active = false;
+          ctx.cancel("slaveCycle");
+          ctx.cancel("slaveEnd");
+        }
+        return;
+      }
       const out = ctx.device.objects.find((x) => x.port === "input");
       if (!out) return;
       const p = ctx.device.parameters;
@@ -226,12 +265,28 @@ export const presenceDetector: BehaviorDefinition<PresenceState> = {
   // runs a whole hold time again, unless the lock holds it on.
   onBusRecovery(ctx) {
     const out = ctx.device.objects.find((x) => x.port === "input");
-    if (!out || !ctx.state.active || ctx.device.parameters.slave === true)
+    if (!out || !ctx.state.active) return;
+    if (ctx.device.parameters.slave === true) {
+      // A slave still in its hold time runs it again and repeats 1 to its master.
+      ctx.schedule("slaveEnd", Number(ctx.device.parameters.holdMs ?? 10000));
+      slaveSend(ctx, out.id);
       return;
+    }
     if (ctx.state.locked && ctx.device.parameters.lockStart === "on") return;
     ctx.schedule("off", Number(ctx.device.parameters.holdMs ?? 10000), out.id);
   },
   onTimer(ctx, key, payload) {
+    if (key === "slaveEnd") {
+      // End of the hold time of a slave: it stops repeating; it never sends 0.
+      ctx.state.active = false;
+      ctx.cancel("slaveCycle");
+      return;
+    }
+    if (key === "slaveCycle") {
+      if (ctx.state.active && typeof payload === "string")
+        slaveSend(ctx, payload);
+      return;
+    }
     if (key !== "off" || typeof payload !== "string") return;
     ctx.state.active = false;
     if (ctx.device.parameters.sendOnEnd === false) return;

@@ -3,7 +3,7 @@ title: Qualité de l'air
 summary: "Un capteur de CO₂ commande un ventilateur en trois paliers et active des alarmes de CO₂ et d'humidité."
 covers: "DPT 9.007 · DPT 9.008 · DPT 5.001 · DPT 1.005"
 translationOf: examples/09-air-quality.md
-sourceHash: b262f6ce4f3b
+sourceHash: "b262f6ce4f3b"
 order: 9.45
 ---
 # Qualité de l'air : CO₂ et humidité

@@ -1,7 +1,7 @@
 ---
 title: API JavaScript
 translationOf: guide/11-api.md
-sourceHash: efb12bef2d98
+sourceHash: "efb12bef2d98"
 order: 11
 ---
 # API JavaScript

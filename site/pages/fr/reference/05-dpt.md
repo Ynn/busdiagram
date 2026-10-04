@@ -1,7 +1,7 @@
 ---
 title: DPT
 translationOf: reference/05-dpt.md
-sourceHash: 57265a3e2d03
+sourceHash: "57265a3e2d03"
 order: 5
 ---
 # DPT pris en charge

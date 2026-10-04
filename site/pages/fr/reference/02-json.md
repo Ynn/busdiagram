@@ -1,7 +1,7 @@
 ---
 title: Scénario JSON
 translationOf: reference/02-json.md
-sourceHash: 2969adf456b6
+sourceHash: "2969adf456b6"
 order: 2
 ---
 # Scénario JSON (format 2)

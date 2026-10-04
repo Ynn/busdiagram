@@ -1,7 +1,7 @@
 ---
 title: Accueil
 translationOf: index.md
-sourceHash: 3fa3b3760328
+sourceHash: "3fa3b3760328"
 ---
 
 <div class="hero">

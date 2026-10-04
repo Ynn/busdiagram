@@ -1,7 +1,7 @@
 ---
 title: Options d'affichage
 translationOf: reference/01-options.md
-sourceHash: c1426ab32aff
+sourceHash: "c1426ab32aff"
 order: 1
 ---
 # Options d'affichage

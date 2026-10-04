@@ -3,7 +3,7 @@ title: Mesure d'énergie
 summary: "Un actionneur de commutation avec mesure renvoie la puissance et l'énergie de chaque sortie, et déleste une charge au-delà d'une limite de puissance."
 covers: "DPT 14.056 · DPT 13.010 · délestage"
 translationOf: examples/09-energy-metering.md
-sourceHash: a3a91a9d5222
+sourceHash: "a3a91a9d5222"
 order: 9.46
 ---
 # Mesure d'énergie et délestage

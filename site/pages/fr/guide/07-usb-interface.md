@@ -1,7 +1,7 @@
 ---
 title: Outil interface USB
 translationOf: guide/07-usb-interface.md
-sourceHash: 57a9f5cfa8b5
+sourceHash: "57a9f5cfa8b5"
 order: 7.5
 ---
 # Panneau de l'interface USB

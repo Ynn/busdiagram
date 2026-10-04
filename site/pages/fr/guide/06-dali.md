@@ -1,7 +1,7 @@
 ---
 title: Variation et DALI
 translationOf: guide/06-dali.md
-sourceHash: 5e08452f772c
+sourceHash: "5e08452f772c"
 order: 6.2
 ---
 # Variation et DALI

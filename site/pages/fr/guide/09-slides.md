@@ -1,7 +1,7 @@
 ---
 title: Diapositives
 translationOf: guide/09-slides.md
-sourceHash: a43c272279e9
+sourceHash: "a43c272279e9"
 order: 9
 ---
 # Diapositives

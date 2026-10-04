@@ -3,7 +3,7 @@ title: Interface de boutons-poussoirs
 summary: "Une interface de boutons-poussoirs mesure elle-même les appuis : variation et store sur une touche, et scène mémorisée par un appui long."
 covers: "DPT 3.007 · DPT 1.008 · DPT 18.001 · entrées de contact"
 translationOf: examples/03-push-button-interface.md
-sourceHash: e67dc46ab65e
+sourceHash: "e67dc46ab65e"
 order: 3.8
 ---
 # Interface de boutons-poussoirs

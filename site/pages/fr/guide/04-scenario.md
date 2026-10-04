@@ -1,7 +1,7 @@
 ---
 title: Structure d'un scénario
 translationOf: guide/04-scenario.md
-sourceHash: d4dc398a6941
+sourceHash: "d4dc398a6941"
 order: 4
 ---
 # Structure d'un scénario

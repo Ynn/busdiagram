@@ -41,7 +41,7 @@ The English pages are the reference. French translations live in `site/pages/fr/
 ---
 title: Installation
 translationOf: guide/01-installation.md
-sourceHash: 05c839992fb5
+sourceHash: "05c839992fb5"
 ---
 ```
 

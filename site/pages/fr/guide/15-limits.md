@@ -1,7 +1,7 @@
 ---
 title: Modèle et limites
 translationOf: guide/15-limits.md
-sourceHash: 8e364e8ffa82
+sourceHash: "8e364e8ffa82"
 order: 15
 ---
 # Modèle et limites

@@ -3,7 +3,7 @@ title: Outil interface USB
 summary: "Écritures et lectures de groupe depuis un ordinateur de mise en service relié par une interface USB."
 covers: "GroupValueRead · indicateurs R et U"
 translationOf: examples/09-usb-interface.md
-sourceHash: 6190d66c7019
+sourceHash: "6190d66c7019"
 order: 9.5
 ---
 # Panneau de l'interface USB : lectures et écritures de groupe

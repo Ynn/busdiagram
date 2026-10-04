@@ -1,7 +1,7 @@
 ---
 title: Vue d'ensemble
 translationOf: reference/00-index.md
-sourceHash: cec77413ef3a
+sourceHash: "cec77413ef3a"
 order: 0
 ---
 # Référence

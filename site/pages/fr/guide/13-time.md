@@ -1,7 +1,7 @@
 ---
 title: Temps et mode pas à pas
 translationOf: guide/13-time.md
-sourceHash: 2b9f4eb366ad
+sourceHash: "2b9f4eb366ad"
 order: 13
 ---
 # Temps et mode pas à pas

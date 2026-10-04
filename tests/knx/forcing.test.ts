@@ -62,6 +62,33 @@ describe("Priority override (DPT 2.001 and timers)", () => {
     ]);
   });
 
+  it("the release time ends a forcing by itself, from its last forcing telegram", () => {
+    const d = raw("priority-control.json") as unknown as Data;
+    d.devices[1]!.channels![3]!.parameters = { forcedReleaseMs: 10_000 };
+    const sim = createSimulator(d);
+    sim.input("pushButton", "key4", "press"); // L4 on, received at 1300
+    sim.advance(5000);
+    sim.input("pushButton", "key3", "short"); // forced off, received at 6300
+    sim.advance(5000);
+    expect(lampOn(sim, "switchActuator", "s4")).toBe(false);
+    // A new forcing telegram, received at 11300, restarts the release time.
+    sim.input("pushButton", "key3", "short");
+    sim.advance(10_000); // 20 s: still forced, 10 s after the first forcing
+    expect(sim.channelState("switchActuator", "s4")).toMatchObject({
+      forced: "off",
+    });
+    sim.advance(2000); // 22 s: released at 21300, back to the last command (on)
+    expect(sim.channelState("switchActuator", "s4")).toMatchObject({
+      forced: null,
+    });
+    expect(lampOn(sim, "switchActuator", "s4")).toBe(true);
+    expect(
+      sim.journal.some(
+        (e) => e.kind === "note" && /release time/.test(e.message ?? ""),
+      ),
+    ).toBe(true);
+  });
+
   it("end of priority override: last command, forward state, or forced state retained", () => {
     const run = (after: string) => {
       const sim = variant(after);

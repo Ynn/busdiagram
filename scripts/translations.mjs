@@ -177,7 +177,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     const hash = sourceHash(of);
     writeFileSync(
       path,
-      text.replace(/^sourceHash:.*$/m, `sourceHash: ${hash}`),
+      text.replace(/^sourceHash:.*$/m, `sourceHash: "${hash}"`),
     );
     console.log(`${file}: translates ${of} at ${hash}`);
   } else {

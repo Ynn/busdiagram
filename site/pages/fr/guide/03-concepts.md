@@ -1,7 +1,7 @@
 ---
 title: Notions
 translationOf: guide/03-concepts.md
-sourceHash: 751a5bd7e909
+sourceHash: "751a5bd7e909"
 order: 3
 ---
 

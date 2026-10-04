@@ -3,7 +3,7 @@ title: Options d'affichage
 summary: "Barre d'outils compacte, moniteur et description masqués, et simulation ralentie."
 covers: "Attributs HTML"
 translationOf: examples/10-display-options.md
-sourceHash: a42ca952150e
+sourceHash: "a42ca952150e"
 order: 10
 ---
 # Options d'affichage

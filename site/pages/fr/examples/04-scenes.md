@@ -3,7 +3,7 @@ title: Scènes
 summary: "Une adresse de scène rappelle un préréglage sur chaque canal d'actionneur."
 covers: "DPT 17.001 · préréglages des canaux"
 translationOf: examples/04-scenes.md
-sourceHash: 064cf421d645
+sourceHash: "064cf421d645"
 order: 4
 ---
 # Scènes

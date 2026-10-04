@@ -76,4 +76,7 @@ export const switchActuatorFr: Record<string, string> = {
   Alarms: "Alarmes",
   "Fire forces the output on, intrusion makes it blink; fire has priority over intrusion, and both over forcing and the lock.":
     "L'incendie force la sortie à l'état allumé, l'intrusion la fait clignoter ; l'incendie est prioritaire sur l'intrusion, et les deux sur le forçage et le verrouillage.",
+  "{0}: release time elapsed, end of forcing":
+    "{0} : temps de libération écoulé, fin du forçage",
+  "Release time of forcing": "Temps de libération du forçage",
 };

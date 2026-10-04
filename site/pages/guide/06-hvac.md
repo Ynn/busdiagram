@@ -42,7 +42,7 @@ A DPT 9.001 value uses two payload bytes after the APCI. Until an object receive
 
 The thermostat includes a setpoint manager with a fixed policy. This policy is a choice of the model, not a rule of DPT 20.102. The mode is selected by priority: an open window requests building protection; a building protection preselected by `hvacMode` (absence, holidays) stays in force; otherwise presence requests comfort; otherwise the `hvacMode` preselection applies. Auto mode uses comfort in this model. A heating comfort setpoint defaults to `comfortC: 21`. Standby and economy lower it through `standbyShiftK` and `economyShiftK`; frost protection defaults to `frostProtectionC: 7`. Cooling uses `deadZoneK` between heating and cooling setpoints and a high-temperature protection setpoint. See [heating and cooling](#heating-and-cooling) for how the thermostat chooses between them.
 
-For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTimeMs`. It sends a DPT 5.001 value on `heatingValue` or `coolingValue` when the change reaches `valueSendDeltaPct`; a one-bit `heatingSwitch` or `coolingSwitch` output uses PWM over `pwmCycleMs`. For **two-point control**, `controlType: "twoPoint"` switches a one-bit output at the setpoint and restarts below the `hysteresisK` threshold.
+For **PI control**, `controlType: "pi"` uses `proportionalBandK` and `integralTimeMs`. It sends a DPT 5.001 value on `heatingValue` or `coolingValue` when the change reaches `valueSendDeltaPct`; a one-bit `heatingSwitch` or `coolingSwitch` output uses PWM over `pwmCycleMs`. For **two-point control**, `controlType: "twoPoint"` switches a one-bit output off at the setpoint and on again `hysteresisK` below it (above it in cooling). Some room controllers centre the hysteresis on the setpoint instead: with 21 °C and 2 K, on at 20 °C and off at 22 °C.
 
 | Port | DPT | Direction | Purpose |
 | --- | --- | --- | --- |
@@ -90,7 +90,7 @@ The same thermostat heats or cools. Its two setpoints in comfort mode are the he
 `changeover` chooses who decides between heating and cooling:
 
 - `"object"`, the default: the `heatCool` object (DPT 1.100, 1 heating, 0 cooling). It comes from a central change-over, for example a season switch, or from the plant that tells a 2-pipe system whether it supplies hot or cold water. A thermostat in heating mode does nothing in summer, however warm the room.
-- `"automatic"`: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode and requests nothing. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).
+- `"automatic"`: the thermostat changes over by itself. It cools when the room rises above the cooling setpoint and heats again when the room falls below the heating setpoint. In the dead zone it keeps its mode. In this model, PI control keeps its integral term as long as the mode does not change: a demand can persist after the room has passed the setpoint, then decreases to 0, and the 0 is sent so that the valve closes. The zone between the setpoints serves to change over between the modes; it does not force the output to 0 at once, as some room controllers do. The KNX room controllers describe this as the automatic control sequence (DPT 20.107).
 
 `heatCoolStatus` sends the current mode. On a change, the thermostat sends the value of its new mode and sets the other value to 0.
 

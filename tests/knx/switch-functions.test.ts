@@ -400,3 +400,52 @@ describe("scene storing (DPT 18.001) in the dimmer and the shutter actuator", ()
     expect(sim.channelState("sh", "a").learnedScenes).toEqual({ "1": 60 });
   });
 });
+
+describe("switchActuator/v1: release time of forcing", () => {
+  const forcing = (parameters: Record<string, unknown>) =>
+    bench({ forcedReleaseMs: 5000, ...parameters }, [
+      input("fo", "forced", "1/1/6", "2.001"),
+      input("lk", "lock", "1/1/3", "1.001"),
+    ]);
+  const released = (sim: ReturnType<typeof bench>) =>
+    sim.journal.some(
+      (e) => e.kind === "note" && /release time/.test(e.message ?? ""),
+    );
+
+  it("released while locked: the output takes the state the lock imposes", () => {
+    const sim = forcing({ lockStart: "on" });
+    sim.groupWrite("usb", "1/1/6", 2); // forced off
+    sim.advance(2000);
+    sim.groupWrite("usb", "1/1/3", 1); // locked, forcing keeps priority
+    sim.advance(2000);
+    expect(on(sim)).toBe(false);
+    sim.advance(3000); // release about 5 s after the forcing telegram
+    expect(released(sim)).toBe(true);
+    expect(sim.channelState("act", "a")).toMatchObject({ forced: null });
+    expect(on(sim)).toBe(true);
+  });
+
+  it("an explicit release cancels the release time", () => {
+    const sim = forcing({});
+    sim.groupWrite("usb", "1/1/6", 3);
+    sim.advance(2000);
+    sim.groupWrite("usb", "1/1/6", 0);
+    sim.advance(10_000);
+    expect(sim.channelState("act", "a")).toMatchObject({ forced: null });
+    expect(released(sim)).toBe(false);
+  });
+
+  it("after a bus voltage failure, the forcing holds and the release time runs again in full", () => {
+    const sim = forcing({});
+    sim.groupWrite("usb", "1/1/6", 3); // forced on
+    sim.advance(2000);
+    sim.setBusVoltage("L1.1", false);
+    sim.advance(4000);
+    sim.setBusVoltage("L1.1", true);
+    sim.advance(4000); // 4 s after recovery, 10 s after the forcing
+    expect(sim.channelState("act", "a")).toMatchObject({ forced: "on" });
+    expect(on(sim)).toBe(true);
+    sim.advance(2000);
+    expect(sim.channelState("act", "a")).toMatchObject({ forced: null });
+  });
+});

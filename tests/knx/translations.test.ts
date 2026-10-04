@@ -74,3 +74,21 @@ describe("French documentation", () => {
     },
   );
 });
+
+describe("source hash in the front matter", () => {
+  // Eleventy reads the front matter with a YAML parser: an unquoted hash of digits only
+  // can turn into a number (000000000123 → 83 in octal, 123456789e12 in scientific
+  // notation), and the page would always look outdated.
+  it("is a quoted string that the YAML parser reads unchanged", async () => {
+    const { default: matter } = await import("gray-matter");
+    for (const hash of ["000000000123", "123456789e12", "796943186152"])
+      expect(matter(`---\nsourceHash: "${hash}"\n---\n`).data.sourceHash).toBe(
+        hash,
+      );
+    for (const p of frenchPages()) {
+      const text = readFileSync(join(pagesDir, p.file), "utf8");
+      expect(text, p.file).toMatch(/^sourceHash: "[0-9a-f]{12}"$/m);
+      expect(matter(text).data.sourceHash, p.file).toBe(p.sourceHash);
+    }
+  });
+});

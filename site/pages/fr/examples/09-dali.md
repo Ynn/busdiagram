@@ -3,7 +3,7 @@ title: Passerelle DALI
 summary: "Une passerelle KNX/DALI traduit les télégrammes en commandes pour deux groupes DALI et signale les défauts de ballasts."
 covers: "DPT 3.007 · groupes DALI · interrogation des défauts"
 translationOf: examples/09-dali.md
-sourceHash: d173604370dc
+sourceHash: "d173604370dc"
 order: 9.2
 ---
 # Passerelle KNX/DALI

@@ -1,7 +1,7 @@
 ---
 title: Boutons-poussoirs et actionneurs
 translationOf: guide/05-devices.md
-sourceHash: b741c4d7cd9b
+sourceHash: "3492ed4452a3"
 order: 5
 ---
 # Boutons-poussoirs et actionneurs
@@ -54,7 +54,7 @@ Un actionneur a un canal par sortie. Les ports de ses objets comprennent `switch
 - **Mode de fonctionnement du relais :** `"parameters": { "relayMode": "normallyClosed" }` sur un canal inverse le contact : la charge est alimentée quand l'état de commutation vaut 0, par exemple pour un éclairage qui doit rester allumé sauf si une commande l'éteint. L'état de commutation, le retour d'état, la minuterie, les scènes et le forçage gardent leur sens habituel ; seul le contact est inversé. Le schéma marque une telle sortie par un cercle d'inversion et le libellé **NC** sur le fil de la charge.
 - **Minuterie d'escalier :** `"parameters": { "timerMs": 10000 }` sur un canal. Une écriture de 1 ferme le relais et lance une temporisation. `timerRetrigger` choisit `"restart"` (par défaut), `"none"` ou `"add"` (chaque nouveau 1 ajoute une période, jusqu'à cinq). Avec `timerOffAllowed: false`, une écriture de 0 ne peut pas annuler la minuterie. `timerWarningMs` ouvre brièvement la sortie avant l'expiration, en guise d'avertissement.
 - **Scènes :** `"scenes": { "1": 1, "2": 0 }` sur un canal définit ses états. Un objet `scene` sans canal s'applique à tous les canaux. Un objet de commande de scène (DPT 18.001) accepte aussi la mémorisation : un télégramme avec le bit d'apprentissage (valeur + 128) mémorise l'état actuel de chaque canal comme scène, jusqu'au redémarrage de la simulation ; `sceneLearning: false` la refuse.
-- **Forçage prioritaire :** les valeurs 2 et 3 du DPT 2.001 forcent l'arrêt et la marche ; 0 ou 1 termine le forçage. Les commandes normales sont mémorisées pendant le forçage. `afterForcing` règle ce qui se passe ensuite : `"lastCommand"` (par défaut), `"on"`, `"off"`, `"unchanged"`, `"previous"` ou `"toggle"`.
+- **Forçage prioritaire :** les valeurs 2 et 3 du DPT 2.001 forcent l'arrêt et la marche ; 0 ou 1 termine le forçage. Les commandes normales sont mémorisées pendant le forçage. `afterForcing` règle ce qui se passe ensuite : `"lastCommand"` (par défaut), `"on"`, `"off"`, `"unchanged"`, `"previous"` ou `"toggle"`. Avec `forcedReleaseMs`, le forçage se termine aussi de lui-même ce temps après son dernier télégramme de forçage, comme sur de nombreux actionneurs (0, par défaut, attend un télégramme de fin).
 - **Verrouillage :** un objet `lock` (1 = verrouillé) maintient la sortie dans l'état défini par `lockStart` (`"unchanged"`, `"on"` ou `"off"`) ; les commandes sont mémorisées entre-temps, et `afterLock` prend les mêmes valeurs que `afterForcing`. Le forçage est prioritaire sur le verrouillage.
 - **Temporisations :** `onDelayMs` et `offDelayMs` retardent les commandes de l'objet `switch` ; la commande inverse reçue pendant une temporisation l'annule. Les scènes, le forçage et le verrouillage agissent immédiatement.
 - **Liaison logique :** un objet `logic` est combiné avec la commande de commutation par `logicOperation` : `"and"` n'enclenche que tant qu'il vaut 1 (une validation), `"or"` enclenche tant que l'un des deux vaut 1. Tant qu'il n'a reçu aucune valeur, la commande agit seule.
@@ -94,7 +94,7 @@ Une détection envoie 1 par l'objet `input`. Chaque nouvelle détection relance 
 
 Un objet `lock` à 1 fait ignorer au détecteur ses détections. `lockStart` et `lockEnd` fixent le télégramme envoyé au début et à la fin du verrouillage : aucun (par défaut), 0 ou 1 (maintenu pendant le verrouillage ; à la fin, suivi de la temporisation).
 
-Plusieurs détecteurs peuvent surveiller une pièce en maître et esclaves. Un esclave (`"slave": true`) envoie 1 à chacune de ses détections ; relié à l'objet `slaveTrigger` du maître, il compte comme une détection du maître (enclenchement, ou relance de la temporisation), dont le seuil de luminosité et le 0 final s'appliquent.
+Plusieurs détecteurs peuvent surveiller une pièce en maître et esclaves. Un esclave (`"slave": true`) a sa propre temporisation (`holdMs`), relancée par chacune de ses détections : il envoie 1 à sa première détection, puis de nouveau toutes les `slaveCyclicMs` (3 s par défaut) tant que sa temporisation court, et jamais 0 ; avec `slaveCyclicMs: 0`, il envoie 1 à chaque détection à la place. Relié à l'objet `slaveTrigger` du maître, chaque 1 compte comme une détection du maître (enclenchement, ou relance de la temporisation), dont le seuil de luminosité et le 0 final s'appliquent : le maître s'éteint une temporisation après le dernier 1 de ses esclaves. Donnez à l'esclave une temporisation plus courte que celle du maître ; les fabricants conseillent une répétition toutes les 30 s environ, compressée ici comme les temporisations.
 
 Un objet `brightness` (DPT 9.004) envoie la luminosité mesurée par le détecteur, saisie par le lecteur sur une entrée numérique. Avec `brightnessThresholdLux`, une détection n'enclenche que tant que cette luminosité est sous le seuil ; une présence déjà active est quand même prolongée. Il n'y a pas de modèle d'éclairement : la luminosité ne dépend ni des lampes ni de la lumière du jour, et la régulation à luminosité constante n'est pas modélisée.
 
@@ -109,7 +109,7 @@ Une station météo envoie les mesures extérieures saisies dans ses `inputs` nu
 | `frostAlarm` | température extérieure ≤ `frostThresholdC` (3 °C) | température > seuil + `frostHysteresisK` (2 K) | `frostThresholdC`, `frostHysteresisK` |
 | `rainAlarm` | pluie saisie pendant `rainOnDelayMs` (20 s) | `rainOffDelayMs` (5 min) après l'arrêt de la pluie | `rainOnDelayMs`, `rainOffDelayMs` |
 
-La pluie se saisit sur l'entrée numérique de l'objet `rainAlarm` (0 ou 1) : les délais évitent de signaler une courte averse ou une courte interruption, comme sur les détecteurs de pluie courants. Une sortie est transmise quand son état change ; avec `alarmCyclicMs`, les alarmes vent, pluie et gel sont aussi renvoyées à cette période, pour les actionneurs qui les surveillent (`alarmMonitoringMs` d'un actionneur de volets). Reliez les alarmes aux ports `windAlarm`, `rainAlarm` et `frostAlarm` d'un [actionneur de volets](shutters.html).
+La pluie se saisit sur l'entrée numérique de l'objet `rainAlarm` (0 ou 1) : les délais évitent de signaler une courte averse ou une courte interruption, comme sur les détecteurs de pluie courants. L'alarme vent, elle, suit aussitôt le vent saisi : les stations météo exigent en général aussi que le vent reste quelques minutes au-dessus ou au-dessous de son seuil, ce que le modèle ne fait pas. Une sortie est transmise quand son état change ; avec `alarmCyclicMs`, les alarmes vent, pluie et gel sont aussi renvoyées à cette période, pour les actionneurs qui les surveillent (`alarmMonitoringMs` d'un actionneur de volets). Reliez les alarmes aux ports `windAlarm`, `rainAlarm` et `frostAlarm` d'un [actionneur de volets](shutters.html).
 
 ## Capteur de qualité de l'air : `airQualitySensor/v1`
 

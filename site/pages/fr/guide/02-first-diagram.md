@@ -1,7 +1,7 @@
 ---
 title: Premier schéma
 translationOf: guide/02-first-diagram.md
-sourceHash: d5d0d66740ab
+sourceHash: "d5d0d66740ab"
 order: 2
 ---
 

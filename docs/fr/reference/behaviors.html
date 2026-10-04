@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Comportements et équipements · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.7c4e75e.modified.563fa786">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.4a61514.modified.0085bbb9">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" data-base="../../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,13 +26,13 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../reference/behaviors.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.7c4e75e.modified.563fa786" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.4a61514.modified.0085bbb9" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
 
   
-  <ul><li><a href="../../reference/index.html" hreflang="en">Overview <small class="en">EN</small></a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li class="cur"><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
+  <ul><li><a href="../../fr/reference/index.html">Vue d&#39;ensemble</a></li><li><a href="../../fr/reference/options.html">Options d&#39;affichage</a></li><li><a href="../../fr/reference/json.html">Scénario JSON</a></li><li class="cur"><a href="../../fr/reference/behaviors.html">Comportements et équipements</a></li><li><a href="../../fr/reference/ports.html">Ports</a></li><li><a href="../../fr/reference/dpt.html">DPT</a></li><li><a href="../../fr/reference/api.html">API JavaScript</a></li><li><a href="../../fr/reference/events.html">Événements</a></li><li><a href="../../fr/reference/errors.html">Codes d&#39;erreur</a></li></ul>
 
 </aside>
 <main>
@@ -306,6 +306,13 @@
 <td><code>&quot;lastCommand&quot;</code></td>
 <td>&quot;lastCommand&quot; (Dernière commande), &quot;previous&quot; (État précédent), &quot;unchanged&quot; (Inchangé), &quot;on&quot; (Marche), &quot;off&quot; (Arrêt)</td>
 <td>État à la fin de la dernière alarme (incendie, intrusion) : suivre la dernière commande reçue pendant l&#39;alarme, rétablir l&#39;état d&#39;avant, rester en marche, enclencher ou déclencher.</td>
+</tr>
+<tr>
+<td><code>forcedReleaseMs</code></td>
+<td>integer</td>
+<td><code>0</code></td>
+<td>≥ 0</td>
+<td>Temps après lequel un forçage se termine de lui-même, compté depuis son dernier télégramme de forçage, comme si un télégramme de fin était arrivé (0 : seul un télégramme de fin le termine). Les actionneurs proposent jusqu&#39;à plusieurs heures.</td>
 </tr>
 <tr>
 <td><code>afterForcing</code></td>
@@ -805,7 +812,14 @@
 <td>boolean</td>
 <td><code>false</code></td>
 <td></td>
-<td>Envoie 1 à chaque détection, pour l&#39;objet slaveTrigger d&#39;un détecteur maître de la même pièce ; le maître garde la temporisation, le seuil de luminosité et le 0 final.</td>
+<td>Envoie 1 à l&#39;objet slaveTrigger d&#39;un détecteur maître de la même pièce, à la première détection puis toutes les slaveCyclicMs tant que sa propre temporisation court ; le maître garde le seuil de luminosité, le 0 final et sa temporisation après le dernier 1.</td>
+</tr>
+<tr>
+<td><code>slaveCyclicMs</code></td>
+<td>integer</td>
+<td><code>3000</code></td>
+<td>≥ 0</td>
+<td>Intervalle auquel un détecteur esclave répète 1 tant que sa temporisation court ; plus court que la temporisation du maître. Les fabricants conseillent environ 30 s, compressées ici comme les temporisations. 0 : pas de répétition, l&#39;esclave envoie 1 à chaque détection à la place.</td>
 </tr>
 <tr>
 <td><code>holdMs</code></td>

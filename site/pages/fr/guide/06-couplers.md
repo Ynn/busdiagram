@@ -1,7 +1,7 @@
 ---
 title: Coupleurs et répéteurs
 translationOf: guide/06-couplers.md
-sourceHash: 6b8d42dc4ebc
+sourceHash: "6b8d42dc4ebc"
 order: 6.6
 ---
 # Coupleurs et répéteurs

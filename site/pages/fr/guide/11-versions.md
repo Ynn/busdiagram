@@ -1,7 +1,7 @@
 ---
 title: Versions et publications
 translationOf: guide/11-versions.md
-sourceHash: 4919eb5872cd
+sourceHash: "4919eb5872cd"
 order: 11.5
 ---
 # Versions et publications

@@ -63,6 +63,42 @@ describe("automatic change-over of the thermostat", () => {
     expect(temp(sim, "office")).toBeCloseTo(22.5, 5);
   });
 
+  it("after cooling, the demand falls to 0 in the dead zone and the 0 is sent", () => {
+    const doc = raw("heating-cooling.json") as Doc;
+    const t = dev(doc, "officeThermostat");
+    t.parameters = { ...t.parameters, proportionalBandK: 4 };
+    t.objects.push({
+      id: "ext",
+      name: "External temperature",
+      ga: "3/7/0",
+      dpt: "9.001",
+      port: "externalTemp",
+      flags: { W: true, T: false },
+    });
+    const sim = createSimulator(doc);
+    sim.advance(3000);
+    sim.groupWrite("usbInterface", "3/7/0", 25);
+    sim.advance(60_000);
+    expect(sim.deviceState("officeThermostat")).toMatchObject({
+      heating: false,
+    });
+    // Just below the cooling setpoint, PI control still requests a little.
+    sim.groupWrite("usbInterface", "3/7/0", 23.9);
+    sim.advance(3000);
+    expect(
+      Number(sim.deviceState("officeThermostat").valuePct),
+    ).toBeGreaterThan(0);
+    // Further into the dead zone: 0, sent so that the valve closes.
+    sim.groupWrite("usbInterface", "3/7/0", 22.5);
+    sim.advance(10_000);
+    expect(sim.deviceState("officeThermostat")).toMatchObject({
+      heating: false,
+      valuePct: 0,
+    });
+    expect(last(sim, "3/0/2")).toBe(0);
+    expect(last(sim, "3/0/1") ?? 0).toBe(0);
+  });
+
   it("ignores the heating / cooling object", () => {
     const doc = raw("heating-cooling.json") as Doc;
     dev(doc, "officeThermostat").objects.push({

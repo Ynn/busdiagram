@@ -189,6 +189,7 @@ Channel `parameters`:
 - `busRecovery` (string, default "previous"; "previous" (State before the failure), "off" (Off), "on" (On)): State of the output when the bus voltage returns; the status feedback is then sent.
 - `blinkMs` (integer, default 1000; ≥ 1000): Time the contact stays closed, then open, while the intrusion alarm makes the output blink; mind the switching life of the relay.
 - `afterAlarm` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (On), "off" (Off)): State when the last alarm (fire, intrusion) ends: follow the latest command received during the alarm, restore the state before it, keep it on, switch on, or switch off.
+- `forcedReleaseMs` (integer, default 0; ≥ 0): Time after which a forcing ends by itself, counted from its last forcing telegram, as if a release telegram had arrived (0: only a release telegram ends it). Actuators offer up to several hours.
 - `afterForcing` (string, default "lastCommand"; "lastCommand" (Last command), "previous" (Previous state), "unchanged" (Unchanged), "on" (On), "off" (Off), "toggle" (Toggle)): State after a priority override ends: follow the latest command received during the override, restore the previous state, keep the forced state, switch on, switch off, or invert the forced state.
 Channel `initialState`:
 - `on` (boolean, default false): Switching state of the channel when the simulation starts.
@@ -289,7 +290,8 @@ Accepts `buttons` and numeric `inputs`.
 Device `parameters`:
 - `lockStart` (string, default "none"; "none" (No telegram), "off" (Off), "on" (On)): Telegram when the lock object receives 1: none (the hold time runs out as usual), 0 at once, or 1 kept while locked. While locked, detections are ignored.
 - `lockEnd` (string, default "none"; "none" (No telegram), "off" (Off), "on" (On)): Telegram when the lock object receives 0: none, 0, or 1 followed by the hold time.
-- `slave` (boolean, default false): Sends 1 on each detection, for the slaveTrigger object of a master detector of the same room; the master keeps the hold time, the brightness threshold, and the final 0.
+- `slave` (boolean, default false): Sends 1 to the slaveTrigger object of a master detector of the same room, at the first detection and then every slaveCyclicMs while its own hold time runs; the master keeps the brightness threshold, the final 0, and its hold time after the last 1.
+- `slaveCyclicMs` (integer, default 3000; ≥ 0): Interval at which a slave detector repeats 1 while its hold time runs; shorter than the hold time of the master. Manufacturers suggest about 30 s, compressed here like the hold times. 0: no repetition, the slave sends 1 at each detection instead.
 - `holdMs` (integer, default 10000; > 0): Time with no detected presence before sending 0 (ms); restarted on each detection.
 - `retrigger` (boolean, default true): Each activation restarts the timer; otherwise it runs from the first activation.
 - `sendOnEnd` (boolean, default true): Send 0 when the timer expires; otherwise the detector sends only 1 and the actuator handles switch-off.

@@ -247,7 +247,9 @@ function setHeating(ctx: TCtx, heating: boolean) {
  * Automatic change-over (KNX Standard 07_13_01, ControlSequence, DPT 20.107 automatic):
  * the controller cools when the room rises above the cooling setpoint of the current mode
  * and heats again when it falls below the heating setpoint. In between, the dead zone,
- * it keeps its mode, and neither heating nor cooling is requested.
+ * it keeps its mode. The PI control keeps its integral term while the mode does not
+ * change, so a demand can persist past the setpoint before it decreases to 0, which is
+ * sent; the dead zone does not force the output to 0 at once (a choice of this model).
  */
 function changeover(ctx: TCtx, t: number) {
   const st = ctx.state;
