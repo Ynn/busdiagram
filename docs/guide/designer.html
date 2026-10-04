@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
-<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.4.0%2Bdev.f429168.modified.35c34370">
+<script src="../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
 
-<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<script defer src="../assets/search-index.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
 
-<script defer src="../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.4.0%2Bdev.f429168.modified.35c34370" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/designer.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -57,8 +57,9 @@
 <p>Both editing modes use the same scenario. Changes made in the guided forms update the JSON; valid JSON edits update the forms. The browser saves the draft locally and restores it when you return.</p>
 <h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Start a scenario</h2><p>Start with an empty installation, one of the interactive examples, or a template for a device or topology. You can also open an existing <code>.json</code> file, or follow the icon at the end of the toolbar of any diagram, which opens that diagram here.</p>
 <h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Guided editor</h2><p>The guided editor follows the working logic taught in KNX courses: panels with a tree and a list, a catalog, group addresses linked to group objects by drag and drop. The preview on the right shows the result at once.</p>
-<h3 id="panels"><a class="anchor" href="#panels">#</a>Panels</h3><p>Two panels are stacked. The selector in the title bar of each panel chooses its content: <strong>Topology</strong>, <strong>Group addresses</strong>, <strong>Catalog</strong>, or <strong>Installation</strong> (title, description, simulated clock, heated rooms). <strong>+ Panel</strong> opens the second panel, and <strong>×</strong> closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.</p>
+<h3 id="panels"><a class="anchor" href="#panels">#</a>Panels</h3><p>Two panels are stacked. The selector in the title bar of each panel chooses its content: <strong>Topology</strong>, <strong>Group addresses</strong>, <strong>Building</strong>, <strong>Catalog</strong>, or <strong>Installation</strong> (title, description, simulated clock, and a button that opens the Building panel). <strong>+ Panel</strong> opens the second panel, and <strong>×</strong> closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.</p>
 <p>In the Topology tree, a line with a line repeater or a segment coupler shows its two segments, and each device sits in its segment. A line without extension shows its devices directly. Devices are collapsed: open one (▸) to show its group objects in the tree. The <strong>Filter</strong> field above each tree keeps the nodes whose address or name contains the text, with their parents.</p>
+<p>The Building tree lists the rooms, each with the devices placed in it and the outputs that heat or cool it, then the devices without outputs that are in no room. Here the room is not only a filing place: thermostats, temperature sensors, and window contacts can read the room they are in (a mark on their icon; a thermostat may use an external temperature instead), and radiators and fan coils heat or cool the room of their output. A device with outputs is not placed in a room; its heating and cooling outputs are, each in the room it heats.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -95,6 +96,14 @@
 <td><strong>Associations</strong> (objects linked to the address, with the sending one; their C, R, W, T, U, and I flags can be changed here; <strong>Link with…</strong>) and <strong>Properties</strong> (address, name, DPT, and grouped editing of linked objects).</td>
 </tr>
 <tr>
+<td>Building (root)</td>
+<td>Rooms with their temperatures and contents; <strong>Add a room</strong>.</td>
+</tr>
+<tr>
+<td>Room</td>
+<td>Name, initial and outside temperatures, window open at start; its devices and outputs, with the effect of the room on each; <strong>Delete room</strong> (refused while an output still heats or cools it; devices placed in the room and other loads that name it lose that link).</td>
+</tr>
+<tr>
 <td>Catalog</td>
 <td>The device types that the simulator models, by category, with their application and group objects; <strong>Items</strong> … <strong>in line</strong> … <strong>Add</strong> inserts devices.</td>
 </tr>
@@ -120,6 +129,7 @@
 <li><strong>Enable a group object:</strong> on the Settings page of an output, tick <strong>Enable group object “…”</strong> (Forcing, Status feedback, …). The object appears in the tree and in the Group objects tab without any address, ready to be dragged onto a group address; removing its last address keeps it enabled. Untick the box to remove the object.</li>
 <li><strong>New address for an object:</strong> drag a group object onto a middle group: a group address is created in it and linked to the object.</li>
 <li><strong>Move a device:</strong> drag it onto another line; it receives a free address of that line and keeps its objects and links.</li>
+<li><strong>Place a device in a room:</strong> drag it from the Topology panel or the Building tree onto a room, or onto <strong>Not in a room</strong> to take it out. Drag an output of the Building tree onto another room to heat or cool that room.</li>
 </ul>
 <p>During a drag, the status bar at the bottom explains the gesture (“Link with 1: Key 1”). Only objects and addresses of the same data size can be linked: an incompatible target is shown in red and the drop is refused. Each gesture, and the equivalent button, is one step of the undo history.</p>
 <p>In the <strong>Properties</strong> tab of a group address, the associated-object editor groups objects by device and lets you add or remove an address from several objects at once. Before applying the change, it lists the effects on transmission addresses and object links. The whole operation can be undone in one step.</p>

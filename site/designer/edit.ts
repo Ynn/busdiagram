@@ -1212,20 +1212,36 @@ export function setRoomField(
   else (r as J)[key] = value;
 }
 
-/** Remove a room only when no radiator still heats it. */
-export function removeRoom(doc: Doc, id: string) {
-  const heaters = doc.devices.flatMap((d) =>
+const heatsRoom = (l: Load) =>
+  !!captureRegistry().equipment.get(l.type)?.heatOutput;
+
+/** Outputs whose loads heat or cool a room ("device · output"): they keep it from being removed. */
+export function roomHeaters(doc: Doc, id: string): string[] {
+  return doc.devices.flatMap((d) =>
     (d.channels ?? [])
-      .filter((c) => loadsOf(c).some((l) => l.room === id))
+      .filter((c) => loadsOf(c).some((l) => l.room === id && heatsRoom(l)))
       .map((c) => `${d.name ?? d.id} · ${c.label ?? c.id}`),
   );
+}
+
+/**
+ * Remove a room only when no load heats or cools it. The other links to it go with it:
+ * devices placed in the room, and loads that only name it without heating it.
+ */
+export function removeRoom(doc: Doc, id: string) {
+  const heaters = roomHeaters(doc, id);
   if (heaters.length)
     throw new EditRefusal(
       t`the room still feeds ${heaters.join(", ")}: first choose another room for these outputs`,
     );
   doc.rooms = roomsOf(doc).filter((r) => r.id !== id);
   if (!doc.rooms.length) delete doc.rooms;
-  doc.devices.forEach((d) => d.room === id && delete d.room);
+  doc.devices.forEach((d) => {
+    if (d.room === id) delete d.room;
+    (d.channels ?? []).forEach((c) =>
+      loadsOf(c).forEach((l) => l.room === id && delete l.room),
+    );
+  });
 }
 
 /** Room containing a device (sensor or contact); an empty string removes the link. */

@@ -412,6 +412,11 @@ export interface BehaviorDefinition<S = unknown> {
   ports: Record<string, BehaviorPort>;
   /** Type of output control emitted by this behavior ("switch", "motor"). */
   output?: OutputCommand["type"];
+  /**
+   * The device measures or observes its room (`device.room`): temperature, window. The
+   * designer tells which room assignments act on the simulation.
+   */
+  readsRoom?: boolean;
   /** Does this behavior use local keys or inputs? */
   acceptsInputs?: boolean;
   /** Keys (`buttons`) are refused when false; by default they follow `acceptsInputs`. */

@@ -33,6 +33,7 @@ export const temperatureSensor: BehaviorDefinition<SensorState> = {
       },
     },
   },
+  readsRoom: true,
   ports: {
     temperature: {
       defaultFlags: { R: true },

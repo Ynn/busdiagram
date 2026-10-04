@@ -20,9 +20,11 @@ The guided editor follows the working logic taught in KNX courses: panels with a
 
 ### Panels
 
-Two panels are stacked. The selector in the title bar of each panel chooses its content: **Topology**, **Group addresses**, **Catalog**, or **Installation** (title, description, simulated clock, heated rooms). **+ Panel** opens the second panel, and **×** closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.
+Two panels are stacked. The selector in the title bar of each panel chooses its content: **Topology**, **Group addresses**, **Building**, **Catalog**, or **Installation** (title, description, simulated clock, and a button that opens the Building panel). **+ Panel** opens the second panel, and **×** closes it. Each panel has a tree on the left and a list on the right; the tabs at the bottom of the list change its content. Drag the separators (or focus them and use the arrow keys) to resize the tree, the list, and the two panels; the sizes are remembered by the browser.
 
 In the Topology tree, a line with a line repeater or a segment coupler shows its two segments, and each device sits in its segment. A line without extension shows its devices directly. Devices are collapsed: open one (▸) to show its group objects in the tree. The **Filter** field above each tree keeps the nodes whose address or name contains the text, with their parents.
+
+The Building tree lists the rooms, each with the devices placed in it and the outputs that heat or cool it, then the devices without outputs that are in no room. Here the room is not only a filing place: thermostats, temperature sensors, and window contacts can read the room they are in (a mark on their icon; a thermostat may use an external temperature instead), and radiators and fan coils heat or cool the room of their output. A device with outputs is not placed in a room; its heating and cooling outputs are, each in the room it heats.
 
 | Tree selection | List tabs |
 | --- | --- |
@@ -33,6 +35,8 @@ In the Topology tree, a line with a line repeater or a segment coupler shows its
 | Group object | **Associations** (group addresses of the object; **Set as sending**; **Delete**; **Link with…**) and **Properties** (name, flags, priority, DPT). |
 | Group addresses (root), main group, middle group | Main groups, middle groups, or addresses, with **Add main group**, **Add middle group**, and **Add group address**; name the groups. |
 | Group address | **Associations** (objects linked to the address, with the sending one; their C, R, W, T, U, and I flags can be changed here; **Link with…**) and **Properties** (address, name, DPT, and grouped editing of linked objects). |
+| Building (root) | Rooms with their temperatures and contents; **Add a room**. |
+| Room | Name, initial and outside temperatures, window open at start; its devices and outputs, with the effect of the room on each; **Delete room** (refused while an output still heats or cools it; devices placed in the room and other loads that name it lose that link). |
 | Catalog | The device types that the simulator models, by category, with their application and group objects; **Items** … **in line** … **Add** inserts devices. |
 
 Selecting a device in the diagram shows it in the Topology panel.
@@ -68,6 +72,7 @@ A right-click on an output or a key, in the tree of pages or in the Configuratio
 - **Enable a group object:** on the Settings page of an output, tick **Enable group object “…”** (Forcing, Status feedback, …). The object appears in the tree and in the Group objects tab without any address, ready to be dragged onto a group address; removing its last address keeps it enabled. Untick the box to remove the object.
 - **New address for an object:** drag a group object onto a middle group: a group address is created in it and linked to the object.
 - **Move a device:** drag it onto another line; it receives a free address of that line and keeps its objects and links.
+- **Place a device in a room:** drag it from the Topology panel or the Building tree onto a room, or onto **Not in a room** to take it out. Drag an output of the Building tree onto another room to heat or cool that room.
 
 During a drag, the status bar at the bottom explains the gesture (“Link with 1: Key 1”). Only objects and addresses of the same data size can be linked: an incompatible target is shown in red and the drop is refused. Each gesture, and the equivalent button, is one step of the undo history.
 

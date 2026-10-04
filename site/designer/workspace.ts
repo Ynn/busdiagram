@@ -18,6 +18,7 @@ import { gaTarget, lineTarget, objTarget, startGa, startObj } from "./ws-dnd";
 import { menuFor, menuView, openMenu } from "./ws-menu";
 import { renamable } from "./ws-rename";
 import { dataTable } from "./ws-table";
+import { buildingList, buildingTree, roomTarget } from "./ws-building";
 import type { Column } from "./ws-table";
 import { tt } from "./params";
 import {
@@ -116,6 +117,10 @@ function listTarget(host: Host, doc: Doc, p: Panel) {
       const [line, seg] = rest.split("/") as [string, string];
       return lineTarget(host, line, Number(seg) as 1 | 2);
     }
+  }
+  if (p.content === "building") {
+    if (kind === "room") return roomTarget(host, rest);
+    if (kind === "free") return roomTarget(host, null);
   }
   if (p.content === "addresses") {
     if (kind === "ga") return objTarget(host, rest);
@@ -1144,17 +1149,21 @@ function panel(host: Host, doc: Doc, p: Panel, i: number): TemplateResult {
       ? topologyTree(host, doc)
       : p.content === "addresses"
         ? addressTree(host, doc)
-        : p.content === "catalog"
-          ? catalogTree(host)
-          : [];
+        : p.content === "building"
+          ? buildingTree(host, doc)
+          : p.content === "catalog"
+            ? catalogTree(host)
+            : [];
   const list =
     p.content === "topology"
       ? topologyList(host, doc, p)
       : p.content === "addresses"
         ? addressList(host, doc, p)
-        : p.content === "catalog"
-          ? catalogList(host, doc, p)
-          : html`<div class="w-content">${host.installation(doc)}</div>`;
+        : p.content === "building"
+          ? (buildingList(host, doc, p) ?? topologyList(host, doc, p))
+          : p.content === "catalog"
+            ? catalogList(host, doc, p)
+            : html`<div class="w-content">${host.installation(doc)}</div>`;
   const shown = filterNodes(nodes, p.filter ?? "");
   const drop = listTarget(host, doc, p);
   const share = ws.panels.length > 1 ? (i === 0 ? ws.split : 1 - ws.split) : 1;

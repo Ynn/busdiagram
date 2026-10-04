@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Designer · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.aee426b.modified.9bb210d1">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.f429168.modified.35c34370">
+<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.f429168.modified.35c34370"></script>
+<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.f429168.modified.35c34370" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/designer.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.aee426b.modified.9bb210d1" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.f429168.modified.35c34370" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -57,8 +57,9 @@
 <p>Les deux modes d&#39;édition travaillent sur le même scénario. Les changements faits dans les formulaires guidés mettent à jour le JSON ; les modifications valides du JSON mettent à jour les formulaires. Le navigateur enregistre le brouillon localement et le restaure à votre retour.</p>
 <h2 id="start-a-scenario"><a class="anchor" href="#start-a-scenario">#</a>Commencer un scénario</h2><p>Partez d&#39;une installation vide, de l&#39;un des exemples interactifs ou d&#39;un modèle d&#39;appareil ou de topologie. Vous pouvez aussi ouvrir un fichier <code>.json</code> existant, ou suivre l&#39;icône au bout de la barre d&#39;outils de n&#39;importe quel schéma, qui ouvre ce schéma ici.</p>
 <h2 id="guided-editor"><a class="anchor" href="#guided-editor">#</a>Éditeur guidé</h2><p>L&#39;éditeur guidé suit la logique de travail enseignée dans les formations KNX : des panneaux avec une arborescence et une liste, un catalogue, des adresses de groupe reliées aux objets de groupe par glisser-déposer. L&#39;aperçu à droite montre aussitôt le résultat.</p>
-<h3 id="panels"><a class="anchor" href="#panels">#</a>Panneaux</h3><p>Deux panneaux sont superposés. Le sélecteur de la barre de titre de chaque panneau choisit son contenu : <strong>Topologie</strong>, <strong>Adresses de groupe</strong>, <strong>Catalogue</strong> ou <strong>Installation</strong> (titre, description, horloge simulée, pièces chauffées). <strong>+ Panneau</strong> ouvre le second panneau, et <strong>×</strong> le ferme. Chaque panneau a une arborescence à gauche et une liste à droite ; les onglets en bas de la liste changent son contenu. Faites glisser les séparateurs (ou donnez-leur le focus et utilisez les flèches) pour redimensionner l&#39;arborescence, la liste et les deux panneaux ; le navigateur mémorise les tailles.</p>
+<h3 id="panels"><a class="anchor" href="#panels">#</a>Panneaux</h3><p>Deux panneaux sont superposés. Le sélecteur de la barre de titre de chaque panneau choisit son contenu : <strong>Topologie</strong>, <strong>Adresses de groupe</strong>, <strong>Bâtiment</strong>, <strong>Catalogue</strong> ou <strong>Installation</strong> (titre, description, horloge simulée, et un bouton qui ouvre le panneau Bâtiment). <strong>+ Panneau</strong> ouvre le second panneau, et <strong>×</strong> le ferme. Chaque panneau a une arborescence à gauche et une liste à droite ; les onglets en bas de la liste changent son contenu. Faites glisser les séparateurs (ou donnez-leur le focus et utilisez les flèches) pour redimensionner l&#39;arborescence, la liste et les deux panneaux ; le navigateur mémorise les tailles.</p>
 <p>Dans l&#39;arborescence Topologie, une ligne avec un répéteur de ligne ou un coupleur de segment montre ses deux segments, et chaque appareil se trouve dans son segment. Une ligne sans extension montre directement ses appareils. Les appareils sont repliés : ouvrez-en un (▸) pour afficher ses objets de groupe dans l&#39;arborescence. Le champ <strong>Filtrer</strong> au-dessus de chaque arborescence garde les nœuds dont l&#39;adresse ou le nom contient le texte, avec leurs parents.</p>
+<p>L&#39;arborescence Bâtiment liste les pièces, chacune avec les appareils qui y sont placés et les sorties qui la chauffent ou la refroidissent, puis les appareils sans sorties qui ne sont dans aucune pièce. Ici, la pièce n&#39;est pas qu&#39;un rangement : les thermostats, sondes de température et contacts de fenêtre peuvent lire la pièce où ils se trouvent (une marque sur leur icône ; un thermostat peut utiliser une température externe à la place), et les radiateurs et ventilo-convecteurs chauffent ou refroidissent la pièce de leur sortie. Un appareil à sorties n&#39;est pas placé dans une pièce ; ses sorties de chauffage et de refroidissement le sont, chacune dans la pièce qu&#39;elle chauffe.</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -95,6 +96,14 @@
 <td><strong>Associations</strong> (objets liés à l&#39;adresse, avec celui qui émet ; leurs indicateurs C, R, W, T, U et I se modifient ici ; <strong>Lier à…</strong>) et <strong>Propriétés</strong> (adresse, nom, DPT et édition groupée des objets liés).</td>
 </tr>
 <tr>
+<td>Bâtiment (racine)</td>
+<td>Pièces avec leurs températures et leur contenu ; <strong>Ajouter une pièce</strong>.</td>
+</tr>
+<tr>
+<td>Pièce</td>
+<td>Nom, températures au départ et extérieure, fenêtre ouverte au départ ; ses appareils et sorties, avec l&#39;effet de la pièce sur chacun ; <strong>Supprimer la pièce</strong> (refusé tant qu&#39;une sortie la chauffe ou la refroidit encore ; les appareils placés dans la pièce et les autres charges qui la nomment perdent ce lien).</td>
+</tr>
+<tr>
 <td>Catalogue</td>
 <td>Les types d&#39;appareils que le simulateur modélise, par catégorie, avec leur application et leurs objets de groupe ; <strong>Nombre</strong> … <strong>sur la ligne</strong> … <strong>Ajouter</strong> insère des appareils.</td>
 </tr>
@@ -120,6 +129,7 @@
 <li><strong>Activer un objet de groupe :</strong> dans la page Réglages d&#39;une sortie, cochez <strong>Activer l&#39;objet de groupe « … »</strong> (Forçage, Retour d&#39;état, …). L&#39;objet apparaît dans l&#39;arborescence et dans l&#39;onglet Objets de groupe sans adresse, prêt à être glissé sur une adresse de groupe ; retirer sa dernière adresse le laisse activé. Décochez la case pour supprimer l&#39;objet.</li>
 <li><strong>Nouvelle adresse pour un objet :</strong> faites glisser un objet de groupe sur un groupe médian : une adresse de groupe y est créée et reliée à l&#39;objet.</li>
 <li><strong>Déplacer un appareil :</strong> faites-le glisser sur une autre ligne ; il reçoit une adresse libre de cette ligne et garde ses objets et ses liaisons.</li>
+<li><strong>Placer un appareil dans une pièce :</strong> faites-le glisser depuis le panneau Topologie ou l&#39;arborescence Bâtiment sur une pièce, ou sur <strong>Hors pièce</strong> pour l&#39;en retirer. Faites glisser une sortie de l&#39;arborescence Bâtiment sur une autre pièce pour chauffer ou refroidir cette pièce.</li>
 </ul>
 <p>Pendant un glisser, la barre d&#39;état en bas explique le geste (« Lier à 1 : Touche 1 »). Seuls des objets et des adresses de même taille de données peuvent être reliés : une cible incompatible s&#39;affiche en rouge et le dépôt est refusé. Chaque geste, et le bouton équivalent, est une étape de l&#39;historique d&#39;annulation.</p>
 <p>Dans l&#39;onglet <strong>Propriétés</strong> d&#39;une adresse de groupe, l&#39;éditeur des objets associés regroupe les objets par appareil et permet d&#39;ajouter ou de retirer une adresse de plusieurs objets à la fois. Avant d&#39;appliquer le changement, il liste les effets sur les adresses d&#39;émission et les liaisons des objets. L&#39;opération entière s&#39;annule en une étape.</p>

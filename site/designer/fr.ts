@@ -811,4 +811,45 @@ export const designerFr: Record<string, string> = {
     "Normalement ouvert (se ferme à l'appui)",
   "Normally closed (opens when pressed)":
     "Normalement fermé (s'ouvre à l'appui)",
+  "Heat or cool {0} with this output":
+    "Chauffer ou refroidir {0} avec cette sortie",
+  "Place in {0}": "Placer dans {0}",
+  "Take out of its room": "Retirer de sa pièce",
+  "{0} has outputs: it is not placed in a room, but its heating and cooling outputs are, each in the room it heats.":
+    "{0} a des sorties : il n'est pas placé dans une pièce, mais ses sorties de chauffage et de refroidissement le sont, chacune dans la pièce qu'elle chauffe.",
+  "{0} placed in {1}.": "{0} placé dans {1}.",
+  "{0} taken out of its room.": "{0} retiré de sa pièce.",
+  "Output that heats or cools this room; drag it onto another room":
+    "Sortie qui chauffe ou refroidit cette pièce ; faites-la glisser sur une autre pièce",
+  "Can read its room (temperature, window); drag it onto another room":
+    "Peut lire sa pièce (température, fenêtre) ; faites-le glisser sur une autre pièce",
+  "Drag it onto another room": "Faites-le glisser sur une autre pièce",
+  Building: "Bâtiment",
+  "Room; drop a device or an output on it":
+    "Pièce ; déposez-y un appareil ou une sortie",
+  "Not in a room": "Hors pièce",
+  "Devices without outputs that are in no room; drop a device here to take it out of its room":
+    "Appareils sans sorties placés dans aucune pièce ; déposez ici un appareil pour le retirer de sa pièce",
+  "heats or cools the room": "chauffe ou refroidit la pièce",
+  "can read the room (temperature, window)":
+    "peut lire la pièce (température, fenêtre)",
+  "none: filed in the room": "aucun : rangé dans la pièce",
+  "Effect of the room": "Effet de la pièce",
+  "Drag onto another room": "Faire glisser sur une autre pièce",
+  "Drag onto another room, or onto Not in a room":
+    "Faire glisser sur une autre pièce, ou sur Hors pièce",
+  "This room no longer exists.": "Cette pièce n'existe plus.",
+  "Nothing in this room: drop a device here from the Topology panel, or an output from another room.":
+    "Rien dans cette pièce : déposez ici un appareil depuis le panneau Topologie, ou une sortie depuis une autre pièce.",
+  "Every device without outputs is in a room.":
+    "Chaque appareil sans sorties est dans une pièce.",
+  "This output no longer exists.": "Cette sortie n'existe plus.",
+  "A room acts on the simulation: thermostats, temperature sensors, and window contacts can read the room they are in, and radiators and fan coils heat or cool the room of their output. Drag devices from the Topology panel onto a room.":
+    "Une pièce agit sur la simulation : les thermostats, sondes de température et contacts de fenêtre peuvent lire la pièce où ils se trouvent, et les radiateurs et ventilo-convecteurs chauffent ou refroidissent la pièce de leur sortie. Faites glisser des appareils du panneau Topologie sur une pièce.",
+  "Devices and outputs": "Appareils et sorties",
+  "No room yet.": "Aucune pièce pour l'instant.",
+  "An output still heats or cools this room: move it to another room first.":
+    "Une sortie chauffe ou refroidit encore cette pièce : déplacez-la d'abord vers une autre pièce.",
+  "Rooms in the installation: {0}.": "Pièces de l'installation : {0}.",
+  "Open the Building panel": "Ouvrir le panneau Bâtiment",
 };

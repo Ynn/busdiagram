@@ -8,14 +8,15 @@ import * as E from "./edit";
 import { t } from "./lang";
 
 export type PanelContent =
-  "topology" | "addresses" | "catalog" | "installation";
+  "topology" | "addresses" | "building" | "catalog" | "installation";
 
 export interface Panel {
   content: PanelContent;
   /** Width of the tree, in pixels. */
   treeWidth: number;
   /** Selected tree node: "topo", "area:1", "line:1.1", "seg:1.1/2", "dev:id",
-   * "obj:id/obj", "gar", "main:1", "mid:1/2", "ga:1/2/3", "cat", "cat:0". */
+   * "obj:id/obj", "gar", "main:1", "mid:1/2", "ga:1/2/3", "bld", "room:id", "free",
+   * "out:id/channel/index", "cat", "cat:0". */
   sel: string | null;
   /** Tab of the list view for each kind of selection. */
   tabs: Record<string, string>;
@@ -71,6 +72,7 @@ const STORE = "busdiagram.designer.panels";
 export const CONTENTS: PanelContent[] = [
   "topology",
   "addresses",
+  "building",
   "catalog",
   "installation",
 ];
@@ -78,6 +80,7 @@ export const contentLabel = (c: PanelContent) =>
   ({
     topology: t`Topology`,
     addresses: t`Group addresses`,
+    building: t`Building`,
     catalog: t`Catalog`,
     installation: t`Installation`,
   })[c];
@@ -266,6 +269,15 @@ export function nameOf(
         value: o.name ?? "",
         placeholder: o.id,
         apply: (d, v) => E.setObjectName(d, devId, objectId, v),
+      };
+    }
+    case "room": {
+      const r = E.roomsOf(doc).find((x) => x.id === rest);
+      if (!r) return null;
+      return {
+        value: r.name ?? "",
+        placeholder: r.id,
+        apply: (d, v) => E.setRoomField(d, rest, "name", v.trim()),
       };
     }
     case "main":

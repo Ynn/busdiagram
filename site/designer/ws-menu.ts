@@ -14,6 +14,7 @@ import {
   startRename,
 } from "./ws-state";
 import type { Host, MenuItem, Panel } from "./ws-state";
+import { outputOf } from "./ws-building";
 
 // ── Context menus ────────────────────────────────────────────────────────────
 
@@ -101,7 +102,19 @@ export function menuFor(
       label: t`Open`,
       run: () => {
         if (
-          ["topo", "area", "line", "seg", "gar", "main", "mid"].includes(kind)
+          [
+            "topo",
+            "area",
+            "line",
+            "seg",
+            "gar",
+            "main",
+            "mid",
+            "bld",
+            "room",
+            "free",
+            "out",
+          ].includes(kind)
         )
           select(host, p, key);
         else reveal(host, key);
@@ -183,6 +196,11 @@ export function menuFor(
     }
     case "dev": {
       const dv = devOf(doc, rest);
+      if (p.content === "building" && dv?.room)
+        items.push({
+          label: t`Take out of its room`,
+          run: () => host.run(t`Room`, (d) => E.setDeviceRoom(d, rest, "")),
+        });
       items.push(
         {
           label: t`Group objects`,
@@ -329,6 +347,36 @@ export function menuFor(
         },
       );
       break;
+    case "bld":
+      items.push({
+        label: t`Add a room`,
+        run: () => {
+          let id = "";
+          if (host.run(t`Room`, (d) => void (id = E.addRoom(d))))
+            select(host, p, `room:${id}`);
+        },
+      });
+      break;
+    case "room": {
+      const heated = E.roomHeaters(doc, rest).length > 0;
+      items.push(...rename(), {
+        label: t`Delete room`,
+        run: () => host.run(t`Deletion`, (d) => E.removeRoom(d, rest)),
+        disabled: heated
+          ? t`An output still heats or cools this room: move it to another room first.`
+          : undefined,
+      });
+      break;
+    }
+    case "out": {
+      const o = outputOf(host, doc, key);
+      if (o)
+        items.push({
+          label: t`Parameters`,
+          run: () => openTab(host, `dev:${o.d.id}`, "dev", "parameters"),
+        });
+      break;
+    }
     case "entry":
       // A catalog entry: add it on one of the lines.
       items.push(

@@ -2452,4 +2452,112 @@ test.describe("designer workspace", () => {
     );
     expect(w.errors).toEqual([]);
   });
+
+  test("building: rooms, devices placed by dragging, outputs that heat a room", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=room-heating"));
+    await page.click("#tab-guided");
+    await bottom(page).locator(".w-select").selectOption("building");
+    const bld = bottom(page);
+    await expect(node(bld, "room:livingRoom")).toBeVisible();
+    // The living room holds its thermostat, its window contact, and the radiator output.
+    await expect(
+      bld.locator(".w-node[data-key='dev:livingThermostat'] .i-reads"),
+    ).toHaveCount(1);
+    await expect(node(bld, "out:heatingActuator/h1/0")).toBeVisible();
+    const roomOf = async (id: string) =>
+      (await json(page)).devices.find((d: { id: string }) => d.id === id).room;
+
+    // A device dragged from the Topology panel onto the bedroom.
+    await drag(
+      page,
+      node(top(page), "dev:windowContact"),
+      node(bld, "room:bedroom"),
+    );
+    await expect.poll(() => roomOf("windowContact")).toBe("bedroom");
+    // Out of any room, from the building tree.
+    await drag(page, node(bld, "dev:windowContact"), node(bld, "free"));
+    await expect.poll(() => roomOf("windowContact")).toBeUndefined();
+    // An actuator is not placed in a room: its outputs are.
+    await drag(
+      page,
+      node(top(page), "dev:heatingActuator"),
+      node(bld, "room:bedroom"),
+    );
+    await expect(page.locator(".g-alert")).toContainText("has outputs");
+    expect(await roomOf("heatingActuator")).toBeUndefined();
+    // The radiator output moved: it now heats the bedroom.
+    await drag(
+      page,
+      node(bld, "out:heatingActuator/h1/0"),
+      node(bld, "room:bedroom"),
+    );
+    await expect
+      .poll(
+        async () =>
+          (await json(page)).devices.find(
+            (d: { id: string }) => d.id === "heatingActuator",
+          ).channels[0].equipment.room,
+      )
+      .toBe("bedroom");
+    // A room still heated cannot be deleted; its properties are in its list.
+    await node(bld, "room:bedroom").click({ button: "right" });
+    await expect(
+      page.locator(".w-menu button", { hasText: "Delete room" }),
+    ).toBeDisabled();
+    await page.keyboard.press("Escape");
+    await node(bld, "room:livingRoom").click();
+    await expect(bld.getByText("Effect of the room")).toBeVisible();
+    await bld.getByLabel("Initial temperature (°C)").fill("16");
+    await bld.getByLabel("Initial temperature (°C)").press("Tab");
+    await expect
+      .poll(async () => (await json(page)).rooms[0].temperatureC)
+      .toBe(16);
+
+    // Installation leads to the Building panel instead of editing rooms itself.
+    await top(page).locator(".w-select").selectOption("installation");
+    await bottom(page).locator(".w-select").selectOption("catalog");
+    await top(page)
+      .getByRole("button", { name: "Open the Building panel" })
+      .click();
+    await expect(top(page).locator(".w-select")).toHaveValue("building");
+    expect(w.errors).toEqual([]);
+  });
+
+  test("building: a room named by a load that does not heat it can be deleted", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=room-heating"));
+    await page.click("#tab-json");
+    // A lamp output that names a new room, as a valid scenario may.
+    const doc = await json(page);
+    doc.rooms.push({ id: "lampRoom", name: "Lamp room" });
+    doc.devices
+      .find((d: { id: string }) => d.id === "switchActuator")
+      .channels.push({
+        id: "s1",
+        equipment: { type: "lamp", room: "lampRoom" },
+      });
+    await page.evaluate(
+      (text) =>
+        (
+          window as unknown as { designer: { setText(t: string): void } }
+        ).designer.setText(text),
+      JSON.stringify(doc),
+    );
+    await page.click("#tab-guided");
+    await bottom(page).locator(".w-select").selectOption("building");
+    await node(bottom(page), "room:lampRoom").click();
+    await bottom(page).getByRole("button", { name: "Delete room" }).click();
+    await expect(page.locator(".g-alert")).toHaveCount(0);
+    await expect
+      .poll(async () => JSON.stringify(await json(page)))
+      .not.toContain("lampRoom");
+    expect(w.errors).toEqual([]);
+  });
 });

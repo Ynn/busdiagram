@@ -66,6 +66,7 @@ export const windowContact: BehaviorDefinition<null> = {
       },
     },
   },
+  readsRoom: true,
   ports: {
     contact: {
       dpts: ["1.019", "1.001", "1.009"],

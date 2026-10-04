@@ -19,6 +19,7 @@ import { freeAddress } from "./snippet-kit";
 import { TEMPLATES, designerOf } from "./standard-designer";
 import type { Host, WorkspaceState } from "./workspace";
 import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
+import { savePanels } from "./ws-state";
 import * as P from "./params";
 import { defaultEquipmentParams, tt } from "./params";
 
@@ -427,80 +428,32 @@ export class GuidedEditor extends LitElement implements Host {
     </section>`;
   }
 
-  /** Rooms: the thermal model shared by thermostats, contacts, radiators, and fan coils. */
+  /** Rooms: edited in the Building panel; Installation only shows how many there are. */
   private roomsSection(doc: Doc) {
-    const rooms = E.roomsOf(doc);
-    const numField = (
-      label: string,
-      r: E.RoomDoc,
-      key: "temperatureC" | "outsideTemperatureC",
-      def: number,
-    ) =>
-      this.text(
-        label,
-        String(r[key] ?? def),
-        (v) => {
-          const n = Number(v.replace(",", "."));
-          this.run(label, (x) =>
-            E.setRoomField(
-              x,
-              r.id,
-              key,
-              v === "" || !Number.isFinite(n)
-                ? v === ""
-                  ? undefined
-                  : NaN
-                : n,
-            ),
-          );
-        },
-        false,
-        "narrow",
-      );
+    const n = E.roomsOf(doc).length;
     return html`<section class="g-sec">
-      <h3>${t`Rooms (heating)`}</h3>
+      <h3>${t`Rooms`}</h3>
       <p class="g-hint">
+        ${n ? t`Rooms in the installation: ${n}.` : t`No room yet.`}
         ${t`A room's temperature evolves with its radiators and fan coils, the outside temperature and its window. Its thermostats and window contacts measure it.`}
       </p>
-      ${rooms.map((r) =>
-        this.card(
-          `room:${r.id}`,
-          html`<b>${r.name ?? r.id}</b
-            ><span class="g-sum"
-              >${t`${String(r.temperatureC ?? 20)} °C at start · outside ${String(r.outsideTemperatureC ?? 5)} °C`}</span
-            >`,
-          () => html`
-            <div class="g-row">
-              ${this.text(t`Name`, r.name ?? r.id, (v) => this.run(t`Name`, (x) => E.setRoomField(x, r.id, "name", v)))}
-              ${numField(t`Initial temperature (°C)`, r, "temperatureC", 20)}
-              ${numField(t`Outside temperature (°C)`, r, "outsideTemperatureC", 5)}
-              <label class="g-check"
-                ><input
-                  type="checkbox"
-                  .checked=${live(r.windowOpen === true)}
-                  @change=${(e: Event) => this.run(t`Window`, (x) => E.setRoomField(x, r.id, "windowOpen", (e.target as HTMLInputElement).checked))}
-                />${t`Window open at start`}</label
-              >
-            </div>
-            <div class="g-row g-end">
-              ${this.dangerButton(
-                `room:${r.id}`,
-                t`Delete room`,
-                t`Delete room ${r.name ?? r.id}?`,
-                () => this.run(t`Deletion`, (x) => E.removeRoom(x, r.id)),
-                true,
-              )}
-            </div>
-          `,
-        ),
-      )}
-      <button
-        class="g-btn"
-        @click=${() => this.run(t`Room`, (x) => void E.addRoom(x))}
-      >
-        + ${t`Add a room`}
+      <button class="g-btn" @click=${() => this.openBuilding()}>
+        ${t`Open the Building panel`}
       </button>
     </section>`;
+  }
+
+  /** Show the Building panel: the one already open, or in place of Installation. */
+  private openBuilding() {
+    const ws = this.ws;
+    if (!ws.panels.some((p) => p.content === "building")) {
+      const p =
+        ws.panels.find((x) => x.content === "installation") ?? ws.panels[0]!;
+      p.content = "building";
+      p.sel = null;
+      savePanels(ws);
+    }
+    this.requestUpdate();
   }
 
   private linesSection(doc: Doc) {
@@ -1105,25 +1058,6 @@ export class GuidedEditor extends LitElement implements Host {
   typeLabel(d: Dev): string {
     const own = designerOf(d.behavior)?.typeLabel;
     return own ? own(d) : t`Extension ${d.behavior}`;
-  }
-
-  /** Foldable map: a summary of a line, detail at click. */
-  private card(key: string, head: TemplateResult, body: () => TemplateResult) {
-    const open = this.opened.has(key);
-    return html`<details
-      class="g-card"
-      ?open=${open}
-      @toggle=${(e: Event) => {
-        const o = (e.target as HTMLDetailsElement).open;
-        if (o === this.opened.has(key)) return;
-        if (o) this.opened.add(key);
-        else this.opened.delete(key);
-        this.requestUpdate();
-      }}
-    >
-      <summary>${head}</summary>
-      ${open ? html`<div class="g-card-body">${body()}</div>` : nothing}
-    </details>`;
   }
 
   // ── Keys ──────────────────────────────────────────────────────────────────

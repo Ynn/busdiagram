@@ -677,6 +677,7 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
     "Room thermostat: comfort / standby / economy / protection modes (20.102), window and presence, PI control (5.001 or PWM) or two-point, heating and cooling.",
   parameters: thermostatParams,
   acceptsInputs: true,
+  readsRoom: true,
   ports: {
     actualTemp: {
       defaultFlags: { R: true },

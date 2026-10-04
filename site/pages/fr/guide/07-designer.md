@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "6f6557c29227"
+sourceHash: "fa6d1b14c138"
 order: 7
 ---
 # Designer
@@ -20,9 +20,11 @@ L'éditeur guidé suit la logique de travail enseignée dans les formations KNX 
 
 ### Panneaux
 
-Deux panneaux sont superposés. Le sélecteur de la barre de titre de chaque panneau choisit son contenu : **Topologie**, **Adresses de groupe**, **Catalogue** ou **Installation** (titre, description, horloge simulée, pièces chauffées). **+ Panneau** ouvre le second panneau, et **×** le ferme. Chaque panneau a une arborescence à gauche et une liste à droite ; les onglets en bas de la liste changent son contenu. Faites glisser les séparateurs (ou donnez-leur le focus et utilisez les flèches) pour redimensionner l'arborescence, la liste et les deux panneaux ; le navigateur mémorise les tailles.
+Deux panneaux sont superposés. Le sélecteur de la barre de titre de chaque panneau choisit son contenu : **Topologie**, **Adresses de groupe**, **Bâtiment**, **Catalogue** ou **Installation** (titre, description, horloge simulée, et un bouton qui ouvre le panneau Bâtiment). **+ Panneau** ouvre le second panneau, et **×** le ferme. Chaque panneau a une arborescence à gauche et une liste à droite ; les onglets en bas de la liste changent son contenu. Faites glisser les séparateurs (ou donnez-leur le focus et utilisez les flèches) pour redimensionner l'arborescence, la liste et les deux panneaux ; le navigateur mémorise les tailles.
 
 Dans l'arborescence Topologie, une ligne avec un répéteur de ligne ou un coupleur de segment montre ses deux segments, et chaque appareil se trouve dans son segment. Une ligne sans extension montre directement ses appareils. Les appareils sont repliés : ouvrez-en un (▸) pour afficher ses objets de groupe dans l'arborescence. Le champ **Filtrer** au-dessus de chaque arborescence garde les nœuds dont l'adresse ou le nom contient le texte, avec leurs parents.
+
+L'arborescence Bâtiment liste les pièces, chacune avec les appareils qui y sont placés et les sorties qui la chauffent ou la refroidissent, puis les appareils sans sorties qui ne sont dans aucune pièce. Ici, la pièce n'est pas qu'un rangement : les thermostats, sondes de température et contacts de fenêtre peuvent lire la pièce où ils se trouvent (une marque sur leur icône ; un thermostat peut utiliser une température externe à la place), et les radiateurs et ventilo-convecteurs chauffent ou refroidissent la pièce de leur sortie. Un appareil à sorties n'est pas placé dans une pièce ; ses sorties de chauffage et de refroidissement le sont, chacune dans la pièce qu'elle chauffe.
 
 | Sélection dans l'arborescence | Onglets de la liste |
 | --- | --- |
@@ -33,6 +35,8 @@ Dans l'arborescence Topologie, une ligne avec un répéteur de ligne ou un coupl
 | Objet de groupe | **Associations** (adresses de groupe de l'objet ; **Définir comme émission** ; **Supprimer** ; **Lier à…**) et **Propriétés** (nom, indicateurs, priorité, DPT). |
 | Adresses de groupe (racine), groupe principal, groupe médian | Groupes principaux, groupes médians ou adresses, avec **Ajouter un groupe principal**, **Ajouter un groupe médian** et **Ajouter une adresse de groupe** ; nommez les groupes. |
 | Adresse de groupe | **Associations** (objets liés à l'adresse, avec celui qui émet ; leurs indicateurs C, R, W, T, U et I se modifient ici ; **Lier à…**) et **Propriétés** (adresse, nom, DPT et édition groupée des objets liés). |
+| Bâtiment (racine) | Pièces avec leurs températures et leur contenu ; **Ajouter une pièce**. |
+| Pièce | Nom, températures au départ et extérieure, fenêtre ouverte au départ ; ses appareils et sorties, avec l'effet de la pièce sur chacun ; **Supprimer la pièce** (refusé tant qu'une sortie la chauffe ou la refroidit encore ; les appareils placés dans la pièce et les autres charges qui la nomment perdent ce lien). |
 | Catalogue | Les types d'appareils que le simulateur modélise, par catégorie, avec leur application et leurs objets de groupe ; **Nombre** … **sur la ligne** … **Ajouter** insère des appareils. |
 
 Sélectionner un appareil sur le schéma l'affiche dans le panneau Topologie.
@@ -68,6 +72,7 @@ Un clic droit sur une sortie ou une touche, dans l'arborescence des pages ou dan
 - **Activer un objet de groupe :** dans la page Réglages d'une sortie, cochez **Activer l'objet de groupe « … »** (Forçage, Retour d'état, …). L'objet apparaît dans l'arborescence et dans l'onglet Objets de groupe sans adresse, prêt à être glissé sur une adresse de groupe ; retirer sa dernière adresse le laisse activé. Décochez la case pour supprimer l'objet.
 - **Nouvelle adresse pour un objet :** faites glisser un objet de groupe sur un groupe médian : une adresse de groupe y est créée et reliée à l'objet.
 - **Déplacer un appareil :** faites-le glisser sur une autre ligne ; il reçoit une adresse libre de cette ligne et garde ses objets et ses liaisons.
+- **Placer un appareil dans une pièce :** faites-le glisser depuis le panneau Topologie ou l'arborescence Bâtiment sur une pièce, ou sur **Hors pièce** pour l'en retirer. Faites glisser une sortie de l'arborescence Bâtiment sur une autre pièce pour chauffer ou refroidir cette pièce.
 
 Pendant un glisser, la barre d'état en bas explique le geste (« Lier à 1 : Touche 1 »). Seuls des objets et des adresses de même taille de données peuvent être reliés : une cible incompatible s'affiche en rouge et le dépôt est refusé. Chaque geste, et le bouton équivalent, est une étape de l'historique d'annulation.
 

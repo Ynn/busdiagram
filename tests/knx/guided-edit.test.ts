@@ -236,6 +236,19 @@ describe("guided designer: rooms and heating", () => {
     valid(doc);
   });
 
+  it("a load that names a room without heating it does not keep it; no link is left behind", () => {
+    const doc = v2("room-heating.json");
+    const id = E.addRoom(doc, "Lamp room");
+    const sw = doc.devices.find((d) => d.id === "switchActuator")!;
+    sw.channels!.push({ id: "s1", equipment: { type: "lamp", room: id } });
+    valid(doc);
+    expect(E.roomHeaters(doc, id)).toEqual([]);
+    expect(E.roomHeaters(doc, "bedroom")).toHaveLength(1);
+    E.removeRoom(doc, id);
+    expect(JSON.stringify(doc)).not.toContain(`"${id}"`);
+    valid(doc);
+  });
+
   it("adds, renames a room; an off-range temperature is refused by validation", () => {
     const doc = v2("lighting-control.json");
     const id = E.addRoom(doc);
