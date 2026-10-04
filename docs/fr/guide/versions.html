@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Versions et publications · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.4.0%2Bdev.14d49b8.modified.4a054236">
-<script src="../../assets/bus-diagram.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.0">
+<script src="../../assets/bus-diagram.js?v=0.5.0"></script>
 
-<script defer src="../../assets/search-index.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236"></script>
-<script defer src="../../assets/docs.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.5.0"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.0"></script>
+<script defer src="../../assets/docs.js?v=0.5.0" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/versions.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.4.0%2Bdev.14d49b8.modified.4a054236" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.0" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -55,8 +55,8 @@
 
 <h1 id="versions-and-releases"><a class="anchor" href="#versions-and-releases">#</a>Versions et publications</h1><p>BusDiagram suit le <a href="https://semver.org/lang/fr/">versionnage sémantique</a>. Un numéro de version <code>MAJEUR.MINEUR.CORRECTIF</code> indique ce qu&#39;une mise à jour peut changer pour les pages qui utilisent déjà la bibliothèque. Les changements de chaque version sont listés dans <code>CHANGELOG.md</code>.</p>
 <h2 id="find-the-version"><a class="anchor" href="#find-the-version">#</a>Trouver la version</h2><ul>
-<li>Dans une page : <code>BusDiagram.version</code>, par exemple <code>&quot;0.4.0&quot;</code>.</li>
-<li>Dans un fichier : la première ligne de <code>bus-diagram.js</code> et de <code>bus-diagram.esm.js</code> est une bannière comme <code>/*! BusDiagram v0.4.0 | AGPL-3.0-only … */</code>. Les pages autonomes exportées par le designer intègrent la bibliothèque avec cette bannière.</li>
+<li>Dans une page : <code>BusDiagram.version</code>, par exemple <code>&quot;0.5.0&quot;</code>.</li>
+<li>Dans un fichier : la première ligne de <code>bus-diagram.js</code> et de <code>bus-diagram.esm.js</code> est une bannière comme <code>/*! BusDiagram v0.5.0 | AGPL-3.0-only … */</code>. Les pages autonomes exportées par le designer intègrent la bibliothèque avec cette bannière.</li>
 <li>Dans la documentation : le pied de chaque page indique la version qu&#39;elle décrit. La documentation, le designer et le lecteur publiés correspondent toujours à la dernière version publiée.</li>
 </ul>
 <h2 id="what-the-version-covers"><a class="anchor" href="#what-the-version-covers">#</a>Ce que couvre la version</h2><p>L&#39;interface publique est ce que documente la <a href="../reference/index.html">référence</a> :</p>
@@ -96,8 +96,8 @@
 <ul>
 <li><p><strong>Fichier hébergé chez vous :</strong> gardez <code>bus-diagram.js</code> à côté de vos pages et remplacez-le volontairement lors d&#39;une mise à jour. Consultez sa bannière pour savoir de quelle version il s&#39;agit.</p>
 </li>
-<li><p><strong>CDN :</strong> utilisez une URL qui contient le numéro de version complet. Une URL sans version, une plage de versions comme <code>@0</code> ou <code>@0.1</code>, ou une étiquette mouvante comme <code>latest</code> peut changer le comportement d&#39;une page existante à la publication d&#39;une nouvelle version. Pour la version 0.4.0 :</p>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.4.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-PL+dTbSRAz9FUkME81DvpZTQ1mts/nefB4Ega5kbZzadrl/jTC/HIyVe2HhHz5UX"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>L&#39;attribut <code>integrity</code> contient l&#39;empreinte SHA-384 du fichier publié (Subresource Integrity). Gardez-le en copiant la balise ; en changeant de version, prenez la nouvelle balise sur la <a href="installation.html">page d&#39;installation</a> ou dans le designer, car l&#39;empreinte diffère pour chaque version.</p>
+<li><p><strong>CDN :</strong> utilisez une URL qui contient le numéro de version complet. Une URL sans version, une plage de versions comme <code>@0</code> ou <code>@0.1</code>, ou une étiquette mouvante comme <code>latest</code> peut changer le comportement d&#39;une page existante à la publication d&#39;une nouvelle version. Pour la version 0.5.0 :</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.5.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-0b9vI6W57WpC7geEotuA9XoXI72ony5EaSe1j21pHQWXJXlUVdPiUqS7SX85MEt7"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>L&#39;attribut <code>integrity</code> contient l&#39;empreinte SHA-384 du fichier publié (Subresource Integrity). Gardez-le en copiant la balise ; en changeant de version, prenez la nouvelle balise sur la <a href="installation.html">page d&#39;installation</a> ou dans le designer, car l&#39;empreinte diffère pour chaque version.</p>
 </li>
 <li><p><strong>Page autonome :</strong> une page exportée par le designer intègre la bibliothèque. Elle garde sa version et fonctionne hors ligne.</p>
 </li>
@@ -113,6 +113,6 @@
 </main>
 <aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#find-the-version">Trouver la version</a></li><li><a href="#what-the-version-covers">Ce que couvre la version</a></li><li><a href="#pin-a-version">Figer une version</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.4.0 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+<footer class="site">BusDiagram 0.5.0 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
 </body>
 </html>
