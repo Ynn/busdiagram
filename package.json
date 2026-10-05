@@ -1,6 +1,6 @@
 {
   "name": "bus-diagram",
-  "version": "0.5.2",
+  "version": "0.6.0",
   "type": "module",
   "description": "Instructional diagrams of KNX installations, with a limited simulation layer.",
   "license": "AGPL-3.0-only",

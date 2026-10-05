@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.6.0] - 2026-10-05
+
 ### Added
 
 - Example “Scenes with learning”: five keys (L1, L2, and a shutter by hand, two scene keys that recall with a short press and store with a long press, DPT 18.001), with a central scene object on the switching actuator and a scene object on the shutter output; the keys of the lights follow the status of their output.

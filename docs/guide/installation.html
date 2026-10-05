@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Installation · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.5.2%2Bdev.98023e0.modified.44b152fd">
-<script src="../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.6.0">
+<script src="../assets/bus-diagram.js?v=0.6.0"></script>
 
-<script defer src="../assets/search-index.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<script defer src="../assets/search-index.js?v=0.6.0"></script>
 
-<script defer src="../assets/docs.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.6.0" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/installation.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.6.0" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -53,7 +53,7 @@
 <main>
 <p class="crumb">Guide</p>
 
-<h1 id="installation"><a class="anchor" href="#installation">#</a>Installation</h1><p>The library ships as one file, <code>bus-diagram.js</code>. It does not load external resources or contact a server. Hosted next to your pages, it works offline, including when a page is opened directly from disk with <code>file://</code>. This documentation describes version 0.5.2.</p>
+<h1 id="installation"><a class="anchor" href="#installation">#</a>Installation</h1><p>The library ships as one file, <code>bus-diagram.js</code>. It does not load external resources or contact a server. Hosted next to your pages, it works offline, including when a page is opened directly from disk with <code>file://</code>. This documentation describes version 0.6.0.</p>
 <h2 id="get-the-file"><a class="anchor" href="#get-the-file">#</a>Get the file</h2><ul>
 <li><strong>Download:</strong> use the Download button at the top of this page or <strong>Export → bus-diagram.js library</strong> in the <a href="../designer/index.html">designer</a>.</li>
 <li><strong>npm:</strong> <code>npm install bus-diagram</code> installs the classic script (<code>dist/bus-diagram.js</code>), the ES module (<code>dist/bus-diagram.esm.js</code>), and TypeScript declarations.</li>
@@ -62,8 +62,8 @@
 </ul>
 <h2 id="add-it-to-a-page"><a class="anchor" href="#add-it-to-a-page">#</a>Add it to a page</h2><p>Load the script once, preferably in <code>&lt;head&gt;</code>:</p>
 <pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"bus-diagram.js"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The path is relative to your HTML file. For a page in <code>example/</code> and a bundle in <code>example/assets/</code>, use <code>src=&quot;assets/bus-diagram.js&quot;</code>.</p>
-<p>To load it from the CDN instead, use this tag, which pins version 0.5.2:</p>
-<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.5.2/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-4+Gdd+125F6ONTeF/O0PYJxB0rL7W7K0dRg+iWC9woh9A9aWO2IQSiejaIGhCZMc"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The URL contains the full version number, so the page keeps the library it was written for when new versions are published. The <code>integrity</code> attribute makes the browser refuse a file that differs from the published one. The designer&#39;s <strong>Export → Code to paste into a page</strong> produces the same tag. See <a href="versions.html">versions and releases</a> before changing the version.</p>
+<p>To load it from the CDN instead, use this tag, which pins version 0.6.0:</p>
+<pre class="code"><code>&lt;<span class="t">script</span> <span class="a">src</span>=<span class="s">"https://cdn.jsdelivr.net/npm/bus-diagram@0.6.0/dist/bus-diagram.js"</span> <span class="a">integrity</span>=<span class="s">"sha384-TJxpz0xsEMIy5hDfbwFRWgcg3i9Ss1UHXQP5xf7rySG34JeV0ZDwHeLqhcHV66A4"</span> <span class="a">crossorigin</span>=<span class="s">"anonymous"</span>&gt;&lt;/<span class="t">script</span>&gt;</code></pre><p>The URL contains the full version number, so the page keeps the library it was written for when new versions are published. The <code>integrity</code> attribute makes the browser refuse a file that differs from the published one. The designer&#39;s <strong>Export → Code to paste into a page</strong> produces the same tag. See <a href="versions.html">versions and releases</a> before changing the version.</p>
 <p>The <code>defer</code> attribute is supported. Load <a href="extensions.html">extension scripts</a> after the library.</p>
 <h2 id="check-the-result"><a class="anchor" href="#check-the-result">#</a>Check the result</h2><p>Copy an example from the <a href="../examples/index.html">gallery</a> using its HTML tab, then open the page. If the diagram does not appear:</p>
 <div class="table"><table>
@@ -95,6 +95,6 @@
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#get-the-file">Get the file</a></li><li><a href="#add-it-to-a-page">Add it to a page</a></li><li><a href="#check-the-result">Check the result</a></li><li><a href="#browsers">Browsers</a></li></ul></aside>
 </div>
-<footer class="site">BusDiagram 0.5.2 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+<footer class="site">BusDiagram 0.6.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>
 </html>
