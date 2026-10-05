@@ -992,4 +992,8 @@ export const frMessages: Record<string, string> = {
   Clear: "Effacer",
   "Show the objects linked to this address in the diagram":
     "Montrer dans le schéma les objets liés à cette adresse",
+  "The central scene object serves every output: one association to the scene address, and each output takes the state of its own assignment. An output can also have its own scene object, on its Scenes page.":
+    "L'objet scène central sert toutes les sorties : une seule association à l'adresse de scène, et chaque sortie prend l'état de sa propre affectation. Une sortie peut aussi avoir son propre objet scène, sur sa page Scènes.",
+  "{0}: scene {1} not assigned to this output, not stored":
+    "{0} : scène {1} non affectée à cette sortie, non mémorisée",
 };

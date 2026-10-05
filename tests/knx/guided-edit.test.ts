@@ -43,6 +43,41 @@ describe("guided designer: lines", () => {
   });
 });
 
+describe("guided designer: scene assignments", () => {
+  it("assigns, renumbers, and removes scenes of an output; refuses duplicates and ranges", () => {
+    const doc = v2("scene-learning.json");
+    const id = "switchActuator";
+    expect(
+      E.channelScenes(
+        doc.devices.find((d) => d.id === id)!,
+        "s1",
+      ),
+    ).toEqual([
+      [1, 1],
+      [2, 0],
+    ]);
+    expect(E.addScene(doc, id, "s1", 1)).toBe(3);
+    E.renumberScene(doc, id, "s1", 3, 12);
+    E.setScene(doc, id, "s1", 12, 0);
+    const d = doc.devices.find((x) => x.id === id)!;
+    expect(E.channelScenes(d, "s1")).toEqual([
+      [1, 1],
+      [2, 0],
+      [12, 0],
+    ]);
+    expect(() => E.renumberScene(doc, id, "s1", 12, 1)).toThrow(
+      /already assigned/,
+    );
+    expect(() => E.renumberScene(doc, id, "s1", 12, 65)).toThrow(/1 to 64/);
+    expect(() => E.setScene(doc, id, "s1", 2, 150)).toThrow(/0 to 100/);
+    E.removeScene(doc, id, "s1", 12);
+    E.removeScene(doc, id, "s1", 1);
+    E.removeScene(doc, id, "s1", 2);
+    expect(d.channels!.find((c) => c.id === "s1")!.scenes).toBeUndefined();
+    valid(doc);
+  });
+});
+
 describe("guided designer: a new output", () => {
   it("has the group objects enabled on the previous output, without address", () => {
     const doc = v2("lighting-control.json");

@@ -426,6 +426,8 @@ describe("scene storing (DPT 18.001) in the dimmer and the shutter actuator", ()
               type: "shutter",
               parameters: { actualTravelTimeMs: 10000 },
             },
+            // Scene 1 is assigned: only an assigned scene is stored.
+            scenes: { "1": 0 },
           },
         ],
         objects: [

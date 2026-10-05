@@ -737,18 +737,170 @@ function layoutItems(
     }
     if ("heading" in i) return html`<h4 class="w-psep">${tt(i.heading)}</h4>`;
     if ("note" in i) return html`<p class="w-info">${tt(i.note)}</p>`;
-    if ("scenes" in i)
-      return c
-        ? ed.text(
-            t`Scenes (number=value, e.g. 1=1, 2=0)`,
-            E.channelScenesText(d, c.id),
-            (v) =>
-              ed.run(t`Scenes`, (x) => E.setChannelScenes(x, d.id, c.id, v)),
-          )
-        : nothing;
+    if ("scenes" in i) return c ? scenesTable(ed, d, def, c) : nothing;
     return shown(i.when) ? html`${i.items.map(row)}` : nothing;
   };
   return html`<div class="g-row">${items.map(row)}</div>`;
+}
+
+// ── Scene assignments ───────────────────────────────────────────────────────
+
+/** Assignment rows shown at least, as the scene table of a product. */
+const SCENE_ROWS = 8;
+
+/**
+ * Scene assignments of an output, as the scene table of an actuator: per row, whether the
+ * output takes part in a scene, its number (1–64), and the state the output takes (on or
+ * off, a level, a position). A scene telegram reaches the output through its own scene
+ * object or through the central scene object of the device.
+ */
+function scenesTable(
+  ed: GuidedEditor,
+  d: Dev,
+  def: BehaviorDefinition<unknown>,
+  c: Chan,
+): TemplateResult {
+  // Scene objects that serve this output: its own, and the central one of the device.
+  const sceneObjects = d.objects.filter(
+    (o) =>
+      o.port === "scene" && (o.channel === c.id || o.channel === undefined),
+  );
+  const receiving = sceneObjects.filter(
+    (o) => E.gasOf(o).length > 0 && E.flagOf(d, o, "C") && E.flagOf(d, o, "W"),
+  );
+  const help = receiving.length
+    ? null
+    : !sceneObjects.length
+      ? t`No scene object serves this output yet: enable its scene object above, or the central scene object of the device (Scenes page of the device).`
+      : sceneObjects.some((o) => E.gasOf(o).length)
+        ? t`The scene object of this output is not linked with C and W set: it does not accept scene telegrams.`
+        : t`The scene object of this output has no group address yet: link it to the scene address in the Group objects tab.`;
+  // A DALI gateway maps KNX scenes 1–16 to the 16 DALI scenes.
+  const maxScene = d.behavior.startsWith("daliGateway/") ? 16 : 64;
+  const entries = E.channelScenes(d, c.id);
+  const kind = def.output;
+  const fallback = kind === "switch" ? 1 : 100;
+  const valueLabel =
+    kind === "switch"
+      ? t`State`
+      : kind === "motor"
+        ? t`Position (%)`
+        : t`Level (%)`;
+  const run = (label: string, fn: (x: Doc) => void) => ed.run(label, fn);
+  const value = (n: number, v: number) =>
+    kind === "switch"
+      ? html`<select
+          aria-label=${t`State in scene ${n}`}
+          @change=${(e: Event) =>
+            run(t`Scenes`, (x) =>
+              E.setScene(
+                x,
+                d.id,
+                c.id,
+                n,
+                Number((e.target as HTMLSelectElement).value),
+              ),
+            )}
+        >
+          <option value="1" ?selected=${v === 1}>${t`On`}</option>
+          <option value="0" ?selected=${v === 0}>${t`Off`}</option>
+        </select>`
+      : html`<input
+          type="number"
+          min="0"
+          max="100"
+          step="1"
+          class="w-num"
+          aria-label=${`${valueLabel} · ${t`scene ${n}`}`}
+          .value=${live(String(v))}
+          @change=${(e: Event) =>
+            run(t`Scenes`, (x) =>
+              E.setScene(
+                x,
+                d.id,
+                c.id,
+                n,
+                Number((e.target as HTMLInputElement).value),
+              ),
+            )}
+        />`;
+  // Always one free row, up to the number of scenes of the model.
+  const rows = Array.from(
+    {
+      length: Math.min(maxScene, Math.max(SCENE_ROWS, entries.length + 1)),
+    },
+    (_, i) => entries[i],
+  );
+  return html`<div class="w-scenes">
+    ${help ? html`<p class="w-info">${help}</p>` : nothing}
+    <table class="w-table w-scene-table">
+      <thead>
+        <tr>
+          <th>${t`Assignment`}</th>
+          <th>${t`Active`}</th>
+          <th>${t`Scene number`}</th>
+          <th>${valueLabel}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${rows.map(
+          (e, i) =>
+            html`<tr data-scene=${e ? e[0] : ""}>
+              <td>${i + 1}</td>
+              <td>
+                <input
+                  type="checkbox"
+                  aria-label=${t`Assignment ${i + 1} active`}
+                  .checked=${live(!!e)}
+                  @change=${(ev: Event) =>
+                    run(t`Scenes`, (x) =>
+                      (ev.target as HTMLInputElement).checked
+                        ? void E.addScene(x, d.id, c.id, fallback, maxScene)
+                        : e && E.removeScene(x, d.id, c.id, e[0]),
+                    )}
+                />
+              </td>
+              <td>
+                ${
+                  e
+                    ? html`<input
+                        type="number"
+                        min="1"
+                        max=${maxScene}
+                        step="1"
+                        class="w-num"
+                        aria-label=${t`Scene number of assignment ${i + 1}`}
+                        .value=${live(String(e[0]))}
+                        @change=${(ev: Event) =>
+                          run(t`Scenes`, (x) =>
+                            E.renumberScene(
+                              x,
+                              d.id,
+                              c.id,
+                              e[0],
+                              Number((ev.target as HTMLInputElement).value),
+                            ),
+                          )}
+                      />`
+                    : nothing
+                }
+              </td>
+              <td>${e ? value(e[0], e[1]) : nothing}</td>
+            </tr>`,
+        )}
+      </tbody>
+    </table>
+    <p class="g-hint">
+      ${maxScene === 16 ? t`DALI scenes go from 1 to 16.` : nothing}
+      ${
+        kind === "motor"
+          ? t`A scene recall moves the shutter to its position (0 % top, 100 % bottom); the slat angle is not part of a scene. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current position of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.`
+          : kind === "switch"
+            ? t`A scene recall switches the output to its state. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current state of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.`
+            : t`A scene recall dims the output to its level, within the minimum and maximum levels; 0 % switches off. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current level of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.`
+      }
+    </p>
+  </div>`;
 }
 
 // ── Group objects enabled by parameters ─────────────────────────────────────

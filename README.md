@@ -8,6 +8,8 @@ Diagrams can also be operated. A limited simulation layer lets the reader press 
 
 The library is a single JavaScript file and works offline, including from `file://`.
 
+**Status: alpha.** BusDiagram is experimental and still at an alpha stage of development: it can make mistakes. Check what it shows against the KNX documentation and real devices before relying on it.
+
 ## Quick start
 
 Install it with `npm install bus-diagram`, load a fixed version from a CDN, or download `bus-diagram.js` from the documentation site:
@@ -17,7 +19,12 @@ Install it with `npm install bus-diagram`, load a fixed version from a CDN, or d
 
 <bus-diagram toolbar="compact">
   <script type="application/json">
-    { "formatVersion": 2, "title": "Example", "lines": [{ "address": "1.1" }], "devices": [] }
+    {
+      "formatVersion": 2,
+      "title": "Example",
+      "lines": [{ "address": "1.1" }],
+      "devices": []
+    }
   </script>
 </bus-diagram>
 ```

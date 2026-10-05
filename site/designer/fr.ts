@@ -297,8 +297,6 @@ export const designerFr: Record<string, string> = {
     "{0} transporte un {1}, incompatible avec {2}",
   "no equipment connected to this channel":
     "aucun équipement raccordé à ce canal",
-  "“{0}”: write scene=value, e.g. 1=1, 2=0":
-    "« {0} » : écrire scène=valeur, ex. 1=1, 2=0",
   "{0} is already displayed": "{0} est déjà affichée",
   "object “{0}” not found": "objet « {0} » introuvable",
   "object used by a key: delete or change the key first":
@@ -342,8 +340,6 @@ export const designerFr: Record<string, string> = {
   Removal: "Retrait",
   Outputs: "Sorties",
   "none (unused output)": "aucune (sortie libre)",
-  "Scenes (number=value, e.g. 1=1, 2=0)":
-    "Scènes (numéro=valeur, ex. 1=1, 2=0)",
   "Delete output": "Supprimer la sortie",
   "Add an output": "Ajouter une sortie",
   "Objects shared by all outputs": "Objets communs à toutes les sorties",
@@ -853,4 +849,29 @@ export const designerFr: Record<string, string> = {
     "Une sortie chauffe ou refroidit encore cette pièce : déplacez-la d'abord vers une autre pièce.",
   "Rooms in the installation: {0}.": "Pièces de l'installation : {0}.",
   "Open the Building panel": "Ouvrir le panneau Bâtiment",
+  "scene number from 1 to 64 expected": "numéro de scène de 1 à 64 attendu",
+  "scene value from 0 to 100 expected": "valeur de scène de 0 à 100 attendue",
+  "scene {0} is already assigned to this output":
+    "la scène {0} est déjà affectée à cette sortie",
+  "scene {0} not assigned": "scène {0} non affectée",
+  "Position (%)": "Position (%)",
+  "Level (%)": "Niveau (%)",
+  "State in scene {0}": "État dans la scène {0}",
+  Assignment: "Affectation",
+  "Assignment {0} active": "Affectation {0} active",
+  "Scene number of assignment {0}": "Numéro de scène de l'affectation {0}",
+  "A scene recall moves the shutter to its position (0 % top, 100 % bottom); the slat angle is not part of a scene. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current position of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.":
+    "Un rappel de scène amène le volet à sa position (0 % en haut, 100 % en bas) ; l'angle des lamelles ne fait pas partie d'une scène. Si la mémorisation est autorisée, un télégramme de commande de scène avec le bit d'apprentissage (DPT 18.001) mémorise la position actuelle d'une affectation active à la place de la valeur saisie ici, jusqu'au redémarrage de la simulation ; une sortie n'apprend pas une scène à laquelle elle ne participe pas.",
+  "A scene recall switches the output to its state. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current state of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.":
+    "Un rappel de scène commute la sortie dans son état. Si la mémorisation est autorisée, un télégramme de commande de scène avec le bit d'apprentissage (DPT 18.001) mémorise l'état actuel d'une affectation active à la place de la valeur saisie ici, jusqu'au redémarrage de la simulation ; une sortie n'apprend pas une scène à laquelle elle ne participe pas.",
+  "A scene recall dims the output to its level, within the minimum and maximum levels; 0 % switches off. With storing allowed, a scene control telegram with the learn bit (DPT 18.001) stores the current level of an active assignment instead of the value set here, until the simulation restarts; an output does not learn a scene it does not take part in.":
+    "Un rappel de scène amène la sortie à son niveau, dans les limites minimale et maximale ; 0 % éteint. Si la mémorisation est autorisée, un télégramme de commande de scène avec le bit d'apprentissage (DPT 18.001) mémorise le niveau actuel d'une affectation active à la place de la valeur saisie ici, jusqu'au redémarrage de la simulation ; une sortie n'apprend pas une scène à laquelle elle ne participe pas.",
+  "all {0} scenes are assigned": "les {0} scènes sont affectées",
+  "No scene object serves this output yet: enable its scene object above, or the central scene object of the device (Scenes page of the device).":
+    "Aucun objet scène ne sert encore cette sortie : activez son objet scène ci-dessus, ou l'objet scène central de l'appareil (page Scènes de l'appareil).",
+  "The scene object of this output is not linked with C and W set: it does not accept scene telegrams.":
+    "L'objet scène de cette sortie n'a pas C et W activés : il n'accepte pas les télégrammes de scène.",
+  "The scene object of this output has no group address yet: link it to the scene address in the Group objects tab.":
+    "L'objet scène de cette sortie n'a pas encore d'adresse de groupe : liez-le à l'adresse de scène dans l'onglet Objets de groupe.",
+  "DALI scenes go from 1 to 16.": "Les scènes DALI vont de 1 à 16.",
 };

@@ -1072,12 +1072,80 @@ export function sortObjects(d: Dev) {
 export const objectsSorted = (d: Dev) =>
   objectsInOrder(d).every((o, i) => o === d.objects[i]);
 
-/** Scene presets of a channel as written in the form: "1=1, 2=0". */
-export function channelScenesText(d: Dev, channelId: string): string {
+/** Scene assignments of a channel, in the order of their scene numbers: [scene, value]. */
+export function channelScenes(d: Dev, channelId: string): [number, number][] {
   const c = (d.channels ?? []).find((x) => x.id === channelId);
   return Object.entries(c?.scenes ?? {})
-    .map(([k, v]) => `${k}=${v}`)
-    .join(", ");
+    .map(([k, v]) => [Number(k), Number(v)] as [number, number])
+    .sort((a, b) => a[0] - b[0]);
+}
+
+const sceneRange = (n: number) => {
+  if (!Number.isInteger(n) || n < 1 || n > 64)
+    throw new EditRefusal(t`scene number from 1 to 64 expected`);
+};
+
+const sceneMap = (c: Chan) => (c.scenes ??= {}) as Record<string, number>;
+const pruneScenes = (c: Chan) => {
+  if (c.scenes && !Object.keys(c.scenes).length) delete c.scenes;
+};
+
+/** Assign scene `n` to a channel with a value (state 0/1, level or position in %). */
+export function setScene(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  n: number,
+  value: number,
+) {
+  sceneRange(n);
+  if (!Number.isFinite(value) || value < 0 || value > 100)
+    throw new EditRefusal(t`scene value from 0 to 100 expected`);
+  sceneMap(channel(device(doc, devId), ch))[String(n)] = value;
+}
+
+/** Remove the assignment of scene `n` from a channel. */
+export function removeScene(doc: Doc, devId: string, ch: string, n: number) {
+  const c = channel(device(doc, devId), ch);
+  if (c.scenes) delete (c.scenes as Record<string, number>)[String(n)];
+  pruneScenes(c);
+}
+
+/** Give an assignment another scene number, keeping its value. */
+export function renumberScene(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  from: number,
+  to: number,
+) {
+  sceneRange(to);
+  if (from === to) return;
+  const c = channel(device(doc, devId), ch);
+  const map = sceneMap(c);
+  if (map[String(to)] !== undefined)
+    throw new EditRefusal(t`scene ${to} is already assigned to this output`);
+  const v = map[String(from)];
+  if (v === undefined) throw new EditRefusal(t`scene ${from} not assigned`);
+  delete map[String(from)];
+  map[String(to)] = v;
+}
+
+/** Assign the first free scene number to a channel; return it. */
+export function addScene(
+  doc: Doc,
+  devId: string,
+  ch: string,
+  value: number,
+  max = 64,
+): number {
+  const c = channel(device(doc, devId), ch);
+  const map = sceneMap(c);
+  let n = 1;
+  while (n <= max && map[String(n)] !== undefined) n++;
+  if (n > max) throw new EditRefusal(t`all ${max} scenes are assigned`);
+  setScene(doc, devId, ch, n, value);
+  return n;
 }
 
 export function setChannelLabel(
@@ -1329,24 +1397,6 @@ export function setParam(
     syncChannelObjects(doc, devId, ch);
   if (ch === null && d.parameters && !Object.keys(d.parameters).length)
     delete d.parameters;
-}
-
-export function setChannelScenes(
-  doc: Doc,
-  devId: string,
-  ch: string,
-  text: string,
-) {
-  const c = channel(device(doc, devId), ch);
-  const scenes: Record<string, number> = {};
-  for (const part of text.split(/[,;\s]+/).filter(Boolean)) {
-    const m = /^(\d{1,2})\s*=\s*(-?\d+(?:\.\d+)?)$/.exec(part);
-    if (!m)
-      throw new EditRefusal(t`“${part}”: write scene=value, e.g. 1=1, 2=0`);
-    scenes[String(Number(m[1]))] = Number(m[2]);
-  }
-  if (Object.keys(scenes).length) c.scenes = scenes;
-  else delete c.scenes;
 }
 
 export function addChannel(

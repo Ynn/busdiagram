@@ -11,6 +11,8 @@ title: Home
 
 Describe an installation in JSON; the diagram is laid out from its addresses and can be embedded in a web page or presentation. Diagrams can be operated to follow telegrams through the topology. The library is a single JavaScript file and runs offline without a server.
 
+<p class="status-note"><b>Alpha.</b> BusDiagram is experimental and still at an alpha stage of development: it can make mistakes. Check what it shows against the KNX documentation and real devices before relying on it.</p>
+
 </div>
 <div>
 

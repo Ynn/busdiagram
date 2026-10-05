@@ -12,6 +12,9 @@ import { dirname, join, relative, resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 
 const DOCS = resolve("docs");
+// A scenario document as read from the designer, edited freely in a test.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type AnyDoc = Record<string, any>;
 const url = (p: string) => {
   const [file, hash] = p.split("#");
   return (
@@ -395,7 +398,7 @@ test("documentation has valid internal links and anchors", () => {
       if (!html.includes(`id="${id}"`))
         broken.push(`search → ${entry.u}#${id}`);
   }
-  expect(search).toHaveLength(68);
+  expect(search).toHaveLength(69);
   expect(broken).toEqual([]);
 });
 
@@ -2642,6 +2645,153 @@ test.describe("designer workspace", () => {
       .poll(async () => (await json(page)).groupAddresses)
       .toEqual([{ address: "1/1/1", name: "Hall light" }]);
     await expect(ga).toContainText("Hall light");
+    expect(w.errors).toEqual([]);
+  });
+
+  test("scene assignments: a table per output, as in an actuator's parameters", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=scene-learning"));
+    await page.click("#tab-guided");
+    await node(top(page), "dev:switchActuator").click();
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    const closed = top(page).locator(".w-pmenu .w-ptog[aria-expanded=false]");
+    while (await closed.count()) await closed.first().click();
+    await top(page)
+      .locator(".w-pitem.sub", { hasText: "Scenes" })
+      .first()
+      .click();
+    const scenes = async () =>
+      (await json(page)).devices.find(
+        (d: { id: string }) => d.id === "switchActuator",
+      ).channels[0].scenes;
+    const table = top(page).locator(".w-scene-table");
+    await expect(table.locator("tbody tr")).toHaveCount(8);
+    await expect(
+      table.locator("tbody tr[data-scene]:not([data-scene=''])"),
+    ).toHaveCount(2);
+    // State of scene 2: on.
+    await table.getByLabel("State in scene 2").selectOption("1");
+    await expect.poll(scenes).toEqual({ "1": 1, "2": 1 });
+    // A third assignment takes the first free number, then becomes scene 5.
+    await table.getByLabel("Assignment 3 active").check();
+    await expect.poll(scenes).toEqual({ "1": 1, "2": 1, "3": 1 });
+    const number = table.getByLabel("Scene number of assignment 3");
+    await number.fill("5");
+    await number.press("Tab");
+    await expect.poll(scenes).toEqual({ "1": 1, "2": 1, "5": 1 });
+    // A number already assigned is refused.
+    await number.fill("1");
+    await number.press("Tab");
+    await expect(page.locator(".g-alert")).toContainText("already assigned");
+    await page.locator(".g-alert button").first().click();
+    // Unticked: the output no longer takes part in scene 5.
+    await table.getByLabel("Assignment 3 active").uncheck();
+    await expect.poll(scenes).toEqual({ "1": 1, "2": 1 });
+    // The shutter output gives a position in %.
+    await node(top(page), "dev:shutterActuator").click();
+    await top(page).getByRole("tab", { name: "Parameters" }).click();
+    while (await closed.count()) await closed.first().click();
+    await top(page)
+      .locator(".w-pitem.sub", { hasText: "Scenes" })
+      .first()
+      .click();
+    await expect(
+      top(page).locator(".w-scene-table th", { hasText: "Position (%)" }),
+    ).toBeVisible();
+    expect(w.errors).toEqual([]);
+  });
+
+  test("scene assignments: a free row beyond eight, help on the scene object, DALI scenes 1–16", async ({
+    page,
+  }) => {
+    const w = watch(page);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(url("designer/index.html#template=scene-learning"));
+    const setDoc = async (edit: (d: AnyDoc) => void) => {
+      const d = await json(page);
+      edit(d);
+      await page.evaluate(
+        (text) =>
+          (
+            window as unknown as { designer: { setText(t: string): void } }
+          ).designer.setText(text),
+        JSON.stringify(d),
+      );
+    };
+    const openScenes = async (dev: string) => {
+      await node(top(page), `dev:${dev}`).click();
+      await top(page).getByRole("tab", { name: "Parameters" }).click();
+      const closed = top(page).locator(".w-pmenu .w-ptog[aria-expanded=false]");
+      while (await closed.count()) await closed.first().click();
+      await top(page)
+        .locator(".w-pitem.sub", { hasText: "Scenes" })
+        .first()
+        .click();
+    };
+    // Eight assignments: a ninth row stays free.
+    await setDoc((d) => {
+      d.devices.find(
+        (x: { id: string }) => x.id === "switchActuator",
+      ).channels[0].scenes = Object.fromEntries(
+        Array.from({ length: 8 }, (_, i) => [String(i + 1), 1]),
+      );
+    });
+    await page.click("#tab-guided");
+    await openScenes("switchActuator");
+    const table = top(page).locator(".w-scene-table");
+    await expect(table.locator("tbody tr")).toHaveCount(9);
+    await table.getByLabel("Assignment 9 active").check();
+    await expect
+      .poll(
+        async () =>
+          Object.keys(
+            (await json(page)).devices.find(
+              (x: { id: string }) => x.id === "switchActuator",
+            ).channels[0].scenes,
+          ).length,
+      )
+      .toBe(9);
+    // The help says why no scene reaches the output: W off, then no address, then no object.
+    const help = top(page).locator(".w-scenes .w-info");
+    await expect(help).toHaveCount(0);
+    const central = (d: AnyDoc) =>
+      d.devices
+        .find((x: { id: string }) => x.id === "switchActuator")
+        .objects.find((o: { id: string }) => o.id === "sc");
+    await setDoc((d) => (central(d).flags.W = false));
+    await openScenes("switchActuator");
+    await expect(help).toContainText("C and W");
+    await setDoc((d) => {
+      central(d).flags.W = true;
+      central(d).ga = [];
+    });
+    await openScenes("switchActuator");
+    await expect(help).toContainText("no group address");
+    // DALI: scene numbers 1–16.
+    await page.goto(url("designer/index.html#template=dali-gateway"));
+    await page.reload();
+    await expect
+      .poll(async () =>
+        (await json(page)).devices.some((x: { id: string }) => x.id === "gw"),
+      )
+      .toBe(true);
+    await setDoc((d) => {
+      d.devices.find((x: { id: string }) => x.id === "gw").channels[0].scenes =
+        { "1": 50 };
+    });
+    await page.click("#tab-guided");
+    await openScenes("gw");
+    await expect(
+      top(page)
+        .locator(".w-scene-table")
+        .getByLabel("Scene number of assignment 1"),
+    ).toHaveAttribute("max", "16");
+    await expect(top(page).locator(".w-scenes")).toContainText(
+      "DALI scenes go from 1 to 16",
+    );
     expect(w.errors).toEqual([]);
   });
 

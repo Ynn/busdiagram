@@ -1,0 +1,552 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Scènes avec apprentissage · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.2%2Bdev.98023e0.modified.44b152fd">
+<script src="../../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+
+<script defer src="../../assets/search-index.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<script defer src="../../assets/docs.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" data-base="../../"></script>
+</head>
+<body class="examples">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html">Guide</a>
+    <a href="../../fr/examples/index.html" class="cur">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../examples/scene-learning.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  
+  <ul><li><a href="../../fr/examples/index.html">Tous les exemples</a></li></ul>
+
+  <h4>Installations</h4>
+  <ul><li><a href="../../fr/examples/lighting-control.html">Commander plusieurs sorties</a></li><li><a href="../../fr/examples/status-feedback.html">Retour d&#39;état</a></li><li><a href="../../fr/examples/shutter-control.html">Commande de volets</a></li><li><a href="../../fr/examples/venetian-blind.html">Store à lamelles</a></li><li><a href="../../fr/examples/dimming.html">Variation</a></li><li><a href="../../fr/examples/tunable-white.html">Blanc variable</a></li><li><a href="../../fr/examples/push-button-interface.html">Interface de boutons-poussoirs</a></li><li><a href="../../fr/examples/scenes.html">Scènes</a></li><li class="cur"><a href="../../fr/examples/scene-learning.html">Scènes avec apprentissage</a></li><li><a href="../../fr/examples/timers.html">Minuteries</a></li><li><a href="../../fr/examples/priority-control.html">Commande prioritaire</a></li></ul>
+
+  <h4>Systèmes et mécanismes</h4>
+  <ul><li><a href="../../fr/examples/shutter-calibration.html">Volet mal calibré</a></li><li><a href="../../fr/examples/object-flags.html">Indicateurs W et T</a></li><li><a href="../../fr/examples/topology.html">Topologie complète</a></li><li><a href="../../fr/examples/dali.html">Passerelle DALI</a></li><li><a href="../../fr/examples/hvac.html">Chauffage pièce par pièce</a></li><li><a href="../../fr/examples/heating-cooling.html">Chauffage et refroidissement</a></li><li><a href="../../fr/examples/weather-protection.html">Protection météo</a></li><li><a href="../../fr/examples/air-quality.html">Qualité de l&#39;air</a></li><li><a href="../../fr/examples/energy-metering.html">Mesure d&#39;énergie</a></li><li><a href="../../fr/examples/boiler-room.html">Pompe à chaleur derrière une passerelle</a></li><li><a href="../../fr/examples/time-schedule.html">Programme horaire</a></li><li><a href="../../fr/examples/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/examples/bus-voltage.html">Coupure de la tension bus</a></li><li><a href="../../fr/examples/alarms.html">Alarmes intrusion et incendie</a></li><li><a href="../../fr/examples/heat-pump.html">Pompe à chaleur et eau chaude</a></li></ul>
+
+  <h4>Intégration</h4>
+  <ul><li><a href="../../fr/examples/display-options.html">Options d&#39;affichage</a></li><li><a href="../../fr/examples/fit-diagram.html">Ajuster le schéma</a></li><li><a href="../../fr/examples/slideshow.html">Diaporama reveal.js</a></li><li><a href="../../fr/examples/two-instances.html">Deux schémas indépendants</a></li><li><a href="../../fr/examples/javascript.html">Créer un schéma en JavaScript</a></li><li><a href="../../fr/examples/events.html">Événements des télégrammes</a></li><li><a href="../../fr/examples/programmatic-control.html">Pilotage par programme</a></li><li><a href="../../fr/examples/extension.html">Extension</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Exemples</p>
+
+<h1 id="scenes-with-learning"><a class="anchor" href="#scenes-with-learning">#</a>Scènes avec apprentissage</h1><p>L&#39;interface de boutons-poussoirs a cinq touches. Les touches 1 à 3 commandent L1, L2 et le volet à la main. Les touches 4 et 5 sont des touches de scène : un appui court rappelle la scène 1 ou 2, un appui long la mémorise. Elles envoient un télégramme de commande de scène (DPT 18.001) sur 3/0/1 : le numéro de scène moins un, plus 128 pour mémoriser.</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Touche</th>
+<th>Fonction de l&#39;entrée</th>
+<th>Adresse envoyée</th>
+<th>Reçue par</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>L1</td>
+<td>Commutation (télérupteur), écoute l&#39;état 1/1/1</td>
+<td>1/0/1</td>
+<td>Sortie L1</td>
+</tr>
+<tr>
+<td>L2</td>
+<td>Commutation (télérupteur), écoute l&#39;état 1/1/2</td>
+<td>1/0/2</td>
+<td>Sortie L2</td>
+</tr>
+<tr>
+<td>Volet</td>
+<td>Store sur une touche : appui long pour déplacer, appui court pour arrêter</td>
+<td>2/0/1, 2/0/2</td>
+<td>Sortie du volet</td>
+</tr>
+<tr>
+<td>Scène 1</td>
+<td>Scène 1, mémorisation par appui long, objet DPT 18.001</td>
+<td>3/0/1</td>
+<td>Objet scène central de l&#39;actionneur de commutation, objet scène de la sortie du volet</td>
+</tr>
+<tr>
+<td>Scène 2</td>
+<td>Scène 2, mémorisation par appui long, objet DPT 18.001</td>
+<td>3/0/1</td>
+<td>Idem</td>
+</tr>
+</tbody></table>
+</div><p>Chaque sortie affecte les scènes 1 et 2 sur sa page <strong>Scènes</strong>, avec la mémorisation autorisée ; une sortie n&#39;apprend que les scènes qui lui sont affectées.</p>
+<p>Essayez cette séquence :</p>
+<ol>
+<li>Appuyez sur <strong>Scène 1</strong> : L1 et L2 s&#39;allument et le volet s&#39;ouvre, comme configuré.</li>
+<li>Modifiez la pièce à la main : éteignez L1 avec la touche 1, descendez le volet par un appui long sur la touche 3, et arrêtez-le à mi-course par un appui court.</li>
+<li>Maintenez <strong>Scène 1</strong> : chaque sortie mémorise son état actuel comme valeur de la scène 1. Le journal indique « scène 1 mémorisée » pour L1, L2 et le volet.</li>
+<li>Appuyez sur <strong>Scène 2</strong>, puis de nouveau sur <strong>Scène 1</strong> : L1 reste éteinte, L2 s&#39;allume, et le volet revient à la position mémorisée.</li>
+</ol>
+<p>Deux façons de recevoir les scènes sont montrées :</p>
+<ul>
+<li>L&#39;actionneur de commutation a un <strong>objet scène central</strong> pour ses deux sorties : une seule association à 3/0/1, et chaque sortie prend l&#39;état de sa propre affectation.</li>
+<li>L&#39;actionneur de volets a un <strong>objet scène sur sa sortie</strong>. Avec plusieurs sorties, chacune peut écouter sa propre adresse de scène, ou ne participer à aucune scène.</li>
+</ul>
+<p>Les touches de L1 et L2 écoutent aussi le retour d&#39;état de leur sortie (1/1/1 et 1/1/2). Sans lui, après qu&#39;une scène a allumé L1, l&#39;appui suivant sur la touche 1 renverrait 1 au lieu de l&#39;éteindre.</p>
+<p>Dans le designer, la page <strong>Scènes</strong> d&#39;une sortie présente ses affectations de scène sous forme de tableau : si la sortie participe à une scène, le numéro de scène, et l&#39;état, le niveau ou la position qu&#39;elle prend. Une scène mémorisée remplace la valeur configurée jusqu&#39;au redémarrage de la simulation.</p>
+<figure class="example" id="ex1">
+<div class="demo"><bus-diagram designer="../../designer/index.html"><script type="application/json">{"formatVersion":2,"title":"Scènes avec apprentissage","description":"Les touches 1 à 3 commandent L1, L2 et le volet à la main ; les touches de L1 et L2 suivent le retour d'état de leur sortie, y compris après une scène. Les touches 4 et 5 rappellent les scènes 1 et 2 par un appui court, et les mémorisent par un appui long : chaque sortie mémorise alors son état actuel comme valeur de cette scène (DPT 18.001, bit d'apprentissage). L'actionneur de commutation reçoit les scènes sur un seul objet scène central pour ses deux sorties ; l'actionneur de volets, sur l'objet scène de sa sortie.","lines":[{"address":"1.1","name":"Ligne d'exemple","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/0/1","name":"Commutation L1","dpt":"1.001"},{"address":"1/0/2","name":"Commutation L2","dpt":"1.001"},{"address":"1/1/1","name":"État L1","dpt":"1.001"},{"address":"1/1/2","name":"État L2","dpt":"1.001"},{"address":"2/0/1","name":"Montée/descente volet","dpt":"1.008"},{"address":"2/0/2","name":"Arrêt/pas volet","dpt":"1.007"},{"address":"3/0/1","name":"Scènes du séjour","dpt":"18.001"}],"groupRanges":[{"address":"1","name":"Éclairage"},{"address":"2","name":"Volets"},{"address":"3","name":"Scènes"}],"devices":[{"id":"pushButton","name":"Interface de boutons-poussoirs","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","objects":[{"id":"sw1","name":"Commutation L1","ga":["1/0/1","1/1/1"],"dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"sw2","name":"Commutation L2","ga":["1/0/2","1/1/2"],"dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"move3","name":"Montée/descente volet","ga":"2/0/1","dpt":"1.008","port":"move","channel":"in3","flags":{"W":true,"T":true}},{"id":"stop3","name":"Arrêt/pas volet","ga":"2/0/2","dpt":"1.007","port":"stopStep","channel":"in3","flags":{"W":false,"T":true}},{"id":"scene4","name":"Scène 1","ga":"3/0/1","dpt":"18.001","port":"value","channel":"in4","flags":{"W":false,"T":true}},{"id":"scene5","name":"Scène 2","ga":"3/0/1","dpt":"18.001","port":"value","channel":"in5","flags":{"W":false,"T":true}}],"channels":[{"id":"in1","label":"Entrée 1","keyLabel":"L1","equipment":null},{"id":"in2","label":"Entrée 2","keyLabel":"L2","equipment":null},{"id":"in3","label":"Entrée 3","keyLabel":"Volet","parameters":{"function":"blind"},"equipment":null},{"id":"in4","label":"Entrée 4","keyLabel":"Scène 1","parameters":{"function":"scene","sceneStore":true},"equipment":null},{"id":"in5","label":"Entrée 5","keyLabel":"Scène 2","parameters":{"function":"scene","sceneNumber":2,"sceneStore":true},"equipment":null}]},{"id":"switchActuator","name":"Actionneur de commutation","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"Un seul objet scène central pour les deux sorties. La scène 1 allume L1 et L2, la scène 2 les éteint, jusqu'à ce qu'un appui long mémorise d'autres états.","objects":[{"id":"c1","name":"Commutation L1","ga":"1/0/1","dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Commutation L2","ga":"1/0/2","dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"e1","name":"État L1","ga":"1/1/1","dpt":"1.001","port":"status","channel":"s1","flags":{"W":false,"T":true}},{"id":"e2","name":"État L2","ga":"1/1/2","dpt":"1.001","port":"status","channel":"s2","flags":{"W":false,"T":true}},{"id":"sc","name":"Scène (central)","ga":"3/0/1","dpt":"18.001","port":"scene","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"},"scenes":{"1":1,"2":0}},{"id":"s2","label":"L2","equipment":{"type":"lamp"},"scenes":{"1":1,"2":0}}]},{"id":"shutterActuator","name":"Actionneur de volets","address":"1.1.3","kind":"shutterActuator","behavior":"shutterActuator/v1","description":"L'objet scène de sa sortie. La scène 1 ouvre le volet, la scène 2 le ferme, jusqu'à ce qu'un appui long mémorise une autre position.","objects":[{"id":"move","name":"Montée/descente volet","ga":"2/0/1","dpt":"1.008","port":"move","channel":"sh1","flags":{"W":true,"T":false}},{"id":"stop","name":"Arrêt/pas volet","ga":"2/0/2","dpt":"1.007","port":"stopStep","channel":"sh1","flags":{"W":true,"T":false}},{"id":"sc","name":"Scène","ga":"3/0/1","dpt":"18.001","port":"scene","channel":"sh1","flags":{"W":true,"T":false}}],"channels":[{"id":"sh1","label":"Volet","parameters":{"estimatedTravelTimeMs":10000},"equipment":{"type":"shutter","parameters":{"actualTravelTimeMs":10000}},"scenes":{"1":0,"2":100}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
+<div class="tabs" role="tablist"><button role="tab" aria-selected="true" data-tab="ex1-html">HTML</button><button role="tab" aria-selected="false" data-tab="ex1-json">JSON</button><a class="try" href="../../designer/index.html#template=scene-learning" title="Ouvrir dans le designer">Modifier dans le designer ↗</a></div>
+<pre class="code" id="ex1-html"><code>&lt;<span class="t">bus-diagram</span>&gt;
+&lt;<span class="t">script</span> <span class="a">type</span>=<span class="s">"application/json"</span>&gt;
+{
+  "formatVersion": 2,
+  "title": "Scènes avec apprentissage",
+  "description": "Les touches 1 à 3 commandent L1, L2 et le volet à la main ; les touches de L1 et L2 suivent le retour d'état de leur sortie, y compris après une scène. Les touches 4 et 5 rappellent les scènes 1 et 2 par un appui court, et les mémorisent par un appui long : chaque sortie mémorise alors son état actuel comme valeur de cette scène (DPT 18.001, bit d'apprentissage). L'actionneur de commutation reçoit les scènes sur un seul objet scène central pour ses deux sorties ; l'actionneur de volets, sur l'objet scène de sa sortie.",
+  "lines": [{ "address": "1.1", "name": "Ligne d'exemple", "powerSupply": { "currentMa": 640 } }],
+  "groupAddresses": [
+    { "address": "1/0/1", "name": "Commutation L1", "dpt": "1.001" },
+    { "address": "1/0/2", "name": "Commutation L2", "dpt": "1.001" },
+    { "address": "1/1/1", "name": "État L1", "dpt": "1.001" },
+    { "address": "1/1/2", "name": "État L2", "dpt": "1.001" },
+    { "address": "2/0/1", "name": "Montée/descente volet", "dpt": "1.008" },
+    { "address": "2/0/2", "name": "Arrêt/pas volet", "dpt": "1.007" },
+    { "address": "3/0/1", "name": "Scènes du séjour", "dpt": "18.001" }
+  ],
+  "groupRanges": [
+    { "address": "1", "name": "Éclairage" },
+    { "address": "2", "name": "Volets" },
+    { "address": "3", "name": "Scènes" }
+  ],
+  "devices": [
+    {
+      "id": "pushButton",
+      "name": "Interface de boutons-poussoirs",
+      "address": "1.1.1",
+      "kind": "buttonInterface",
+      "behavior": "buttonInterface/v1",
+      "objects": [
+        {
+          "id": "sw1",
+          "name": "Commutation L1",
+          "ga": ["1/0/1", "1/1/1"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in1",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "sw2",
+          "name": "Commutation L2",
+          "ga": ["1/0/2", "1/1/2"],
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "in2",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "move3",
+          "name": "Montée/descente volet",
+          "ga": "2/0/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "in3",
+          "flags": { "W": true, "T": true }
+        },
+        {
+          "id": "stop3",
+          "name": "Arrêt/pas volet",
+          "ga": "2/0/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "in3",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "scene4",
+          "name": "Scène 1",
+          "ga": "3/0/1",
+          "dpt": "18.001",
+          "port": "value",
+          "channel": "in4",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "scene5",
+          "name": "Scène 2",
+          "ga": "3/0/1",
+          "dpt": "18.001",
+          "port": "value",
+          "channel": "in5",
+          "flags": { "W": false, "T": true }
+        }
+      ],
+      "channels": [
+        { "id": "in1", "label": "Entrée 1", "keyLabel": "L1", "equipment": null },
+        { "id": "in2", "label": "Entrée 2", "keyLabel": "L2", "equipment": null },
+        {
+          "id": "in3",
+          "label": "Entrée 3",
+          "keyLabel": "Volet",
+          "parameters": { "function": "blind" },
+          "equipment": null
+        },
+        {
+          "id": "in4",
+          "label": "Entrée 4",
+          "keyLabel": "Scène 1",
+          "parameters": { "function": "scene", "sceneStore": true },
+          "equipment": null
+        },
+        {
+          "id": "in5",
+          "label": "Entrée 5",
+          "keyLabel": "Scène 2",
+          "parameters": { "function": "scene", "sceneNumber": 2, "sceneStore": true },
+          "equipment": null
+        }
+      ]
+    },
+    {
+      "id": "switchActuator",
+      "name": "Actionneur de commutation",
+      "address": "1.1.2",
+      "kind": "switchActuator",
+      "behavior": "switchActuator/v1",
+      "description": "Un seul objet scène central pour les deux sorties. La scène 1 allume L1 et L2, la scène 2 les éteint, jusqu'à ce qu'un appui long mémorise d'autres états.",
+      "objects": [
+        {
+          "id": "c1",
+          "name": "Commutation L1",
+          "ga": "1/0/1",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "c2",
+          "name": "Commutation L2",
+          "ga": "1/0/2",
+          "dpt": "1.001",
+          "port": "switch",
+          "channel": "s2",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "e1",
+          "name": "État L1",
+          "ga": "1/1/1",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s1",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "e2",
+          "name": "État L2",
+          "ga": "1/1/2",
+          "dpt": "1.001",
+          "port": "status",
+          "channel": "s2",
+          "flags": { "W": false, "T": true }
+        },
+        {
+          "id": "sc",
+          "name": "Scène (central)",
+          "ga": "3/0/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        { "id": "s1", "label": "L1", "equipment": { "type": "lamp" }, "scenes": { "1": 1, "2": 0 } },
+        { "id": "s2", "label": "L2", "equipment": { "type": "lamp" }, "scenes": { "1": 1, "2": 0 } }
+      ]
+    },
+    {
+      "id": "shutterActuator",
+      "name": "Actionneur de volets",
+      "address": "1.1.3",
+      "kind": "shutterActuator",
+      "behavior": "shutterActuator/v1",
+      "description": "L'objet scène de sa sortie. La scène 1 ouvre le volet, la scène 2 le ferme, jusqu'à ce qu'un appui long mémorise une autre position.",
+      "objects": [
+        {
+          "id": "move",
+          "name": "Montée/descente volet",
+          "ga": "2/0/1",
+          "dpt": "1.008",
+          "port": "move",
+          "channel": "sh1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "stop",
+          "name": "Arrêt/pas volet",
+          "ga": "2/0/2",
+          "dpt": "1.007",
+          "port": "stopStep",
+          "channel": "sh1",
+          "flags": { "W": true, "T": false }
+        },
+        {
+          "id": "sc",
+          "name": "Scène",
+          "ga": "3/0/1",
+          "dpt": "18.001",
+          "port": "scene",
+          "channel": "sh1",
+          "flags": { "W": true, "T": false }
+        }
+      ],
+      "channels": [
+        {
+          "id": "sh1",
+          "label": "Volet",
+          "parameters": { "estimatedTravelTimeMs": 10000 },
+          "equipment": { "type": "shutter", "parameters": { "actualTravelTimeMs": 10000 } },
+          "scenes": { "1": 0, "2": 100 }
+        }
+      ]
+    }
+  ],
+  "options": { "speed": 1, "filterTables": false }
+}
+&lt;/<span class="t">script</span>&gt;
+&lt;/<span class="t">bus-diagram</span>&gt;</code></pre><pre class="code" id="ex1-json" hidden><code>{
+  <span class="k">"formatVersion"</span>: <span class="n">2</span>,
+  <span class="k">"title"</span>: <span class="s">"Scènes avec apprentissage"</span>,
+  <span class="k">"description"</span>: <span class="s">"Les touches 1 à 3 commandent L1, L2 et le volet à la main ; les touches de L1 et L2 suivent le retour d'état de leur sortie, y compris après une scène. Les touches 4 et 5 rappellent les scènes 1 et 2 par un appui court, et les mémorisent par un appui long : chaque sortie mémorise alors son état actuel comme valeur de cette scène (DPT 18.001, bit d'apprentissage). L'actionneur de commutation reçoit les scènes sur un seul objet scène central pour ses deux sorties ; l'actionneur de volets, sur l'objet scène de sa sortie."</span>,
+  <span class="k">"lines"</span>: [{ <span class="k">"address"</span>: <span class="s">"1.1"</span>, <span class="k">"name"</span>: <span class="s">"Ligne d'exemple"</span>, <span class="k">"powerSupply"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> } }],
+  <span class="k">"groupAddresses"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/1"</span>, <span class="k">"name"</span>: <span class="s">"État L1"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"1/1/2"</span>, <span class="k">"name"</span>: <span class="s">"État L2"</span>, <span class="k">"dpt"</span>: <span class="s">"1.001"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Montée/descente volet"</span>, <span class="k">"dpt"</span>: <span class="s">"1.008"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2/0/2"</span>, <span class="k">"name"</span>: <span class="s">"Arrêt/pas volet"</span>, <span class="k">"dpt"</span>: <span class="s">"1.007"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3/0/1"</span>, <span class="k">"name"</span>: <span class="s">"Scènes du séjour"</span>, <span class="k">"dpt"</span>: <span class="s">"18.001"</span> }
+  ],
+  <span class="k">"groupRanges"</span>: [
+    { <span class="k">"address"</span>: <span class="s">"1"</span>, <span class="k">"name"</span>: <span class="s">"Éclairage"</span> },
+    { <span class="k">"address"</span>: <span class="s">"2"</span>, <span class="k">"name"</span>: <span class="s">"Volets"</span> },
+    { <span class="k">"address"</span>: <span class="s">"3"</span>, <span class="k">"name"</span>: <span class="s">"Scènes"</span> }
+  ],
+  <span class="k">"devices"</span>: [
+    {
+      <span class="k">"id"</span>: <span class="s">"pushButton"</span>,
+      <span class="k">"name"</span>: <span class="s">"Interface de boutons-poussoirs"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.1"</span>,
+      <span class="k">"kind"</span>: <span class="s">"buttonInterface"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"buttonInterface/v1"</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sw1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/0/1"</span>, <span class="s">"1/1/1"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sw2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>,
+          <span class="k">"ga"</span>: [<span class="s">"1/0/2"</span>, <span class="s">"1/1/2"</span>],
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"move3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Montée/descente volet"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop3"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt/pas volet"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in3"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"scene4"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène 1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in4"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"scene5"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène 2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"value"</span>,
+          <span class="k">"channel"</span>: <span class="s">"in5"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"in1"</span>, <span class="k">"label"</span>: <span class="s">"Entrée 1"</span>, <span class="k">"keyLabel"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> },
+        { <span class="k">"id"</span>: <span class="s">"in2"</span>, <span class="k">"label"</span>: <span class="s">"Entrée 2"</span>, <span class="k">"keyLabel"</span>: <span class="s">"L2"</span>, <span class="k">"equipment"</span>: <span class="kw">null</span> },
+        {
+          <span class="k">"id"</span>: <span class="s">"in3"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 3"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Volet"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"blind"</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in4"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 4"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Scène 1"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"scene"</span>, <span class="k">"sceneStore"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"in5"</span>,
+          <span class="k">"label"</span>: <span class="s">"Entrée 5"</span>,
+          <span class="k">"keyLabel"</span>: <span class="s">"Scène 2"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"function"</span>: <span class="s">"scene"</span>, <span class="k">"sceneNumber"</span>: <span class="n">2</span>, <span class="k">"sceneStore"</span>: <span class="kw">true</span> },
+          <span class="k">"equipment"</span>: <span class="kw">null</span>
+        }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de commutation"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.2"</span>,
+      <span class="k">"kind"</span>: <span class="s">"switchActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"switchActuator/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"Un seul objet scène central pour les deux sorties. La scène 1 allume L1 et L2, la scène 2 les éteint, jusqu'à ce qu'un appui long mémorise d'autres états."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"c1"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"c2"</span>,
+          <span class="k">"name"</span>: <span class="s">"Commutation L2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"switch"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"e1"</span>,
+          <span class="k">"name"</span>: <span class="s">"État L1"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"e2"</span>,
+          <span class="k">"name"</span>: <span class="s">"État L2"</span>,
+          <span class="k">"ga"</span>: <span class="s">"1/1/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"status"</span>,
+          <span class="k">"channel"</span>: <span class="s">"s2"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">false</span>, <span class="k">"T"</span>: <span class="kw">true</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène (central)"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        { <span class="k">"id"</span>: <span class="s">"s1"</span>, <span class="k">"label"</span>: <span class="s">"L1"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span>, <span class="k">"2"</span>: <span class="n">0</span> } },
+        { <span class="k">"id"</span>: <span class="s">"s2"</span>, <span class="k">"label"</span>: <span class="s">"L2"</span>, <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"lamp"</span> }, <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">1</span>, <span class="k">"2"</span>: <span class="n">0</span> } }
+      ]
+    },
+    {
+      <span class="k">"id"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"name"</span>: <span class="s">"Actionneur de volets"</span>,
+      <span class="k">"address"</span>: <span class="s">"1.1.3"</span>,
+      <span class="k">"kind"</span>: <span class="s">"shutterActuator"</span>,
+      <span class="k">"behavior"</span>: <span class="s">"shutterActuator/v1"</span>,
+      <span class="k">"description"</span>: <span class="s">"L'objet scène de sa sortie. La scène 1 ouvre le volet, la scène 2 le ferme, jusqu'à ce qu'un appui long mémorise une autre position."</span>,
+      <span class="k">"objects"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"move"</span>,
+          <span class="k">"name"</span>: <span class="s">"Montée/descente volet"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.008"</span>,
+          <span class="k">"port"</span>: <span class="s">"move"</span>,
+          <span class="k">"channel"</span>: <span class="s">"sh1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"stop"</span>,
+          <span class="k">"name"</span>: <span class="s">"Arrêt/pas volet"</span>,
+          <span class="k">"ga"</span>: <span class="s">"2/0/2"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"1.007"</span>,
+          <span class="k">"port"</span>: <span class="s">"stopStep"</span>,
+          <span class="k">"channel"</span>: <span class="s">"sh1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        },
+        {
+          <span class="k">"id"</span>: <span class="s">"sc"</span>,
+          <span class="k">"name"</span>: <span class="s">"Scène"</span>,
+          <span class="k">"ga"</span>: <span class="s">"3/0/1"</span>,
+          <span class="k">"dpt"</span>: <span class="s">"18.001"</span>,
+          <span class="k">"port"</span>: <span class="s">"scene"</span>,
+          <span class="k">"channel"</span>: <span class="s">"sh1"</span>,
+          <span class="k">"flags"</span>: { <span class="k">"W"</span>: <span class="kw">true</span>, <span class="k">"T"</span>: <span class="kw">false</span> }
+        }
+      ],
+      <span class="k">"channels"</span>: [
+        {
+          <span class="k">"id"</span>: <span class="s">"sh1"</span>,
+          <span class="k">"label"</span>: <span class="s">"Volet"</span>,
+          <span class="k">"parameters"</span>: { <span class="k">"estimatedTravelTimeMs"</span>: <span class="n">10000</span> },
+          <span class="k">"equipment"</span>: { <span class="k">"type"</span>: <span class="s">"shutter"</span>, <span class="k">"parameters"</span>: { <span class="k">"actualTravelTimeMs"</span>: <span class="n">10000</span> } },
+          <span class="k">"scenes"</span>: { <span class="k">"1"</span>: <span class="n">0</span>, <span class="k">"2"</span>: <span class="n">100</span> }
+        }
+      ]
+    }
+  ],
+  <span class="k">"options"</span>: { <span class="k">"speed"</span>: <span class="n">1</span>, <span class="k">"filterTables"</span>: <span class="kw">false</span> }
+}</code></pre>
+</figure>
+<nav class="pager">
+<a href="../../fr/examples/scenes.html">← Scènes</a>
+<a href="../../fr/examples/timers.html">Minuteries →</a>
+</nav>
+</main>
+
+</div>
+<footer class="site">BusDiagram 0.5.2 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

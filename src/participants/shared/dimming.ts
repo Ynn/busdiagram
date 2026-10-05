@@ -250,6 +250,14 @@ function scene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
         );
         return;
       }
+      // Only a scene assigned to the output is stored: an output that does not take part
+      // in a scene does not join it by learning (as an inactive scene of an actuator).
+      if (!ctx.device.channels.find((c) => c.id === ch)?.scenes.has(n)) {
+        ctx.note(
+          ctx.t`${ch}: scene ${n} not assigned to this output, not stored`,
+        );
+        return;
+      }
       const level = Math.round(levelAt(st, ctx.timeMs));
       st.learned[String(n)] = level;
       ctx.note(ctx.t`${ch}: scene ${n} stored (${level} %)`);

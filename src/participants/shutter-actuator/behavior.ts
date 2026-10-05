@@ -369,6 +369,14 @@ function applyScene(ctx: Ctx, channels: string[], raw: number, dpt: string) {
         );
         return;
       }
+      // Only a scene assigned to the output is stored: an output that does not take part
+      // in a scene does not join it by learning (as an inactive scene of an actuator).
+      if (!ctx.device.channels.find((c) => c.id === ch)?.scenes.has(scene)) {
+        ctx.note(
+          ctx.t`${ch}: scene ${scene} not assigned to this output, not stored`,
+        );
+        return;
+      }
       const pos = Math.round(
         projectEstimate(
           st,

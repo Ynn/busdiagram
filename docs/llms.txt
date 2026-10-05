@@ -885,6 +885,7 @@ Alarm sounder with flash light: sounds while its output is on, for at most its r
 - `scenarios/priority-control.json`: Force an output
 - `scenarios/push-button-interface.json`: Push-button interface: one-key dimming and blind, scene storing
 - `scenarios/room-heating.json`: Room-by-room heating control
+- `scenarios/scene-learning.json`: Scenes with learning
 - `scenarios/scenes.json`: Scenes
 - `scenarios/shutter-calibrated.json`: Shutter with correct actuator settings
 - `scenarios/shutter-calibration.json`: Shutter: estimated versus actual travel

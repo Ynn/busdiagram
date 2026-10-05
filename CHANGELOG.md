@@ -4,6 +4,16 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Example “Scenes with learning”: five keys (L1, L2, and a shutter by hand, two scene keys that recall with a short press and store with a long press, DPT 18.001), with a central scene object on the switching actuator and a scene object on the shutter output; the keys of the lights follow the status of their output.
+
+### Changed
+
+- Designer: the scenes of an output are set in a table of scene assignments (active, scene number 1–64, and the state, level, or position it takes), as in an actuator's parameters, instead of a text field. Each actuator with scenes has a **Scenes** page for its central scene object, which serves every output. The table keeps a free row up to the scenes of the model (16 on a DALI gateway), and says when no scene object can reach the output (missing, without address, or C or W off).
+- Switching, dimming, and shutter actuators, DALI gateway: a scene learning telegram (DPT 18.001) stores only the scenes assigned to an output; an output that does not take part in a scene no longer joins it by learning.
+- Documentation and README: BusDiagram is stated as experimental, at an alpha stage of development.
+
 ## [0.5.2] - 2026-10-04
 
 ### Added

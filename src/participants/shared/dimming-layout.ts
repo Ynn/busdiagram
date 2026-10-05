@@ -75,10 +75,8 @@ export const dimmerChannel: ParameterLayout["channel"] = [
     title: "Scenes",
     items: [
       { groupObject: "scene" },
-      {
-        when: { groupObject: "scene" },
-        items: [{ parameter: "sceneLearning" }, { scenes: true }],
-      },
+      { parameter: "sceneLearning" },
+      { scenes: true },
     ],
   },
 ];

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Home · BusDiagram</title>
-<link rel="stylesheet" href="assets/docs.css?v=0.5.2">
-<script src="assets/bus-diagram.js?v=0.5.2"></script>
+<link rel="stylesheet" href="assets/docs.css?v=0.5.2%2Bdev.98023e0.modified.44b152fd">
+<script src="assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
 
-<script defer src="assets/search-index.js?v=0.5.2"></script>
+<script defer src="assets/search-index.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
 
-<script defer src="assets/docs.js?v=0.5.2" data-base=""></script>
+<script defer src="assets/docs.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" data-base=""></script>
 </head>
 <body class="home">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="fr/index.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="assets/bus-diagram.js?v=0.5.2" download="bus-diagram.js">Download</a>
+  <a class="dl" href="assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout wide">
 
@@ -35,7 +35,7 @@
 
 <div class="hero">
 <div><h1 id="busdiagram"><a class="anchor" href="#busdiagram">#</a>BusDiagram</h1><p class="lead">A tool for designing instructional diagrams of KNX TP and KNXnet/IP installations: topology, devices, communication objects, group addresses, and connected loads.</p><p>Describe an installation in JSON; the diagram is laid out from its addresses and can be embedded in a web page or presentation. Diagrams can be operated to follow telegrams through the topology. The library is a single JavaScript file and runs offline without a server.</p>
-</div>
+<p class="status-note"><b>Alpha.</b> BusDiagram is experimental and still at an alpha stage of development: it can make mistakes. Check what it shows against the KNX documentation and real devices before relying on it.</p></div>
 <div><figure class="example" id="ex1">
 <div class="demo"><bus-diagram fit="contain" toolbar="compact" monitor="false" description="false" designer="designer/index.html" style="height:330px"><script type="application/json">{"formatVersion":2,"title":"Control multiple outputs","description":"A four-key push-button and a four-output switching actuator each use one individual address. Key 1 (on) and Key 2 (off) control L1 and L2; Key 3 (on) and Key 4 (off) control L1 through L4. One telegram can operate several outputs.","lines":[{"address":"1.1","name":"Example line","powerSupply":{"currentMa":640}}],"groupAddresses":[{"address":"1/1/1","name":"L1–L2 lighting","dpt":"1.001"},{"address":"1/1/2","name":"L1–L4 lighting","dpt":"1.001"}],"devices":[{"id":"pushButton","name":"Push-button interface","address":"1.1.1","kind":"buttonInterface","behavior":"buttonInterface/v1","description":"A four-key push-button: one device, one individual address, and one group object per key.","objects":[{"id":"key1","name":"Key 1","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in1","flags":{"W":true,"T":true}},{"id":"key2","name":"Key 2","ga":"1/1/1","dpt":"1.001","port":"switch","channel":"in2","flags":{"W":true,"T":true}},{"id":"key3","name":"Key 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in3","flags":{"W":true,"T":true}},{"id":"key4","name":"Key 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"in4","flags":{"W":true,"T":true}}],"channels":[{"id":"in1","label":"Input 1","keyLabel":"Key 1","parameters":{"onPress":"on"},"equipment":null},{"id":"in2","label":"Input 2","keyLabel":"Key 2","parameters":{"onPress":"off"},"equipment":null},{"id":"in3","label":"Input 3","keyLabel":"Key 3","parameters":{"onPress":"on"},"equipment":null},{"id":"in4","label":"Input 4","keyLabel":"Key 4","parameters":{"onPress":"off"},"equipment":null}]},{"id":"switchActuator","name":"Four-output switching actuator","address":"1.1.2","kind":"switchActuator","behavior":"switchActuator/v1","description":"One four-channel switching actuator. Channels 1 and 2 listen to both group addresses; channels 3 and 4 listen only to 1/1/2.","objects":[{"id":"c1","name":"Channel 1","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s1","flags":{"W":true,"T":false}},{"id":"c2","name":"Channel 2","ga":["1/1/1","1/1/2"],"dpt":"1.001","port":"switch","channel":"s2","flags":{"W":true,"T":false}},{"id":"c3","name":"Channel 3","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s3","flags":{"W":true,"T":false}},{"id":"c4","name":"Channel 4","ga":"1/1/2","dpt":"1.001","port":"switch","channel":"s4","flags":{"W":true,"T":false}}],"channels":[{"id":"s1","label":"L1","equipment":{"type":"lamp"}},{"id":"s2","label":"L2","equipment":{"type":"lamp"}},{"id":"s3","label":"L3","equipment":{"type":"lamp"}},{"id":"s4","label":"L4","equipment":{"type":"lamp"}}]}],"options":{"speed":1,"filterTables":false}}</script></bus-diagram></div>
 

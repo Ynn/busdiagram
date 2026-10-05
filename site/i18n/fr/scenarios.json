@@ -487,5 +487,18 @@
   "Heating/cooling control": "Commande chauffage/refroidissement",
   "H4 heating/cooling control value": "H4 grandeur de chauffage/refroidissement",
   "H4 heating / cooling": "H4 chauffage / refroidissement",
-  "H4 classroom fan coil": "H4 ventilo-convecteur de la salle de classe"
+  "H4 classroom fan coil": "H4 ventilo-convecteur de la salle de classe",
+  "Scenes with learning": "Scènes avec apprentissage",
+  "Keys 1 to 3 control L1, L2, and the shutter by hand; the keys of L1 and L2 follow the status of their output, also after a scene. Keys 4 and 5 recall scenes 1 and 2 with a short press, and store them with a long press: each output then stores its current state as its value for that scene (DPT 18.001, learn bit). The switching actuator receives the scenes on one central scene object for its two outputs; the shutter actuator on the scene object of its output.": "Les touches 1 à 3 commandent L1, L2 et le volet à la main ; les touches de L1 et L2 suivent le retour d'état de leur sortie, y compris après une scène. Les touches 4 et 5 rappellent les scènes 1 et 2 par un appui court, et les mémorisent par un appui long : chaque sortie mémorise alors son état actuel comme valeur de cette scène (DPT 18.001, bit d'apprentissage). L'actionneur de commutation reçoit les scènes sur un seul objet scène central pour ses deux sorties ; l'actionneur de volets, sur l'objet scène de sa sortie.",
+  "L1 switching": "Commutation L1",
+  "L2 switching": "Commutation L2",
+  "Shutter up/down": "Montée/descente volet",
+  "Shutter stop/step": "Arrêt/pas volet",
+  "Shutters": "Volets",
+  "Scene 1": "Scène 1",
+  "Scene 2": "Scène 2",
+  "Shutter": "Volet",
+  "One central scene object for both outputs. Scene 1 turns L1 and L2 on, scene 2 turns them off, until a long press stores other states.": "Un seul objet scène central pour les deux sorties. La scène 1 allume L1 et L2, la scène 2 les éteint, jusqu'à ce qu'un appui long mémorise d'autres états.",
+  "Scene (central)": "Scène (central)",
+  "The scene object of its output. Scene 1 opens the shutter, scene 2 closes it, until a long press stores another position.": "L'objet scène de sa sortie. La scène 1 ouvre le volet, la scène 2 le ferme, jusqu'à ce qu'un appui long mémorise une autre position."
 }

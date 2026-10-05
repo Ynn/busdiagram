@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Boutons-poussoirs et actionneurs · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.5.2">
-<script src="../../assets/bus-diagram.js?v=0.5.2"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.5.2%2Bdev.98023e0.modified.44b152fd">
+<script src="../../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
 
-<script defer src="../../assets/search-index.js?v=0.5.2"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.5.2"></script>
-<script defer src="../../assets/docs.js?v=0.5.2" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd"></script>
+<script defer src="../../assets/docs.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/devices.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.2" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.5.2%2Bdev.98023e0.modified.44b152fd" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -914,7 +914,7 @@
 </li>
 <li><p><strong>Minuterie d&#39;escalier :</strong> <code>&quot;parameters&quot;: { &quot;timerMs&quot;: 10000 }</code> sur un canal. Une écriture de 1 ferme le relais et lance une temporisation. <code>timerRetrigger</code> choisit <code>&quot;restart&quot;</code> (par défaut), <code>&quot;none&quot;</code> ou <code>&quot;add&quot;</code> (chaque nouveau 1 ajoute une période, jusqu&#39;à cinq). Avec <code>timerOffAllowed: false</code>, une écriture de 0 ne peut pas annuler la minuterie. <code>timerWarningMs</code> ouvre brièvement la sortie avant l&#39;expiration, en guise d&#39;avertissement.</p>
 </li>
-<li><p><strong>Scènes :</strong> <code>&quot;scenes&quot;: { &quot;1&quot;: 1, &quot;2&quot;: 0 }</code> sur un canal définit ses états. Un objet <code>scene</code> sans canal s&#39;applique à tous les canaux. Un objet de commande de scène (DPT 18.001) accepte aussi la mémorisation : un télégramme avec le bit d&#39;apprentissage (valeur + 128) mémorise l&#39;état actuel de chaque canal comme scène, jusqu&#39;au redémarrage de la simulation ; <code>sceneLearning: false</code> la refuse.</p>
+<li><p><strong>Scènes :</strong> <code>&quot;scenes&quot;: { &quot;1&quot;: 1, &quot;2&quot;: 0 }</code> sur un canal lui affecte des scènes : pour chaque numéro de scène (1–64), l&#39;état qu&#39;il prend (un niveau ou une position sur un actionneur de variation ou de volets) ; une scène non affectée laisse la sortie telle quelle, et elle ne l&#39;apprend pas. Un objet <code>scene</code> sans canal est l&#39;objet scène central de l&#39;appareil et sert toutes les sorties ; un objet <code>scene</code> sur un canal ne sert que cette sortie, qui peut alors écouter sa propre adresse de scène. Le designer présente les affectations sous forme de tableau sur la page <strong>Scènes</strong> de chaque sortie. Voir l&#39;<a href="../examples/scene-learning.html">exemple de scènes avec apprentissage</a>. Un objet de commande de scène (DPT 18.001) accepte aussi la mémorisation : un télégramme avec le bit d&#39;apprentissage (valeur + 128) mémorise l&#39;état actuel de chaque canal affecté à cette scène, jusqu&#39;au redémarrage de la simulation ; <code>sceneLearning: false</code> la refuse.</p>
 </li>
 <li><p><strong>Forçage prioritaire :</strong> les valeurs 2 et 3 du DPT 2.001 forcent l&#39;arrêt et la marche ; 0 ou 1 termine le forçage. Les commandes normales sont mémorisées pendant le forçage. <code>afterForcing</code> règle ce qui se passe ensuite : <code>&quot;lastCommand&quot;</code> (par défaut), <code>&quot;on&quot;</code>, <code>&quot;off&quot;</code>, <code>&quot;unchanged&quot;</code>, <code>&quot;previous&quot;</code> ou <code>&quot;toggle&quot;</code>. Avec <code>forcedReleaseMs</code>, le forçage se termine aussi de lui-même ce temps après son dernier télégramme de forçage, comme sur de nombreux actionneurs (0, par défaut, attend un télégramme de fin).</p>
 </li>

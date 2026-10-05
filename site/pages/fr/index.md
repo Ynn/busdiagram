@@ -1,7 +1,7 @@
 ---
 title: Accueil
 translationOf: index.md
-sourceHash: "3fa3b3760328"
+sourceHash: "496d805ac0fd"
 ---
 
 <div class="hero">
@@ -12,6 +12,8 @@ sourceHash: "3fa3b3760328"
 <p class="lead">Un outil pour concevoir des schémas pédagogiques d'installations KNX TP et KNXnet/IP : topologie, appareils, objets de communication, adresses de groupe et charges raccordées.</p>
 
 Décrivez une installation en JSON ; le schéma est disposé d'après ses adresses et peut être intégré dans une page web ou une présentation. On peut manipuler les schémas pour suivre les télégrammes à travers la topologie. La bibliothèque tient en un seul fichier JavaScript et fonctionne hors ligne, sans serveur.
+
+<p class="status-note"><b>Alpha.</b> BusDiagram est expérimental et encore en phase alpha de développement : il peut faire des erreurs. Vérifiez ce qu'il montre avec la documentation KNX et du matériel réel avant de vous y fier.</p>
 
 </div>
 <div>

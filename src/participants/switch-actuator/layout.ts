@@ -5,6 +5,16 @@ import type { ParameterLayout } from "../../knx/contracts";
 export const switchLayout: ParameterLayout = {
   device: [
     {
+      id: "scenes",
+      title: "Scenes",
+      items: [
+        { groupObject: "scene" },
+        {
+          note: "The central scene object serves every output: one association to the scene address, and each output takes the state of its own assignment. An output can also have its own scene object, on its Scenes page.",
+        },
+      ],
+    },
+    {
       id: "metering",
       title: "Metering and load shedding",
       items: [
@@ -127,10 +137,8 @@ export const switchLayout: ParameterLayout = {
       title: "Scenes",
       items: [
         { groupObject: "scene" },
-        {
-          when: { groupObject: "scene" },
-          items: [{ parameter: "sceneLearning" }, { scenes: true }],
-        },
+        { parameter: "sceneLearning" },
+        { scenes: true },
       ],
     },
     {
