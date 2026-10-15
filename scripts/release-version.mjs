@@ -99,7 +99,7 @@ const cargoLock = resolve(root, "ets-bridge/Cargo.lock");
 await writeFile(
   cargoLock,
   (await readFile(cargoLock, "utf8")).replace(
-    /(name = "busdiagram-ets"\nversion = )"[^"]*"/,
+    /(name = "busdiagram-ets"\r?\nversion = )"[^"]*"/,
     `$1"${version}"`,
   ),
 );

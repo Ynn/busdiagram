@@ -45,7 +45,8 @@ const cargoLock = await readFile(
   resolve(root, "ets-bridge/Cargo.lock"),
   "utf8",
 );
-const locked = /name = "busdiagram-ets"\nversion = "([^"]*)"/.exec(
+// \r?: a Windows checkout (core.autocrlf, as on GitHub's Windows runners) ends lines with CRLF.
+const locked = /name = "busdiagram-ets"\r?\nversion = "([^"]*)"/.exec(
   cargoLock,
 )?.[1];
 if (locked !== pkg.version)
