@@ -39,6 +39,12 @@ One diagram is linked at a time: linking another one disconnects the first, whic
 
 Telegrams from ETS enter the bus there with their own source (the tunnel address, `15.15.251`), priority, routing counter and bytes. No DPT travels in a telegram: each receiving object decodes the bytes with its own DPT, and ignores a payload of another size, which the journal explains. Telegrams that reach the access point through the topology are sent to ETS, with the routing counter they have there.
 
+## Programming individual addresses from ETS
+
+In a diagram that simulates [commissioning](commissioning.html), the devices start at 15.15.255, as delivered. In ETS, right-click a device of the project → *Download* → *Individual Address*, then click the programming button of the device in the diagram (the small square beside its address): its LED lights up, ETS writes the address, restarts the device, and the LED goes out. The designer, when it shows the diagram, records the new address (column **Adr**). The usual mistakes have their effect: two LEDs on, and both devices answer; an address already used on the bus, and ETS finds it.
+
+The devices answer with the device descriptor 07B0 (TP1, System B) and the manufacturer code of KNX Association, as those of KNX Virtual. The applications are still downloaded from the designer.
+
 ## While linked
 
 - The simulation runs in real time, also when its tab is in the background, since ETS keeps sending and waits for answers.
@@ -51,7 +57,8 @@ Telegrams from ETS enter the bus there with their own source (the tunnel address
 | What | In BusDiagram-ETS |
 | --- | --- |
 | Group communication (write, read, response) | Yes |
-| Device management (individual address, download of an application) | No: the devices of the diagram are set in the diagram, not by ETS |
+| Individual address in programming mode (read, write), connection to a device, device descriptor, manufacturer and serial number, restart | Yes: the devices of the diagram answer as delivered devices do; with [commissioning](commissioning.html), ETS programs their individual address with the programming button of the diagram |
+| Download of an application (memory, properties) | No: the parameters and associations of the devices are set in the diagram; ETS gets a refusal |
 | Bus monitor, KNX Secure | No |
 | Several diagrams at once | No, one at a time |
 | Pages allowed to link | Files from disk, pages served on this computer, `https://ynn.github.io`; others in the settings |

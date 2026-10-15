@@ -8,7 +8,9 @@
 //!   per tunnel (each waits for its TUNNELLING_ACK), and are dropped rather than sent late:
 //!   a command older than [`MAX_AGE`] never reaches ETS.
 //! - The interface answers ETS's property reads itself (device management).
-//! - Nothing else is simulated: no device of the diagram can be programmed by ETS.
+//! - Frames to a device (individual destination: connection, device descriptor…) and
+//!   individual address services go to the page too, whose devices answer them; their
+//!   answers come back as L_Data.ind. The applications are not downloaded.
 
 use std::collections::{BTreeMap, VecDeque};
 use std::net::SocketAddr;
@@ -349,24 +351,23 @@ impl Tunnels {
         // The interface sent it on the bus: positive confirmation.
         if let Some(con) = cemi::recode(&f, MessageCode::LDataCon) {
             c.queue.push_back(Pending {
-                cemi: con.as_bytes().to_vec(),
+                cemi: cemi::bytes(&con),
                 deadline: None,
                 origin: None,
             });
             Self::pump(c, ch, now, out);
         }
-        // Only group telegrams exist on the simulated bus; individual ones (device
-        // management of a device) find no device to answer.
-        if !cemi::is_group(&f) {
-            return;
-        }
         let Some(ind) = cemi::recode(&f, MessageCode::LDataInd) else {
             return;
         };
-        let ind = ind.as_bytes();
+        let ind = &cemi::bytes(&ind);
+        // The page's devices answer: group telegrams on the simulated bus, device
+        // management (a frame to a device) at once.
         out.page.push(ind.to_vec());
-        // Another ETS connected at the same time sees it, as on a real bus.
-        self.send_to_tunnels(ind, Some(ch), None, now, now, out);
+        // Another ETS connected at the same time sees a group telegram, as on a real bus.
+        if cemi::is_group(&f) {
+            self.send_to_tunnels(ind, Some(ch), None, now, now, out);
+        }
     }
 
     /// A group telegram from the page, on the bus at the interface: to every tunnel.
@@ -380,9 +381,7 @@ impl Tunnels {
         now: Instant,
         out: &mut Output,
     ) {
-        let Some(ind) = cemi::l_data(frame)
-            .filter(cemi::is_group)
-            .and_then(|f| cemi::recode(&f, MessageCode::LDataInd))
+        let Some(ind) = cemi::l_data(frame).and_then(|f| cemi::recode(&f, MessageCode::LDataInd))
         else {
             out.log.push(format!(
                 "trame de la page invalide ignorée : {}",
@@ -390,7 +389,7 @@ impl Tunnels {
             ));
             return;
         };
-        self.send_to_tunnels(ind.as_bytes(), None, Some(session), received, now, out);
+        self.send_to_tunnels(&cemi::bytes(&ind), None, Some(session), received, now, out);
     }
 
     /// The diagram of `session` is gone: its telegrams still waiting do not leave.
@@ -599,6 +598,40 @@ mod tests {
         t.on_datagram(&tunnelling(ch, 0, &WRITE), from(), now, &mut out);
         assert_eq!(out.udp.len(), 1);
         assert!(out.page.is_empty());
+    }
+
+    #[test]
+    fn device_management_goes_to_the_page_and_its_answers_to_ets() {
+        let now = Instant::now();
+        let mut t = server();
+        let ch = connect(&mut t, now);
+        // T_Connect to 1.1.1: individual destination, no APCI (length 0).
+        const CONNECT: [u8; 10] = [0x11, 0x00, 0xB0, 0x60, 0x00, 0x00, 0x11, 0x01, 0x00, 0x80];
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 0, &CONNECT), from(), now, &mut out);
+        assert_eq!(out.page.len(), 1);
+        assert_eq!(out.page[0][0], MessageCode::LDataInd as u8);
+        assert_eq!(&out.page[0][4..8], &[0xFF, 0xFB, 0x11, 0x01]);
+        assert_eq!(out.page[0][9], 0x80);
+        // The device's T_ACK, to the tunnel address, reaches ETS.
+        const T_ACK: [u8; 10] = [0x29, 0x00, 0xB0, 0x60, 0x11, 0x01, 0xFF, 0xFB, 0x00, 0xC2];
+        let mut out = Output::default();
+        t.on_page_frame(&T_ACK, now, 1, now, &mut out);
+        // It waits for ETS to acknowledge the L_Data.con of the T_Connect.
+        assert!(out.udp.is_empty());
+        t.on_datagram(&ack(ch, 0), from(), now, &mut out);
+        assert_eq!(out.udp.len(), 1);
+        let (s, body) = parse(&out.udp[0].0);
+        assert_eq!(s, ServiceType::TunnelingRequest);
+        assert_eq!(&body[4..], &T_ACK);
+        // The next request, a numbered A_DeviceDescriptor_Read, goes to the page too.
+        const DESC: [u8; 11] = [
+            0x11, 0x00, 0xB0, 0x60, 0x00, 0x00, 0x11, 0x01, 0x01, 0x43, 0x00,
+        ];
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 1, &DESC), from(), now, &mut out);
+        assert_eq!(out.log, Vec::<String>::new());
+        assert_eq!(out.page.len(), 1);
     }
 
     #[test]

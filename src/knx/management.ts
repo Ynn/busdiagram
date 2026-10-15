@@ -1,0 +1,362 @@
+// Device management of the simulated devices, as ETS reaches them through a tunnel
+// (KNX Standard 03_03_04 Transport Layer, 03_03_07 Application Layer, 03_05_02
+// Management Procedures). The devices answer what ETS asks to program an individual
+// address and to find a device on the bus:
+// - A_IndividualAddress_Read and _Write, sent to all: devices in programming mode answer
+//   with their address, or take the new one;
+// - connection-oriented communication with a device at its individual address
+//   (T_Connect, numbered data acknowledged with T_ACK, T_Disconnect), and connectionless
+//   communication: device descriptor, properties of the device object, authorization,
+//   memory reads (zeros: the simulated devices have no memory image), restart.
+// The application is not downloaded by ETS: the simulation answers that its memory and
+// properties cannot be written, so that ETS stops with an error rather than in a state
+// it does not know.
+import { iaText } from "./cemi";
+import type { Simulation } from "./sim";
+
+/** Mask version of the simulated devices: TP1, System B (KNX Standard 03_05_01 §4.1). */
+export const MASK_VERSION = 0x07b0;
+/** Manufacturer code of the simulated devices: KNX Association (as KNX Virtual's). */
+export const MANUFACTURER = 0x00fa;
+
+/** A standard L_Data frame of any destination and transport service. */
+export interface LDataFrame {
+  messageCode: number;
+  ctrl1: number;
+  source: number;
+  destination: number;
+  /** Destination is a group address (0/0/0: sent to all). */
+  group: boolean;
+  hopCount: number;
+  /** TPDU: TPCI octet, then the APDU. */
+  tpdu: number[];
+}
+
+export const APCI = {
+  individualAddressWrite: 0x0c0,
+  individualAddressRead: 0x100,
+  individualAddressResponse: 0x140,
+  memoryRead: 0x200,
+  memoryResponse: 0x240,
+  memoryWrite: 0x280,
+  deviceDescriptorRead: 0x300,
+  deviceDescriptorResponse: 0x340,
+  restart: 0x380,
+  authorizeRequest: 0x3d1,
+  authorizeResponse: 0x3d2,
+  keyWrite: 0x3d3,
+  keyResponse: 0x3d4,
+  propertyValueRead: 0x3d5,
+  propertyValueResponse: 0x3d6,
+  propertyValueWrite: 0x3d7,
+  propertyDescriptionRead: 0x3d8,
+  propertyDescriptionResponse: 0x3d9,
+} as const;
+
+/** Read a standard L_Data frame; null when it is not one. */
+export function decodeLData(bytes: Uint8Array | number[]): LDataFrame | null {
+  const b = Array.from(bytes);
+  if (b.length < 2) return null;
+  const at = 2 + b[1]!;
+  if (b.length < at + 8) return null;
+  const ctrl1 = b[at]!;
+  const ctrl2 = b[at + 1]!;
+  if (!(ctrl1 & 0x80) || ctrl2 & 0x0f) return null;
+  const len = b[at + 6]!;
+  if (b.length !== at + 8 + len) return null;
+  return {
+    messageCode: b[0]!,
+    ctrl1,
+    source: (b[at + 2]! << 8) | b[at + 3]!,
+    destination: (b[at + 4]! << 8) | b[at + 5]!,
+    group: (ctrl2 & 0x80) !== 0,
+    hopCount: (ctrl2 >> 4) & 7,
+    tpdu: b.slice(at + 7),
+  };
+}
+
+/** Bytes of an L_Data.ind frame from a device, system priority, routing counter 6. */
+export function encodeLData(f: {
+  source: number;
+  destination: number;
+  group: boolean;
+  tpdu: number[];
+}): Uint8Array {
+  // Standard frame, no repetition, broadcast bit, system priority (management).
+  const ctrl1 = 0x80 | 0x20 | 0x10;
+  const ctrl2 = (f.group ? 0x80 : 0) | (6 << 4);
+  return Uint8Array.from([
+    0x29,
+    0x00,
+    ctrl1,
+    ctrl2,
+    f.source >> 8,
+    f.source & 0xff,
+    f.destination >> 8,
+    f.destination & 0xff,
+    f.tpdu.length - 1,
+    ...f.tpdu,
+  ]);
+}
+
+const iaWord = (s: string) => {
+  const [a, l, d] = s.split(".").map(Number) as [number, number, number];
+  return (a << 12) | (l << 8) | d;
+};
+
+/** APCI of an APDU (4 or 10 bits) and its data: 6 bits in the APCI octet, then octets. */
+function apduOf(tpdu: number[]): {
+  apci: number;
+  short: number;
+  data: number[];
+} {
+  // 4-bit APCI services keep 6 bits of data in the second octet (apci & 0x3c0 names
+  // them); 10-bit ones use the whole octet.
+  const hi = ((tpdu[0] ?? 0) & 0x03) << 8;
+  const lo = tpdu[1] ?? 0;
+  return { apci: hi | lo, short: lo & 0x3f, data: tpdu.slice(2) };
+}
+
+/** APDU of a service: the 10-bit APCI (with the 6 bits of a short value), then data. */
+const apdu = (apci: number, data: number[] = []) => [
+  (apci >> 8) & 0x03,
+  apci & 0xff,
+  ...data,
+];
+
+interface Connection {
+  peer: number;
+  /** Sequence number expected from the peer. */
+  recv: number;
+  /** Sequence number of our next numbered frame. */
+  send: number;
+}
+
+/**
+ * Device management of a simulation: a frame from ETS in, the frames of the devices out.
+ * Group telegrams are not handled here (see EtsLink).
+ */
+export class DeviceManagement {
+  private conns = new Map<string, Connection>();
+
+  constructor(private readonly sim: () => Simulation | null) {}
+
+  /** Is this frame for device management (not a group telegram)? */
+  static concerns(f: LDataFrame): boolean {
+    if (!f.group) return true;
+    // Sent to all (0/0/0) with a management service: individual address services.
+    if (f.destination !== 0 || f.tpdu.length < 2) return false;
+    const a = ((f.tpdu[0]! & 0x03) << 8) | (f.tpdu[1]! & 0xc0);
+    return (
+      a === APCI.individualAddressRead ||
+      a === APCI.individualAddressWrite ||
+      a === APCI.individualAddressResponse
+    );
+  }
+
+  /** Frames answered by the devices to a frame from ETS (L_Data.req or .ind). */
+  handle(f: LDataFrame): Uint8Array[] {
+    const sim = this.sim();
+    if (!sim) return [];
+    if (f.group) return this.broadcast(sim, f);
+    const address = iaText(f.destination);
+    const targets = sim.reachableAt(address);
+    // No device, or several at the same address: nobody can hold a connection.
+    if (targets.length !== 1) return [];
+    const target = targets[0]!;
+    const tpci = f.tpdu[0]!;
+    const out: Uint8Array[] = [];
+    const send = (tpdu: number[]) =>
+      out.push(
+        encodeLData({
+          source: f.destination,
+          destination: f.source,
+          group: false,
+          tpdu,
+        }),
+      );
+    // Control PDUs: TPCI 1x00 00xx.
+    if ((tpci & 0x80) !== 0) {
+      if (tpci === 0x80) {
+        this.conns.set(target, { peer: f.source, recv: 0, send: 0 });
+        return out;
+      }
+      if (tpci === 0x81) {
+        this.conns.delete(target);
+        return out;
+      }
+      // T_ACK and T_NAK of our numbered frames.
+      return out;
+    }
+    const numbered = (tpci & 0x40) !== 0;
+    let reply: (apduBytes: number[]) => void;
+    if (numbered) {
+      const c = this.conns.get(target);
+      if (!c || c.peer !== f.source) {
+        // Not connected: T_Disconnect, as the transport layer does.
+        send([0x81]);
+        return out;
+      }
+      const seq = (tpci >> 2) & 0x0f;
+      if (seq !== c.recv) {
+        // A repetition of the last frame: acknowledged again, not handled twice.
+        if (seq === ((c.recv + 15) & 0x0f)) send([0xc2 | (seq << 2)]);
+        return out;
+      }
+      c.recv = (c.recv + 1) & 0x0f;
+      send([0xc2 | (seq << 2)]);
+      reply = (a) => {
+        const s = c.send;
+        c.send = (c.send + 1) & 0x0f;
+        send([0x40 | (s << 2) | (a[0]! & 0x03), ...a.slice(1)]);
+      };
+    } else reply = (a) => send(a);
+    this.service(sim, target, f, reply);
+    return out;
+  }
+
+  private broadcast(sim: Simulation, f: LDataFrame): Uint8Array[] {
+    const { apci, data } = apduOf(f.tpdu);
+    const a = apci & 0x3c0;
+    if (a === APCI.individualAddressRead)
+      return sim.readAddressInProgrammingMode().map((k) =>
+        encodeLData({
+          source: iaWord(sim.physicalAddress(k)),
+          destination: 0,
+          group: true,
+          tpdu: apdu(APCI.individualAddressResponse),
+        }),
+      );
+    if (a === APCI.individualAddressWrite && data.length >= 2) {
+      const w = (data[0]! << 8) | data[1]!;
+      sim.writeIndividualAddress(iaText(w));
+    }
+    return [];
+  }
+
+  private service(
+    sim: Simulation,
+    target: string,
+    f: LDataFrame,
+    reply: (apdu: number[]) => void,
+  ) {
+    const { apci, short, data } = apduOf(f.tpdu);
+    const four = apci & 0x3c0;
+    if (four === APCI.deviceDescriptorRead) {
+      // Descriptor type 0: the mask version; other types are not supported (type 0x3F).
+      if (short === 0)
+        reply(
+          apdu(APCI.deviceDescriptorResponse, [
+            MASK_VERSION >> 8,
+            MASK_VERSION & 0xff,
+          ]),
+        );
+      else reply(apdu(APCI.deviceDescriptorResponse | 0x3f));
+      return;
+    }
+    if (four === APCI.restart) {
+      sim.restartDevice(target);
+      return;
+    }
+    if (four === APCI.memoryRead && data.length >= 2) {
+      // Memory read: as many zeros as asked (no memory image is simulated).
+      const n = short;
+      reply(
+        apdu(APCI.memoryResponse | n, [
+          data[0]!,
+          data[1]!,
+          ...Array<number>(n).fill(0),
+        ]),
+      );
+      return;
+    }
+    if (four === APCI.memoryWrite && data.length >= 2) {
+      // Refused: a memory response with 0 bytes says the write was not done.
+      reply(apdu(APCI.memoryResponse, [data[0]!, data[1]!]));
+      return;
+    }
+    switch (apci) {
+      case APCI.authorizeRequest:
+        // Access level 0: full access, as a device without keys.
+        reply(apdu(APCI.authorizeResponse, [0]));
+        return;
+      case APCI.keyWrite:
+        reply(apdu(APCI.keyResponse, [0xff]));
+        return;
+      case APCI.propertyValueRead: {
+        if (data.length < 4) return;
+        const [obj, pid, c1, c2] = data as [number, number, number, number];
+        const start = ((c1 & 0x0f) << 8) | c2;
+        const value = this.property(sim, target, obj, pid, start);
+        if (value)
+          reply(apdu(APCI.propertyValueResponse, [obj, pid, c1, c2, ...value]));
+        // Not supported: number of elements 0.
+        else reply(apdu(APCI.propertyValueResponse, [obj, pid, c1 & 0x0f, c2]));
+        return;
+      }
+      case APCI.propertyValueWrite: {
+        if (data.length < 4) return;
+        const [obj, pid, c1, c2] = data as [number, number, number, number];
+        // Writes are refused: number of elements 0.
+        reply(apdu(APCI.propertyValueResponse, [obj, pid, c1 & 0x0f, c2]));
+        return;
+      }
+      case APCI.propertyDescriptionRead: {
+        if (data.length < 3) return;
+        // Not supported: type 0, no element.
+        reply(
+          apdu(APCI.propertyDescriptionResponse, [
+            data[0]!,
+            data[1]!,
+            data[2]!,
+            0,
+            0,
+            0,
+            0,
+          ]),
+        );
+        return;
+      }
+    }
+  }
+
+  /** Value of a property of the device object (object index 0), or null. */
+  private property(
+    sim: Simulation,
+    target: string,
+    obj: number,
+    pid: number,
+    start: number,
+  ): number[] | null {
+    if (obj !== 0) return null;
+    if (start === 0) return [0, 1];
+    switch (pid) {
+      case 1: // PID_OBJECT_TYPE: device object
+        return [0, 0];
+      case 11: // PID_SERIAL_NUMBER
+        return serialOf(target);
+      case 12: // PID_MANUFACTURER_ID
+        return [MANUFACTURER >> 8, MANUFACTURER & 0xff];
+      case 54: // PID_PROGMODE
+        return [sim.programmingMode(target) ? 1 : 0];
+      case 83: // PID_DEVICE_DESCRIPTOR
+        return [MASK_VERSION >> 8, MASK_VERSION & 0xff];
+      default:
+        return null;
+    }
+  }
+}
+
+/** Serial number of a simulated device: the manufacturer code, then a hash of its identifier. */
+export function serialOf(target: string): number[] {
+  let h = 2166136261;
+  for (const ch of target) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  return [
+    MANUFACTURER >> 8,
+    MANUFACTURER & 0xff,
+    h >>> 24,
+    (h >> 16) & 0xff,
+    (h >> 8) & 0xff,
+    h & 0xff,
+  ];
+}

@@ -14,15 +14,37 @@ const M_PROP_READ_CON: u8 = MessageCode::PropReadCon as u8;
 const M_PROP_WRITE_REQ: u8 = MessageCode::PropWriteReq as u8;
 const M_PROP_WRITE_CON: u8 = MessageCode::PropWriteCon as u8;
 
-/// A well-formed L_Data frame (req, con or ind) carrying at least an APCI.
+/// A well-formed L_Data frame (req, con or ind): a group telegram carrying at least an
+/// APCI, or a frame to a device, which may be a transport control (T_Connect, T_ACK…).
 pub fn l_data(f: &[u8]) -> Option<CemiFrame> {
-    let frame = CemiFrame::parse(f).ok()?;
+    // knx-rs-core reads two TPDU octets even when the length is 0 (a transport control
+    // has the TPCI only): such a frame is read with one octet added, which `bytes` removes.
+    let frame = CemiFrame::parse(f).ok().or_else(|| {
+        let ctrl = 2 + usize::from(*f.get(1)?);
+        (f.get(ctrl + 6) == Some(&0) && f.len() == ctrl + 8).then(|| {
+            let mut padded = f.to_vec();
+            padded.push(0);
+            CemiFrame::parse(&padded).ok()
+        })?
+    })?;
     let code = MessageCode::try_from(frame.message_code_raw()).ok()?;
     (matches!(
         code,
         MessageCode::LDataReq | MessageCode::LDataCon | MessageCode::LDataInd
-    ) && frame.npdu_length() >= 1)
-        .then_some(frame)
+    ) && (frame.npdu_length() >= 1 || !is_group(&frame)))
+    .then_some(frame)
+}
+
+/// Bytes of a frame as sent: those of a transport control without the octet that
+/// [`l_data`] added to read it.
+pub fn bytes(f: &CemiFrame) -> Vec<u8> {
+    let b = f.as_bytes();
+    let ctrl = 2 + usize::from(f.additional_info_length());
+    if f.npdu_length() == 0 {
+        b.get(..ctrl + 8).unwrap_or(b).to_vec()
+    } else {
+        b.to_vec()
+    }
 }
 
 /// Is this L_Data frame a group telegram (group destination)?
@@ -35,8 +57,8 @@ pub fn is_group(f: &CemiFrame) -> bool {
 pub fn recode(f: &CemiFrame, code: MessageCode) -> Option<CemiFrame> {
     let ctrl = 2 + usize::from(f.additional_info_length());
     let mut bytes = vec![code as u8, 0x00];
-    bytes.extend_from_slice(f.as_bytes().get(ctrl..)?);
-    let mut out = CemiFrame::parse(&bytes).ok()?;
+    bytes.extend_from_slice(self::bytes(f).get(ctrl..)?);
+    let mut out = l_data(&bytes)?;
     out.set_confirm(Confirm::NoError);
     Some(out)
 }

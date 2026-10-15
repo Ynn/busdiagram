@@ -1,7 +1,7 @@
 ---
 title: Liaison à ETS
 translationOf: guide/07-ets.md
-sourceHash: "1ec8a420f48c"
+sourceHash: "ded6845fca1f"
 order: 7.6
 ---
 
@@ -40,6 +40,12 @@ Un seul schéma est relié à la fois : en relier un autre déconnecte le premie
 
 Les télégrammes d'ETS entrent sur le bus à cet endroit avec leur propre source (l'adresse du tunnel, `15.15.251`), leur priorité, leur compteur de routage et leurs octets. Aucun DPT ne voyage dans un télégramme : chaque objet récepteur décode les octets avec son propre DPT, et ignore des données d'une autre taille, ce que le journal explique. Les télégrammes qui atteignent le point d'accès par la topologie sont envoyés à ETS, avec le compteur de routage qu'ils y ont.
 
+## Programmer les adresses individuelles depuis ETS
+
+Dans un schéma qui simule la [mise en service](commissioning.html), les participants démarrent en 15.15.255, comme à la livraison. Dans ETS, clic droit sur un participant du projet → *Télécharger* → *Adresse individuelle*, puis cliquez sur le bouton de programmation du participant dans le schéma (le petit carré à côté de son adresse) : sa LED s'allume, ETS écrit l'adresse, redémarre le participant, et la LED s'éteint. Le designer, quand il affiche le schéma, enregistre la nouvelle adresse (colonne **Adr**). Les erreurs habituelles ont leur effet : deux LED allumées, et les deux participants répondent ; une adresse déjà utilisée sur le bus, et ETS la trouve.
+
+Les participants répondent avec le descripteur 07B0 (TP1, System B) et le code fabricant de la KNX Association, comme ceux de KNX Virtual. Les applications se téléchargent toujours depuis le designer.
+
 ## Pendant la liaison
 
 - La simulation tourne en temps réel, même quand son onglet est en arrière-plan, puisqu'ETS continue d'envoyer et attend des réponses.
@@ -52,7 +58,8 @@ Les télégrammes d'ETS entrent sur le bus à cet endroit avec leur propre sourc
 | Fonction | Dans BusDiagram-ETS |
 | --- | --- |
 | Communication de groupe (écriture, lecture, réponse) | Oui |
-| Gestion des participants (adresse individuelle, téléchargement d'une application) | Non : les participants du schéma se règlent dans le schéma, pas depuis ETS |
+| Adresse individuelle en mode programmation (lecture, écriture), connexion à un participant, descripteur, fabricant et numéro de série, redémarrage | Oui : les participants du schéma répondent comme des participants à l'état de livraison ; avec la [mise en service](commissioning.html), ETS programme leur adresse individuelle avec le bouton de programmation du schéma |
+| Téléchargement d'une application (mémoire, propriétés) | Non : les paramètres et associations des participants se règlent dans le schéma ; ETS reçoit un refus |
 | Moniteur de bus, KNX Secure | Non |
 | Plusieurs schémas à la fois | Non, un seul à la fois |
 | Pages autorisées à se relier | Fichiers du disque, pages servies sur cet ordinateur, `https://ynn.github.io` ; les autres dans les réglages |

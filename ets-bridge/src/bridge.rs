@@ -195,29 +195,52 @@ fn bus(
     mut tunnels: Tunnels,
     hub: &Hub,
     from_page: &Receiver<ToBus>,
-    stop: &AtomicBool,
+    stop: &Arc<AtomicBool>,
     shared: &Shared,
     verbose: bool,
 ) -> std::io::Result<()> {
-    udp.set_read_timeout(Some(Duration::from_millis(20)))?;
-    let mut buf = [0u8; 1024];
+    // Datagrams are read by their own thread, with a blocking receive: on Windows, a
+    // receive that times out leaves the socket in an indeterminate state, and datagrams
+    // that arrive then can be lost (ETS repeats a request after a second, which hid it).
+    let (datagrams, incoming) = mpsc::channel::<(Vec<u8>, SocketAddr)>();
+    let reader = {
+        let udp = udp.try_clone()?;
+        let stop = Arc::clone(stop);
+        std::thread::spawn(move || {
+            let mut buf = [0u8; 1024];
+            while !stop.load(Ordering::Acquire) {
+                match udp.recv_from(&mut buf) {
+                    Ok((n, from)) => {
+                        if datagrams
+                            .send((buf.get(..n).unwrap_or_default().to_vec(), from))
+                            .is_err()
+                        {
+                            break;
+                        }
+                    }
+                    // Windows reports an ICMP "port unreachable" from an earlier datagram here.
+                    Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset => {}
+                    Err(_) => break,
+                }
+            }
+        })
+    };
+    let wake = udp.local_addr()?;
     let mut page: Option<String> = None;
     let mut ets: Vec<String> = Vec::new();
     while !stop.load(Ordering::Acquire) {
+        let first = incoming.recv_timeout(Duration::from_millis(20));
         let now = Instant::now();
         let mut out = Output::default();
-        match udp.recv_from(&mut buf) {
-            Ok((n, from)) => {
-                tunnels.on_datagram(buf.get(..n).unwrap_or_default(), from, now, &mut out);
+        match first {
+            Ok((d, from)) => {
+                tunnels.on_datagram(&d, from, now, &mut out);
+                while let Ok((d, from)) = incoming.try_recv() {
+                    tunnels.on_datagram(&d, from, now, &mut out);
+                }
             }
-            Err(e)
-                if matches!(
-                    e.kind(),
-                    std::io::ErrorKind::WouldBlock | std::io::ErrorKind::TimedOut
-                ) => {}
-            // Windows reports an ICMP "port unreachable" from an earlier datagram here.
-            Err(e) if e.kind() == std::io::ErrorKind::ConnectionReset => {}
-            Err(e) => return Err(e),
+            Err(mpsc::RecvTimeoutError::Timeout) => {}
+            Err(mpsc::RecvTimeoutError::Disconnected) => break,
         }
         while let Ok(m) = from_page.try_recv() {
             match m {
@@ -269,5 +292,12 @@ fn bus(
             });
         }
     }
+    // The reader waits in its receive: a datagram to this socket wakes it up to stop.
+    let mut to = wake;
+    if to.ip().is_unspecified() {
+        to.set_ip(Ipv4Addr::LOCALHOST.into());
+    }
+    let _ = udp.send_to(&[], to);
+    let _ = reader.join();
     Ok(())
 }

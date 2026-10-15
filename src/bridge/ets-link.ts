@@ -1,8 +1,8 @@
 // Link between the simulation and ETS through the busdiagram-ets program (ets-bridge/),
 // which serves this page and runs a KNXnet/IP tunnelling server that ETS connects to.
 //
-// WebSocket protocol: each binary message is one cEMI L_Data frame (a group telegram),
-// both ways; the program also sends {"type":"status","ets":N}, the number of ETS tunnels.
+// WebSocket protocol: each binary message is one cEMI L_Data frame (a group telegram, or
+// a device management frame to or from a device), both ways; the program also sends {"type":"status","ets":N}, the number of ETS tunnels.
 //
 // The simulation is reached at one access point: a bus interface of the scenario, or,
 // without one, its main line:
@@ -18,6 +18,7 @@ import {
   encodeCemi,
   rawToData,
 } from "../knx/cemi";
+import { DeviceManagement, decodeLData } from "../knx/management";
 import type { AccessPoint, Simulation, Telegram } from "../knx/sim";
 import type { Translate } from "../i18n";
 import { en } from "../i18n";
@@ -121,9 +122,12 @@ export class EtsLink {
   };
 
   private readonly t: Translate;
+  /** Device management of the simulated devices (individual address, descriptor…). */
+  private readonly management: DeviceManagement;
 
   constructor(private readonly o: EtsLinkOptions) {
     this.t = o.t ?? en;
+    this.management = new DeviceManagement(() => this.o.target()?.sim ?? null);
   }
 
   get current(): LinkStatus {
@@ -204,6 +208,19 @@ export class EtsLink {
   }
 
   private onFrame(cemi: Uint8Array) {
+    // Device management (programming an individual address, finding a device): the
+    // devices answer at once, outside the group communication of the simulation.
+    const l = decodeLData(cemi);
+    if (l && l.messageCode !== L_DATA_CON && DeviceManagement.concerns(l)) {
+      this.update({ received: this.status.received + 1 });
+      const ws = this.ws;
+      for (const frame of this.management.handle(l)) {
+        if (!ws || ws.readyState !== 1) break;
+        ws.send(frame);
+        this.update({ sent: this.status.sent + 1 });
+      }
+      return;
+    }
     let f;
     try {
       f = decodeCemi(cemi);
