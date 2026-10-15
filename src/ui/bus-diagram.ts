@@ -3081,10 +3081,18 @@ export class BusDiagram extends LitElement {
 
   /** Why a coupler forwarded or discarded the telegram, in one line. */
   private couplerReason(reason: CouplerReason, ga: string) {
+    // With commissioning, the coupler holds the filter table of its last download.
+    const held = !!this.model?.commissioning;
     switch (reason) {
       case "inTable":
+        if (held)
+          return this
+            .tr`${ga} is in the filter table downloaded into the coupler`;
         return this.tr`${ga} is used on both sides: it is in the filter table`;
       case "notInTable":
+        if (held)
+          return this
+            .tr`${ga} is not in the filter table downloaded into the coupler`;
         return this
           .tr`${ga} is not used on both sides: it is not in the filter table`;
       case "routeAll":
@@ -3097,6 +3105,9 @@ export class BusDiagram extends LitElement {
         return this.tr`routing counter at 0: the telegram is not forwarded`;
       case "noVoltage":
         return this.tr`no bus voltage on the other side`;
+      case "unprogrammed":
+        return this
+          .tr`no application downloaded: the coupler forwards no group telegram`;
     }
   }
 

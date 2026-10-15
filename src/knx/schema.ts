@@ -320,6 +320,101 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
           },
         },
       },
+      installation: {
+        type: "object",
+        description:
+          "Commissioning: what the devices and couplers hold, apart from the project. With this section, each device runs the application it was downloaded with, and one without an application does nothing; devices and couplers not listed are as delivered (15.15.255 and 15.15.0, no application).",
+        additionalProperties: false,
+        properties: {
+          devices: {
+            type: "array",
+            description: "Devices of the project, with what they hold.",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["device"],
+              properties: {
+                device: {
+                  type: "string",
+                  pattern: ID_ATOM,
+                  description: "ID of the device in the project.",
+                },
+                address: {
+                  type: "string",
+                  pattern: IA_PATTERN,
+                  description:
+                    "Individual address programmed in the device (15.15.255 by default).",
+                },
+                programmingMode: {
+                  type: "boolean",
+                  description: "Programming LED on.",
+                },
+                application: {
+                  type: "object",
+                  required: ["behavior"],
+                  description:
+                    "Application downloaded: behavior, parameters, objects with their associations, keys, and the parameters and scenes of each channel, as in the device. Absent: no application loaded.",
+                },
+              },
+            },
+          },
+          couplers: {
+            type: "array",
+            description:
+              "Couplers and repeaters of the topology, with what they hold.",
+            items: {
+              type: "object",
+              additionalProperties: false,
+              required: ["coupler"],
+              properties: {
+                coupler: {
+                  type: "string",
+                  pattern: IA_PATTERN,
+                  description:
+                    "Address of the coupler or repeater in the project (A.L.0, A.0.0, or the address of a line extension).",
+                },
+                address: {
+                  type: "string",
+                  pattern: IA_PATTERN,
+                  description:
+                    "Individual address programmed in it (15.15.0 by default).",
+                },
+                programmingMode: {
+                  type: "boolean",
+                  description: "Programming LED on.",
+                },
+                application: {
+                  type: "object",
+                  additionalProperties: false,
+                  description:
+                    "Application downloaded: filter table and routing of group telegrams. Absent: none, the coupler forwards no group telegram.",
+                  properties: {
+                    filterTable: {
+                      anyOf: [
+                        {
+                          type: "array",
+                          items: { type: "string", pattern: GA_PATTERN },
+                        },
+                        { type: "null" },
+                      ],
+                      description:
+                        "Group addresses of the filter table; null for a repeater.",
+                    },
+                    down: {
+                      enum: ["filter", "route", "block"],
+                      description: "Group telegrams downwards.",
+                    },
+                    up: {
+                      enum: ["filter", "route", "block"],
+                      description: "Group telegrams upwards.",
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
     },
     $defs: {
       dpt: {

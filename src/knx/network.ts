@@ -260,7 +260,8 @@ export type CouplerReason =
   | "inTable"
   | "notInTable"
   | "rcZero"
-  | "noVoltage";
+  | "noVoltage"
+  | "unprogrammed";
 
 export interface CouplerPlan {
   couplerId: string;
@@ -453,7 +454,19 @@ export class Network {
     return set;
   }
 
+  /**
+   * What the coupler holds when the scenario simulates commissioning: `null` for a coupler
+   * without application, `undefined` when the scenario does not simulate commissioning.
+   */
+  installed(c: TopoCoupler) {
+    const k = this.scenario.commissioning;
+    return k ? (k.couplers.get(c.address)?.application ?? null) : undefined;
+  }
+
   filterTable(c: TopoCoupler): string[] | null {
+    const held = this.installed(c);
+    if (held === null) return [];
+    if (held) return this.isRepeater(c) ? null : (held.filterTable ?? []);
     if (this.isRepeater(c)) return null;
     const b = this.sideGAs(c, "B");
     return [...this.sideGAs(c, "A")]
@@ -463,13 +476,26 @@ export class Network {
 
   /** Parameter "group telegrams" of the coupler for a direction (A → B: downwards). */
   routing(c: TopoCoupler, to: Side): GroupRouting {
+    const held = this.installed(c);
+    if (held === null) return "block";
+    if (held) return to === "B" ? held.down : held.up;
     const set = this.scenario.topology.couplers.get(c.address);
     return (to === "B" ? set?.down : set?.up) ?? "filter";
   }
 
   /** Decision of the filter of a coupler for a group address, without the counter. */
   private filterReason(c: TopoCoupler, to: Side, ga: string): CouplerReason {
+    const held = this.installed(c);
+    // Without an application, a coupler (or a repeater) has no filter table and passes
+    // no group telegram, as couplers do in KNX Virtual before their download.
+    if (held === null) return "unprogrammed";
     if (this.isRepeater(c)) return "repeater";
+    if (held) {
+      const mode = to === "B" ? held.down : held.up;
+      if (mode === "route") return "routeAll";
+      if (mode === "block") return "blockAll";
+      return held.filterTable?.includes(ga) ? "inTable" : "notInTable";
+    }
     const mode = this.routing(c, to);
     if (mode === "route") return "routeAll";
     if (mode === "block") return "blockAll";
@@ -579,7 +605,10 @@ export class Network {
           // Without bus voltage on the other side, the coupler cannot send the telegram.
           const noVoltage = !this.powered(c[to].seg);
           const filter = this.filterReason(c, to, ga);
-          const filtered = filter === "blockAll" || filter === "notInTable";
+          const filtered =
+            filter === "blockAll" ||
+            filter === "notInTable" ||
+            filter === "unprogrammed";
           const reason: CouplerReason = filtered
             ? filter
             : e.rc <= 0

@@ -1076,4 +1076,60 @@ export const frMessages: Record<string, string> = {
     "L'objet scène central sert toutes les sorties : une seule association à l'adresse de scène, et chaque sortie prend l'état de sa propre affectation. Une sortie peut aussi avoir son propre objet scène, sur sa page Scènes.",
   "{0}: scene {1} not assigned to this output, not stored":
     "{0} : scène {1} non affectée à cette sortie, non mémorisée",
+  // Commissioning.
+  "This diagram does not simulate commissioning.":
+    "Ce schéma ne simule pas la mise en service.",
+  "The individual address {0} is already used on the bus by another device. Scan the line, then give a free address in the project or reprogram that device.":
+    "L'adresse individuelle {0} est déjà utilisée sur le bus par un autre participant. Scannez la ligne, puis donnez une adresse libre dans le projet ou reprogrammez ce participant.",
+  "Press the programming button of {0}.":
+    "Appuyez sur le bouton de programmation de {0}.",
+  "Several devices are in programming mode ({0}): only one programming LED may be on. Press the programming button again on the devices that should not be programmed.":
+    "Plusieurs participants sont en mode programmation ({0}) : une seule LED de programmation doit être allumée. Appuyez à nouveau sur le bouton de programmation des participants qui ne doivent pas être programmés.",
+  "Individual address {0} programmed.": "Adresse individuelle {0} programmée.",
+  "No device answers at {0}. Program its individual address first (Download → Individual address, or Download all), and check its line and bus voltage.":
+    "Aucun participant ne répond à l'adresse {0}. Programmez d'abord son adresse individuelle (Télécharger → Adresse individuelle, ou Téléchargement complet), et vérifiez sa ligne et sa tension de bus.",
+  "Several devices answer at {0}: the address is used twice on the bus. Scan the line and give each device its own address.":
+    "Plusieurs participants répondent à l'adresse {0} : l'adresse est utilisée deux fois sur le bus. Scannez la ligne et donnez à chaque participant sa propre adresse.",
+  coupler: "coupleur",
+  "The device at {0} does not have the application program of the project ({1} found, {2} expected). Check that the right programming button was pressed.":
+    "Le participant à l'adresse {0} n'a pas le programme d'application du projet ({1} trouvé, {2} attendu). Vérifiez que le bon bouton de programmation a été actionné.",
+  "Application downloaded to {0}.": "Application téléchargée dans {0}.",
+  "Application downloaded to {0}: the device that answered there is {1} of the diagram, not the one of the project.":
+    "Application téléchargée dans {0} : le participant qui a répondu à cette adresse est {1} du schéma, pas celui du projet.",
+  "Individual address and application downloaded to {0}.":
+    "Adresse individuelle et application téléchargées dans {0}.",
+  "Several devices answer at {0}: the address is used twice on the bus.":
+    "Plusieurs participants répondent à l'adresse {0} : l'adresse est utilisée deux fois sur le bus.",
+  "No device answers at {0}.": "Aucun participant ne répond à l'adresse {0}.",
+  "Application unloaded from {0}.": "Application déchargée de {0}.",
+  "individual address area.line.device expected":
+    "adresse individuelle zone.ligne.participant attendue",
+  "array expected": "liste attendue",
+  "unknown device “{0}”": "participant inconnu « {0} »",
+  "device listed twice": "participant cité deux fois",
+  "application object with its behavior expected":
+    "objet application avec son comportement attendu",
+  "no coupler or repeater at {0} in the topology":
+    "aucun coupleur ni répéteur à l'adresse {0} dans la topologie",
+  "coupler listed twice": "coupleur cité deux fois",
+  "filter, route, or block expected": "filter, route ou block attendu",
+  "array of group addresses expected": "liste d'adresses de groupe attendue",
+  "application held by the device: {0}":
+    "application contenue dans le participant : {0}",
+  "no application program loaded: no telegram":
+    "aucun programme d'application chargé : aucun télégramme",
+  "{0}: no application program loaded, the device does not react":
+    "{0} : aucun programme d'application chargé, le participant ne réagit pas",
+  "{0}: programming mode on": "{0} : mode programmation activé",
+  "{0}: programming mode off": "{0} : mode programmation désactivé",
+  "Individual address {0} written to {1}":
+    "Adresse individuelle {0} écrite dans {1}",
+  "{0}: restart, programming mode off":
+    "{0} : redémarrage, fin du mode programmation",
+  "{0} is in the filter table downloaded into the coupler":
+    "{0} est dans la table de filtrage téléchargée dans le coupleur",
+  "{0} is not in the filter table downloaded into the coupler":
+    "{0} n'est pas dans la table de filtrage téléchargée dans le coupleur",
+  "no application downloaded: the coupler forwards no group telegram":
+    "aucune application téléchargée : le coupleur ne transmet aucun télégramme de groupe",
 };

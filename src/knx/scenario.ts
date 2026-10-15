@@ -33,6 +33,9 @@ import type { Translate } from "../i18n";
 import { en } from "../i18n";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
+import type { Commissioning } from "./installation";
+import { installedDevice, parseInstallation } from "./installation";
+import { buildTopology } from "./network";
 
 export { parseGA, parseIA } from "./address";
 export type { Problem } from "./params";
@@ -215,6 +218,14 @@ export interface Scenario {
   devicesById: Map<string, Device>;
   /** `instant`: real time, telegrams as fast as on a real bus, not animated. */
   options: { speed: number | "instant"; filterTables: boolean };
+  /**
+   * What the devices and couplers hold, when the scenario simulates commissioning (an
+   * `installation` section); absent otherwise. The devices of the scenario are then the
+   * devices as installed: each with the application it was downloaded with.
+   */
+  commissioning?: Commissioning;
+  /** The project, when it differs from the installed devices (commissioning). */
+  project?: Scenario;
 }
 
 export interface ClockConfig {
@@ -374,6 +385,75 @@ export function buildScenario(
   raw: unknown,
   registry: Registry = captureRegistry(),
   t: Translate = en,
+): Scenario {
+  if (!isRecord(raw) || raw.installation === undefined)
+    return buildProject(raw, registry, t);
+  const { installation, ...rest } = raw;
+  const project = buildProject(rest, registry, t);
+  const problems: Problem[] = [];
+  const couplers = new Set(
+    buildTopology(project).couplers.map((c) => c.address),
+  );
+  const commissioning = parseInstallation(
+    installation,
+    new Set(project.devices.filter(commissionable).map((d) => d.id)),
+    couplers,
+    (p) => problems.push(p),
+    t,
+  )!;
+  if (problems.length) throw new ScenarioError(problems);
+  const devices = (rest.devices as Rec[]).map((d) => {
+    const dev = project.devicesById.get(d.id as string)!;
+    if (!commissionable(dev)) return d;
+    return installedDevice(
+      d,
+      commissioning.devices.get(dev.id)?.application ?? null,
+    );
+  });
+  let installed: Scenario;
+  try {
+    installed = buildProject({ ...rest, devices }, registry, t);
+  } catch (e) {
+    if (!(e instanceof ScenarioError)) throw e;
+    // The application held by a device no longer fits the project around it.
+    throw new ScenarioError(
+      e.details.map((p) => {
+        const m = /^devices\[(\d+)\]/.exec(p.path);
+        const id = m ? (devices[Number(m[1])]?.id as string) : undefined;
+        const i = id
+          ? ((installation as { devices?: Rec[] }).devices?.findIndex(
+              (x) => x.device === id,
+            ) ?? -1)
+          : -1;
+        return {
+          ...p,
+          path:
+            i >= 0 ? `installation.devices[${i}].application` : "installation",
+          message: t`application held by the device: ${p.message}`,
+        };
+      }),
+    );
+  }
+  installed.commissioning = commissioning;
+  installed.project = project;
+  return installed;
+}
+
+/**
+ * Devices that are commissioned: those of the installation, with an individual address
+ * that ETS programs. A bus interface (the access of ETS), a supervision software, or a
+ * visualization left out of the filter tables are not.
+ */
+export const commissionable = (d: Device) =>
+  d.inFilterTables &&
+  !d.presentation.busInterface &&
+  !d.presentation.supervisor &&
+  !d.presentation.remoteSystem;
+
+function buildProject(
+  raw: unknown,
+  registry: Registry,
+  t: Translate,
 ): Scenario {
   const problems: Problem[] = [];
   const err = (path: string, code: string, message: string) =>

@@ -39,6 +39,13 @@ import {
 } from "./network";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
+import { commissionable } from "./scenario";
+import type { DeviceInstallation } from "./installation";
+import {
+  FACTORY_ADDRESS,
+  FACTORY_COUPLER_ADDRESS,
+  installationJson,
+} from "./installation";
 import type {
   Channel,
   Device,
@@ -180,6 +187,11 @@ interface DeviceRuntime {
   timers: Map<string, Scheduled<Item>>;
   /** No bus voltage on the device's segment: the device neither receives nor sends. */
   down: boolean;
+  /**
+   * No application loaded (commissioning): the device has no associations and runs no
+   * function; it still answers the commissioning services with its individual address.
+   */
+  inert: boolean;
 }
 
 interface EquipmentRuntime {
@@ -203,6 +215,9 @@ export const loadKey = (deviceId: string, channelId: string, index = 0) =>
   index ? `${deviceId}/${channelId}#${index + 1}` : `${deviceId}/${channelId}`;
 
 export class SimulationFault extends Error {}
+
+/** Commissioning target of a coupler or repeater, by its address in the project. */
+export const couplerTarget = (address: string) => `coupler:${address}`;
 
 /** Payload size of a DPT: 0 in the APCI (up to 6 bits), otherwise whole bytes. */
 const payloadSizeOf = (dpt: string) => {
@@ -335,6 +350,7 @@ export class Simulation {
     this.t = translator(options.lang ?? "en");
     this.network = new Network(scenario, undefined, this.t);
     this.network.timing = options.timing ?? "teaching";
+    this.initPhysical();
     this.init();
   }
 
@@ -396,6 +412,10 @@ export class Simulation {
         ctx: undefined as never,
         timers: new Map(),
         down: false,
+        inert:
+          !!s.commissioning &&
+          commissionable(d) &&
+          !s.commissioning.devices.get(d.id)?.application,
       };
       rt.state = def.createState(d);
       rt.ctx = this.makeContext(rt);
@@ -413,7 +433,7 @@ export class Simulation {
     // Read on initialisation: each device starts here, as after a restart (KNX Standard
     // 03_05_01 §4.18.6.2.4.1.3, conformance test 08_03_07 §1.4.1.6).
     this.devices.forEach((rt) => {
-      if (!rt.down) this.readOnInit(rt);
+      if (!rt.down && !rt.inert) this.readOnInit(rt);
     });
     if (this.tickers.length) this.queue.push(TICK_MS, { type: "tick" });
   }
@@ -443,7 +463,15 @@ export class Simulation {
     this.cascadeAt = -1;
     this.cascadeCount = 0;
     this.network.resetModes();
+    // A restart keeps the individual addresses programmed in the devices; programming
+    // mode ends, as when the bus voltage returns.
+    let changed = false;
+    this.physical.forEach((p) => {
+      if (p.programmingMode) changed = true;
+      p.programmingMode = false;
+    });
     this.init();
+    if (changed) this.installationChanged();
   }
 
   play() {
@@ -795,7 +823,7 @@ export class Simulation {
   }
 
   private hook(rt: DeviceRuntime, name: string, fn: () => void) {
-    if (this.fault) return;
+    if (this.fault || rt.inert) return;
     try {
       fn();
     } catch (e) {
@@ -976,6 +1004,8 @@ export class Simulation {
       });
     if (this.initializing) return;
     if (rt.down) return void ignore(this.t`no bus voltage: no telegram`);
+    if (rt.inert)
+      return void ignore(this.t`no application program loaded: no telegram`);
     if (!o.flags.C)
       return void ignore(this.t`C flag off: no communication, no telegram`);
     if (!o.flags.T)
@@ -1056,7 +1086,11 @@ export class Simulation {
       id,
       timeMs: this.timeMs,
       sourceDeviceId: d?.id ?? "",
-      sourceAddress: external ? external.sourceAddress : (d?.address ?? ""),
+      sourceAddress: external
+        ? external.sourceAddress
+        : d
+          ? this.physicalAddress(d.id)
+          : "",
       objectId: spec.objectId,
       ga,
       dpt: spec.dpt,
@@ -1591,6 +1625,15 @@ export class Simulation {
       });
       return [];
     }
+    if (rt.inert) {
+      this.log("input", null, {
+        deviceId,
+        message: this
+          .t`${inputId}: no application program loaded, the device does not react`,
+        data: { inputId, gesture },
+      });
+      return [];
+    }
     if (gesture === "value") {
       const inp = d.inputs.find((x) => x.id === inputId);
       if (!inp || typeof value !== "number" || !Number.isFinite(value))
@@ -1834,7 +1877,7 @@ export class Simulation {
         if (on) {
           rt.down = false;
           this.hook(rt, "onBusRecovery", () => rt.def.onBusRecovery?.(rt.ctx));
-          this.readOnInit(rt);
+          if (!rt.inert) this.readOnInit(rt);
           return;
         }
         rt.down = true;
@@ -1877,6 +1920,212 @@ export class Simulation {
   /** Does the segment (`L1.1`, `L1.1b`…) have bus voltage? */
   busVoltage(segmentId: string): boolean {
     return this.network.powered(segmentId);
+  }
+
+  // ── Commissioning ──────────────────────────────────────────────────────
+  // Services that ETS uses to commission devices (KNX Standard 03_05_02, Management
+  // Procedures): programming mode, individual address read and write in programming
+  // mode, connection to an individual address. The application itself is downloaded by
+  // changing the scenario's installation, which restarts the simulation.
+
+  /** Programmed individual address and programming mode, by commissioning target. */
+  private physical = new Map<
+    string,
+    { address: string; programmingMode: boolean }
+  >();
+  private installationListeners = new Set<() => void>();
+
+  private initPhysical() {
+    const k = this.scenario.commissioning;
+    if (!k) return;
+    this.scenario.devices.filter(commissionable).forEach((d) => {
+      const e = k.devices.get(d.id);
+      this.physical.set(d.id, {
+        address: e?.address ?? FACTORY_ADDRESS,
+        programmingMode: e?.programmingMode ?? false,
+      });
+    });
+    this.network.topology.couplers.forEach((c) => {
+      const e = k.couplers.get(c.address);
+      this.physical.set(couplerTarget(c.address), {
+        address: e?.address ?? FACTORY_COUPLER_ADDRESS,
+        programmingMode: e?.programmingMode ?? false,
+      });
+    });
+  }
+
+  /** Does the scenario simulate commissioning (an `installation` section)? */
+  get commissioning(): boolean {
+    return !!this.scenario.commissioning;
+  }
+
+  /**
+   * What ETS commissions: the identifiers of the devices concerned, then the couplers
+   * and repeaters as `coupler:<address in the project>`.
+   */
+  commissioningTargets(): string[] {
+    return [...this.physical.keys()];
+  }
+
+  /** Individual address held by a device or a coupler (the project's without commissioning). */
+  physicalAddress(target: string): string {
+    const p = this.physical.get(target);
+    if (p) return p.address;
+    return (
+      this.scenario.devicesById.get(target)?.address ??
+      (target.startsWith("coupler:") ? target.slice(8) : "")
+    );
+  }
+
+  /** Is the programming LED of the device or coupler on? */
+  programmingMode(target: string): boolean {
+    return this.physical.get(target)?.programmingMode ?? false;
+  }
+
+  /** Press the programming button: the programming mode toggles. */
+  pressProgrammingButton(target: string): boolean {
+    return this.setProgrammingMode(target, !this.programmingMode(target));
+  }
+
+  /** Switch the programming mode on or off; false when nothing changed. */
+  setProgrammingMode(target: string, on: boolean): boolean {
+    const p = this.physical.get(target);
+    if (!p || p.programmingMode === on || this.fault || !this.reachable(target))
+      return false;
+    p.programmingMode = on;
+    this.log("input", null, {
+      deviceId: this.scenario.devicesById.has(target) ? target : undefined,
+      message: on
+        ? this.t`${this.targetName(target)}: programming mode on`
+        : this.t`${this.targetName(target)}: programming mode off`,
+      data: { action: "programmingMode", target, value: on ? 1 : 0 },
+    });
+    this.installationChanged();
+    return true;
+  }
+
+  /** Name of a device or coupler, for the journal. */
+  targetName(target: string): string {
+    const d = this.scenario.devicesById.get(target);
+    if (d) return d.name;
+    const c = this.network.topology.couplers.find(
+      (x) => couplerTarget(x.address) === target,
+    );
+    return c ? `${this.network.couplerName(c)} ${c.address}` : target;
+  }
+
+  /** Is the device or coupler on a segment with bus voltage? */
+  private reachable(target: string): boolean {
+    const rt = this.devices.get(target);
+    if (rt) return !rt.down;
+    const c = this.network.topology.couplers.find(
+      (x) => couplerTarget(x.address) === target,
+    );
+    return (
+      !!c && (this.network.powered(c.A.seg) || this.network.powered(c.B.seg))
+    );
+  }
+
+  /**
+   * A_IndividualAddress_Read: the devices and couplers in programming mode answer with
+   * their individual address. Only those with bus voltage answer.
+   */
+  readAddressInProgrammingMode(): string[] {
+    return [...this.physical.entries()]
+      .filter(([k, p]) => p.programmingMode && this.reachable(k))
+      .map(([k]) => k);
+  }
+
+  /**
+   * A_IndividualAddress_Write, sent to all: every device or coupler in programming mode
+   * takes the address. Returns those that took it.
+   */
+  writeIndividualAddress(address: string): string[] {
+    const hit = this.readAddressInProgrammingMode();
+    if (this.fault || !hit.length) return [];
+    hit.forEach((k) => (this.physical.get(k)!.address = address));
+    this.log("input", null, {
+      message: this
+        .t`Individual address ${address} written to ${hit.map((k) => this.targetName(k)).join(", ")}`,
+      data: { action: "individualAddress", value: address, targets: hit },
+    });
+    this.installationChanged();
+    return hit;
+  }
+
+  /** Devices and couplers that answer at an individual address (with bus voltage). */
+  reachableAt(address: string): string[] {
+    if (!this.commissioning)
+      return this.scenario.devices
+        .filter((d) => d.address === address && this.devicePowered(d.id))
+        .map((d) => d.id);
+    return [...this.physical.entries()]
+      .filter(([k, p]) => p.address === address && this.reachable(k))
+      .map(([k]) => k);
+  }
+
+  /** Restart of a device, which leaves programming mode (A_Restart). */
+  restartDevice(target: string) {
+    const p = this.physical.get(target);
+    if (!p?.programmingMode) return;
+    p.programmingMode = false;
+    this.log("input", null, {
+      deviceId: this.scenario.devicesById.has(target) ? target : undefined,
+      message: this
+        .t`${this.targetName(target)}: restart, programming mode off`,
+      data: { action: "restart", target },
+    });
+    this.installationChanged();
+  }
+
+  /** Does the device hold an application (always, without commissioning)? */
+  applicationLoaded(target: string): boolean {
+    const k = this.scenario.commissioning;
+    if (!k) return true;
+    if (target.startsWith("coupler:"))
+      return !!k.couplers.get(target.slice(8))?.application;
+    return !!k.devices.get(target)?.application;
+  }
+
+  /**
+   * The installation as it is now, for the scenario's `installation` section: addresses
+   * and programming modes, with the applications the scenario gave.
+   */
+  installation(): JsonObject | null {
+    const k = this.scenario.commissioning;
+    if (!k) return null;
+    const devices = new Map<string, DeviceInstallation>();
+    const couplers = new Map(k.couplers);
+    this.physical.forEach((p, key) => {
+      if (key.startsWith("coupler:")) {
+        const a = key.slice(8);
+        couplers.set(a, {
+          address: p.address,
+          programmingMode: p.programmingMode,
+          application: k.couplers.get(a)?.application ?? null,
+        });
+      } else
+        devices.set(key, {
+          address: p.address,
+          programmingMode: p.programmingMode,
+          application: k.devices.get(key)?.application ?? null,
+        });
+    });
+    return installationJson(
+      { devices, couplers },
+      this.scenario.devices.map((d) => d.id),
+      this.network.topology.couplers.map((c) => c.address),
+    );
+  }
+
+  /** Called when an address or a programming mode changes. */
+  onInstallationChange(fn: () => void): () => void {
+    this.installationListeners.add(fn);
+    return () => this.installationListeners.delete(fn);
+  }
+
+  private installationChanged() {
+    this.installationListeners.forEach((fn) => fn());
   }
 
   /** Does the device have bus voltage on its segment? */

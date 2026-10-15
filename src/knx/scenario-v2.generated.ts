@@ -318,6 +318,68 @@ speed?: (number | "instant")
  */
 filterTables?: boolean
 }
+/**
+ * Commissioning: what the devices and couplers hold, apart from the project. With this section, each device runs the application it was downloaded with, and one without an application does nothing; devices and couplers not listed are as delivered (15.15.255 and 15.15.0, no application).
+ */
+installation?: {
+/**
+ * Devices of the project, with what they hold.
+ */
+devices?: {
+/**
+ * ID of the device in the project.
+ */
+device: string
+/**
+ * Individual address programmed in the device (15.15.255 by default).
+ */
+address?: string
+/**
+ * Programming LED on.
+ */
+programmingMode?: boolean
+/**
+ * Application downloaded: behavior, parameters, objects with their associations, keys, and the parameters and scenes of each channel, as in the device. Absent: no application loaded.
+ */
+application?: {
+
+}
+}[]
+/**
+ * Couplers and repeaters of the topology, with what they hold.
+ */
+couplers?: {
+/**
+ * Address of the coupler or repeater in the project (A.L.0, A.0.0, or the address of a line extension).
+ */
+coupler: string
+/**
+ * Individual address programmed in it (15.15.0 by default).
+ */
+address?: string
+/**
+ * Programming LED on.
+ */
+programmingMode?: boolean
+/**
+ * Application downloaded: filter table and routing of group telegrams. Absent: none, the coupler forwards no group telegram.
+ */
+application?: {
+/**
+ * Group addresses of the filter table; null for a repeater.
+ */
+filterTable?: (string[] | null)
+/**
+ * Group telegrams downwards.
+ */
+down?: ("filter" | "route" | "block")
+/**
+ * Group telegrams upwards.
+ */
+up?: ("filter" | "route" | "block")
+}
+}[]
+}
 }
 /**
  * TP line.
