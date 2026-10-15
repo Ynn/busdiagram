@@ -1,0 +1,171 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Link to ETS · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0">
+<script src="../assets/bus-diagram.js?v=0.7.0"></script>
+
+<script defer src="../assets/search-index.js?v=0.7.0"></script>
+
+<script defer src="../assets/docs.js?v=0.7.0" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/guide/ets.html" hreflang="fr" lang="fr">Français</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0" download="bus-diagram.js">Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li class="cur"><a href="../guide/ets.html">Link to ETS</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="link-a-diagram-to-ets"><a class="anchor" href="#link-a-diagram-to-ets">#</a>Link a diagram to ETS</h1><p>Any diagram can be linked to ETS on the same computer: the designer, the player, a page of a course, a file opened from disk. ETS then sees the simulated installation as a KNX installation reached through an interface: its group monitor shows the telegrams of the diagram, and a write or a read from ETS acts on the simulated devices.</p>
+<p>The link needs a small Windows program, <strong>BusDiagram-ETS</strong>, that ETS connects to as a KNXnet/IP tunnelling interface. The diagram&#39;s toolbar connects to it when the reader clicks <strong>Link to ETS</strong>.</p>
+<pre class="code"><code>ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:3761── diagram</code></pre><h2 id="get-the-program"><a class="anchor" href="#get-the-program">#</a>Get the program</h2><p>Download <code>BusDiagram-ETS.exe</code> from the <a href="https://github.com/Ynn/busdiagram/releases/latest">releases of BusDiagram</a> and start it: a window opens, to keep open during the session. It shows whether ETS and a diagram are connected, what to enter in ETS (with a button that copies the address), and a journal. It needs no installation; by default it is reachable from this computer only.</p>
+<p>Port 3672 is chosen so as not to compete with KNX Virtual, which uses 3671: both can run at the same time.</p>
+<h2 id="link-the-diagram"><a class="anchor" href="#link-the-diagram">#</a>Link the diagram</h2><ol>
+<li>Start BusDiagram-ETS.</li>
+<li>In the diagram&#39;s toolbar, click <strong>Link to ETS</strong>. The control shows <em>ETS: waiting for ETS</em>, then <em>ETS linked</em> once ETS is connected.</li>
+<li>In the ETS project, add the connection once (ETS 6.4: connection button at the right of the toolbar → <em>Manage configured connections</em> → <em>Add</em>): type <em>Tunneling IP</em>, address <code>127.0.0.1</code>, port <code>3672</code>, without NAT.</li>
+<li>Click <strong>Addresses for ETS</strong> in the toolbar and import the file in the ETS project (right-click <em>Group Addresses</em> → <em>Import Group Addresses</em>): the group monitor then decodes the values with the names and DPTs of the diagram.</li>
+<li>In ETS, open <em>Panels</em> → <em>Monitors</em> → <em>Group Monitor</em>, click <em>Start</em>, and choose the <em>Tunneling IP (127.0.0.1:3672)</em> connection.</li>
+</ol>
+<p>One diagram is linked at a time: linking another one disconnects the first, which says so. <strong>Disconnect</strong> ends the link; closing the program ends it too.</p>
+<h2 id="where-ets-reaches-the-bus"><a class="anchor" href="#where-ets-reaches-the-bus">#</a>Where ETS reaches the bus</h2><div class="table"><table>
+<thead>
+<tr>
+<th>The diagram has</th>
+<th>ETS reaches the bus</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>a USB or IP interface (<code>usbInterface/v1</code>)</td>
+<td>through that interface, on its line</td>
+<td>Exact: couplers filter as on a real installation; the interface&#39;s <code>groupAddresses</code> parameter decides what crosses them. With several interfaces, the toolbar lets the reader choose.</td>
+</tr>
+<tr>
+<td>no interface</td>
+<td>on the main line: the IP network, otherwise the backbone, otherwise the first main line, otherwise the line</td>
+<td>Simpler: every group address of the diagram is assigned to ETS, so couplers forward them to and from it while the link lasts; the filter tables show them.</td>
+</tr>
+</tbody></table>
+</div><p>Telegrams from ETS enter the bus there with their own source (the tunnel address, <code>15.15.251</code>), priority, routing counter and bytes. No DPT travels in a telegram: each receiving object decodes the bytes with its own DPT, and ignores a payload of another size, which the journal explains. Telegrams that reach the access point through the topology are sent to ETS, with the routing counter they have there.</p>
+<h2 id="while-linked"><a class="anchor" href="#while-linked">#</a>While linked</h2><ul>
+<li>The simulation runs in real time, also when its tab is in the background, since ETS keeps sending and waits for answers.</li>
+<li>A telegram from ETS is refused while the simulation is paused; it is not played later in a batch.</li>
+<li>The speed is <strong>Instant</strong> when the link opens: telegrams take the time of a real bus (about 20 ms each, and as long again for each coupler crossed), and the cables they reach light up without anything travelling. <strong>Animated</strong> shows them travel at the pace of the diagram instead: a telegram that crosses couplers then takes a few seconds to arrive, which ETS accepts.</li>
+<li>Step by step is not available.</li>
+</ul>
+<h2 id="limits"><a class="anchor" href="#limits">#</a>Limits</h2><div class="table"><table>
+<thead>
+<tr>
+<th>What</th>
+<th>In BusDiagram-ETS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Group communication (write, read, response)</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Device management (individual address, download of an application)</td>
+<td>No: the devices of the diagram are set in the diagram, not by ETS</td>
+</tr>
+<tr>
+<td>Bus monitor, KNX Secure</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Several diagrams at once</td>
+<td>No, one at a time</td>
+</tr>
+<tr>
+<td>Pages allowed to link</td>
+<td>Files from disk, pages served on this computer, <code>https://ynn.github.io</code>; others in the settings</td>
+</tr>
+</tbody></table>
+</div><h2 id="settings-of-the-program"><a class="anchor" href="#settings-of-the-program">#</a>Settings of the program</h2><p>The <strong>Settings</strong> section of the window changes, and keeps for the next sessions:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Setting</th>
+<th>Default</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Port for ETS (UDP)</td>
+<td>3672</td>
+<td>Another port if 3672 is taken; enter the same in the ETS connection.</td>
+</tr>
+<tr>
+<td>Port for the diagrams</td>
+<td>3761</td>
+<td>Another port if 3761 is taken; the diagram asks for it when it cannot connect.</td>
+</tr>
+<tr>
+<td>Accept ETS from another computer of the network</td>
+<td>off</td>
+<td>ETS on another computer connects to this computer&#39;s address, which the window shows. Any computer of the network can then send telegrams to the diagram; no real installation is involved. The firewall must let the UDP port through.</td>
+</tr>
+<tr>
+<td>Allowed sites</td>
+<td>none</td>
+<td>Sites, besides files, local pages and the published site, whose diagrams may link.</td>
+</tr>
+<tr>
+<td>Detailed journal</td>
+<td>off</td>
+<td>Every telegram in the journal.</td>
+</tr>
+</tbody></table>
+</div><p>When the diagram cannot reach the program, its toolbar offers to download it, and a <strong>Port</strong> field to give the program&#39;s port if it was changed; the browser remembers it.</p>
+<p>The same settings exist on the command line, without saving them, and <code>--no-gui</code> runs the program in a terminal:</p>
+<pre class="code"><code>BusDiagram-ETS.exe [--no-gui] [--ws-port 3761] [--tunnel-port 3672] [--remote-ets] [--allow-origin https://site] [--verbose]</code></pre><p>A page can also set the address of the program with the <code>bridge</code> option, and <code>bridge=&quot;none&quot;</code> hides the control:</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">bridge</span>=<span class="s">"ws://127.0.0.1:3761/ws"</span>&gt;</code></pre><h2 id="for-developers"><a class="anchor" href="#for-developers">#</a>For developers</h2><p>The program is in <code>ets-bridge/</code> (Rust): a tunnelling server limited to what ETS uses, and a WebSocket where each binary message is one cEMI frame. On the simulation side, <code>Simulation.ingest(access, telegram)</code> puts an external telegram on the bus, and <code>Simulation.tap(access, fn)</code> gives the telegrams at an access point, <code>{ device: &quot;usbInterface&quot; }</code> or <code>{ segment: &quot;L1.1&quot; }</code>.</p>
+
+<nav class="pager">
+<a href="../guide/usb-interface.html">← USB interface tool</a>
+<a href="../guide/language-models.html">Generate with a language model →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#get-the-program">Get the program</a></li><li><a href="#link-the-diagram">Link the diagram</a></li><li><a href="#where-ets-reaches-the-bus">Where ETS reaches the bus</a></li><li><a href="#while-linked">While linked</a></li><li><a href="#limits">Limits</a></li><li><a href="#settings-of-the-program">Settings of the program</a></li><li><a href="#for-developers">For developers</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.7.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+</body>
+</html>

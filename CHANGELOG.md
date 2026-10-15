@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.7.0] - 2026-10-15
+
 ### Added
 
 - Link to ETS: with the BusDiagram-ETS program running, the **Link to ETS** button of the full toolbar connects any diagram (designer, player, page, file) to ETS, which reaches the program as a KNXnet/IP tunnelling interface. The diagram's bus interface becomes the access point of ETS: a group telegram from ETS enters the bus there with its own bytes, source, priority and routing counter, and each receiver decodes it with its own DPT; the telegrams that reach the interface through the topology (after couplers and filters) are sent to ETS, whose group monitor shows them. While linked, the simulation runs in real time, also in a background tab, and telegrams from ETS are refused while it is paused. Option `bridge`: the program's WebSocket address, or `none` to hide the control.
