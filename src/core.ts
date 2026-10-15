@@ -10,7 +10,13 @@ import { translator } from "./i18n";
 export const version: string = packageVersion;
 
 export * from "./knx/contracts";
-export { Simulation, LONG_MS, TICK_MS, describeCommand } from "./knx/sim";
+export {
+  Simulation,
+  LONG_MS,
+  TICK_MS,
+  couplerTarget,
+  describeCommand,
+} from "./knx/sim";
 export type {
   Telegram,
   Reception,
@@ -79,6 +85,21 @@ export { configWarnings } from "./knx/consistency";
 export type { ConfigWarning } from "./knx/consistency";
 export { validateParams } from "./knx/params";
 export { toV2 } from "./knx/export";
+export {
+  downloadAll,
+  downloadApplication,
+  downloadStates,
+  installationAsProject,
+  programIndividualAddress,
+  scanLine,
+  unloadApplication,
+} from "./knx/commissioning";
+export type {
+  CommissioningResult,
+  DownloadState,
+  ScanRow,
+} from "./knx/commissioning";
+export { FACTORY_ADDRESS, FACTORY_COUPLER_ADDRESS } from "./knx/installation";
 export { registerMessages, translator, availableLanguages } from "./i18n";
 export type { Translate } from "./i18n";
 /** Type of JSON v2, generated from schema/scenario-v2.schema.json. */

@@ -4,6 +4,13 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Commissioning: with an `installation` section, a scenario keeps, apart from the project, what each device and coupler holds: its individual address, its programming mode, and the application it was downloaded with. Devices start as delivered (15.15.255, 15.15.0 for a coupler, no application): a device without an application does nothing, and a coupler without one forwards no group telegram. A device downloaded before a change of the project keeps its former settings and associations, and a coupler its former filter table. Guide page “Commissioning” (English and French).
+- Diagram: with commissioning, each device and coupler has a programming button with its LED beside its address, shows the address it holds when it differs from the project's, and says when it has no application.
+- Designer: **Simulate commissioning** in the Installation panel; the context menu of a device, a line coupler, an area coupler, or a line extension downloads as ETS does (all, individual address, partial, unload), and a line can be scanned. The device list of a line shows the download state as in the ETS topology (Adr, Prg, Par, Grp, Cfg). A **Commissioning** bar waits for the programming button, lists the devices in programming mode, brings the installation back to its delivery state or to the project, and keeps the history of the operations. The procedures refuse what ETS refuses (two programming LEDs, an address already held, no device at the address, another application program) and act on the device that answers, so that pressing the wrong programming button has its real consequence.
+- Engine: `Simulation` programming mode, individual address read and write, devices reachable at an address, and `installation()`; procedures `programIndividualAddress`, `downloadApplication`, `downloadAll`, `unloadApplication`, `scanLine`, `installationAsProject`, and `downloadStates`.
+
 ## [0.7.0] - 2026-10-15
 
 ### Added

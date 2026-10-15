@@ -1869,3 +1869,95 @@ bd-guided > .g-notice {
   background: transparent;
   border-color: transparent;
 }
+/* Commissioning: bar above the panels, download state in the lists. */
+.w-commission {
+  margin: 0 0 8px;
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--panel);
+  border-radius: 6px;
+  background: #fff;
+  font-size: 13px;
+}
+.w-commission-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 6px 10px;
+}
+.w-commission-bar > b {
+  margin-right: 4px;
+  color: var(--panel);
+}
+.w-commission-wait {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 10px;
+  border-top: 1px solid var(--line);
+  background: #fff6f5;
+}
+.w-commission-wait > span:nth-child(2) {
+  flex: 1;
+}
+.w-spin {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #e0241b;
+  box-shadow: 0 0 6px 2px rgba(224, 36, 27, 0.5);
+  animation: w-blink 1s ease-in-out infinite;
+}
+@keyframes w-blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .w-spin {
+    animation: none;
+  }
+}
+.w-commission-log {
+  list-style: none;
+  margin: 0;
+  padding: 4px 10px 6px;
+  border-top: 1px solid var(--line);
+  max-height: 7.5em;
+  overflow: auto;
+}
+.w-commission-log li {
+  padding: 2px 0;
+  line-height: 1.35;
+}
+.w-commission-log li > span {
+  display: inline-block;
+  width: 1.2em;
+  font-weight: 700;
+}
+.w-commission-log li.ok > span {
+  color: var(--bus);
+}
+.w-commission-log li.ko > span,
+.w-commission-log li.ko > b {
+  color: var(--red);
+}
+.w-commission-log time {
+  margin-right: 6px;
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--mute);
+}
+.w-commission-help {
+  margin: 0;
+  padding: 4px 10px 7px;
+  border-top: 1px solid var(--line);
+  color: var(--mute);
+}
+.w-dl {
+  font-weight: 700;
+  color: var(--red);
+}
+.w-dl.ok {
+  color: var(--bus);
+}

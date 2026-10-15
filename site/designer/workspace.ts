@@ -19,6 +19,7 @@ import { menuFor, menuView, openMenu } from "./ws-menu";
 import { renamable } from "./ws-rename";
 import { dataTable } from "./ws-table";
 import { buildingList, buildingTree, roomTarget } from "./ws-building";
+import { stateColumns } from "./ws-commission";
 import type { Column } from "./ws-table";
 import { tt } from "./params";
 import {
@@ -625,6 +626,7 @@ function topologyList(host: Host, doc: Doc, p: Panel): TemplateResult {
                 sort: (d) => host.typeLabel(d),
                 cell: (d) => host.typeLabel(d),
               },
+              ...stateColumns(doc),
             ],
             devs,
             (d, cells) =>

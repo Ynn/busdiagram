@@ -7,6 +7,8 @@ import type { PowerSupply, Scenario } from "./scenario";
 import { defaultInitial, defaultRead, defaultUpdate, portOf } from "./ports";
 import { defaultIcon } from "./scenario";
 import type { ScenarioV2 } from "./scenario-v2.generated";
+import { installationJson } from "./installation";
+import { buildTopology } from "./network";
 
 function withoutDefaults(
   values: JsonObject,
@@ -64,7 +66,22 @@ const psuV2 = (p: PowerSupply | null) =>
 export function toV2(
   s: Scenario,
   registry: Registry = captureRegistry(),
+  /** Section to write instead of the scenario's, such as the live one of a simulation. */
+  installation?: JsonObject | null,
 ): ScenarioV2 {
+  // With commissioning, the scenario's devices are the installed ones: write the project,
+  // and what the devices hold in its installation section.
+  if (s.project && s.commissioning) {
+    const v2 = toV2(s.project, registry);
+    const net = buildTopology(s.project);
+    v2.installation = (installation ??
+      installationJson(
+        s.commissioning,
+        s.project.devices.map((d) => d.id),
+        net.couplers.map((c) => c.address),
+      )) as ScenarioV2["installation"];
+    return v2;
+  }
   const out = {
     formatVersion: 2 as const,
     title: s.title || undefined,

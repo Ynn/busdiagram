@@ -41,7 +41,12 @@ import {
   gaName,
   parseClockStart,
 } from "../knx/scenario";
-import { LONG_MS, Simulation, describeCommand } from "../knx/sim";
+import {
+  LONG_MS,
+  Simulation,
+  couplerTarget,
+  describeCommand,
+} from "../knx/sim";
 import { EtsLink, type LinkStatus } from "../bridge/ets-link";
 import { etsGroupAddressXml } from "../knx/ets-export";
 import type { AccessPoint, StepStop, Telegram } from "../knx/sim";
@@ -937,10 +942,23 @@ export class BusDiagram extends LitElement {
     });
     // The timeline records each event at its own time, whatever the speed or frame rate.
     const offStep = sim.onStep(() => this.sampleTimeline());
+    // Commissioning: a programming button or an address written by ETS changes what the
+    // devices hold; a host page (the designer) keeps it in the scenario.
+    const offInstall = sim.onInstallationChange(() => {
+      this.requestUpdate();
+      this.dispatchEvent(
+        new CustomEvent("bd-installation", {
+          detail: { installation: sim.installation() },
+          bubbles: true,
+          composed: true,
+        }),
+      );
+    });
     this.unsubscribe = () => {
       offTel();
       offJournal();
       offStep();
+      offInstall();
     };
   }
 
@@ -954,7 +972,7 @@ export class BusDiagram extends LitElement {
     const token = this.loadToken;
     let scenario: unknown;
     try {
-      scenario = toV2(model);
+      scenario = toV2(model, undefined, this.sim?.installation());
     } catch {
       return;
     }
@@ -1889,10 +1907,13 @@ export class BusDiagram extends LitElement {
       return d.receiver ? [ga, lab] : [lab, ga];
     });
     const sel = this.info === "dev:" + d.id;
+    const commissioned =
+      sim.commissioning && sim.commissioningTargets().includes(d.id);
+    const unloaded = commissioned && !sim.applicationLoaded(d.id);
     return html`
       ${dg.plate ? this.renderPlate(d, dg, sim) : nothing}
       <div
-        class="card ${sup ? "sup" : ""} ${sim.devicePowered(d.id) ? "" : "unpowered"}"
+        class="card ${sup ? "sup" : ""} ${sim.devicePowered(d.id) ? "" : "unpowered"} ${unloaded ? "unloaded" : ""}"
         style="left:${dg.x}px;top:${dg.top}px;width:${dg.w}px;grid-auto-rows:${ROW - 1}px;${sel ? `box-shadow:0 0 0 4px ${hexA(C.cpl, 0.35)}` : ""}"
         title=${this.tr`Click to inspect objects and channels`}
         @click=${(e: Event) => {
@@ -1910,7 +1931,7 @@ export class BusDiagram extends LitElement {
         }}
       >
         <div class="cell ia">
-          ${d.address || "KNXnet/IP"}${
+          ${d.address || "KNXnet/IP"}${commissioned ? this.heldAddress(sim, d.id, d.address) : nothing}${
             d.presentation.remoteSystem
               ? html`<small class="sys"
                   >⇄ ${String(sim.deviceState(d.id).system ?? "")}</small
@@ -1918,11 +1939,47 @@ export class BusDiagram extends LitElement {
               : nothing
           }
         </div>
-        <div class="cell name" title=${d.name}>${d.name}</div>
+        <div class="cell name" title=${d.name}>
+          ${d.name}${
+            unloaded
+              ? html`<small class="unl" title=${this.tr`No application program loaded: download it from ETS (or the designer) for the device to work.`}
+                  >${this.tr`not loaded`}</small
+                >`
+              : nothing
+          }
+        </div>
         ${cells}
       </div>
       ${dg.loads.map((l) => this.renderLoad(d, l, sim))}
     `;
+  }
+
+  /**
+   * Programming button and LED of a device or coupler, then the individual address it
+   * holds when it is not the one of the project.
+   */
+  private heldAddress(sim: Simulation, target: string, project: string) {
+    const on = sim.programmingMode(target);
+    const held = sim.physicalAddress(target);
+    return html`<button
+        class="prog ${on ? "on" : ""}"
+        aria-pressed=${on ? "true" : "false"}
+        title=${on
+          ? this.tr`Programming mode on (red LED). Click to switch it off.`
+          : this.tr`Programming button: click to switch the programming mode on.`}
+        @click=${(e: Event) => {
+          e.stopPropagation();
+          sim.pressProgrammingButton(target);
+          this.requestUpdate();
+        }}
+      ></button
+      >${held !== project
+        ? html`<small
+            class="held"
+            title=${this.tr`Individual address held by the device: ${held}. The project gives ${project}.`}
+            >${held}</small
+          >`
+        : nothing}`;
   }
 
   private renderPlate(d: Device, dg: DevG, sim: Simulation) {
@@ -2247,7 +2304,17 @@ export class BusDiagram extends LitElement {
         }}
       >
         <b style="color:${col}">${sim.network.couplerName(topoC)}</b
-        ><span>${c.address}</span>
+        ><span
+          >${c.address}${
+            sim.commissioning
+              ? this.heldAddress(sim, couplerTarget(c.address), c.address)
+              : nothing
+          }</span
+        >${
+          sim.commissioning && !sim.applicationLoaded(couplerTarget(c.address))
+            ? html`<small class="unl">${this.tr`not loaded`}</small>`
+            : nothing
+        }
       </div>
       ${
         this.showTables

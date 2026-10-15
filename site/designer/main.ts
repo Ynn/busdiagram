@@ -6,7 +6,7 @@ import { redo, undo } from "@codemirror/commands";
 import { json, jsonParseLinter } from "@codemirror/lang-json";
 import type { Diagnostic } from "@codemirror/lint";
 import { lintGutter, linter } from "@codemirror/lint";
-import { EditorSelection } from "@codemirror/state";
+import { EditorSelection, Transaction } from "@codemirror/state";
 import { EditorView, basicSetup } from "codemirror";
 import {
   ScenarioError,
@@ -45,6 +45,8 @@ import { setDesignerLanguage, t } from "./lang";
 import { initLayout } from "./layout";
 import { SnippetRefusal } from "./snippet-kit";
 import { TEMPLATES } from "./standard-designer";
+import { installationChanged } from "./ws-commission";
+import type { JsonObject } from "../../src/knx/contracts";
 
 // ── Language: saved choice, or English on first use ──
 const LANG = "bus-diagram-designer-lang";
@@ -492,6 +494,56 @@ guided.redo = () => redo(editor);
 $("#undo-btn").addEventListener("click", () => undo(editor));
 $("#redo-btn").addEventListener("click", () => redo(editor));
 guided.onSelect = (id) => (guided.selected = id);
+
+// ── Commissioning ──
+/**
+ * Write the installation section, outside the undo history: what the devices hold is not
+ * an edit of the project. Only the changed part of the text is replaced, so that the undo
+ * history of the project stays valid. `restart`: an application changed, the preview
+ * loads the scenario again; otherwise it already runs this state.
+ */
+function setInstallation(installation: JsonObject, restart: boolean) {
+  const old = editor.state.doc.toString();
+  const a = analyze(old);
+  if (!a.valid || !a.data || typeof a.data !== "object") return;
+  const text = formatJson({
+    ...(a.data as Record<string, unknown>),
+    installation,
+  });
+  if (!restart) loaded = JSON.stringify(JSON.parse(text));
+  let from = 0;
+  while (from < old.length && from < text.length && old[from] === text[from])
+    from++;
+  let end = 0;
+  while (
+    end < old.length - from &&
+    end < text.length - from &&
+    old[old.length - 1 - end] === text[text.length - 1 - end]
+  )
+    end++;
+  if (from === old.length && from === text.length) return;
+  editor.dispatch({
+    changes: {
+      from,
+      to: old.length - end,
+      insert: text.slice(from, text.length - end),
+    },
+    userEvent: "guided",
+    annotations: Transaction.addToHistory.of(false),
+  });
+}
+guided.commissioner = {
+  sim: () => preview.simulation,
+  apply: setInstallation,
+};
+// A programming button pressed in the diagram, or an address written by ETS.
+preview.addEventListener("bd-installation", (e) => {
+  const { installation } = (
+    e as CustomEvent<{ installation: JsonObject | null }>
+  ).detail;
+  if (installation) setInstallation(installation, false);
+  installationChanged(guided);
+});
 preview.addEventListener("bd-select", (e) => {
   guided.selected = (e as CustomEvent<{ deviceId: string }>).detail.deviceId;
   showTab("guided");

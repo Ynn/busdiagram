@@ -6,6 +6,8 @@ import type { Registry } from "../../src/knx/registry";
 import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { t } from "./lang";
+import type { CommissionState, Commissioner } from "./ws-commission";
+import { initialCommission } from "./ws-commission";
 
 export type PanelContent =
   "topology" | "addresses" | "building" | "catalog" | "installation";
@@ -41,6 +43,8 @@ export interface WorkspaceState {
   catalogSel: string | null;
   /** Context menu open at a position of the window. */
   menu: { x: number; y: number; items: MenuItem[] } | null;
+  /** Commissioning: operation waiting for a programming button, history. */
+  commission: CommissionState;
 }
 
 export interface MenuItem {
@@ -66,6 +70,8 @@ export interface Host {
   topologySettings(doc: Doc): TemplateResult;
   lineSettings(doc: Doc, l: Doc["lines"][number]): TemplateResult;
   typeLabel(d: Dev): string;
+  /** Commissioning on the preview's simulation. */
+  commissioner: Commissioner;
 }
 
 const STORE = "busdiagram.designer.panels";
@@ -132,6 +138,7 @@ export function initialWorkspace(): WorkspaceState {
     catalogLine: "",
     catalogSel: null,
     menu: null,
+    commission: initialCommission(),
   };
 }
 

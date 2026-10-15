@@ -1132,4 +1132,14 @@ export const frMessages: Record<string, string> = {
     "{0} n'est pas dans la table de filtrage téléchargée dans le coupleur",
   "no application downloaded: the coupler forwards no group telegram":
     "aucune application téléchargée : le coupleur ne transmet aucun télégramme de groupe",
+  // Commissioning.
+  "No application program loaded: download it from ETS (or the designer) for the device to work.":
+    "Aucun programme d'application chargé : téléchargez-le depuis ETS (ou le designer) pour que le participant fonctionne.",
+  "not loaded": "non chargé",
+  "Programming mode on (red LED). Click to switch it off.":
+    "Mode programmation activé (LED rouge). Cliquez pour le désactiver.",
+  "Programming button: click to switch the programming mode on.":
+    "Bouton de programmation : cliquez pour activer le mode programmation.",
+  "Individual address held by the device: {0}. The project gives {1}.":
+    "Adresse individuelle contenue dans le participant : {0}. Le projet lui donne {1}.",
 };

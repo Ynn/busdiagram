@@ -872,4 +872,52 @@ export const designerFr: Record<string, string> = {
   "The scene object of this output has no group address yet: link it to the scene address in the Group objects tab.":
     "L'objet scène de cette sortie n'a pas encore d'adresse de groupe : liez-le à l'adresse de scène dans l'onglet Objets de groupe.",
   "DALI scenes go from 1 to 16.": "Les scènes DALI vont de 1 à 16.",
+  // Commissioning.
+  "Individual address programmed in the device":
+    "Adresse individuelle programmée dans le participant",
+  "Application program loaded": "Programme d'application chargé",
+  "Parameters downloaded and up to date": "Paramètres téléchargés et à jour",
+  "Group addresses (associations) downloaded and up to date":
+    "Adresses de groupe (associations) téléchargées et à jour",
+  "Configuration (flags, DPTs, priorities) downloaded and up to date":
+    "Configuration (indicateurs, DPT, priorités) téléchargée et à jour",
+  "To download": "À télécharger",
+  "The preview does not simulate commissioning yet.":
+    "L'aperçu ne simule pas encore la mise en service.",
+  "Download all (individual address and application)":
+    "Téléchargement complet (adresse individuelle et application)",
+  "Download: individual address": "Télécharger : adresse individuelle",
+  "Download: partial (application)":
+    "Télécharger : téléchargement partiel (application)",
+  "Unload the application": "Décharger l'application",
+  "Scan the line": "Scanner la ligne",
+  "Line scan {0}": "Scan de la ligne {0}",
+  "(no application)": "(sans application)",
+  "(coupler)": "(coupleur)",
+  "programming mode": "mode programmation",
+  "No device answers on line {0}.":
+    "Aucun participant ne répond sur la ligne {0}.",
+  "Devices in programming mode": "Participants en mode programmation",
+  "No device is in programming mode.":
+    "Aucun participant n'est en mode programmation.",
+  Commissioning: "Mise en service",
+  "Every device and coupler back to its delivery state: address 15.15.255 (15.15.0 for a coupler), no application.":
+    "Tous les participants et coupleurs reviennent à l'état de livraison : adresse 15.15.255 (15.15.0 pour un coupleur), sans application.",
+  "Delivery state": "État de livraison",
+  "Every device is back to its delivery state.":
+    "Tous les participants sont revenus à l'état de livraison.",
+  "Every device and coupler holds the project, as after a complete download.":
+    "Chaque participant et coupleur contient le projet, comme après un téléchargement complet.",
+  "Installation as the project": "Installation conforme au projet",
+  "Every device holds its address and application of the project.":
+    "Chaque participant contient son adresse et son application du projet.",
+  "As the project": "Conforme au projet",
+  "Cancelled.": "Annulé.",
+  "Devices start as delivered. Right-click a device: Download all, then press its programming button in the diagram (the small square beside its address).":
+    "Les participants sont à l'état de livraison. Clic droit sur un participant : Téléchargement complet, puis appuyez sur son bouton de programmation dans le schéma (le petit carré à côté de son adresse).",
+  "Simulate commissioning": "Simuler la mise en service",
+  "The devices hold what was downloaded into them: they start as delivered (15.15.255, no application). Program them with the Download commands of their context menu and their programming button in the diagram, or from ETS through Link to ETS. A change of the project takes effect once downloaded.":
+    "Les participants contiennent ce qui y a été téléchargé : ils démarrent à l'état de livraison (15.15.255, sans application). Programmez-les avec les commandes Télécharger de leur menu contextuel et leur bouton de programmation dans le schéma, ou depuis ETS avec Relier à ETS. Une modification du projet ne prend effet qu'une fois téléchargée.",
+  "Without it, the diagram runs the project as if every device were already programmed. With it, students program the individual addresses and download the applications, as on a training board.":
+    "Sans elle, le schéma exécute le projet comme si chaque participant était déjà programmé. Avec elle, les étudiants programment les adresses individuelles et téléchargent les applications, comme sur une maquette.",
 };

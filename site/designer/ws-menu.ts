@@ -15,6 +15,7 @@ import {
 } from "./ws-state";
 import type { Host, MenuItem, Panel } from "./ws-state";
 import { outputOf } from "./ws-building";
+import { downloadItems, lineCouplers, scanItem } from "./ws-commission";
 
 // ── Context menus ────────────────────────────────────────────────────────────
 
@@ -144,6 +145,9 @@ export function menuFor(
           label: t`Add line`,
           run: () => host.run(t`New line`, (d) => void E.addLine(d, a)),
         },
+        ...lineCouplers(doc, `area:${a}`).flatMap((c) =>
+          downloadItems(host, `cpl:${c.address}`, c.name),
+        ),
         {
           label: t`Delete area`,
           run: () =>
@@ -162,6 +166,12 @@ export function menuFor(
       const l = doc.lines.find((x) => String(x.address) === line);
       items.push({ label: t`Add devices…`, run: addDevices(line) });
       if (kind === "line") items.push(...rename());
+      items.push(...scanItem(host, line));
+      // Couplers of the line, downloaded as devices are.
+      if (kind === "line")
+        lineCouplers(doc, line).forEach((c) =>
+          items.push(...downloadItems(host, `cpl:${c.address}`, c.name)),
+        );
       if (l)
         items.push(
           l.extension
@@ -210,6 +220,7 @@ export function menuFor(
           label: t`Parameters`,
           run: () => openTab(host, key, "dev", "parameters"),
         },
+        ...downloadItems(host, key, `${dv?.address ?? ""} ${dv?.name ?? rest}`),
         ...rename(),
         {
           label: t`Order group objects by number`,

@@ -20,6 +20,8 @@ import { TEMPLATES, designerOf } from "./standard-designer";
 import type { Host, WorkspaceState } from "./workspace";
 import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
 import { savePanels } from "./ws-state";
+import type { Commissioner } from "./ws-commission";
+import { commissionBar, pruneInstallation } from "./ws-commission";
 import * as P from "./params";
 import { defaultEquipmentParams, tt } from "./params";
 
@@ -53,6 +55,8 @@ export class GuidedEditor extends LitElement implements Host {
   undo: () => void = () => {};
   redo: () => void = () => {};
   onSelect: (id: string | null) => void = () => {};
+  /** Commissioning on the preview's simulation (set by the designer). */
+  commissioner: Commissioner = { sim: () => null, apply: () => {} };
   /** Track existing devices so a newly added one opens immediately. */
   private selectAdded: Set<string> | null = null;
   /** Expanded cards (keys and outputs), preserved across renders. */
@@ -142,6 +146,8 @@ export class GuidedEditor extends LitElement implements Host {
     const refusal = this.commit(label, (d) => {
       const before = E.dptMixes(d);
       const out = mutate(d);
+      // What the devices hold follows the project: a deleted device leaves the installation.
+      pruneInstallation(d);
       mixed = [...E.dptMixes(d)].filter(
         ([ga, dpts]) => (before.get(ga)?.length ?? 0) < dpts.length,
       );
@@ -274,7 +280,8 @@ export class GuidedEditor extends LitElement implements Host {
             </div>`
           : nothing
       }
-      ${this.draft ? this.draftView() : nothing} ${renderWorkspace(this, doc)}
+      ${this.draft ? this.draftView() : nothing} ${commissionBar(this, doc)}
+      ${renderWorkspace(this, doc)}
     `;
   }
 
@@ -377,8 +384,39 @@ export class GuidedEditor extends LitElement implements Host {
           true,
         )}
       </section>
-      ${this.clockSection(doc)} ${this.roomsSection(doc)}
+      ${this.clockSection(doc)} ${this.commissioningSection(doc)}
+      ${this.roomsSection(doc)}
     `;
+  }
+
+  /** Commissioning: the devices start as delivered and are programmed as with ETS. */
+  private commissioningSection(doc: Doc) {
+    const on =
+      typeof doc.installation === "object" && doc.installation !== null;
+    return html`<section class="g-sec">
+      <h3>${t`Commissioning`}</h3>
+      <label class="g-check"
+        ><input
+          type="checkbox"
+          .checked=${live(on)}
+          @change=${(e: Event) => {
+            const v = (e.target as HTMLInputElement).checked;
+            this.ws.commission.pending = null;
+            this.run(t`Commissioning`, (d) =>
+              v ? (d.installation = {}) : delete d.installation,
+            );
+          }}
+        />
+        ${t`Simulate commissioning`}</label
+      >
+      <p class="g-hint">
+        ${
+          on
+            ? t`The devices hold what was downloaded into them: they start as delivered (15.15.255, no application). Program them with the Download commands of their context menu and their programming button in the diagram, or from ETS through Link to ETS. A change of the project takes effect once downloaded.`
+            : t`Without it, the diagram runs the project as if every device were already programmed. With it, students program the individual addresses and download the applications, as on a training board.`
+        }
+      </p>
+    </section>`;
   }
 
   /** Simulated clock used by clock masters, time switches, and time windows. */

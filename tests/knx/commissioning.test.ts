@@ -13,6 +13,7 @@ import {
   unloadApplication,
 } from "../../src/knx/commissioning";
 import type { CommissioningResult } from "../../src/knx/commissioning";
+import { toV2 } from "../../src/knx/export";
 import { buildScenario } from "../../src/knx/scenario";
 import type { ScenarioError } from "../../src/knx/scenario";
 import type { Simulation } from "../../src/knx/sim";
@@ -78,7 +79,7 @@ describe("installation section", () => {
     expect(sim.history).toHaveLength(0);
     expect(lampOn(sim, "sa", "s1")).toBe(false);
     expect(
-      sim.journal.some((e) => /no application program/.test(e.message)),
+      sim.journal.some((e) => /no application program/.test(e.message ?? "")),
     ).toBe(true);
   });
 
@@ -311,12 +312,26 @@ describe("couplers", () => {
       sim,
       downloadApplication(doc, sim, "coupler:1.1.0"),
     ));
-    ({ sim } = apply(
-      doc,
-      sim,
-      downloadApplication(doc, sim, "coupler:1.2.0"),
-    ));
+    ({ sim } = apply(doc, sim, downloadApplication(doc, sim, "coupler:1.2.0")));
     press(sim);
     expect(lampOn(sim, "sa", "s1")).toBe(true);
+  });
+});
+
+describe("export", () => {
+  it("writes the project and its installation section, not the installed devices", () => {
+    const doc = project();
+    doc.installation = installationAsProject(doc);
+    const devices = (doc.devices as Rec[]).map((d) =>
+      d.id === "sa" ? actuator("sa", "1.1.2", "1/1/2") : d,
+    );
+    const v2 = toV2(buildScenario({ ...doc, devices })) as unknown as Rec;
+    const sa = (v2.devices as Rec[]).find((d) => d.id === "sa")!;
+    expect((sa.objects as Rec[])[0]!.ga).toBe("1/1/2");
+    const held = (v2.installation as { devices: Rec[] }).devices.find(
+      (d) => d.device === "sa",
+    )!;
+    expect(((held.application as Rec).objects as Rec[])[0]!.ga).toBe("1/1/1");
+    expect(() => buildScenario(v2)).not.toThrow();
   });
 });

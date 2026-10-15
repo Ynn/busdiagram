@@ -865,6 +865,56 @@ export const styles = css`
     opacity: 0.55;
     filter: grayscale(0.8);
   }
+  /* Commissioning: programming button with its LED, address held, no application. */
+  .prog {
+    width: 15px;
+    height: 15px;
+    margin-left: 7px;
+    padding: 0;
+    border: 1.5px solid #6b6146;
+    border-radius: 3px;
+    background: #e9e4d4;
+    cursor: pointer;
+    vertical-align: -2px;
+    position: relative;
+    flex: none;
+  }
+  .prog::after {
+    content: "";
+    position: absolute;
+    inset: 3px;
+    border-radius: 50%;
+    background: #9b9076;
+  }
+  .prog.on::after {
+    background: #e0241b;
+    box-shadow: 0 0 6px 2px rgba(224, 36, 27, 0.7);
+  }
+  .prog:focus-visible {
+    outline: 2px solid ${unsafeCSS(C.cpl)};
+    outline-offset: 1px;
+  }
+  .held {
+    margin-left: 6px;
+    font-size: 11.5px;
+    letter-spacing: 0;
+    color: #b3261e;
+  }
+  .held::before {
+    content: "≠ ";
+  }
+  .coupler .held {
+    font-size: 11px;
+  }
+  .unl {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: #b3261e;
+  }
+  .card.unloaded > .cell:not(.ia):not(.name) {
+    opacity: 0.45;
+  }
   .zone {
     position: absolute;
     border-radius: 18px;
