@@ -39,15 +39,24 @@ const names = (await readdir(resolve(root, "scenarios")))
   .sort((a, b) => rank(a) - rank(b) || a.localeCompare(b));
 const scenarios = new Map();
 for (const n of names)
-  scenarios.set(n, JSON.parse(await readFile(resolve(root, "scenarios", `${n}.json`), "utf8")));
+  scenarios.set(
+    n,
+    JSON.parse(await readFile(resolve(root, "scenarios", `${n}.json`), "utf8")),
+  );
 
 // Extension examples: scenario and classic scripts loaded after the bundle.
 const extensionExamples = [
-  { id: "extension-delayed-switch", file: "site/samples/extensions/delayed-switch.json" },
+  {
+    id: "extension-delayed-switch",
+    file: "site/samples/extensions/delayed-switch.json",
+  },
 ];
 const extensionScripts = ["delayed-switch.js", "led-lamp-view.js"];
 for (const e of extensionExamples)
-  scenarios.set(e.id, JSON.parse(await readFile(resolve(root, e.file), "utf8")));
+  scenarios.set(
+    e.id,
+    JSON.parse(await readFile(resolve(root, e.file), "utf8")),
+  );
 
 // Offline demo: one section per scenario, followed by extension examples.
 const section = (id, note = "") => `    <section>${note}
@@ -95,4 +104,6 @@ ${sections}
 </html>
 `;
 await writeFile(resolve(root, "demo/offline.html"), demo);
-console.log(`demo/offline.html : ${names.length} scenario(s), ${extensionExamples.length} extension example(s).`);
+console.log(
+  `demo/offline.html : ${names.length} scenario(s), ${extensionExamples.length} extension example(s).`,
+);

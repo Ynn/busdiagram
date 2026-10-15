@@ -1,5 +1,6 @@
 import { rm } from "node:fs/promises";
 import { resolve, join } from "node:path";
+import { pathToFileURL } from "node:url";
 import { build } from "vite";
 
 export async function loadData(root) {
@@ -15,7 +16,9 @@ export async function loadData(root) {
       rollupOptions: { output: { format: "es", entryFileNames: "data.mjs" } },
     },
   });
-  const mod = await import(join(tmp, "data.mjs") + `?t=${Date.now()}`);
+  // A file URL, not a native path: on Windows "C:\…" would be read as a URL scheme.
+  const mod = await import(
+    `${pathToFileURL(join(tmp, "data.mjs")).href}?t=${Date.now()}`
+  );
   return { ...mod.data, normalize: mod.normalize, validate: mod.validate };
 }
-

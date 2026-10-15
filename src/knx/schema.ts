@@ -307,10 +307,12 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
         additionalProperties: false,
         properties: {
           speed: {
-            type: "number",
-            exclusiveMinimum: 0,
+            anyOf: [
+              { type: "number", exclusiveMinimum: 0 },
+              { const: "instant" },
+            ],
             description:
-              "Initial speed (1 = normal simulated time, 0.35 = slower).",
+              'Initial speed (1 = normal simulated time, 0.35 = slower). "instant": real time, telegrams as fast as on a real bus (about 20 ms), not animated.',
           },
           filterTables: {
             type: "boolean",

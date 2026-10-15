@@ -1,12 +1,16 @@
 # Release a version from its tag (vX.Y.Z), created by `npm version patch|minor|major`.
 # 1. build:    check that the tag matches package.json, CHANGELOG.md, and README.md, then
 #              run every check and build the package and the documentation site once.
+#    windows:  check and build BusDiagram-ETS, the program that links a diagram to ETS,
+#              and its archive (BusDiagram-ETS-X.Y.Z-windows-x64.zip and its .sha256).
+#              Nothing is published unless both builds succeed.
 # 2. npm:      stage that build on npm (trusted publishing, no token). Staged publishing
 #              keeps the version private until a maintainer approves it with 2FA, on
 #              npmjs.com (account menu, Staged Packages) or with `npm stage approve`.
 # 3. approval: wait until the version is public on npm, then check that the published
 #              file is identical to the build, since the site refers to it by integrity hash.
-# 4. github:   create the GitHub release with the distributed files and the CHANGELOG notes.
+# 4. github:   create the GitHub release with the distributed files, the BusDiagram-ETS
+#              archive and the CHANGELOG notes; on a rerun, add the files that are missing.
 # 5. pages:    deploy the documentation, designer, and player built from the same tag, so
 #              the site always describes and pins a version that exists on npm.
 # Every step can be rerun: run this workflow manually on the tag (Actions → Release → Run
@@ -63,8 +67,43 @@ jobs:
         with:
           path: docs
 
+  windows:
+    runs-on: windows-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7
+      - if: github.ref_type != 'tag'
+        run: |
+          echo "::error::Run this workflow on a version tag, not on a branch."
+          exit 1
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      # The program carries the version of the tag (Cargo.toml, set by npm version).
+      - run: node scripts/check-version.mjs "$env:GITHUB_REF_NAME"
+      # The Rust version that ets-bridge declares (rust-version), so that it stays true.
+      - name: Rust 1.95
+        run: |
+          rustup toolchain install 1.95 --profile minimal --component clippy,rustfmt
+          rustup default 1.95
+      - run: cargo fmt --check
+        working-directory: ets-bridge
+      - run: cargo clippy --all-targets --locked -- -D warnings
+        working-directory: ets-bridge
+      - run: cargo test --locked
+        working-directory: ets-bridge
+      - run: node scripts/build-ets.mjs --archive
+      - uses: actions/upload-artifact@v7
+        with:
+          name: busdiagram-ets
+          path: |
+            dist-ets/*.zip
+            dist-ets/*.zip.sha256
+          if-no-files-found: error
+
   npm:
-    needs: build
+    needs: [build, windows]
     runs-on: ubuntu-latest
     environment: npm
     permissions:
@@ -141,7 +180,7 @@ jobs:
           }
 
   github:
-    needs: approval
+    needs: [approval, windows]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -151,15 +190,27 @@ jobs:
         with:
           name: dist
           path: dist
+      - uses: actions/download-artifact@v8
+        with:
+          name: busdiagram-ets
+          path: dist-ets
       - name: Create the GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          version="${GITHUB_REF_NAME#v}"
+          ets="dist-ets/BusDiagram-ETS-$version-windows-x64.zip"
+          test -f "$ets" && test -f "$ets.sha256" || {
+            echo "::error::$ets is missing from the windows job."
+            exit 1
+          }
+          cp dist/bus-diagram.js dist/bus-diagram.esm.js dist/THIRD_PARTY_NOTICES.txt .
+          files=(bus-diagram.js bus-diagram.esm.js THIRD_PARTY_NOTICES.txt "$ets" "$ets.sha256")
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "Release $GITHUB_REF_NAME already exists."
+            # A rerun completes an existing release: same files, replaced if present.
+            gh release upload "$GITHUB_REF_NAME" "${files[@]}" --clobber
             exit 0
           fi
-          version="${GITHUB_REF_NAME#v}"
           # Notes: the CHANGELOG.md section of this version, without its heading.
           awk -v v="$version" '
             index($0, "## [" v "]") == 1 { on = 1; next }
@@ -170,10 +221,9 @@ jobs:
             echo
             echo "npm: https://www.npmjs.com/package/bus-diagram/v/$version"
             echo "CDN: https://cdn.jsdelivr.net/npm/bus-diagram@$version/dist/bus-diagram.js"
+            echo "BusDiagram-ETS (Windows, link to ETS): BusDiagram-ETS-$version-windows-x64.zip"
           } >> notes.md
-          cp dist/bus-diagram.js dist/bus-diagram.esm.js dist/THIRD_PARTY_NOTICES.txt .
-          gh release create "$GITHUB_REF_NAME" \
-            bus-diagram.js bus-diagram.esm.js THIRD_PARTY_NOTICES.txt \
+          gh release create "$GITHUB_REF_NAME" "${files[@]}" \
             --title "BusDiagram $version" --notes-file notes.md --verify-tag
 
   pages:

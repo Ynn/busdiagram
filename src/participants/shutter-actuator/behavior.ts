@@ -179,7 +179,10 @@ function haltMotion(ctx: Ctx, ch: string): boolean {
   ctx.cancel(`${ch}:start`);
   ctx.cancel(`${ch}:stop`);
   if (st.phase !== "moving") {
+    // A pending order is cancelled entirely: a slat target left behind would make the
+    // next position order turn the slats instead of moving the blind.
     st.phase = "idle";
+    st.targetSlatPct = null;
     return false;
   }
   st.estimatedPositionPct = projectEstimate(

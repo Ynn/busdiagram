@@ -220,6 +220,11 @@ function control(ctx: TCtx, dtMs: number) {
       );
       st.valuePct = num(p.sensorFaultValuePct, 0);
       st.switchOn = st.valuePct > 0;
+    }
+    // The fault is reported once, but the fault value is maintained for as long as it
+    // lasts: sent again on its cycle (valueCyclicMs) so that a monitoring actuator does
+    // not fall into its own fault, and modulated on a one-bit output like any value.
+    if (st.sensorFault) {
       sendValue(ctx);
       pwm(ctx);
     }
@@ -957,7 +962,10 @@ export const roomThermostat: BehaviorDefinition<ThermostatState> = {
       const dt = st.elapsedMs;
       st.elapsedMs = 0;
       control(ctx, dt);
-    } else if (P(ctx).controlType !== "twoPoint" && st.measuredC !== null)
+    } else if (
+      P(ctx).controlType !== "twoPoint" &&
+      (st.measuredC !== null || st.sensorFault)
+    )
       pwm(ctx);
   },
   onObjectWrite(ctx, e) {

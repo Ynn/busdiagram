@@ -16,6 +16,8 @@ export type {
   Reception,
   StepStop,
   SimulationOptions,
+  ExternalTelegram,
+  TapEvent,
 } from "./knx/sim";
 export { buildScenario, ScenarioError, gaName } from "./knx/scenario";
 export type {
@@ -35,10 +37,18 @@ export {
   equipmentIds,
 } from "./knx/registry";
 export type { Registry } from "./knx/registry";
-export { Network, buildTopology, TIMING, RC0 } from "./knx/network";
+export {
+  Network,
+  buildTopology,
+  TIMING,
+  RC0,
+  busFrameMs,
+  busTiming,
+} from "./knx/network";
 export type {
   CouplerPlan,
   CouplerReason,
+  TimingProfile,
   Topology,
   TransportPlan,
 } from "./knx/network";
@@ -53,6 +63,18 @@ export {
   formatValue,
 } from "./knx/dpt";
 export { buildFrame, hex } from "./knx/format";
+export {
+  CemiError,
+  decodeCemi,
+  encodeCemi,
+  L_DATA_CON,
+  L_DATA_IND,
+  L_DATA_REQ,
+} from "./knx/cemi";
+export type { CemiGroupFrame } from "./knx/cemi";
+export { EtsLink } from "./bridge/ets-link";
+export { etsDpt, etsGroupAddressXml } from "./knx/ets-export";
+export type { LinkStatus, EtsLinkOptions } from "./bridge/ets-link";
 export { configWarnings } from "./knx/consistency";
 export type { ConfigWarning } from "./knx/consistency";
 export { validateParams } from "./knx/params";

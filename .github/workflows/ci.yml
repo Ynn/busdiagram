@@ -1,5 +1,5 @@
 # Checks every push to main and every pull request: lint, types, unit tests, build,
-# publication checks, and browser tests. Nothing is published here: the npm package and
+# publication checks, and browser tests; and, on Windows, the BusDiagram-ETS program. Nothing is published here: the npm package and
 # the documentation site are published together by release.yml, from a version tag.
 name: CI
 
@@ -40,3 +40,31 @@ jobs:
       # locally only.
       - run: npx playwright install --with-deps chromium
       - run: npx playwright test --grep-invert "reference screenshots"
+
+  ets-bridge:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+      # The Rust version that ets-bridge declares (rust-version), so that it stays true.
+      - name: Rust 1.95
+        run: |
+          rustup toolchain install 1.95 --profile minimal --component clippy,rustfmt
+          rustup default 1.95
+      - run: cargo fmt --check
+        working-directory: ets-bridge
+      - run: cargo clippy --all-targets --locked -- -D warnings
+        working-directory: ets-bridge
+      - run: cargo test --locked
+        working-directory: ets-bridge
+      # The package as students get it: program, notices of its components, archive.
+      - run: node scripts/build-ets.mjs --archive
+      - uses: actions/upload-artifact@v7
+        with:
+          name: busdiagram-ets
+          path: |
+            dist-ets/*.zip
+            dist-ets/*.zip.sha256
+          if-no-files-found: error

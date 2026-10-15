@@ -46,7 +46,7 @@ Load `bus-diagram.js` to expose `window.BusDiagram`.
 | `play()`, `pause()` | Resume or pause simulated time. |
 | `advance(ms)` | Advance by a nonnegative number of simulated milliseconds, even while paused. |
 | `stepToNextEvent()` | Advance to the next explanatory event; return `{ timeMs, events }` or `null`. |
-| `setSpeed(n)` | Set a positive simulation speed. |
+| `setSpeed(n)` | Set a positive simulation speed, or `"instant"`: real time, telegrams as fast as on a real bus, not animated. |
 | `getState()` | Return a serializable copy of current state. |
 | `on(name, handler)` | Subscribe to `telegram`, `ready`, or `error`; return an unsubscribe function. |
 | `groupWrite(address, value, interface?)` | Write a group value through the scenario's USB interface. |

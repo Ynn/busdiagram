@@ -6,7 +6,10 @@ const root = resolve(import.meta.dirname, "..");
 
 const site = notices(SITE);
 await writeFile(
-  resolve(root, "docs/THIRD_PARTY_NOTICES.txt"),
+  resolve(
+    process.env.BUS_DIAGRAM_SITE_OUT ?? resolve(root, "docs"),
+    "THIRD_PARTY_NOTICES.txt",
+  ),
   `Licenses for third-party components distributed with this site.\n\n${site.text}\n`,
 );
 const library = notices(LIBRARY);

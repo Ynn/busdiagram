@@ -169,7 +169,9 @@ describe("guided designer: DPT of a group address", () => {
     const doc = v2("lighting-control.json");
     const ga = E.newGa(doc, "1.001", "Libre");
     E.setGaField(doc, ga, "dpt", "5.001");
-    expect(doc.groupAddresses.find((g) => g.address === ga)!.dpt).toBe("5.001");
+    expect(doc.groupAddresses!.find((g) => g.address === ga)!.dpt).toBe(
+      "5.001",
+    );
     valid(doc);
   });
 });
@@ -756,5 +758,35 @@ describe("guided designer: values entered in the diagram", () => {
       p.items.flatMap((i) => ("groupObject" in i ? [i.groupObject] : [])),
     );
     expect(ports).toEqual(expect.arrayContaining(["power", "energy"]));
+  });
+});
+
+describe("guided designer: a scenario without the optional groupAddresses (UI-01)", () => {
+  const bare = () => {
+    const doc = v2("lighting-control.json");
+    delete doc.groupAddresses;
+    valid(doc);
+    return doc;
+  };
+
+  it("lists the addresses that objects use, and their DPT", () => {
+    const doc = bare();
+    const gas = E.gasIn(doc);
+    expect(gas.length).toBeGreaterThan(0);
+    expect(E.gaDpt(doc, gas[0]!.address)).toBeDefined();
+  });
+
+  it("declares the collection only when an address is added", () => {
+    const doc = bare();
+    const used = E.gasIn(doc)[0]!.address;
+    E.renameGa(doc, used, "5/7/200");
+    expect(doc.groupAddresses).toBeUndefined();
+    E.removeGa(doc, "5/7/200");
+    expect(doc.groupAddresses).toBeUndefined();
+    const ga = E.newGa(doc, "1.001", "Libre");
+    expect(doc.groupAddresses).toEqual([
+      { address: ga, name: "Libre", dpt: "1.001" },
+    ]);
+    valid(doc);
   });
 });

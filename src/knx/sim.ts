@@ -22,8 +22,21 @@ import { isBroadcastGA, parseGA } from "./address";
 import { configWarnings } from "./consistency";
 import { EventQueue } from "./clock";
 import type { Scheduled } from "./clock";
-import { canonical, checkValue, decodeOrInvalid, encode } from "./dpt";
-import { Network, behindCut, type TransportPlan } from "./network";
+import {
+  canonical,
+  checkValue,
+  decodeOrInvalid,
+  dptBits,
+  encode,
+  rawDpt,
+} from "./dpt";
+import {
+  Network,
+  RC0,
+  behindCut,
+  type TimingProfile,
+  type TransportPlan,
+} from "./network";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
 import type {
@@ -65,6 +78,17 @@ export interface Telegram {
   value: number;
   /** Octet (or bit) useful transported. */
   raw: number;
+  /**
+   * Payload size: 0 when the data is held in the 6 low bits of the APCI (DPTs up to 6
+   * bits, and reads), otherwise the number of bytes after the APCI.
+   */
+  size: number;
+  /**
+   * Telegram that entered the simulation from outside (ETS through a bridge), at the
+   * connection point of the bus interface `sourceDeviceId`; `sourceAddress` is then the
+   * individual address of the external sender.
+   */
+  external?: { hopCount: number };
   kind: "cmd" | "state";
   /** Group service: writing, reading (no value) or replying to a reading. */
   service: GroupService;
@@ -76,6 +100,39 @@ export interface Telegram {
   eventId: number;
   plan: TransportPlan;
   receptions: Reception[];
+}
+
+/** Group telegram from outside the simulation, as read from a cEMI frame. */
+export interface ExternalTelegram {
+  service: GroupService;
+  ga: string;
+  /** Individual address of the sender (the tunnel address of ETS). */
+  sourceAddress: string;
+  /** Payload size: 0 for data in the APCI (up to 6 bits), otherwise its bytes (≤ 4). */
+  size: number;
+  /** Payload as a number: the 6-bit value, or the bytes, most significant first. */
+  raw: number;
+  priority: Priority;
+  /** Routing counter on arrival (6 when sent by a tool). */
+  hopCount: number;
+}
+
+/**
+ * Where an external tool (ETS) reaches the simulated bus: a bus interface of the scenario
+ * (its USB or IP interface), or, when it has none, a segment (the main line).
+ */
+export type AccessPoint = { device: string } | { segment: string };
+
+const accessOf = (a: string | AccessPoint): AccessPoint =>
+  typeof a === "string" ? { device: a } : a;
+const accessKey = (a: AccessPoint) =>
+  "device" in a ? `dev:${a.device}` : `seg:${a.segment}`;
+
+/** A telegram at the connection point of a bus interface, for a bridge to send out. */
+export interface TapEvent {
+  telegram: Telegram;
+  /** Routing counter of the telegram at this point. */
+  hopCount: number;
 }
 
 export interface StepStop {
@@ -93,11 +150,17 @@ export interface SimulationOptions {
   journalLimit?: number;
   /** Language of journal messages and diagnostics (English by default). */
   lang?: string;
+  /**
+   * Timing of telegrams: `teaching` (default) slows them down to be followed on the
+   * diagram, `bus` gives them the duration of a real TP1 bus (about 20 ms each).
+   */
+  timing?: TimingProfile;
 }
 
 type Item =
   | { type: "deliver"; telegramId: number; deviceId: string; internal: boolean }
   | { type: "coupler"; telegramId: number; couplerId: string }
+  | { type: "tap"; telegramId: number; segId: string; rc: number }
   | {
       type: "timer";
       deviceId: string;
@@ -140,6 +203,14 @@ export const loadKey = (deviceId: string, channelId: string, index = 0) =>
   index ? `${deviceId}/${channelId}#${index + 1}` : `${deviceId}/${channelId}`;
 
 export class SimulationFault extends Error {}
+
+/** Payload size of a DPT: 0 in the APCI (up to 6 bits), otherwise whole bytes. */
+const payloadSizeOf = (dpt: string) => {
+  const bits = dptBits(dpt);
+  return bits <= 6 ? 0 : Math.ceil(bits / 8);
+};
+const sizeText = (size: number, t: Translate) =>
+  size === 0 ? t`up to 6 bits` : size === 1 ? t`1 byte` : t`${size} bytes`;
 
 const clone = <T>(v: T): T =>
   v === undefined ? v : (JSON.parse(JSON.stringify(v)) as T);
@@ -215,7 +286,14 @@ export class Simulation {
    */
   setClock(nowMs: number): Telegram[] {
     const c = this.clock();
-    if (!c || !Number.isFinite(nowMs) || this.fault) return [];
+    // Checked before any change: a finite number may still not be a JavaScript date
+    // (beyond ±8.64e15 ms), and a rejected call must leave the clock as it was.
+    if (
+      !c ||
+      this.fault ||
+      !Number.isFinite(new Date(Math.round(nowMs)).getTime())
+    )
+      return [];
     this.clockOffsetMs += Math.round(nowMs) - c.nowMs;
     const first = this.nextTelegramId;
     const ev = this.log("input", null, {
@@ -256,7 +334,18 @@ export class Simulation {
     this.journalLimit = options.journalLimit ?? 5000;
     this.t = translator(options.lang ?? "en");
     this.network = new Network(scenario, undefined, this.t);
+    this.network.timing = options.timing ?? "teaching";
     this.init();
+  }
+
+  /** Timing of telegrams: see {@link SimulationOptions.timing}. */
+  get timing(): TimingProfile {
+    return this.network.timing;
+  }
+
+  /** Change the timing of the telegrams sent from now on; those under way keep theirs. */
+  setTiming(timing: TimingProfile) {
+    this.network.timing = timing;
   }
 
   // ── Lifecycle ─────────────────────────────────────────────────────────
@@ -620,6 +709,20 @@ export class Simulation {
       case "deliver":
         this.deliver(item.telegramId, item.deviceId, item.internal);
         break;
+      case "tap": {
+        // On the segment of an external tool: there, unless cut on the way.
+        const a = this.active.get(item.telegramId);
+        const fr = a?.tel.plan.fronts.find((f) => f.segId === item.segId);
+        if (
+          a &&
+          fr &&
+          !behindCut(a.tel.plan, fr.path) &&
+          this.network.powered(item.segId)
+        )
+          this.tapped(`seg:${item.segId}`, a.tel, item.rc);
+        this.settle(item.telegramId);
+        break;
+      }
     }
   }
 
@@ -902,7 +1005,8 @@ export class Simulation {
 
   /** Create and route a group telegram for any service. */
   private emit(
-    d: Device,
+    /** Sending device; null for an external telegram put on a segment. */
+    d: Device | null,
     spec: {
       objectId: string;
       ga: string;
@@ -910,34 +1014,62 @@ export class Simulation {
       value: number;
       service: GroupService;
       kind: "cmd" | "state";
+      /** Received from outside: payload as received, sender and routing counter. */
+      external?: ExternalTelegram;
+      /** Segment where an external telegram enters, without a bus interface. */
+      segment?: string;
     },
   ): Telegram {
-    const { ga, value } = spec;
-    const raw = spec.service === "GroupValueRead" ? 0 : encode(spec.dpt, value);
+    const { ga, value, external } = spec;
+    const read = spec.service === "GroupValueRead";
+    const raw = external ? external.raw : read ? 0 : encode(spec.dpt, value);
+    const size = external ? external.size : read ? 0 : payloadSizeOf(spec.dpt);
     const id = this.nextTelegramId++;
-    const plan = this.network.plan(d.id, ga, this.timeMs);
+    const plan = this.network.plan(
+      d ? d.id : { segment: spec.segment ?? "" },
+      ga,
+      this.timeMs,
+      external?.hopCount ?? RC0,
+      size,
+    );
     const ev = this.log("telegram-emitted", this.cause, {
-      deviceId: d.id,
+      deviceId: d?.id,
       objectId: spec.objectId || undefined,
       telegramId: id,
       ga,
       value: spec.service === "GroupValueRead" ? null : value,
-      data: { raw, dpt: spec.dpt, service: spec.service },
+      data: {
+        raw,
+        dpt: spec.dpt,
+        service: spec.service,
+        ...(external
+          ? {
+              external: true,
+              source: external.sourceAddress,
+              size,
+              hopCount: external.hopCount,
+            }
+          : {}),
+      },
     });
     const tel: Telegram = {
       id,
       timeMs: this.timeMs,
-      sourceDeviceId: d.id,
-      sourceAddress: d.address,
+      sourceDeviceId: d?.id ?? "",
+      sourceAddress: external ? external.sourceAddress : (d?.address ?? ""),
       objectId: spec.objectId,
       ga,
       dpt: spec.dpt,
       value,
       raw,
+      size,
+      ...(external ? { external: { hopCount: external.hopCount } } : {}),
       kind: spec.kind,
       service: spec.service,
       priority:
-        d.objects.find((x) => x.id === spec.objectId)?.priority ?? "low",
+        external?.priority ??
+        d?.objects.find((x) => x.id === spec.objectId)?.priority ??
+        "low",
       causeId: this.cause,
       eventId: ev.id,
       plan,
@@ -945,7 +1077,7 @@ export class Simulation {
     };
     let pending = 0;
     // Internal link: other objects of the same device associated with the group address.
-    if (d.objects.some((x) => x.id !== spec.objectId && x.gas.includes(ga))) {
+    if (d?.objects.some((x) => x.id !== spec.objectId && x.gas.includes(ga))) {
       this.queue.push(this.timeMs, {
         type: "deliver",
         telegramId: id,
@@ -954,6 +1086,22 @@ export class Simulation {
       });
       pending++;
     }
+    // Segments of external tools: the telegram reaches them with its front, unless it
+    // entered there.
+    this.taps.forEach((fns, key) => {
+      if (!fns.size || !key.startsWith("seg:")) return;
+      const segId = key.slice(4);
+      if (spec.segment === segId) return;
+      const fr = plan.fronts.find((f) => f.segId === segId);
+      if (!fr) return;
+      this.queue.push(fr.tStartMs, {
+        type: "tap",
+        telegramId: id,
+        segId,
+        rc: fr.rc,
+      });
+      pending++;
+    });
     plan.couplers.forEach((c) =>
       this.queue.push(c.tDecisionMs, {
         type: "coupler",
@@ -981,6 +1129,128 @@ export class Simulation {
       } catch {
         // Likewise, a subscriber cannot block the engine.
       }
+    });
+    // Sent by a tapped interface from the diagram (its USB panel): on the bus at once at
+    // that point. A telegram that came in through the tap is not sent back out.
+    if (!external && d) this.tapped(`dev:${d.id}`, tel, RC0);
+    return tel;
+  }
+
+  private taps = new Map<string, Set<(e: TapEvent) => void>>();
+
+  /** Check an access point: an existing bus interface, or a segment of the topology. */
+  private checkAccess(a: AccessPoint) {
+    if ("device" in a) {
+      if (!this.devices.get(a.device)?.device.presentation.busInterface)
+        throw new RangeError(this.t`${a.device} is not a bus interface`);
+    } else if (!this.network.topology.segments.has(a.segment))
+      throw new RangeError(this.t`${a.segment} is not a segment`);
+  }
+
+  /**
+   * Telegrams on the bus at an access point, for a bridge to an external tool: those that
+   * reach it through the topology (after couplers, filters and cuts, with their routing
+   * counter at that point), and those that a bus interface itself sends from the diagram.
+   * Telegrams that entered there with `ingest` are not repeated. At a segment (the main
+   * line, when the scenario has no bus interface), every group address is assigned to
+   * the tool: couplers forward them to and from it. Returns an unsubscribe function.
+   */
+  tap(at: string | AccessPoint, fn: (e: TapEvent) => void): () => void {
+    const a = accessOf(at);
+    this.checkAccess(a);
+    const key = accessKey(a);
+    let set = this.taps.get(key);
+    if (!set) this.taps.set(key, (set = new Set()));
+    const fns = set;
+    fns.add(fn);
+    if ("segment" in a) this.network.setExternalAccess(a.segment);
+    return () => {
+      fns.delete(fn);
+      if ("segment" in a && !fns.size) this.network.setExternalAccess(null);
+    };
+  }
+
+  private tapped(key: string, telegram: Telegram, hopCount: number) {
+    this.taps.get(key)?.forEach((fn) => {
+      try {
+        fn({ telegram, hopCount });
+      } catch {
+        // A bridge cannot block the engine.
+      }
+    });
+  }
+
+  /**
+   * Group telegram from outside the simulation (ETS through a bridge), put on the bus at an
+   * access point: at the connection point of a bus interface, as if the interface had sent
+   * it for the tool, or at the first point of a segment (the main line). It keeps the external sender's address, service, priority, routing counter
+   * and payload bytes: no DPT travels in a telegram, so each receiving object decodes the
+   * payload with its own DPT, and ignores it if the size does not match. Returns the
+   * telegram, or null if it cannot enter (no bus voltage, simulation stopped, payload that
+   * the simulation cannot represent); the journal says why.
+   */
+  ingest(at: string | AccessPoint, ext: ExternalTelegram): Telegram | null {
+    const a = accessOf(at);
+    this.checkAccess(a);
+    const rt = "device" in a ? this.devices.get(a.device)! : null;
+    const deviceId = rt?.device.id;
+    if (!parseGA(ext.ga))
+      throw new RangeError(this.t`invalid group address ${ext.ga}`);
+    if (this.fault) return null;
+    const refuse = (message: string) => {
+      this.log("transmit-ignored", null, {
+        deviceId,
+        ga: ext.ga,
+        message,
+        data: { external: true, source: ext.sourceAddress },
+      });
+      return null;
+    };
+    if (
+      rt ? rt.down : !this.network.powered((a as { segment: string }).segment)
+    )
+      return refuse(this.t`no bus voltage: no telegram`);
+    if (isBroadcastGA(ext.ga))
+      return refuse(this.t`broadcast address 0/0/0 is not simulated`);
+    if (ext.size > 4)
+      return refuse(
+        this
+          .t`external telegram to ${ext.ga}: payloads of ${ext.size} bytes are not simulated`,
+      );
+    const read = ext.service === "GroupValueRead";
+    // Value shown in the monitor: decoded with the address's DPT when the size matches,
+    // otherwise the raw bytes (the receivers decide for themselves).
+    const gaDpt = this.gaDpt(ext.ga);
+    const decoded =
+      !read && payloadSizeOf(gaDpt) === ext.size
+        ? decodeOrInvalid(gaDpt, ext.raw, this.t)
+        : null;
+    const dpt = read || decoded?.invalid === false ? gaDpt : rawDpt(ext.size);
+    const value =
+      decoded && !decoded.invalid ? decoded.value : read ? 0 : ext.raw;
+    const ev = this.log("input", null, {
+      deviceId,
+      ga: ext.ga,
+      value: read ? null : value,
+      message: read
+        ? this.t`${ext.sourceAddress} (external): reading ${ext.ga}`
+        : ext.service === "GroupValueResponse"
+          ? this.t`${ext.sourceAddress} (external): response on ${ext.ga}`
+          : this.t`${ext.sourceAddress} (external): writing ${ext.ga}`,
+      data: { service: ext.service, external: true },
+    });
+    let tel: Telegram | null = null;
+    this.withCause(ev.id, () => {
+      tel = this.emit(rt?.device ?? null, {
+        ...("segment" in a ? { segment: a.segment } : {}),
+        objectId: "",
+        ga: ext.ga,
+        dpt,
+        value,
+        service: ext.service,
+        kind: ext.service === "GroupValueResponse" ? "state" : "cmd",
+        external: ext,
+      });
     });
     return tel;
   }
@@ -1095,6 +1365,7 @@ export class Simulation {
       this.settle(telegramId);
       return;
     }
+    if (route) this.tapped(`dev:${deviceId}`, tel, route.rc);
     const assoc = d.objects.filter(
       (o) => o.gas.includes(tel.ga) && !(internal && o.id === tel.objectId),
     );
@@ -1137,9 +1408,27 @@ export class Simulation {
         reception.objects.push({ objectId: o.id, result: "ignored" });
         continue;
       }
-      // A payload that the object's DPT declares invalid (0x7FFF in DPT 9.xxx, sent by an
-      // object of another DPT on the same address): the value stays as it was.
-      const decoded = decodeOrInvalid(o.dpt, tel.raw);
+      // A payload of another length than the object's (possible only from outside: the
+      // scenario keeps one size per address) is not for it.
+      const expected = payloadSizeOf(o.dpt);
+      if (tel.size !== expected) {
+        this.log("object-write-ignored", rec.id, {
+          deviceId,
+          objectId: o.id,
+          telegramId,
+          ga: tel.ga,
+          value: tel.value,
+          message: this
+            .t`length mismatch: ${sizeText(tel.size, this.t)} received, DPT ${o.dpt} expects ${sizeText(expected, this.t)}; value unchanged`,
+          data: { size: tel.size, expected },
+        });
+        reception.objects.push({ objectId: o.id, result: "ignored" });
+        continue;
+      }
+      // A payload that the object's DPT cannot give a meaning to (0x7FFF in DPT 9.xxx,
+      // hour 31, NaN, HVAC mode 255…), typically sent by an object of another DPT on the
+      // same address: the value stays as it was, and the reason is logged.
+      const decoded = decodeOrInvalid(o.dpt, tel.raw, this.t);
       if (decoded.invalid) {
         this.log("object-write-ignored", rec.id, {
           deviceId,
@@ -1147,7 +1436,9 @@ export class Simulation {
           telegramId,
           ga: tel.ga,
           value: tel.value,
-          message: this.t`payload invalid for DPT ${o.dpt}: value unchanged`,
+          message: this
+            .t`payload invalid for DPT ${o.dpt} (${decoded.reason}): value unchanged`,
+          data: { reason: decoded.reason },
         });
         reception.objects.push({ objectId: o.id, result: "ignored" });
         continue;

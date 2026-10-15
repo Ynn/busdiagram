@@ -310,9 +310,9 @@ devices: Device[]
  */
 options?: {
 /**
- * Initial speed (1 = normal simulated time, 0.35 = slower).
+ * Initial speed (1 = normal simulated time, 0.35 = slower). "instant": real time, telegrams as fast as on a real bus (about 20 ms), not animated.
  */
-speed?: number
+speed?: (number | "instant")
 /**
  * Show coupler filter tables on startup.
  */

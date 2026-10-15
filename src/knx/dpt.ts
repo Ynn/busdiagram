@@ -458,9 +458,19 @@ export function dptName(dpt: string, t: Translate = en): string {
   return d ? `${d.id} ${dptTitle(dpt, t)}` : dpt;
 }
 
+/**
+ * Pseudo-DPT of a payload that the simulation shows as raw bytes ("raw.2" for two bytes,
+ * "raw.0" for data in the APCI): a telegram from outside whose size does not match the
+ * group address's DPT, or whose value is invalid for it.
+ */
+export const rawDpt = (size: number) => `raw.${size}`;
+const RAW = /^raw\.(\d+)$/;
+
 export function dptBits(dpt: string): number {
   const known = BY_ID.get(dpt)?.bits;
   if (known) return known;
+  const r = RAW.exec(dpt);
+  if (r) return Number(r[1]) ? Number(r[1]) * 8 : 6;
   const main = mainOf(dpt);
   return (main !== null && MAIN_BITS[main]) || (dpt.startsWith("1.") ? 1 : 8);
 }
@@ -533,18 +543,75 @@ export function encode(dpt: string, v: number): number {
 }
 
 /**
- * Decodes a received payload; a payload that the DPT declares invalid (0x7FFF in DPT 9.xxx)
- * gives `invalid` instead of an exception, so that the receiver can ignore it.
+ * Decodes a received payload. A payload that the receiving object's DPT cannot give a
+ * meaning to gives `invalid` instead of an exception, with the reason, so that the
+ * receiver can ignore it and keep its previous value:
+ * - a code that the DPT declares invalid (0x7FFF in DPT 9.xxx);
+ * - a field outside its range (hour 31 in DPT 10.001, month 0 in DPT 11.001; KNX 03_07_02
+ *   §3.11 and §3.12) — the codecs installed with ETS reject them too;
+ * - a value that the simulated model cannot use: a non-finite IEEE 754 float (NaN,
+ *   ±Infinity in DPT 14.xxx, which the bus can carry), or a code outside the subtype's
+ *   range (255 in DPT 20.102, whose modes are 0–4).
+ * A telegram does not carry its DPT: these cases arise when objects of different DPTs of
+ * the same size share an address, or when a value comes from outside the simulation.
  */
 export function decodeOrInvalid(
   dpt: string,
   raw: number,
-): { invalid: false; value: number } | { invalid: true } {
+  t: Translate = en,
+): { invalid: false; value: number } | { invalid: true; reason: string } {
+  let value: number;
   try {
-    return { invalid: false, value: decode(dpt, raw) };
+    value = decode(dpt, raw);
   } catch (e) {
-    if (e instanceof RangeError) return { invalid: true };
+    if (e instanceof RangeError)
+      return { invalid: true, reason: rangeReason(e, t) };
     throw e;
+  }
+  const d = BY_ID.get(dpt);
+  if (d) {
+    if (!Number.isFinite(value))
+      return {
+        invalid: true,
+        reason: t`${String(value)} is not a usable value`,
+      };
+    if (value < d.min || value > d.max)
+      return {
+        invalid: true,
+        reason: t`value ${value} outside the range ${d.min}…${d.max} of DPT ${dpt}`,
+      };
+  }
+  return { invalid: false, value };
+}
+
+/** Reason of a field outside its range, raised by the decoder. */
+class FieldRangeError extends RangeError {
+  constructor(
+    readonly field:
+      "hour" | "minute" | "second" | "day" | "month" | "year" | "date",
+    readonly raw: number,
+  ) {
+    super(`${field} ${raw} outside its range`);
+  }
+}
+
+function rangeReason(e: RangeError, t: Translate): string {
+  if (!(e instanceof FieldRangeError)) return t`invalid code`;
+  switch (e.field) {
+    case "hour":
+      return t`hour ${e.raw} outside 0–23`;
+    case "minute":
+      return t`minutes ${e.raw} outside 0–59`;
+    case "second":
+      return t`seconds ${e.raw} outside 0–59`;
+    case "day":
+      return t`day ${e.raw} outside 1–31`;
+    case "month":
+      return t`month ${e.raw} outside 1–12`;
+    case "year":
+      return t`year ${e.raw} outside 0–99`;
+    case "date":
+      return t`${e.raw} is not a valid date (YYYYMMDD)`;
   }
 }
 
@@ -557,18 +624,30 @@ export function decode(dpt: string, raw: number): number {
   if (d.bits === 1) return raw & 1;
   if (d.bits === 2) return raw & 3;
   if (d.bits === 4) return raw & 15;
-  if (d.codec === "time")
-    return (
-      ((raw >> 21) & 7) * 86400 +
-      ((raw >> 16) & 0x1f) * 3600 +
-      ((raw >> 8) & 0x3f) * 60 +
-      (raw & 0x3f)
-    );
+  if (d.codec === "time") {
+    // Reserved bits (2 high bits of the minute and second octets) are ignored; the
+    // fields themselves are checked before they are summed, otherwise hour 31 would
+    // silently become the next day (KNX 03_07_02 §3.11).
+    const hour = (raw >> 16) & 0x1f;
+    const minute = (raw >> 8) & 0x3f;
+    const second = raw & 0x3f;
+    if (hour > 23) throw new FieldRangeError("hour", hour);
+    if (minute > 59) throw new FieldRangeError("minute", minute);
+    if (second > 59) throw new FieldRangeError("second", second);
+    return ((raw >> 21) & 7) * 86400 + hour * 3600 + minute * 60 + second;
+  }
   if (d.codec === "date") {
+    // KNX 03_07_02 §3.12: day 1–31, month 1–12, year 0–99 (90–99 → 1990s, 0–89 → 2000s).
+    const day = (raw >> 16) & 0x1f;
+    const month = (raw >> 8) & 0x0f;
     const yy = raw & 0x7f;
-    // Two-digit year: 90–99 → 1990s, 0–89 → 2000s.
+    if (day < 1) throw new FieldRangeError("day", day);
+    if (month < 1 || month > 12) throw new FieldRangeError("month", month);
+    if (yy > 99) throw new FieldRangeError("year", yy);
     const year = yy >= 90 ? 1900 + yy : 2000 + yy;
-    return year * 10000 + ((raw >> 8) & 0x0f) * 100 + ((raw >> 16) & 0x1f);
+    const v = year * 10000 + month * 100 + day;
+    if (!validDate(v)) throw new FieldRangeError("date", v);
+    return v;
   }
   if (d.codec === "u16") return raw & 0xffff;
   if (d.codec === "v32") return raw | 0;

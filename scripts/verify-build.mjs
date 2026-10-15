@@ -12,6 +12,12 @@ const allowedUrls = new Set([
   // Address of the published designer: only the href of the “Open in the designer” link,
   // followed when the reader clicks it; nothing is loaded from it.
   "https://ynn.github.io/busdiagram/designer/index.html",
+  // XML namespace of the group addresses that ETS imports: an identifier, never fetched.
+  "http://knx.org/xml/ga-export/01",
+  // Links of the ETS control, followed when the reader clicks them.
+  "https://ynn.github.io/busdiagram/guide/ets.html",
+  "https://ynn.github.io/busdiagram/fr/guide/ets.html",
+  "https://github.com/Ynn/busdiagram/releases/latest",
 ]);
 // The code must not reach the network; the banner comment may cite the source address.
 const code = bundle.slice(bundle.indexOf("*/") + 2);

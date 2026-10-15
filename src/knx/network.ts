@@ -189,7 +189,46 @@ export const TIMING = {
   decisionMs: 900,
   couplerOutMs: 150,
   receiveMs: 500,
+  /** How long a blocked telegram stays shown at the coupler that stopped it. */
+  blockedMs: 600,
 } as const;
+
+/**
+ * How telegrams take their time: `teaching` slows every step down so that it can be
+ * followed on the diagram (TIMING); `bus` takes the time of a TP1 bus, where a telegram
+ * is received when its last character is, and a coupler sends it on once it has
+ * received it whole (store and forward).
+ */
+export type TimingProfile = "teaching" | "bus";
+
+/** TP1: 9600 bit/s. */
+const BIT_MS = 1000 / 9600;
+
+/**
+ * Duration of a group telegram on a TP1 line (KNX Standard 03_02_02): bus idle for 50
+ * bit times, the characters (11 bits and 2 bits of pause each), 15 bit times, then the
+ * acknowledgement character. A standard frame has 9 octets (control, source,
+ * destination, length, TPCI/APCI with up to 6 bits of data, checksum) plus the bytes of
+ * a larger value: about 20 ms for a switching telegram.
+ */
+export const busFrameMs = (payloadBytes: number) =>
+  Math.round((50 + 13 * (9 + payloadBytes) - 2 + 15 + 11) * BIT_MS);
+
+/** Steps of a telegram in the `bus` profile, for a payload of `payloadBytes`. */
+export function busTiming(payloadBytes: number): {
+  [K in keyof typeof TIMING]: number;
+} {
+  const frameMs = busFrameMs(payloadBytes);
+  return {
+    emitMs: frameMs,
+    hopMs: 0,
+    couplerInMs: 0,
+    decisionMs: 0,
+    couplerOutMs: frameMs,
+    receiveMs: 0,
+    blockedMs: 0,
+  };
+}
 
 /** Initial routing counter for the modeled telegram path. */
 export const RC0 = 6;
@@ -204,6 +243,8 @@ export interface FrontPlan {
   arrivalsMs: number[];
   /** Couplers crossed from the source to reach this segment. */
   path: string[];
+  /** Routing counter of the telegram on this segment. */
+  rc: number;
 }
 
 /**
@@ -254,6 +295,8 @@ export interface DeliveryPlan {
 }
 
 export interface TransportPlan {
+  /** Timing it was planned with: a `bus` telegram is shown without travelling. */
+  timing: TimingProfile;
   sourceDeviceId: string;
   ga: string;
   t0Ms: number;
@@ -279,6 +322,14 @@ export class Network {
   private sideCache = new Map<string, Set<string>>();
   /** Segments whose bus voltage is cut. */
   private readonly unpowered = new Set<string>();
+  /**
+   * Segment where an external tool (ETS) reaches the bus without a bus interface of the
+   * scenario: every group address is assigned to it, so couplers forward them to and from
+   * it, as for an interface whose addresses are declared in the project.
+   */
+  private externalAccess: string | null = null;
+  /** Timing of the telegrams planned from now on. */
+  timing: TimingProfile = "teaching";
 
   constructor(
     readonly scenario: Scenario,
@@ -296,6 +347,29 @@ export class Network {
     this.scenario.lines.forEach(
       (l) => l.extension && this.modes.set(l.address, l.extension.mode),
     );
+    this.sideCache.clear();
+  }
+
+  /**
+   * The main line, where an external tool reaches the bus when the scenario has no bus
+   * interface: the IP network, otherwise the backbone, otherwise the first main line,
+   * otherwise the first line.
+   */
+  accessSegment(): string | null {
+    const segs = [...this.topology.segments.values()];
+    const first = (kind: SegmentKind) =>
+      segs
+        .filter((s) => s.kind === kind && !s.downstream)
+        .sort((a, b) => compareAddress(a.ref, b.ref))[0]?.id;
+    return (
+      first("ip") ?? first("backbone") ?? first("main") ?? first("line") ?? null
+    );
+  }
+
+  /** Set (or clear) the segment of an external tool without bus interface. */
+  setExternalAccess(segId: string | null) {
+    if (segId === this.externalAccess) return;
+    this.externalAccess = segId;
     this.sideCache.clear();
   }
 
@@ -350,6 +424,12 @@ export class Network {
     const q = [c[side].seg];
     while (q.length) {
       const sid = q.shift()!;
+      if (sid === this.externalAccess) {
+        this.scenario.groupAddresses.forEach((_, g) => set.add(g));
+        this.scenario.devices.forEach((d) =>
+          d.objects.forEach((o) => o.gas.forEach((g) => set.add(g))),
+        );
+      }
       this.topology.segments.get(sid)?.points.forEach((pt) => {
         const d = pt.deviceId
           ? this.scenario.devicesById.get(pt.deviceId)
@@ -400,11 +480,24 @@ export class Network {
       : "notInTable";
   }
 
-  /** Full propagation schedule of a group telegram; filter decisions are frozen. */
-  plan(sourceDeviceId: string, ga: string, t0Ms: number): TransportPlan {
-    const T = TIMING;
+  /**
+   * Full propagation schedule of a group telegram; filter decisions are frozen. The
+   * source is a device, or a segment where an external tool without bus interface puts
+   * the telegram (at the segment's first point). `payloadBytes`: bytes of the value
+   * beyond the APCI, which make the telegram longer on a real bus.
+   */
+  plan(
+    source: string | { segment: string },
+    ga: string,
+    t0Ms: number,
+    rc0: number = RC0,
+    payloadBytes = 0,
+  ): TransportPlan {
+    const sourceDeviceId = typeof source === "string" ? source : "";
+    const T = this.timing === "bus" ? busTiming(payloadBytes) : TIMING;
     const busMs = t0Ms + T.emitMs;
     const plan: TransportPlan = {
+      timing: this.timing,
       sourceDeviceId,
       ga,
       t0Ms,
@@ -416,8 +509,15 @@ export class Network {
       cut: [],
     };
     const bump = (t: number) => (plan.endMs = Math.max(plan.endMs, t));
-    const segId = this.topology.deviceSegment.get(sourceDeviceId);
-    if (!segId) return plan;
+    const segId =
+      typeof source === "string"
+        ? this.topology.deviceSegment.get(source)
+        : source.segment;
+    const start =
+      typeof source === "string"
+        ? `dev:${source}`
+        : (this.topology.segments.get(source.segment)?.points[0]?.id ?? "");
+    if (!segId || !this.topology.segments.has(segId)) return plan;
     const q: {
       seg: string;
       point: string;
@@ -428,9 +528,9 @@ export class Network {
     }[] = [
       {
         seg: segId,
-        point: `dev:${sourceDeviceId}`,
+        point: start,
         t: busMs,
-        rc: RC0,
+        rc: rc0,
         via: null,
         path: [],
       },
@@ -451,12 +551,13 @@ export class Network {
         tStartMs: e.t,
         arrivalsMs,
         path: e.path,
+        rc: e.rc,
       });
       arrivalsMs.forEach(bump);
       sg.points.forEach((pt, j) => {
         const ta = arrivalsMs[j]!;
         if (pt.deviceId) {
-          if (pt.deviceId === sourceDeviceId) return;
+          if (sourceDeviceId && pt.deviceId === sourceDeviceId) return;
           const d = this.scenario.devicesById.get(pt.deviceId)!;
           const objectIds = d.objects
             .filter((o) => o.gas.includes(ga))
@@ -512,7 +613,7 @@ export class Network {
             rcAfter: pass ? e.rc - 1 : e.rc,
             path: e.path,
           });
-          bump(pass ? tOutMs : tDecisionMs + 600);
+          bump(pass ? tOutMs : tDecisionMs + T.blockedMs);
           if (pass)
             q.push({
               seg: c[to].seg,

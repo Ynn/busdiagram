@@ -114,7 +114,7 @@ export interface Doc extends J {
   title?: string;
   description?: string;
   lines: J[];
-  groupAddresses: Ga[];
+  groupAddresses?: Ga[];
   devices: Dev[];
   ipRouter?: J;
   topology?: Topo;
@@ -140,6 +140,14 @@ export interface Topo extends J {
 
 export const clone = <T>(v: T): T => structuredClone(v);
 
+/**
+ * Declared group addresses. The collection is optional in the format: a valid scenario
+ * may omit it, so it is read as empty and created only when an address is declared.
+ */
+export const declaredGas = (doc: Doc): readonly Ga[] =>
+  doc.groupAddresses ?? [];
+const declare = (doc: Doc, g: Ga) => (doc.groupAddresses ??= []).push(g);
+
 // ── Read and feedback ──────────────────────────────────────────────────────────────────
 
 export const gasOf = (o: Obj): string[] =>
@@ -159,7 +167,7 @@ export function device(doc: Doc, id: string): Dev {
  * it a name or a DPT).
  */
 export function gasIn(doc: Doc): Ga[] {
-  const out = [...doc.groupAddresses];
+  const out = [...declaredGas(doc)];
   const seen = new Set(out.map((g) => g.address));
   doc.devices.forEach((d) =>
     d.objects.forEach((o) =>
@@ -174,7 +182,7 @@ export function gasIn(doc: Doc): Ga[] {
 }
 
 export function gaDpt(doc: Doc, addr: string): string | undefined {
-  const g = doc.groupAddresses.find((x) => x.address === addr);
+  const g = declaredGas(doc).find((x) => x.address === addr);
   if (g?.dpt) return g.dpt;
   for (const d of doc.devices)
     for (const o of d.objects)
@@ -264,7 +272,7 @@ export function newGa(doc: Doc, dpt: string, name: string): string {
           ? 7
           : 1;
   const address = wrap(() => freeGa(doc, main, middle));
-  doc.groupAddresses.push({ address, name, dpt });
+  declare(doc, { address, name, dpt });
   return address;
 }
 
@@ -280,7 +288,7 @@ export function newGaIn(
   dpt?: string,
 ): string {
   const address = wrap(() => freeGa(doc, main, middle));
-  doc.groupAddresses.push(dpt ? { address, name, dpt } : { address, name });
+  declare(doc, dpt ? { address, name, dpt } : { address, name });
   return address;
 }
 
@@ -358,14 +366,14 @@ export function setGaField(
   field: "name" | "dpt",
   value: string,
 ) {
-  let g = doc.groupAddresses.find((x) => x.address === addr);
+  let g = declaredGas(doc).find((x) => x.address === addr);
   if (!g) {
     // An address that objects use without declaring it: declared when it gets a name or a DPT.
     if (!gasIn(doc).some((x) => x.address === addr))
       throw new EditRefusal(t`address ${addr} not declared`);
     if (!value) return;
     g = { address: addr };
-    doc.groupAddresses.push(g);
+    declare(doc, g);
   }
   if (field === "dpt" && value && !gaAllowedDpts(doc, addr).includes(value))
     throw new EditRefusal(
@@ -399,11 +407,11 @@ export function renameGa(doc: Doc, from: string, to: string) {
     throw new EditRefusal(t`“${to}” is not a valid group address (e.g. 1/1/1)`);
   if (from === to) return;
   if (
-    doc.groupAddresses.some((g) => g.address === to) ||
+    declaredGas(doc).some((g) => g.address === to) ||
     doc.devices.some((d) => d.objects.some((o) => gasOf(o).includes(to)))
   )
     throw new EditRefusal(t`address ${to} is already used`);
-  doc.groupAddresses.forEach((g) => g.address === from && (g.address = to));
+  declaredGas(doc).forEach((g) => g.address === from && (g.address = to));
   doc.devices.forEach((d) =>
     d.objects.forEach((o) =>
       setGas(
@@ -432,7 +440,8 @@ export function removeGa(doc: Doc, addr: string): number {
       n++;
     }),
   );
-  doc.groupAddresses = doc.groupAddresses.filter((g) => g.address !== addr);
+  if (doc.groupAddresses)
+    doc.groupAddresses = doc.groupAddresses.filter((g) => g.address !== addr);
   return n;
 }
 
@@ -1497,7 +1506,7 @@ export function addDisplay(doc: Doc, devId: string, ga: string) {
   const d = device(doc, devId);
   if (d.objects.some((o) => gasOf(o).includes(ga)))
     throw new EditRefusal(t`${ga} is already displayed`);
-  const g = doc.groupAddresses.find((x) => x.address === ga);
+  const g = declaredGas(doc).find((x) => x.address === ga);
   d.objects.push({
     id: freeObjectId(d, `o${d.objects.length + 1}`),
     name: g?.name || ga,
@@ -1809,7 +1818,7 @@ export function dptMixes(doc: Doc): Map<string, string[]> {
   doc.devices.forEach((d) =>
     d.objects.forEach((o) => gasOf(o).forEach((ga) => add(ga, o.dpt))),
   );
-  doc.groupAddresses.forEach(
+  declaredGas(doc).forEach(
     (g) => byGa.has(String(g.address)) && add(String(g.address), g.dpt),
   );
   return new Map(

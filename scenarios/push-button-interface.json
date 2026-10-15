@@ -64,10 +64,7 @@
         {
           "id": "sw1",
           "name": "Input 1 switching",
-          "ga": [
-            "1/1/1",
-            "1/4/1"
-          ],
+          "ga": ["1/1/1", "1/4/1"],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in1",
@@ -79,10 +76,7 @@
         {
           "id": "sw2",
           "name": "Input 2 switching",
-          "ga": [
-            "1/1/2",
-            "1/4/2"
-          ],
+          "ga": ["1/1/2", "1/4/2"],
           "dpt": "1.001",
           "port": "switch",
           "channel": "in2",

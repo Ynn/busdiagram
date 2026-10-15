@@ -4,6 +4,34 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+### Added
+
+- Link to ETS: with the BusDiagram-ETS program running, the **Link to ETS** button of the full toolbar connects any diagram (designer, player, page, file) to ETS, which reaches the program as a KNXnet/IP tunnelling interface. The diagram's bus interface becomes the access point of ETS: a group telegram from ETS enters the bus there with its own bytes, source, priority and routing counter, and each receiver decodes it with its own DPT; the telegrams that reach the interface through the topology (after couplers and filters) are sent to ETS, whose group monitor shows them. While linked, the simulation runs in real time, also in a background tab, and telegrams from ETS are refused while it is paused. Option `bridge`: the program's WebSocket address, or `none` to hide the control.
+- Link to ETS without bus interface: ETS then reaches the bus on the main line (the IP network, otherwise the backbone, a main line, or the line), and every group address is assigned to it, so that couplers forward them to and from it while the link lasts. The toolbar says where ETS reaches the bus, and links to the guide page and to the download of BusDiagram-ETS when the program is not running.
+- Guide page “Link to ETS” (English and French).
+- **Instant** speed: real time, with telegrams as fast as on a real TP1 bus (about 20 ms for a switching telegram, as long again for each coupler, which forwards a telegram once it has received it whole), not animated: the cables a telegram reached light up, then fade. It is the speed of a diagram linked to ETS, which can switch to **Animated**. Option `speed="instant"`, scenario `options.speed: "instant"`, `setSpeed("instant")`; engine: `SimulationOptions.timing` and `Simulation.setTiming("bus" | "teaching")`.
+- Engine: `Simulation.ingest(access, telegram)` puts an external group telegram on the bus at an access point (a bus interface `{ device }`, or a segment `{ segment }`), and `Simulation.tap(access, fn)` gives the telegrams on the bus at that point; a receiver ignores a payload whose length does not match its DPT, and says so in the journal.
+- cEMI codec (`encodeCemi`, `decodeCemi`) for group L_Data frames, checked against frames exchanged with the Falcon library installed with ETS 6.4.
+- Group addresses for ETS: the **Addresses for ETS** button and `etsGroupAddressXml(scenario)` write the diagram's group addresses, with their names, main and middle groups and DPTs, in the XML format that ETS imports (namespace `http://knx.org/xml/ga-export/01`, checked against the schema embedded in ETS 6.4).
+- Student package BusDiagram-ETS (`npm run build:ets`): a single program (`ets-bridge/`, Rust) with a small window that shows whether ETS and a diagram are connected, what to enter in ETS, and a journal. Its settings are kept between sessions: ports, sites allowed to link a diagram, and ETS from another computer of the network. `--no-gui` runs it in a terminal, `--version` gives its version, which is that of the library. KNXnet/IP and cEMI frames are read and written with the knx-rs-core library (GPL-3.0). The package includes the notices and licence texts of the components compiled into the program, fonts of the window included. Each release attaches `BusDiagram-ETS-X.Y.Z-windows-x64.zip` and its SHA-256, built and checked on Windows by the release workflow.
+- When the diagram cannot reach BusDiagram-ETS, its toolbar offers to download it and a **Port** field for a program that uses another port; the browser remembers it.
+
+### Fixed
+
+- Received values outside the receiving object's domain were accepted as normal values: a time of day with hour 31 (silently turned into the next day), a date with day or month 0, NaN and ±Infinity in DPT 14.xxx, HVAC mode 255 in DPT 20.102. Each field is now checked before conversion (KNX Standard 03_07_02 §3.11, §3.12), and a value that the object's model cannot use leaves it unchanged; the journal gives the reason. The codecs installed with ETS 6.4 reject the same times and dates.
+- Shutter actuator: a slat order cancelled before the motor started (by a stop or a new order during the start delay) was kept, and the next position order turned the slats instead of moving the blind, while the actuator reported the requested position.
+- Switching actuator: the timer's switch-off warning opened a relay that a lock held on. The warning now yields to forcing, alarms, the lock, and load shedding.
+- Room thermostat, sensor fault: the fault value was sent once only, and a one-bit PI output without any measurement stayed frozen. The fault value is now sent again on its cycle (`valueCyclicMs`) and modulated (PWM) for as long as the fault lasts; the fault itself is still reported once.
+- Scenarios: a dimming or DALI scene preset outside 0–100 % is refused (`range`); a valid preset is still limited to the channel's minimum and maximum at run time.
+- `setClock()` with a finite value that is not a date (such as `1e20`) changed the clock before failing; it now leaves it unchanged. A clock start in years 0000–0099 kept its year instead of becoming 1900–1999.
+- Designer: a valid scenario without the optional `groupAddresses` collection made the guided editor fail. The collection is now read as empty, and created only when an address is declared.
+- Build on Windows: the site data module is imported by file URL, Eleventy is run by Node instead of its extensionless shim, and the site is built in a staging directory that replaces `docs/` only once complete.
+- Full screen now keeps the toolbar (link to ETS, step by step, pause, reset), also for a diagram with compact controls; the description and the panels below the diagram are hidden.
+- `npm run docs:translations` (and `--stamp`) did nothing on Windows, and counted every page as untranslated: the script compared a native path to its URL, and page paths had backslashes.
+- `npm version` failed on Windows (`spawnSync npx ENOENT`): the release script now runs Vite and npm through Node. It also gives the release version to BusDiagram-ETS.
+- `npm run schema` failed on Windows (environment variable before the command): it now runs through Node.
+- `npm run docs:translations` also failed on Windows when it checked the dictionaries, after a build.
+
 ## [0.6.0] - 2026-10-05
 
 ### Added

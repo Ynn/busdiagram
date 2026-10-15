@@ -6,6 +6,10 @@ export default tseslint.config(
   {
     ignores: [
       "dist/**",
+      "dist-ets/**",
+      "ets-bridge/target/**",
+      // Private workspace (audits, copies of the repository): never published.
+      ".local/**",
       "node_modules/**",
       "demo/**",
       "docs/**",
@@ -18,7 +22,13 @@ export default tseslint.config(
   eslint.configs.recommended,
   ...tseslint.configs.recommended,
   {
-    files: ["src/**/*.ts", "tests/**/*.ts", "examples/**/*.ts", "site/**/*.ts", "*.ts"],
+    files: [
+      "src/**/*.ts",
+      "tests/**/*.ts",
+      "examples/**/*.ts",
+      "site/**/*.ts",
+      "*.ts",
+    ],
     languageOptions: {
       globals: {
         ...globals.browser,

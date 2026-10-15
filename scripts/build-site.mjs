@@ -1,7 +1,15 @@
 // Build the offline documentation site in docs/:
 // bundle, designer, player, reveal.js, guide, examples, and reference.
 import { assetVersion as assetVersionOf } from "./build-id.mjs";
-import { cp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import {
+  cp,
+  mkdir,
+  readFile,
+  readdir,
+  rename,
+  rm,
+  writeFile,
+} from "node:fs/promises";
 import { resolve } from "node:path";
 import { build } from "vite";
 import { execFileSync } from "node:child_process";
@@ -10,7 +18,10 @@ import { MINIMAL, llmReference } from "./llm-reference.mjs";
 import { translateScenario, translations } from "./translations.mjs";
 
 const root = resolve(import.meta.dirname, "..");
-const out = resolve(root, "docs");
+const published = resolve(root, "docs");
+// The site is built in a staging directory and replaces docs/ only once complete: a
+// failed build leaves the previous site in place.
+const out = resolve(root, "node_modules/.cache/bus-diagram-site-build/docs");
 const external = {
   external: ["bus-diagram"],
   output: { globals: { "bus-diagram": "BusDiagram" } },
@@ -162,14 +173,27 @@ await cp(
   resolve(root, "site/prompt-generator.js"),
   resolve(out, "assets/prompt-generator.js"),
 );
+// Eleventy's entry point run by Node: the extensionless shim in node_modules/.bin is not
+// executable on Windows.
+const eleventyDir = resolve(root, "node_modules/@11ty/eleventy");
+const eleventyBin = JSON.parse(
+  await readFile(resolve(eleventyDir, "package.json"), "utf8"),
+).bin.eleventy;
 execFileSync(
-  resolve(root, "node_modules/.bin/eleventy"),
-  ["--config=eleventy.config.js"],
+  process.execPath,
+  [
+    resolve(eleventyDir, eleventyBin),
+    "--config=eleventy.config.js",
+    `--output=${out}`,
+  ],
   {
     cwd: root,
     stdio: "inherit",
   },
 );
 
+process.env.BUS_DIAGRAM_SITE_OUT = out;
 await import("./build-notices.mjs");
+await rm(published, { recursive: true, force: true });
+await rename(out, published);
 console.log("docs/: documentation site built.");

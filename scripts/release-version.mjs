@@ -4,8 +4,9 @@
 //   default (version):        package.json already holds the new version. Dates the
 //                             [Unreleased] section, updates the version in README.md,
 //                             rebuilds dist/, demo/ and docs/, records the version and the
-//                             hash of the published file in site/release.json, and stages
-//                             the files for the commit and tag that npm then creates.
+//                             hash of the published file in site/release.json, gives the
+//                             version to the BusDiagram-ETS program (ets-bridge/), and
+//                             stages the files for the commit and tag that npm then creates.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { readFile, writeFile } from "node:fs/promises";
@@ -14,6 +15,15 @@ import { resolve } from "node:path";
 const root = resolve(import.meta.dirname, "..");
 const git = (...args) =>
   execFileSync("git", args, { cwd: root, encoding: "utf8" }).trim();
+// Tools are run by Node from their own entry points: the npx and npm shims are not
+// executables on Windows (spawnSync npx ENOENT). npm gives its CLI to lifecycle scripts.
+const node = (args, env) =>
+  execFileSync(process.execPath, args, { cwd: root, stdio: "inherit", env });
+const npmCli = () => {
+  const cli = process.env.npm_execpath;
+  if (!cli) fail("run this through npm version (npm_execpath is not set)");
+  return cli;
+};
 const fail = (message) => {
   console.error(`release: ${message}`);
   process.exit(1);
@@ -60,7 +70,7 @@ const env = { ...process.env, BUSDIAGRAM_RELEASE: "1" };
 // First the library: the file that npm will publish for this version. Its version and hash
 // are recorded before the site and the designer are built, since both read the record
 // (development builds point their CDN tags to it; see release() in site-reference.mjs).
-execFileSync("npx", ["vite", "build"], { cwd: root, stdio: "inherit", env });
+node([resolve(root, "node_modules/vite/bin/vite.js"), "build"], env);
 const bundle = await readFile(resolve(root, "dist/bus-diagram.js"));
 await writeFile(
   resolve(root, "site/release.json"),
@@ -74,6 +84,33 @@ await writeFile(
   )}\n`,
 );
 // Then everything, the library again (the same file: the build checks it against the record).
-execFileSync("npm", ["run", "build"], { cwd: root, stdio: "inherit", env });
-git("add", "CHANGELOG.md", "README.md", "docs", "demo", "site/release.json");
+node([npmCli(), "run", "build"], env);
+
+// The BusDiagram-ETS program carries the version of the release it belongs to.
+const cargoToml = resolve(root, "ets-bridge/Cargo.toml");
+await writeFile(
+  cargoToml,
+  (await readFile(cargoToml, "utf8")).replace(
+    /^version = "[^"]*"/m,
+    `version = "${version}"`,
+  ),
+);
+const cargoLock = resolve(root, "ets-bridge/Cargo.lock");
+await writeFile(
+  cargoLock,
+  (await readFile(cargoLock, "utf8")).replace(
+    /(name = "busdiagram-ets"\nversion = )"[^"]*"/,
+    `$1"${version}"`,
+  ),
+);
+git(
+  "add",
+  "CHANGELOG.md",
+  "README.md",
+  "docs",
+  "demo",
+  "site/release.json",
+  "ets-bridge/Cargo.toml",
+  "ets-bridge/Cargo.lock",
+);
 console.log(`release: version ${version} prepared.`);

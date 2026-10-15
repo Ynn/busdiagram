@@ -19,4 +19,7 @@ export function translations(
   scenarios: (text: string) => string;
   reference: (text: string) => string;
 };
-export function translateScenario<T>(json: T, translate: (text: string) => string): T;
+export function translateScenario<T>(
+  json: T,
+  translate: (text: string) => string,
+): T;

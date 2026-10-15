@@ -9,3 +9,5 @@ demo/
 # Pages of the documentation keep compact Markdown tables (no column padding).
 site/pages/**/*.md
 tests/knx/fixtures/reference/
+# Built from their TypeScript sources (site/samples/extensions/*.ts).
+site/samples/extensions/*.js

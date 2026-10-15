@@ -12,6 +12,7 @@ import {
   writeFileSync,
 } from "node:fs";
 import { join, relative, resolve } from "node:path";
+import { pathToFileURL } from "node:url";
 
 export const pagesDir = resolve(import.meta.dirname, "../site/pages");
 const i18nDir = resolve(import.meta.dirname, "../site/i18n");
@@ -92,10 +93,13 @@ const walk = (dir) =>
     return statSync(p).isDirectory() ? walk(p) : p.endsWith(".md") ? [p] : [];
   });
 
+/** Path of a page from site/pages, with "/" separators on every system. */
+const rel = (p) => relative(pagesDir, p).replaceAll("\\", "/");
+
 /** English pages (outside fr/ and _includes/). */
 export const englishPages = () =>
   walk(pagesDir)
-    .map((p) => relative(pagesDir, p))
+    .map(rel)
     .filter((p) => !p.startsWith("fr/") && !p.startsWith("_"));
 
 /** French pages and their translation status. */
@@ -110,7 +114,7 @@ export function frenchPages() {
       current = null;
     }
     return {
-      file: relative(pagesDir, p),
+      file: rel(p),
       translationOf: of,
       sourceHash: fm.sourceHash ?? "",
       currentHash: current,
@@ -132,7 +136,10 @@ export async function neededTexts(lang = "fr") {
   const root = resolve(import.meta.dirname, "..");
   const cache = join(root, "node_modules/.cache/bus-diagram-site/data.mjs");
   if (!existsSync(cache)) return null;
-  const { data, normalize } = await import(`${cache}?t=${Date.now()}`);
+  // A file URL, not a native path: on Windows "C:\\…" would be read as a URL scheme.
+  const { data, normalize } = await import(
+    `${pathToFileURL(cache).href}?t=${Date.now()}`
+  );
   const { expand } = await import("./site-reference.mjs");
   const scenarios = new Set();
   const reference = new Set();
@@ -167,7 +174,8 @@ export async function neededTexts(lang = "fr") {
   return { scenarios, reference };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run as a script (also on Windows, where the path is not a URL as it stands).
+if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const stamp = process.argv.indexOf("--stamp");
   if (stamp > 0) {
     const file = process.argv[stamp + 1];

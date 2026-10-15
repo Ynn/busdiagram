@@ -304,13 +304,13 @@ function objectAssociations(
           id: "name",
           label: t`Name`,
           sort: (ga) =>
-            doc.groupAddresses.find((x) => x.address === ga)?.name ?? "",
+            E.declaredGas(doc).find((x) => x.address === ga)?.name ?? "",
           td: (ga) =>
             nameCell(
               host,
               p,
               `ga:${ga}`,
-              doc.groupAddresses.find((x) => x.address === ga)?.name ?? "",
+              E.declaredGas(doc).find((x) => x.address === ga)?.name ?? "",
             ),
         },
         {

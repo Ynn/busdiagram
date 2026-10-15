@@ -25,6 +25,8 @@ credentials.json
 
 # Build artifacts
 dist
+dist-ets
+ets-bridge/target
 .cache
 *.map
 *.tsbuildinfo

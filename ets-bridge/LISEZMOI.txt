@@ -1,0 +1,36 @@
+BusDiagram relié à ETS
+======================
+
+1. Double-cliquer sur BusDiagram-ETS.exe. Une fenêtre s'ouvre : la laisser ouverte
+   pendant le TP. Elle indique si ETS et le schéma sont connectés ; sa partie
+   Réglages change les ports, les sites autorisés et l'accès depuis un ETS d'un autre
+   ordinateur.
+
+2. Ouvrir son schéma BusDiagram : concepteur, lecteur, page du cours ou fichier.
+   Dans la barre d'outils du schéma, cliquer sur « Relier à ETS ».
+   ETS accède au bus par l'interface USB ou IP du schéma ; sans interface, par la
+   ligne principale (toutes les adresses de groupe traversent alors les coupleurs).
+
+3. Dans le projet ETS (ETS 6.4), une seule fois : bouton des connexions à droite de la
+   barre d'outils > Gérer les connexions configurées… > Ajouter,
+   type Tunneling IP, adresse 127.0.0.1, port 3672, sans NAT.
+
+4. Pour que le moniteur décode les valeurs : bouton « Adresses pour ETS » du schéma,
+   puis dans ETS, clic droit sur Adresses de Groupe > Importer Adresses de Groupe.
+
+5. Dans ETS : Panneaux > Moniteurs > Moniteur de Groupe > Démarrer, puis choisir la
+   connexion Tunneling IP (127.0.0.1:3672).
+
+ETS ne voit que les télégrammes qui atteignent l'interface de bus du schéma : les
+coupleurs filtrent comme sur une installation réelle. Les participants du schéma se
+règlent dans BusDiagram ; ils ne se téléchargent pas depuis ETS.
+
+Un seul schéma à la fois peut être relié. Pour arrêter : « Déconnecter » dans le
+schéma, ou fermer la fenêtre du programme.
+Le port 3672 est choisi pour ne pas gêner KNX Virtual (3671).
+
+Schémas acceptés : fichiers ouverts depuis l'ordinateur, pages servies sur cet
+ordinateur, site publié https://ynn.github.io, et les sites ajoutés dans les Réglages.
+
+BusDiagram est distribué sous licence AGPL-3.0 (LICENCE.txt).
+Sources : https://github.com/Ynn/busdiagram

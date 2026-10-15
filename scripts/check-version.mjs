@@ -34,6 +34,24 @@ for (const [, found] of readme.matchAll(/bus-diagram@([^/\s"'`]+)/g))
     problems.push(
       `README.md refers to version ${found}, not ${pkg.version} (npm version updates it)`,
     );
+// The BusDiagram-ETS program is released with the library, under the same version.
+const cargo = await readFile(resolve(root, "ets-bridge/Cargo.toml"), "utf8");
+const crate = /^version = "([^"]*)"/m.exec(cargo)?.[1];
+if (crate !== pkg.version)
+  problems.push(
+    `ets-bridge/Cargo.toml version ${crate} differs from ${pkg.version} (npm version updates it)`,
+  );
+const cargoLock = await readFile(
+  resolve(root, "ets-bridge/Cargo.lock"),
+  "utf8",
+);
+const locked = /name = "busdiagram-ets"\nversion = "([^"]*)"/.exec(
+  cargoLock,
+)?.[1];
+if (locked !== pkg.version)
+  problems.push(
+    `ets-bridge/Cargo.lock version ${locked} differs from ${pkg.version}`,
+  );
 const tag = process.argv[2] ?? "";
 if (tag && tag !== `v${pkg.version}`)
   problems.push(`tag "${tag}" does not match version v${pkg.version}`);

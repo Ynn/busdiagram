@@ -181,6 +181,58 @@ export const styles = css`
     border-color: ${unsafeCSS(C.tg)};
     color: #fff;
   }
+  .link .dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: ${unsafeCSS(C.mute)};
+    flex: none;
+  }
+  .link.open .dot {
+    background: ${unsafeCSS(C.bus)};
+  }
+  .link.connecting .dot {
+    background: ${unsafeCSS(C.amber)};
+  }
+  .link.closed .dot {
+    background: ${unsafeCSS(C.red)};
+  }
+  .link .port {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .link .port input {
+    width: 5.5em;
+    font: inherit;
+    font-size: 12.5px;
+  }
+  .link .where {
+    font-size: 12px;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .link a.btn {
+    text-decoration: none;
+  }
+  .link .cnt {
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .link .problem {
+    font-size: 12px;
+    color: ${unsafeCSS(C.red)};
+    max-width: 32em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .link select {
+    font: inherit;
+    font-size: 12.5px;
+  }
   .seg {
     display: flex;
     background: #eceae3;
@@ -221,15 +273,18 @@ export const styles = css`
     border: 1px solid ${unsafeCSS(C.line)};
     background-color: #f7f6f1;
   }
-  .stage-wrap:fullscreen {
-    border: 0;
-    border-radius: 0;
+  .kv.fs {
+    height: 100%;
+    padding: 10px;
+    background: ${unsafeCSS(C.bg)};
   }
-  .stage-wrap:fullscreen {
+  .kv.fs .stage-wrap {
+    flex: 1 1 auto;
+    min-height: 0;
     display: flex;
     flex-direction: column;
   }
-  .stage-wrap:fullscreen .scroller {
+  .kv.fs .scroller {
     flex: 1 1 auto;
     min-height: 0;
     overflow: hidden;
@@ -237,7 +292,7 @@ export const styles = css`
     align-items: center;
     justify-content: center;
   }
-  .stage-wrap:fullscreen .stage-size {
+  .kv.fs .stage-size {
     min-width: 0;
     flex: none;
   }

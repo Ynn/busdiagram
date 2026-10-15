@@ -213,7 +213,8 @@ export interface Scenario {
   groupRanges: Map<string, string>;
   devices: Device[];
   devicesById: Map<string, Device>;
-  options: { speed: number; filterTables: boolean };
+  /** `instant`: real time, telegrams as fast as on a real bus, not animated. */
+  options: { speed: number | "instant"; filterTables: boolean };
 }
 
 export interface ClockConfig {
@@ -232,9 +233,13 @@ export function parseClockStart(s: string): number | null {
   const [y, mo, d, h, mi, se] = m
     .slice(1)
     .map((x) => Number(x ?? 0)) as number[];
-  const ms = Date.UTC(y!, mo! - 1, d!, h!, mi!, se ?? 0);
+  // Date.UTC maps years 0–99 to 1900–1999: the year is set explicitly, then checked.
+  const date = new Date(Date.UTC(2000, mo! - 1, d!, h!, mi!, se ?? 0));
+  date.setUTCFullYear(y!, mo! - 1, d!);
+  const ms = date.getTime();
   const back = new Date(ms);
-  return back.getUTCMonth() === mo! - 1 &&
+  return back.getUTCFullYear() === y! &&
+    back.getUTCMonth() === mo! - 1 &&
     back.getUTCDate() === d! &&
     h! < 24 &&
     mi! < 60 &&
@@ -1195,6 +1200,15 @@ export function buildScenario(
                 "range",
                 t`position 0–100 % expected for a shutter`,
               );
+            // A dimming preset is a brightness: values outside 0–100 % are meaningless.
+            // A valid preset above the channel's maximum is still accepted and limited at
+            // run time, as an actuator does with its configured range.
+            if (behavior?.output === "dim" && (v < 0 || v > 100))
+              return err(
+                sp,
+                "range",
+                t`brightness 0–100 % expected for a dimming channel`,
+              );
             scenes.set(n, v);
           });
       }
@@ -1736,7 +1750,7 @@ export function buildScenario(
   );
 
   // ── Options
-  let speed = 1;
+  let speed: number | "instant" = 1;
   let filterTables = false;
   if (raw.options !== undefined) {
     if (!isRecord(raw.options)) err("options", "type", t`object expected`);
@@ -1744,8 +1758,15 @@ export function buildScenario(
       unknownKeys(raw.options, OPTIONS_KEYS, "options");
       const s = raw.options.speed;
       if (s !== undefined) {
-        if (typeof s !== "number" || !Number.isFinite(s) || s <= 0)
-          err("options.speed", "range", t`strictly positive number expected`);
+        if (
+          s !== "instant" &&
+          (typeof s !== "number" || !Number.isFinite(s) || s <= 0)
+        )
+          err(
+            "options.speed",
+            "range",
+            t`strictly positive number or "instant" expected`,
+          );
         else speed = s;
       }
       const f = raw.options.filterTables;

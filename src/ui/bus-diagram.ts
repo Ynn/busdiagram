@@ -42,14 +42,16 @@ import {
   parseClockStart,
 } from "../knx/scenario";
 import { LONG_MS, Simulation, describeCommand } from "../knx/sim";
-import type { StepStop, Telegram } from "../knx/sim";
-import { animate, easeOut } from "./animation";
+import { EtsLink, type LinkStatus } from "../bridge/ets-link";
+import { etsGroupAddressXml } from "../knx/ets-export";
+import type { AccessPoint, StepStop, Telegram } from "../knx/sim";
+import { animate, easeOut, flash } from "./animation";
 import type { Glow } from "./animation";
 import { equipmentView } from "./equipment";
 import { gaRoles } from "./ga-roles";
 import type { Translate } from "../i18n";
 import { translator } from "../i18n";
-import { resolveOptions } from "./options";
+import { DEFAULT_BRIDGE, resolveOptions } from "./options";
 import {
   MAX_TRACES,
   parseTraces,
@@ -70,6 +72,24 @@ import {
 
 const win = (t: number, a: number, b: number, fi = 250, fo = 400) =>
   Math.min(easeOut((t - a) / fi), 1 - easeOut((t - b) / fo));
+
+/** Port of BusDiagram-ETS given by the reader, remembered by the browser. */
+const ETS_PORT_KEY = "bus-diagram:ets-port";
+let sessionPort: number | null = null;
+function storedEtsPort(): number | null {
+  try {
+    const n = Number(localStorage.getItem(ETS_PORT_KEY));
+    if (Number.isInteger(n) && n > 0 && n < 65536) return n;
+  } catch {
+    // Storage blocked.
+  }
+  return sessionPort;
+}
+
+/** Guide page on the link to ETS, and where BusDiagram-ETS is downloaded. */
+const ETS_GUIDE = "https://ynn.github.io/busdiagram/guide/ets.html";
+const ETS_GUIDE_FR = "https://ynn.github.io/busdiagram/fr/guide/ets.html";
+const ETS_DOWNLOAD = "https://github.com/Ynn/busdiagram/releases/latest";
 
 /** With a timeline, advance() goes by slices of this length, to draw room temperatures. */
 const TIMELINE_SLICE_MS = 250;
@@ -119,7 +139,22 @@ const speeds = (t: Translate): [string, string][] => [
   ["1", t`Normal`],
   ["2", t`Fast`],
   ["5", "×5"],
+  ["instant", t`Instant`],
 ];
+
+/** While linked to ETS, time is real: telegrams take the time of a bus, or are shown. */
+const linkedSpeeds = (t: Translate): [string, string][] => [
+  ["instant", t`Instant`],
+  ["1", t`Animated`],
+];
+
+/**
+ * Speed of the simulation: a factor of real time, with telegrams slowed down to be
+ * followed; or `instant`, real time with telegrams as fast as on a real bus, not animated.
+ */
+export type Speed = number | "instant";
+
+const timingOf = (speed: Speed) => (speed === "instant" ? "bus" : "teaching");
 
 /** Classic extension scripts: they run before DOMContentLoaded. */
 const domReady: Promise<void> =
@@ -170,6 +205,7 @@ export class BusDiagram extends LitElement {
     stepModeAttr: { type: String, attribute: "step-mode" },
     designerAttr: { type: String, attribute: "designer" },
     timelineAttr: { type: String, attribute: "timeline" },
+    bridgeAttr: { type: String, attribute: "bridge" },
   };
 
   declare scenario: string;
@@ -234,7 +270,7 @@ export class BusDiagram extends LitElement {
   private last = 0;
   private acc = 0;
   private hold: Hold | null = null;
-  private speed = 1;
+  private speed: Speed = 1;
   private stepMode = false;
   private showTables = false;
   /** The simulated clock is being set from its badge. */
@@ -257,6 +293,17 @@ export class BusDiagram extends LitElement {
   private stageRo: ResizeObserver | null = null;
   private stageBox = { w: 0, h: 0 };
   private drafts = new Map<string, string>();
+  /** Link to ETS through the busdiagram-ets program (option bridge). */
+  private link: EtsLink | null = null;
+  private linkUrl = "";
+  private linkStatus: LinkStatus | null = null;
+  /** Bus interface of the scenario used as access point; the first one by default. */
+  private linkIface: string | null = null;
+  /** The reader stopped the link: no automatic reconnection. */
+  private linkStopped = false;
+  private linkRetry: ReturnType<typeof setTimeout> | undefined;
+  private linkPump: ReturnType<typeof setInterval> | undefined;
+  private linkPumpAt = 0;
   /** USB interface panel: interface, address, value, and most recent read request. */
   private usbPanel: {
     dev: string | null;
@@ -289,6 +336,8 @@ export class BusDiagram extends LitElement {
     this.stageRo = null;
     this.stopLoop();
     this.hold = null;
+    this.disconnectEts();
+    this.stopPump();
     document.removeEventListener("visibilitychange", this.onVisibility);
     document.removeEventListener("fullscreenchange", this.onFullscreen);
     document.removeEventListener("keydown", this.onEscape);
@@ -301,7 +350,10 @@ export class BusDiagram extends LitElement {
     this.requestUpdate();
   };
 
-  /** The diagram area is shown full screen (Fullscreen API on .stage-wrap). */
+  /**
+   * Full screen (Fullscreen API on .kv): the toolbar stays, with the link to ETS, step by
+   * step and pause; the description, panels and monitor below the diagram are hidden.
+   */
   private fullscreen = false;
   private onFullscreen = () => {
     const on = !!this.shadowRoot?.fullscreenElement;
@@ -314,7 +366,7 @@ export class BusDiagram extends LitElement {
     if (this.fullscreen) void document.exitFullscreen?.();
     else
       void this.renderRoot
-        .querySelector<HTMLElement>(".stage-wrap")
+        .querySelector<HTMLElement>(".kv")
         ?.requestFullscreen?.()
         .catch(() => undefined);
   }
@@ -335,7 +387,7 @@ export class BusDiagram extends LitElement {
       changed.has("speedAttr") ||
       changed.has("stepModeAttr")
     ) {
-      if (v.speed !== null) this.speed = v.speed;
+      if (v.speed !== null) this.applySpeed(v.speed);
       if (changed.has("stepModeAttr") || this.options?.stepMode !== undefined)
         this.stepMode = v.stepMode;
     }
@@ -415,8 +467,13 @@ export class BusDiagram extends LitElement {
       this.stepMode = this.view.stepMode;
       this.showTables = model.options.filterTables;
       this.error = "";
-      this.sim = new Simulation(model, { lang: this.language });
+      this.sim = new Simulation(model, {
+        lang: this.language,
+        timing: timingOf(this.speed),
+      });
       this.attach(this.sim);
+      // A link to ETS follows the new simulation.
+      this.link?.retarget();
       this.prepareDesignerLink(model);
       this.clearUi();
       this.requestUpdate();
@@ -437,7 +494,7 @@ export class BusDiagram extends LitElement {
     this.clearUi();
     this.stopLoop();
     this.requestUpdate();
-    if (this.sim.clock()) this.kick();
+    if (this.sim.clock() || this.linkOpen()) this.kick();
   }
 
   play() {
@@ -501,17 +558,356 @@ export class BusDiagram extends LitElement {
     );
   }
 
+  // ── Link to ETS ──
+
+  /** Status of the link to ETS, or null when it was never started. */
+  get etsLink(): LinkStatus | null {
+    return this.linkStatus;
+  }
+
+  /** WebSocket address of the BusDiagram-ETS program, or null when hidden. */
+  private bridgeUrl(): string | null {
+    const b = this.view.bridge;
+    if (!b || b === "none") return null;
+    // The reader may have given another port, when the program uses one.
+    const port = b === DEFAULT_BRIDGE ? storedEtsPort() : null;
+    return port ? `ws://127.0.0.1:${port}/ws` : b;
+  }
+
+  /** Port of the program in the address in use. */
+  private bridgePort(): string {
+    return /:(\d+)\//.exec(this.bridgeUrl() ?? "")?.[1] ?? "";
+  }
+
+  /** Use another port for the program (remembered by this browser), and try again. */
+  private setEtsPort(text: string) {
+    const port = Number(text);
+    if (!Number.isInteger(port) || port < 1 || port > 65535) return;
+    try {
+      if (String(port) === /:(\d+)\//.exec(DEFAULT_BRIDGE)?.[1])
+        localStorage.removeItem(ETS_PORT_KEY);
+      else localStorage.setItem(ETS_PORT_KEY, String(port));
+    } catch {
+      // Storage blocked: the port applies to this page only.
+      sessionPort = port;
+    }
+    this.connectEts();
+  }
+
+  /**
+   * Download the group addresses of the diagram in the XML format that ETS imports
+   * (Group Addresses → Import), with their names, groups and DPTs.
+   */
+  downloadEtsGroupAddresses() {
+    const s = this.model;
+    if (!s) return;
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(
+      new Blob([etsGroupAddressXml(s, this.tr)], { type: "application/xml" }),
+    );
+    const base = (s.title || "BusDiagram")
+      .replace(/[\\/:*?"<>|]+/g, "_")
+      .trim();
+    a.download = `${base} - ${this.tr`group addresses`}.xml`;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }
+
+  /**
+   * Connect to ETS through the bridge of option `bridge`. The scenario's bus interface
+   * becomes the access point of ETS; the simulation then runs in real time.
+   */
+  connectEts() {
+    const url = this.bridgeUrl();
+    if (!url) return;
+    this.linkStopped = false;
+    clearTimeout(this.linkRetry);
+    if (!this.link || this.linkUrl !== url) {
+      this.link?.close();
+      this.linkUrl = url;
+      this.link = new EtsLink({
+        url,
+        target: () => this.linkTarget(),
+        accepting: () => this.linkAccepting(),
+        onStatus: (st) => this.onLinkStatus(st),
+        onIngest: () => this.kick(),
+        t: this.tr,
+      });
+    }
+    this.link.connect();
+  }
+
+  /** Stop the link to ETS, without automatic reconnection. */
+  disconnectEts() {
+    this.linkStopped = true;
+    clearTimeout(this.linkRetry);
+    this.link?.close();
+  }
+
+  private linkOpen(): boolean {
+    return this.linkStatus?.state === "open";
+  }
+
+  /**
+   * Access point of ETS: the chosen bus interface of the scenario (the first by default),
+   * or, without one, its main line.
+   */
+  private linkTarget(): { sim: Simulation; access: AccessPoint } | null {
+    const sim = this.sim;
+    if (!sim) return null;
+    const ifaces = this.interfaces();
+    const id = ifaces.find((d) => d.id === this.linkIface)?.id ?? ifaces[0]?.id;
+    if (id) return { sim, access: { device: id } };
+    const segment = sim.network.accessSegment();
+    return segment ? { sim, access: { segment } } : null;
+  }
+
+  /** Where ETS reaches the bus, in words. */
+  private accessText(access: AccessPoint): string {
+    const t = this.tr;
+    if ("device" in access) {
+      const d = this.model?.devicesById.get(access.device);
+      return t`through the interface ${d?.address ?? access.device}`;
+    }
+    const seg = this.topo?.segments.get(access.segment);
+    if (!seg) return "";
+    return seg.kind === "ip"
+      ? t`on the IP network`
+      : seg.kind === "backbone"
+        ? t`on the backbone line 0.0`
+        : seg.kind === "main"
+          ? t`on the main line ${seg.ref}.0`
+          : t`on line ${seg.ref}`;
+  }
+
+  /** Why a telegram from ETS cannot enter now, or null. */
+  private linkAccepting(): string | null {
+    // The telegram enters at the current real time, not at the last frame's.
+    this.syncLinked();
+    const sim = this.sim;
+    if (!sim) return this.tr`no scenario loaded`;
+    if (sim.fault) return this.tr`simulation stopped`;
+    if (sim.paused) return this.tr`simulation paused`;
+    return null;
+  }
+
+  private onLinkStatus(st: LinkStatus) {
+    const was = this.linkStatus?.state;
+    this.linkStatus = st;
+    if (st.state === "open" && was !== "open") {
+      // ETS lives in real time: no slowed or stepped time while linked, and telegrams
+      // as fast as on a bus unless the reader asks to see them travel.
+      this.applySpeed("instant");
+      this.stepMode = false;
+      this.sim?.play();
+      this.startPump();
+      this.kick();
+    }
+    if (st.state !== "open") this.stopPump();
+    if (st.state === "closed" && !this.linkStopped && this.isConnected) {
+      clearTimeout(this.linkRetry);
+      this.linkRetry = setTimeout(() => this.connectEts(), 3000);
+    }
+    this.dispatchEvent(
+      new CustomEvent("bd-link", { detail: st, bubbles: true, composed: true }),
+    );
+    this.requestUpdate();
+  }
+
+  /**
+   * While linked, simulated time follows real time, whatever the animation frames do:
+   * ETS keeps sending and waits for answers, while frames slow down or stop in a hidden
+   * or background view. Both the frames and this timer bring the simulation up to now.
+   */
+  private startPump() {
+    if (this.linkPump !== undefined) return;
+    this.linkPumpAt = performance.now();
+    this.linkPump = setInterval(() => {
+      this.syncLinked();
+      if (this.sim?.busy()) this.requestUpdate();
+    }, 100);
+  }
+
+  /** Advance the simulation to the current real time (linked to ETS). */
+  private syncLinked() {
+    const now = performance.now();
+    const sim = this.sim;
+    const dt = Math.round(now - this.linkPumpAt);
+    if (!this.linkOpen() || !sim || sim.paused || sim.fault) {
+      this.linkPumpAt = now;
+      return;
+    }
+    if (dt <= 0) return;
+    this.linkPumpAt += dt;
+    // A long suspension (computer asleep) is not caught up: commands would be late.
+    sim.advance(Math.min(dt, 60_000));
+  }
+
+  private stopPump() {
+    clearInterval(this.linkPump);
+    this.linkPump = undefined;
+  }
+
+  private renderLink() {
+    const t = this.tr;
+    const st = this.linkStatus;
+    const state = st?.state ?? "off";
+    const ifaces = this.interfaces();
+    const target = this.linkTarget();
+    const where = target ? this.accessText(target.access) : "";
+    const guide = this.language.toLowerCase().startsWith("fr")
+      ? ETS_GUIDE_FR
+      : ETS_GUIDE;
+    const help = html`<a
+      class="btn ico"
+      href=${guide}
+      target="_blank"
+      rel="noopener"
+      title=${t`How to link a diagram to ETS, and where to download BusDiagram-ETS`}
+      aria-label=${t`Help on the link to ETS`}
+      >?</a
+    >`;
+    const gaButton = html`<button
+      class="btn"
+      title=${t`Group addresses of this diagram, to import in ETS (Group Addresses → Import)`}
+      @click=${() => this.downloadEtsGroupAddresses()}
+    >
+      ${t`Addresses for ETS`}
+    </button>`;
+    if (state === "off")
+      return html`<div class="grp link off">
+        ${st?.detail ? html`<span class="hint">${st.detail}</span>` : nothing}
+        <button
+          class="btn"
+          ?disabled=${!target}
+          title=${t`Connect this diagram to ETS through the BusDiagram-ETS program; ETS reaches the bus ${where}`}
+          @click=${() => this.connectEts()}
+        >
+          ${t`Link to ETS`}
+        </button>
+        ${help}
+      </div>`;
+    // The program cannot be reached: say how to get it.
+    if (state === "closed")
+      return html`<div class="grp link closed" title=${st?.detail ?? ""}>
+        <span class="dot" aria-hidden="true"></span>
+        <span class="lbl">${t`ETS: start BusDiagram-ETS`}</span>
+        <a
+          class="btn"
+          href=${ETS_DOWNLOAD}
+          target="_blank"
+          rel="noopener"
+          title=${t`Download BusDiagram-ETS (Windows), then start it: the diagram connects by itself`}
+          >${t`Download`}</a
+        >
+        <label
+          class="port"
+          title=${t`Port of the BusDiagram-ETS program, as its window shows it (3761 unless changed)`}
+          >${t`Port`}
+          <input
+            type="number"
+            min="1"
+            max="65535"
+            .value=${this.bridgePort()}
+            @keydown=${(e: KeyboardEvent) => {
+              if (e.key === "Enter")
+                this.setEtsPort((e.target as HTMLInputElement).value);
+            }}
+            @change=${(e: Event) =>
+              this.setEtsPort((e.target as HTMLInputElement).value)}
+        /></label>
+        <button class="btn" @click=${() => this.connectEts()}>
+          ${t`Retry`}
+        </button>
+        ${help}
+        <button class="btn" @click=${() => this.disconnectEts()}>
+          ${t`Cancel`}
+        </button>
+      </div>`;
+    const label =
+      state === "open"
+        ? st?.ets
+          ? t`ETS linked`
+          : t`ETS: waiting for ETS`
+        : t`ETS: connecting…`;
+    const why = [where, st?.lastProblem].filter(Boolean).join(" — ");
+    const shown = state === "open" && !st?.ets ? "connecting" : state;
+    return html`<div class="grp link ${shown}" title=${why}>
+      <span class="dot" aria-hidden="true"></span>
+      <span class="lbl">${label}</span>
+      ${
+        state === "open" && st
+          ? html`<span class="where">${where}</span>
+              <span
+                class="cnt"
+                title=${t`Telegrams received from ETS · sent to ETS`}
+                >↓${st.received} ↑${st.sent}</span
+              >`
+          : nothing
+      }
+      ${
+        ifaces.length > 1
+          ? html`<select
+              aria-label=${t`Access point of ETS`}
+              title=${t`Access point of ETS`}
+              @change=${(e: Event) => {
+                this.linkIface = (e.target as HTMLSelectElement).value;
+                this.link?.retarget();
+                this.requestUpdate();
+              }}
+            >
+              ${ifaces.map(
+                (d) =>
+                  html`<option
+                    value=${d.id}
+                    ?selected=${
+                      target !== null &&
+                      "device" in target.access &&
+                      d.id === target.access.device
+                    }
+                  >
+                    ${d.name} ${d.address}
+                  </option>`,
+              )}
+            </select>`
+          : nothing
+      }
+      ${gaButton}
+      <button class="btn" @click=${() => this.disconnectEts()}>
+        ${t`Disconnect`}
+      </button>
+      ${
+        state === "open" && st?.lastProblem
+          ? html`<span class="problem">${st.lastProblem}</span>`
+          : nothing
+      }
+    </div>`;
+  }
+
   getState(): SimSnapshot | null {
     return this.sim?.getState() ?? null;
   }
 
-  setSpeed(n: number) {
-    if (typeof n !== "number" || !Number.isFinite(n) || n <= 0)
+  /**
+   * Speed of the simulation: a factor of real time (1 = real time), or `"instant"`: real
+   * time, with telegrams as fast as on a real bus and not animated.
+   */
+  setSpeed(n: Speed) {
+    if (
+      n !== "instant" &&
+      (typeof n !== "number" || !Number.isFinite(n) || n <= 0)
+    )
       throw new RangeError(
-        this.tr`setSpeed: finite positive number expected (got ${n})`,
+        this
+          .tr`setSpeed: finite positive number or "instant" expected (got ${n})`,
       );
-    this.speed = n;
+    this.applySpeed(n);
     this.requestUpdate();
+  }
+
+  private applySpeed(n: Speed) {
+    this.speed = n;
+    this.sim?.setTiming(timingOf(n));
   }
 
   get simulation(): Simulation | null {
@@ -699,8 +1095,9 @@ export class BusDiagram extends LitElement {
         h.longFired = true;
         this.gesture(h.dev, h.button, h.contact ? "hold" : "long");
       }
-      if (!sim.paused) {
-        this.acc += real * this.speed;
+      if (this.linkOpen()) this.syncLinked();
+      else if (!sim.paused) {
+        this.acc += real * (this.speed === "instant" ? 1 : this.speed);
         const step = Math.floor(this.acc);
         this.acc -= step;
         if (step > 0) {
@@ -719,7 +1116,8 @@ export class BusDiagram extends LitElement {
       // With a simulated clock, time keeps running even when the bus is idle.
       if (
         this.hold ||
-        (!sim.paused && (sim.busy() || animating || sim.clock() !== null))
+        (!sim.paused &&
+          (sim.busy() || animating || sim.clock() !== null || this.linkOpen()))
       )
         this.raf = requestAnimationFrame(loop);
     };
@@ -967,11 +1365,16 @@ export class BusDiagram extends LitElement {
     const exts = s.lines.filter((l) => l.extension?.switchable);
     const stop = sim.paused && this.stepMode ? sim.lastStop : null;
 
-    const toolbar =
-      v.toolbar === "full" ? this.renderToolbar(s, g, sim, exts) : nothing;
-    return html`<div class="kv ${v.fit === "contain" ? "contain" : ""}">
+    // Full screen shows the whole toolbar, also for a diagram with compact controls.
+    const fullBar =
+      v.toolbar === "full" || (v.toolbar === "compact" && this.fullscreen);
+    const toolbar = fullBar ? this.renderToolbar(s, g, sim, exts) : nothing;
+    const fs = this.fullscreen;
+    return html`<div
+      class="kv ${v.fit === "contain" ? "contain" : ""} ${fs ? "fs" : ""}"
+    >
       ${toolbar}
-      ${v.description && s.description ? html`<p class="desc">${s.description}</p>` : nothing}
+      ${v.description && s.description && !fs ? html`<p class="desc">${s.description}</p>` : nothing}
       ${this.renderConfigWarnings(sim)}
 
       <div
@@ -999,7 +1402,7 @@ export class BusDiagram extends LitElement {
             </div>
           </div>
         </div>
-        ${v.toolbar === "compact" ? this.renderCompactControls(sim) : nothing}
+        ${v.toolbar === "compact" && !fullBar ? this.renderCompactControls(sim) : nothing}
         ${
           typeof document !== "undefined" && document.fullscreenEnabled
             ? html`<button
@@ -1070,10 +1473,10 @@ export class BusDiagram extends LitElement {
         }
         ${this.renderGaFocus(s)} ${this.renderInfo(s, g, sim)}
       </div>
-      ${v.hints && hasLong ? html`<div class="hint">${this.tr`Click = short press · hold 0.5 s = long press (keyboard: Enter / Shift+Enter)`}</div>` : nothing}
-      ${v.timeline ? this.renderTimelinePanel(s, sim) : nothing}
+      ${v.hints && hasLong && !fs ? html`<div class="hint">${this.tr`Click = short press · hold 0.5 s = long press (keyboard: Enter / Shift+Enter)`}</div>` : nothing}
+      ${v.timeline && !fs ? this.renderTimelinePanel(s, sim) : nothing}
       ${
-        v.monitor || this.interfaces().length || s.rooms.length
+        !fs && (v.monitor || this.interfaces().length || s.rooms.length)
           ? html`<div class="bottom">
               ${s.rooms.length ? this.renderRooms(s, sim) : nothing}
               ${this.interfaces().length ? this.renderUsbPanel(s, sim) : nothing}
@@ -1180,10 +1583,24 @@ export class BusDiagram extends LitElement {
             )}
           </div>`,
       )}
-      <div class="grp">
-        <span class="lbl">${this.tr`Speed`}</span>
-        ${this.segCtl(speeds(this.tr), String(this.speed), (v) => this.setSpeed(Number(v)))}
-      </div>
+      ${this.bridgeUrl() ? this.renderLink() : nothing}
+      ${
+        this.linkOpen()
+          ? html`<div
+              class="grp"
+              title=${this.tr`Real time while linked to ETS. Instant: telegrams take the time of a real bus (about 20 ms) and are not animated.`}
+            >
+              <span class="lbl">${this.tr`Speed`}</span>
+              ${this.segCtl(linkedSpeeds(this.tr), this.speed === "instant" ? "instant" : "1", (v) => this.setSpeed(v === "instant" ? v : 1))}
+            </div>`
+          : html`<div
+              class="grp"
+              title=${this.tr`Instant: real time, telegrams as fast as on a real bus (about 20 ms) and not animated.`}
+            >
+              <span class="lbl">${this.tr`Speed`}</span>
+              ${this.segCtl(speeds(this.tr), String(this.speed), (v) => this.setSpeed(v === "instant" ? v : Number(v)))}
+            </div>`
+      }
       ${
         g.couplers.length
           ? html`<button
@@ -1197,6 +1614,7 @@ export class BusDiagram extends LitElement {
       <button
         class="btn ${this.stepMode ? "on" : ""}"
         title=${this.tr`Stop at every transmission, coupler, reception, output change and timer`}
+        ?disabled=${this.linkOpen()}
         @click=${() => {
           this.stepMode = !this.stepMode;
           if (!this.stepMode) sim.play();
@@ -1236,10 +1654,21 @@ export class BusDiagram extends LitElement {
     topo: Topology,
     t: number,
   ) {
-    const src = s.devicesById.get(tel.sourceDeviceId)!;
-    const srcG = g.devices.get(src.id)!;
-    const i = src.objects.findIndex((o) => o.id === tel.objectId);
-    return animate(tel.plan, topo, g, t, gaCell(srcG, src, i), (r) => {
+    const src = s.devicesById.get(tel.sourceDeviceId);
+    const srcG = src && g.devices.get(src.id);
+    // An external telegram put on a segment starts at the segment's first point.
+    const fr = tel.plan.fronts[0];
+    const first = fr && topo.segments.get(fr.segId)?.points[fr.originIndex];
+    const from: Pt =
+      src && srcG
+        ? gaCell(
+            srcG,
+            src,
+            src.objects.findIndex((o) => o.id === tel.objectId),
+          )
+        : ((first && g.points.get(first.id)) ?? [0, 0]);
+    if (tel.plan.timing === "bus") return flash(tel.plan, topo, g, t);
+    return animate(tel.plan, topo, g, t, from, (r) => {
       const d = s.devicesById.get(r.deviceId)!;
       const dg = g.devices.get(r.deviceId)!;
       const first = r.objectIds[0];

@@ -8,7 +8,6 @@ import {
   type Topology,
   type TransportPlan,
 } from "../knx/network";
-import { TIMING } from "../knx/network";
 
 export interface Pill {
   p: Pt;
@@ -96,7 +95,7 @@ export function animate(
 
   // 1. Descent: emitter object → bottom of plug → bus
   if (dg && t >= plan.t0Ms && t < plan.busMs) {
-    const f = (t - plan.t0Ms) / TIMING.emitMs;
+    const f = (t - plan.t0Ms) / (plan.busMs - plan.t0Ms || 1);
     const path: Pt[] = [emitFrom, [dg.drop[0], emitFrom[1]], dg.drop, dg.at];
     pills.push({ p: along(path, f), o: easeOut(f * 4), small: false });
     glows.push({
@@ -112,7 +111,8 @@ export function animate(
     const S = g.segs.get(fr.segId);
     const sg = topo.segments.get(fr.segId);
     if (!S || !sg) return;
-    const originPt = g.points.get(sg.points[fr.originIndex]!.id);
+    const origin = sg.points[fr.originIndex];
+    const originPt = origin && g.points.get(origin.id);
     if (!originPt) return;
     const u0 = segPos(S, originPt);
     const pts: Key[] = sg.points.flatMap((p, j) => {
@@ -211,6 +211,50 @@ export function animate(
     });
   });
   return { pills, glows };
+}
+
+/** How long the path of a telegram stays lit in instant mode. */
+const FLASH_MS = 900;
+
+/**
+ * Instant mode: nothing travels. The cables that a telegram reached are lit when it is
+ * on them (a few milliseconds on a real bus), then fade; so are the sender's and the
+ * receivers' connections.
+ */
+export function flash(
+  plan: TransportPlan,
+  topo: Topology,
+  g: Geometry,
+  tMs: number,
+): { pills: Pill[]; glows: Glow[] } {
+  const glows: Glow[] = [];
+  const lit = (t0: number) => {
+    const age = tMs - t0;
+    return age < 0 ? 0 : 1 - easeOut(age / FLASH_MS);
+  };
+  const dg = g.devices.get(plan.sourceDeviceId);
+  const o0 = lit(plan.t0Ms);
+  if (dg && o0 > 0) glows.push({ a: dg.drop, b: dg.at, o: 0.5 * o0 });
+  plan.fronts.forEach((fr) => {
+    const S = g.segs.get(fr.segId);
+    const o = lit(fr.tStartMs);
+    if (!S || !topo.segments.has(fr.segId) || o <= 0) return;
+    if (behindCut(plan, fr.path)) return;
+    const end = segLength(S);
+    glows.push({
+      a: segPoint(S, 0),
+      b: segPoint(S, end),
+      o: 0.45 * o,
+      pts: S.pts.length > 2 ? segSlice(S, 0, end) : undefined,
+    });
+  });
+  plan.deliveries.forEach((r) => {
+    const rg = g.devices.get(r.deviceId);
+    const o = lit(r.tDeliverMs);
+    if (!r.objectIds.length || !rg || o <= 0 || behindCut(plan, r.path)) return;
+    glows.push({ a: rg.at, b: rg.drop, o: 0.5 * o });
+  });
+  return { pills: [], glows };
 }
 
 function along(path: Pt[], f: number): Pt {

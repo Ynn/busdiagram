@@ -105,6 +105,27 @@ test("telegram marker moves along its route; output waits for delivery, also wit
   }
 });
 
+test("instant speed: the output switches as on a real bus, nothing travels", async ({
+  page,
+}) => {
+  await page.goto(DEMO);
+  const v = viz(page, "Control multiple outputs");
+  await v.getByRole("button", { name: "Instant" }).click();
+  await pause(v);
+  await v.locator("button.key", { hasText: "Key 1" }).click();
+  // One switching telegram: about 20 ms on a TP1 line.
+  await advance(v, 19);
+  await expect(v.locator(".lamp.on")).toHaveCount(0);
+  await advance(v, 1);
+  await expect(v.locator(".lamp.on")).toHaveCount(2);
+  expect(await pills(v)).toEqual([]);
+  // Back to a slowed-down speed: the next telegram travels again.
+  await v.getByRole("button", { name: "Normal" }).click();
+  await v.locator("button.key", { hasText: "Key 1" }).click();
+  await advance(v, 600);
+  expect((await pills(v)).length).toBeGreaterThan(0);
+});
+
 test("output stays off until the visible telegram arrives", async ({
   page,
 }) => {
@@ -379,19 +400,23 @@ test("simulated clock badge shows the time and can be set", async ({
   await expect(v.locator(".lamp.on")).toHaveCount(1);
 });
 
-test("diagram area enters and leaves full screen", async ({ page }) => {
+test("diagram enters and leaves full screen with its toolbar", async ({
+  page,
+}) => {
   await page.goto(DEMO);
   const v = viz(page, "USB interface panel");
-  const isFull = () =>
-    v.evaluate((el) => el.shadowRoot!.fullscreenElement?.className ?? null);
+  const isFull = () => v.evaluate((el) => !!el.shadowRoot!.fullscreenElement);
   await v.getByRole("button", { name: "Full screen" }).click();
-  await expect.poll(isFull).toBe("stage-wrap");
+  await expect.poll(isFull).toBe(true);
+  // The toolbar stays in full screen: pause, step by step, link to ETS.
+  await expect(v.getByRole("button", { name: /Pause/ })).toBeVisible();
+  await expect(v.getByRole("button", { name: "Link to ETS" })).toBeVisible();
   const box = await v
     .locator(".stage-size")
     .evaluate((e) => e.getBoundingClientRect().width);
   expect(box).toBeGreaterThan(900);
   await v.getByRole("button", { name: "Exit full screen" }).click();
-  await expect.poll(isFull).toBeNull();
+  await expect.poll(isFull).toBe(false);
 });
 
 test("group monitor opens in a larger dialog and closes with the button or Escape", async ({

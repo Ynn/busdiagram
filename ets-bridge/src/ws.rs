@@ -1,0 +1,354 @@
+//! The WebSocket a BusDiagram diagram connects to, on 127.0.0.1 only.
+//!
+//! Any diagram can connect when the reader asks for it: the designer, the player, a page
+//! of a course, a file opened from disk. Protocol, deliberately minimal:
+//! - binary message, both ways: one cEMI L_Data frame (a group telegram);
+//! - text message, program → page: `{"type":"status","ets":N}`, N tunnels open by ETS.
+//!
+//! One diagram at a time, so that two installations do not answer ETS together: the
+//! diagram linked last takes over, and the previous one is told so (close code 4001).
+
+use std::io::{self, BufRead, BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::mpsc::{self, Receiver, Sender, SyncSender};
+use std::sync::{Arc, Mutex, PoisonError};
+use std::time::{Duration, Instant};
+
+use crate::bridge::Shared;
+
+use tungstenite::handshake::derive_accept_key;
+use tungstenite::protocol::frame::coding::CloseCode;
+use tungstenite::protocol::{CloseFrame, Role, WebSocket};
+use tungstenite::{Error, Message};
+
+/// A message for the diagram.
+pub enum ToPage {
+    Frame(Vec<u8>),
+    Status(usize),
+    /// Another diagram was linked: this one is disconnected.
+    Replaced,
+}
+
+/// A message for the tunnelling server.
+pub enum ToBus {
+    /// A telegram of the diagram of `session`, received at `at`.
+    Frame {
+        session: u64,
+        at: Instant,
+        cemi: Vec<u8>,
+    },
+    /// The diagram of `session` is gone: its telegrams still waiting do not leave.
+    Closed(u64),
+}
+
+/// What the diagram and the tunnel share: the connected diagram, and the way to the bus.
+pub struct Hub {
+    page: Mutex<Option<(u64, Sender<ToPage>, String)>>,
+    /// Bounded: a diagram that sends faster than ETS acknowledges loses telegrams rather
+    /// than piling them up.
+    to_bus: Mutex<SyncSender<ToBus>>,
+    ets: Mutex<usize>,
+}
+
+impl Hub {
+    pub fn new(to_bus: SyncSender<ToBus>) -> Self {
+        Self {
+            page: Mutex::new(None),
+            to_bus: Mutex::new(to_bus),
+            ets: Mutex::new(0),
+        }
+    }
+
+    /// Send to the connected diagram, if any.
+    pub fn to_page(&self, m: ToPage) {
+        if let Some((_, tx, _)) = &*self.page.lock().unwrap_or_else(PoisonError::into_inner) {
+            let _ = tx.send(m);
+        }
+    }
+
+    /// Number of ETS tunnels, told to the diagram when it changes.
+    pub fn set_ets(&self, n: usize) {
+        let mut ets = self.ets.lock().unwrap_or_else(PoisonError::into_inner);
+        if *ets != n {
+            *ets = n;
+            self.to_page(ToPage::Status(n));
+        }
+    }
+
+    /// Origin of the connected diagram, if any.
+    pub fn page(&self) -> Option<String> {
+        self.page
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .as_ref()
+            .map(|(_, _, origin)| origin.clone())
+    }
+
+    fn attach(&self, id: u64, origin: &str) -> Receiver<ToPage> {
+        let mut page = self.page.lock().unwrap_or_else(PoisonError::into_inner);
+        if let Some((_, previous, _)) = page.take() {
+            let _ = previous.send(ToPage::Replaced);
+        }
+        let (tx, rx) = mpsc::channel();
+        let _ = tx.send(ToPage::Status(
+            *self.ets.lock().unwrap_or_else(PoisonError::into_inner),
+        ));
+        *page = Some((id, tx, origin.to_owned()));
+        rx
+    }
+
+    fn detach(&self, id: u64) {
+        let mut page = self.page.lock().unwrap_or_else(PoisonError::into_inner);
+        if page.as_ref().is_some_and(|(p, _, _)| *p == id) {
+            *page = None;
+        }
+        drop(page);
+        self.to_bus(ToBus::Closed(id));
+    }
+
+    fn to_bus(&self, m: ToBus) {
+        let _ = self
+            .to_bus
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .try_send(m);
+    }
+}
+
+/// Pages allowed to connect: a file opened from disk (origin "null"), any page served on
+/// this computer, the published documentation and designer, and those given with
+/// --allow-origin. Other sites cannot reach this program from the reader's browser.
+pub struct Origins {
+    pub extra: Vec<String>,
+    /// Port of this program: it serves no page, so a page claiming it is stale.
+    pub own_port: u16,
+}
+
+pub const PUBLISHED: &str = "https://ynn.github.io";
+
+impl Origins {
+    pub fn allows(&self, origin: &str) -> bool {
+        let o = origin.trim().to_ascii_lowercase();
+        let local = [
+            "http://localhost",
+            "http://127.0.0.1",
+            "https://localhost",
+            "https://127.0.0.1",
+        ]
+        .iter()
+        .any(|base| {
+            o.strip_prefix(base).is_some_and(|rest| {
+                rest.is_empty()
+                    || (rest.starts_with(':') && rest[1..].bytes().all(|b| b.is_ascii_digit()))
+            })
+        });
+        let own = local && o.ends_with(&format!(":{}", self.own_port));
+        !own && (o == "null"
+            || local
+            || o == PUBLISHED
+            || self.extra.iter().any(|e| e.eq_ignore_ascii_case(&o)))
+    }
+}
+
+/// Accept connections until `stop` is set.
+pub fn serve(
+    listener: &TcpListener,
+    hub: &Arc<Hub>,
+    origins: &Arc<Origins>,
+    port: u16,
+    stop: &Arc<AtomicBool>,
+    shared: &Shared,
+) {
+    let hosts = Arc::new([format!("127.0.0.1:{port}"), format!("localhost:{port}")]);
+    // Non-blocking, so that the loop sees `stop`.
+    if listener.set_nonblocking(true).is_err() {
+        return;
+    }
+    let mut next_id = 0u64;
+    let mut sessions = Vec::new();
+    while !stop.load(Ordering::Acquire) {
+        match listener.accept() {
+            Ok((stream, _)) => {
+                next_id += 1;
+                let _ = stream.set_nonblocking(false);
+                let (hub, origins, hosts, stop, shared, id) = (
+                    hub.clone(),
+                    origins.clone(),
+                    hosts.clone(),
+                    stop.clone(),
+                    shared.clone(),
+                    next_id,
+                );
+                sessions.push(std::thread::spawn(move || {
+                    let _ =
+                        connection(stream, &hub, &origins, hosts.as_slice(), id, &stop, &shared);
+                }));
+            }
+            Err(_) => std::thread::sleep(Duration::from_millis(50)),
+        }
+        sessions.retain(|t| !t.is_finished());
+    }
+    for t in sessions {
+        let _ = t.join();
+    }
+}
+
+fn headers(stream: &TcpStream) -> io::Result<Vec<(String, String)>> {
+    let mut reader = BufReader::new(stream.take(8192));
+    let mut line = String::new();
+    reader.read_line(&mut line)?;
+    let mut out = Vec::new();
+    loop {
+        let mut h = String::new();
+        if reader.read_line(&mut h)? == 0 || h.trim().is_empty() {
+            break;
+        }
+        if let Some((k, v)) = h.split_once(':') {
+            out.push((k.trim().to_ascii_lowercase(), v.trim().to_owned()));
+        }
+    }
+    Ok(out)
+}
+
+fn refuse(stream: &mut TcpStream, status: &str, text: &str) -> io::Result<()> {
+    write!(
+        stream,
+        "HTTP/1.1 {status}\r\nContent-Type: text/plain; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{text}",
+        text.len()
+    )?;
+    stream.flush()
+}
+
+fn connection(
+    mut stream: TcpStream,
+    hub: &Hub,
+    origins: &Origins,
+    hosts: &[String],
+    id: u64,
+    stop: &AtomicBool,
+    shared: &Shared,
+) -> io::Result<()> {
+    stream.set_read_timeout(Some(Duration::from_secs(5)))?;
+    let h = headers(&stream)?;
+    let get = |name: &str| h.iter().find(|(k, _)| k == name).map(|(_, v)| v.as_str());
+    // Reached as 127.0.0.1 or localhost only: a site cannot reach it through a name of
+    // its own that points to this computer (DNS rebinding).
+    if !hosts.contains(&get("host").unwrap_or("").to_ascii_lowercase()) {
+        return refuse(&mut stream, "421 Misdirected Request", "host not allowed\n");
+    }
+    if !get("upgrade").is_some_and(|v| v.eq_ignore_ascii_case("websocket")) {
+        return refuse(
+            &mut stream,
+            "200 OK",
+            "BusDiagram-ETS : ouvrez un schéma BusDiagram et cliquez sur « Relier à ETS ».\n",
+        );
+    }
+    let origin = get("origin").unwrap_or("").to_owned();
+    if !origins.allows(&origin) {
+        shared.log(&format!(
+            "schéma refusé : le site {} n'est pas autorisé (Réglages > Sites autorisés)",
+            if origin.is_empty() { "?" } else { &origin }
+        ));
+        return refuse(&mut stream, "403 Forbidden", "origin not allowed\n");
+    }
+    let Some(key) = get("sec-websocket-key") else {
+        return refuse(&mut stream, "400 Bad Request", "websocket key missing\n");
+    };
+    write!(
+        stream,
+        "HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: {}\r\n\r\n",
+        derive_accept_key(key.as_bytes())
+    )?;
+    stream.set_read_timeout(Some(Duration::from_millis(50)))?;
+    let mut ws = WebSocket::from_raw_socket(stream, Role::Server, None);
+    let rx = hub.attach(id, &origin);
+    let result = run(&mut ws, &rx, hub, stop, id);
+    hub.detach(id);
+    result
+}
+
+fn run(
+    ws: &mut WebSocket<TcpStream>,
+    rx: &Receiver<ToPage>,
+    hub: &Hub,
+    stop: &AtomicBool,
+    session: u64,
+) -> io::Result<()> {
+    loop {
+        if stop.load(Ordering::Acquire) {
+            let _ = ws.close(Some(CloseFrame {
+                code: CloseCode::Away,
+                reason: "BusDiagram-ETS s'arrête".into(),
+            }));
+            let _ = ws.flush();
+            return Ok(());
+        }
+        match ws.read() {
+            Ok(Message::Binary(b)) => hub.to_bus(ToBus::Frame {
+                session,
+                at: Instant::now(),
+                cemi: b.to_vec(),
+            }),
+            Ok(Message::Close(_)) | Err(Error::ConnectionClosed | Error::AlreadyClosed) => {
+                return Ok(());
+            }
+            Ok(_) => {}
+            Err(Error::Io(e))
+                if matches!(
+                    e.kind(),
+                    io::ErrorKind::WouldBlock | io::ErrorKind::TimedOut
+                ) => {}
+            Err(e) => return Err(io::Error::other(e)),
+        }
+        while let Ok(m) = rx.try_recv() {
+            let msg = match m {
+                ToPage::Replaced => {
+                    let _ = ws.close(Some(CloseFrame {
+                        code: CloseCode::Library(4001),
+                        reason: "un autre schéma a été relié à ETS".into(),
+                    }));
+                    let _ = ws.flush();
+                    return Ok(());
+                }
+                ToPage::Frame(f) => Message::Binary(f.into()),
+                ToPage::Status(n) => {
+                    Message::Text(format!("{{\"type\":\"status\",\"ets\":{n}}}").into())
+                }
+            };
+            ws.send(msg).map_err(io::Error::other)?;
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn origins() {
+        let o = Origins {
+            extra: vec!["https://cours.example".into()],
+            own_port: 3761,
+        };
+        for ok in [
+            "null",
+            "http://localhost:8080",
+            "http://127.0.0.1",
+            "https://ynn.github.io",
+            "https://cours.example",
+        ] {
+            assert!(o.allows(ok), "{ok}");
+        }
+        for no in [
+            "",
+            "https://evil.example",
+            "http://localhost.evil.example",
+            "http://127.0.0.1:80x",
+            "https://ynn.github.io.evil",
+            "http://127.0.0.1:3761",
+        ] {
+            assert!(!o.allows(no), "{no}");
+        }
+    }
+}

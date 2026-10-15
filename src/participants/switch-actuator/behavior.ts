@@ -1009,7 +1009,17 @@ export const switchActuator: BehaviorDefinition<SwitchState> = {
       );
     } else if (what === "warn") {
       const st = ctx.state.channels[ch];
-      if (!st?.on || st.forced || st.fire || st.intrusion) return;
+      // A priority that holds the output (forcing, alarm, lock, shedding) also holds it
+      // against the warning: the warning is not a command, but it must not bypass them.
+      if (
+        !st?.on ||
+        st.forced ||
+        st.fire ||
+        st.intrusion ||
+        st.locked ||
+        st.shed
+      )
+        return;
       // Open the output for one second without status feedback as an expiry warning.
       drive(ctx, ch, false);
       ctx.note(ctx.t`${ch}: switch-off warning`);

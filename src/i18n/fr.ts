@@ -165,8 +165,8 @@ export const frMessages: Record<string, string> = {
   "Long press → {0}": "Appui long → {0}",
   "Hold for a long press…": "Maintenir pour un appui long…",
   "Element {0} not found in the page.": "Élément {0} introuvable dans la page.",
-  "setSpeed: finite positive number expected (got {0})":
-    "setSpeed : nombre fini strictement positif attendu (reçu {0})",
+  'setSpeed: finite positive number or "instant" expected (got {0})':
+    "setSpeed : nombre fini strictement positif ou « instant » attendu (reçu {0})",
   "BusDiagram.create: element {0} not found":
     "BusDiagram.create : élément {0} introuvable",
   "Connects a line to the main line. It only forwards the group addresses of its filter table (used on both sides) and decrements the routing counter.":
@@ -347,8 +347,84 @@ export const frMessages: Record<string, string> = {
     "le port « {0} » accepte un seul objet par canal ; « {1} » l'utilise déjà sur le canal « {2} »",
   "port “{0}” takes one object; “{1}” already uses it":
     "le port « {0} » accepte un seul objet ; « {1} » l'utilise déjà",
-  "payload invalid for DPT {0}: value unchanged":
-    "données invalides pour le DPT {0} : valeur inchangée",
+  "payload invalid for DPT {0} ({1}): value unchanged":
+    "données invalides pour le DPT {0} ({1}) : valeur inchangée",
+  "{0} is not a usable value": "{0} n'est pas une valeur exploitable",
+  closed: "fermée",
+  "frame from ETS ignored: {0}": "trame d'ETS ignorée : {0}",
+  "no bus interface in the scenario": "pas d'interface de bus dans le scénario",
+  "telegram from ETS to {0} not let in: {1}":
+    "télégramme d'ETS vers {0} non admis : {1}",
+  "telegram from ETS to {0}: {1} bytes are not simulated":
+    "télégramme d'ETS vers {0} : {1} octets ne sont pas simulés",
+  "telegram from ETS to {0} not let in (see the journal)":
+    "télégramme d'ETS vers {0} non admis (voir le journal)",
+  "no scenario loaded": "aucun scénario chargé",
+  "simulation stopped": "simulation arrêtée",
+  "simulation paused": "simulation en pause",
+  "ETS linked": "ETS relié",
+  "ETS: connecting…": "ETS : connexion…",
+  "Telegrams received from ETS · sent to ETS":
+    "Télégrammes reçus d'ETS · envoyés à ETS",
+  "Access point of ETS": "Point d'accès d'ETS",
+  Disconnect: "Déconnecter",
+  Instant: "Instantané",
+  Animated: "Animé",
+  "Real time while linked to ETS. Instant: telegrams take the time of a real bus (about 20 ms) and are not animated.":
+    "Temps réel pendant la liaison à ETS. Instantané : les télégrammes prennent le temps d'un vrai bus (environ 20 ms) et ne sont pas animés.",
+  "Instant: real time, telegrams as fast as on a real bus (about 20 ms) and not animated.":
+    "Instantané : temps réel, télégrammes aussi rapides que sur un vrai bus (environ 20 ms) et non animés.",
+  "Main group {0}": "Groupe principal {0}",
+  "Middle group {0}/{1}": "Groupe médian {0}/{1}",
+  "ETS: waiting for ETS": "ETS : en attente d'ETS",
+  "the program is shutting down": "le programme s'arrête",
+  "another diagram was linked to ETS": "un autre schéma a été relié à ETS",
+  "connection lost: is BusDiagram-ETS running?":
+    "connexion perdue : BusDiagram-ETS est-il lancé ?",
+  "group addresses": "adresses de groupe",
+  "Group addresses of this diagram, to import in ETS (Group Addresses → Import)":
+    "Adresses de groupe de ce schéma, à importer dans ETS (Adresses de Groupe → Importer)",
+  "Addresses for ETS": "Adresses pour ETS",
+  "Link to ETS": "Relier à ETS",
+  "ETS: start BusDiagram-ETS": "ETS : lancez BusDiagram-ETS",
+  "{0} is not a segment": "{0} n'est pas un segment",
+  "through the interface {0}": "par l'interface {0}",
+  "on the IP network": "sur le réseau IP",
+  "on line {0}": "sur la ligne {0}",
+  "on the backbone line 0.0": "sur la ligne de zone 0.0",
+  "on the main line {0}.0": "sur la ligne principale {0}.0",
+  "How to link a diagram to ETS, and where to download BusDiagram-ETS":
+    "Relier un schéma à ETS, et où télécharger BusDiagram-ETS",
+  "Help on the link to ETS": "Aide sur la liaison à ETS",
+  "Connect this diagram to ETS through the BusDiagram-ETS program; ETS reaches the bus {0}":
+    "Relier ce schéma à ETS par le programme BusDiagram-ETS ; ETS accède au bus {0}",
+  "Download BusDiagram-ETS (Windows), then start it: the diagram connects by itself":
+    "Télécharger BusDiagram-ETS (Windows), puis le lancer : le schéma se relie tout seul",
+  Download: "Télécharger",
+  "Port of the BusDiagram-ETS program, as its window shows it (3761 unless changed)":
+    "Port du programme BusDiagram-ETS, comme l'indique sa fenêtre (3761 sauf modification)",
+  Retry: "Réessayer",
+  Cancel: "Annuler",
+  "up to 6 bits": "6 bits au plus",
+  "{0} bytes": "{0} octets",
+  "{0} is not a bus interface": "{0} n'est pas une interface de bus",
+  "invalid group address {0}": "adresse de groupe {0} invalide",
+  "broadcast address 0/0/0 is not simulated":
+    "l'adresse de diffusion 0/0/0 n'est pas simulée",
+  "external telegram to {0}: payloads of {1} bytes are not simulated":
+    "télégramme externe vers {0} : les données de {1} octets ne sont pas simulées",
+  "{0} (external): reading {1}": "{0} (externe) : lecture de {1}",
+  "{0} (external): response on {1}": "{0} (externe) : réponse sur {1}",
+  "{0} (external): writing {1}": "{0} (externe) : écriture sur {1}",
+  "length mismatch: {0} received, DPT {1} expects {2}; value unchanged":
+    "longueur différente : {0} reçus, le DPT {1} attend {2} ; valeur inchangée",
+  "invalid code": "code invalide",
+  "hour {0} outside 0–23": "heure {0} hors de 0–23",
+  "minutes {0} outside 0–59": "minutes {0} hors de 0–59",
+  "seconds {0} outside 0–59": "secondes {0} hors de 0–59",
+  "day {0} outside 1–31": "jour {0} hors de 1–31",
+  "month {0} outside 1–12": "mois {0} hors de 1–12",
+  "year {0} outside 0–99": "année {0} hors de 0–99",
   "W flag disabled: value and behavior unchanged":
     "flag W désactivé : valeur et comportement inchangés",
   "behavior “{0}” not registered": "comportement « {0} » non enregistré",
@@ -430,6 +506,8 @@ export const frMessages: Record<string, string> = {
   "number expected": "nombre attendu",
   "preset 0 or 1 expected for a switching channel":
     "préréglage 0 ou 1 attendu pour un canal de commutation",
+  "brightness 0–100 % expected for a dimming channel":
+    "luminosité 0–100 % attendue pour une voie de variation",
   "position 0–100 % expected for a shutter":
     "position 0–100 % attendue pour un volet",
   "duplicate object “{0}”": "objet « {0} » en double",
@@ -484,6 +562,8 @@ export const frMessages: Record<string, string> = {
   "{0} is associated with objects of different sizes: {1} here, {2} elsewhere":
     "{0} est associée à des objets de tailles différentes : {1} ici, {2} ailleurs",
   "strictly positive number expected": "nombre strictement positif attendu",
+  'strictly positive number or "instant" expected':
+    "nombre strictement positif ou « instant » attendu",
   integer: "entier",
   number: "nombre",
   boolean: "booléen",

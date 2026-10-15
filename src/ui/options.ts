@@ -12,7 +12,7 @@ export interface ViewOptions {
   fit: FitMode;
   maxScale: number;
   minScale: number;
-  speed: number | null;
+  speed: number | "instant" | null;
   stepMode: boolean;
   /** Address of the designer opened by the toolbar icon, or "none" to hide the icon. */
   designer: string;
@@ -21,11 +21,19 @@ export interface ViewOptions {
    * spaces ("on" shows it without traces).
    */
   timeline: string;
+  /**
+   * WebSocket address of the BusDiagram-ETS program, linked to ETS when the reader asks
+   * for it from the toolbar; "none" hides the control.
+   */
+  bridge: string;
 }
 
 /** The published designer, which keeps up with the latest version of the format. */
 export const PUBLISHED_DESIGNER =
   "https://ynn.github.io/busdiagram/designer/index.html";
+
+/** WebSocket address of the BusDiagram-ETS program on this computer. */
+export const DEFAULT_BRIDGE = "ws://127.0.0.1:3761/ws";
 
 export const DEFAULT_OPTIONS: ViewOptions = {
   toolbar: "full",
@@ -39,6 +47,7 @@ export const DEFAULT_OPTIONS: ViewOptions = {
   stepMode: false,
   designer: PUBLISHED_DESIGNER,
   timeline: "",
+  bridge: DEFAULT_BRIDGE,
 };
 
 export interface OptionDoc {
@@ -124,11 +133,11 @@ export const OPTION_DOCS: OptionDoc[] = [
   {
     name: "speed",
     attribute: "speed",
-    type: "number",
+    type: 'number | "instant"',
     default: "scenario `options.speed`, otherwise 1",
     summary: "Initial simulation speed.",
     details:
-      "1 is real time, 0.35 is slower, and 2 is faster. The long-press threshold (0.5 real seconds) does not change.",
+      "1 is real time, 0.35 is slower, and 2 is faster: telegrams are slowed down so that they can be followed on the diagram. ‘instant’ runs in real time with telegrams as fast as on a real bus (about 20 ms each), not animated. The long-press threshold (0.5 real seconds) does not change.",
     example: '<bus-diagram speed="0.35">',
   },
   {
@@ -161,6 +170,16 @@ export const OPTION_DOCS: OptionDoc[] = [
       "Shows object values and on/off states as steps, room temperatures, openings, and levels as curves, and the telegrams of a traced object as marks. List the first traces: device/object for an object, device:channel for the equipment of an output, @room for the temperature of a room; with no list (or true), the timeline starts empty. A menu adds or removes traces.",
     example: '<bus-diagram timeline="livingThermostat/temp @livingRoom">',
   },
+  {
+    name: "bridge",
+    attribute: "bridge",
+    type: 'WebSocket URL | "none"',
+    default: `"${DEFAULT_BRIDGE}"`,
+    summary: "Link to ETS from the toolbar.",
+    details:
+      "With the BusDiagram-ETS program running on the reader's computer, the ‘Link to ETS’ button of the full toolbar connects the diagram to ETS, which reaches the program as a KNXnet/IP tunnelling interface. ETS reaches the bus through the diagram's bus interface (USB or IP), or, without one, on its main line, every group address then crossing the couplers to and from it. A group telegram from ETS enters the bus there, and the telegrams that reach that point through the topology are sent to ETS, whose group monitor shows them. While linked, the simulation runs in real time; telegrams from ETS are refused while it is paused. The toolbar also downloads the group addresses of the diagram for ETS, and asks for the program's port when it cannot reach it. ‘none’ hides these controls.",
+    example: '<bus-diagram bridge="none">',
+  },
 ];
 
 const BOOL_TRUE = ["", "true", "1", "yes", "oui"];
@@ -177,6 +196,8 @@ function parseAttr(doc: OptionDoc, raw: string | null): unknown {
         ? false
         : undefined;
   }
+  if (doc.name === "speed" && raw.trim().toLowerCase() === "instant")
+    return "instant";
   if (
     doc.name === "speed" ||
     doc.name === "maxScale" ||
@@ -194,6 +215,12 @@ function parseAttr(doc: OptionDoc, raw: string | null): unknown {
     if (BOOL_FALSE.includes(v.toLowerCase()) || v.toLowerCase() === "none")
       return "";
     return BOOL_TRUE.includes(v.toLowerCase()) ? "on" : v;
+  }
+  if (doc.name === "bridge") {
+    const v = raw.trim();
+    if (!v || BOOL_FALSE.includes(v.toLowerCase()) || v === "none")
+      return "none";
+    return /^wss?:\/\//.test(v) ? v : undefined;
   }
   if (doc.name === "designer") {
     const v = raw.trim();

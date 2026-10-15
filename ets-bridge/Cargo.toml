@@ -1,0 +1,30 @@
+[package]
+name = "busdiagram-ets"
+version = "0.6.0"
+edition = "2024"
+rust-version = "1.95"
+description = "BusDiagram linked to ETS: the page, and a KNXnet/IP tunnelling server that relays group telegrams to it"
+license = "AGPL-3.0-only"
+publish = false
+
+[[bin]]
+name = "busdiagram-ets"
+path = "src/main.rs"
+
+[dependencies]
+# KNXnet/IP and cEMI frames (GPL-3.0-only, which combines with this AGPL program).
+knx-rs-core = "0.10.1"
+tungstenite = { version = "0.30", default-features = false, features = ["handshake"] }
+# The window (OpenGL renderer only: small, and enough for a few labels and fields).
+eframe = { version = "0.36", default-features = false, features = ["glow", "default_fonts", "wayland", "x11"] }
+
+[lints.rust]
+unsafe_code = "forbid"
+
+[lints.clippy]
+unwrap_used = "deny"
+expect_used = "deny"
+
+[profile.release]
+strip = "symbols"
+lto = true

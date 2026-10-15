@@ -1,6 +1,6 @@
 import { assetVersion } from "./scripts/build-id.mjs";
 import { readFile, readdir } from "node:fs/promises";
-import { resolve } from "node:path";
+import { relative, resolve } from "node:path";
 import { loadData } from "./scripts/site-data.mjs";
 import { renderPage } from "./site/markdown.mjs";
 import { frenchPages, translations } from "./scripts/translations.mjs";
@@ -108,8 +108,11 @@ export default function (eleventyConfig) {
     ),
   );
   eleventyConfig.addTransform("french-links", function (content) {
-    const out = (this.page.outputPath ?? "").replace(/\\/g, "/");
-    const rel = out.replace(/^.*?docs\//, "");
+    // Path relative to the output directory, which may be a staging directory.
+    const rel = relative(
+      resolve(eleventyConfig.directories.output),
+      resolve(this.page.outputPath || "."),
+    ).replace(/\\/g, "/");
     if (!rel.startsWith("fr/") || !rel.endsWith(".html")) return content;
     const dir = rel.split("/").slice(0, -1);
     return content.replace(

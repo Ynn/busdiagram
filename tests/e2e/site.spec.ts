@@ -59,6 +59,18 @@ function htmlPages(dir = DOCS): string[] {
   });
 }
 
+/** Number of English source pages (site/pages, outside fr/ and _includes/). */
+function englishPages(
+  dir = resolve(import.meta.dirname, "../../site/pages"),
+): number {
+  return readdirSync(dir).reduce((n, f) => {
+    const p = join(dir, f);
+    if (statSync(p).isDirectory())
+      return f === "fr" || f.startsWith("_") ? n : n + englishPages(p);
+    return f.endsWith(".md") ? n + 1 : n;
+  }, 0);
+}
+
 const watch = (page: Page) => {
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(`${page.url()} : ${e.message}`));
@@ -256,7 +268,10 @@ test("the icon of a diagram opens its scenario in the designer", async ({
 }) => {
   const { errors } = watch(page);
   await page.goto(url("examples/status-feedback.html"));
-  const icon = page.locator(".demo bus-diagram a.ico").first();
+  const icon = page
+    .locator(".demo bus-diagram")
+    .first()
+    .getByRole("link", { name: "Open in the designer" });
   await expect(icon).toHaveAttribute(
     "href",
     /^\.\.\/designer\/index\.html#d=[\w-]+&lang=en$/,
@@ -267,11 +282,18 @@ test("the icon of a diagram opens its scenario in the designer", async ({
     /Toggle controls and status feedback/,
   );
   await expect(page.locator("#status")).toHaveText(/Valid scenario/);
-  // The preview of the designer has no icon.
-  await expect(page.locator("#preview a.ico")).toHaveCount(0);
+  // The preview of the designer has no icon to open the designer.
+  await expect(
+    page
+      .locator("#preview")
+      .getByRole("link", { name: "Open in the designer" }),
+  ).toHaveCount(0);
   // From a French page, the designer opens in French, with the French texts.
   await page.goto(url("fr/examples/status-feedback.html"));
-  const fr = page.locator(".demo bus-diagram a.ico").first();
+  const fr = page
+    .locator(".demo bus-diagram")
+    .first()
+    .getByRole("link", { name: "Ouvrir dans le designer" });
   await expect(fr).toHaveAttribute("href", /&lang=fr$/);
   await expect(fr).toHaveAttribute("title", "Ouvrir dans le designer");
   await page.goto(await fr.evaluate((a) => (a as HTMLAnchorElement).href));
@@ -398,7 +420,8 @@ test("documentation has valid internal links and anchors", () => {
       if (!html.includes(`id="${id}"`))
         broken.push(`search → ${entry.u}#${id}`);
   }
-  expect(search).toHaveLength(69);
+  // One entry per English page of the guide, examples and reference.
+  expect(search).toHaveLength(englishPages());
   expect(broken).toEqual([]);
 });
 
@@ -1205,9 +1228,12 @@ test.describe("guided designer", () => {
       );
       return f;
     });
-    for (const f of files) {
+    // Each file in turn: the toast of the first may still be shown during the second.
+    for (const [i, f] of files.entries()) {
       await page.setInputFiles("#ext-file", f);
-      await expect(page.locator("#toast")).toContainText("loaded");
+      await expect(page.locator("#toast")).toContainText(
+        `${["alpha", "beta"][i]}.js loaded`,
+      );
     }
     const doc = {
       formatVersion: 2,
@@ -1237,6 +1263,8 @@ test.describe("guided designer", () => {
         ).designer.setText(JSON.stringify(d)),
       doc,
     );
+    // The preview shows this document (the status may still be that of the previous one).
+    await expect(page.locator("#preview .card")).toHaveCount(2);
     await expect(page.locator("#status")).toHaveText(/Valid scenario/);
     // Reopen the standalone page in a fresh browser.
     await page.locator(".menu summary").click();

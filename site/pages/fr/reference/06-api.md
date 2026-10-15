@@ -1,7 +1,7 @@
 ---
 title: API JavaScript
 translationOf: reference/06-api.md
-sourceHash: "ee4eb08018a2"
+sourceHash: "5b59d6b56ac8"
 order: 6
 ---
 # API JavaScript
@@ -47,7 +47,7 @@ Chargez `bus-diagram.js` pour exposer `window.BusDiagram`.
 | `play()`, `pause()` | Reprendre ou mettre en pause le temps simulé. |
 | `advance(ms)` | Avancer d'un nombre positif ou nul de millisecondes simulées, même en pause. |
 | `stepToNextEvent()` | Avancer jusqu'au prochain événement explicatif ; renvoie `{ timeMs, events }` ou `null`. |
-| `setSpeed(n)` | Fixer une vitesse de simulation positive. |
+| `setSpeed(n)` | Fixer une vitesse de simulation positive, ou `"instant"` : temps réel, télégrammes aussi rapides que sur un vrai bus, non animés. |
 | `getState()` | Renvoyer une copie sérialisable de l'état actuel. |
 | `on(name, handler)` | S'abonner à `telegram`, `ready` ou `error` ; renvoie une fonction de désabonnement. |
 | `groupWrite(address, value, interface?)` | Écrire une valeur de groupe par l'interface USB du scénario. |
