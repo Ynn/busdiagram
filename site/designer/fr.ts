@@ -960,6 +960,13 @@ export const designerFr: Record<string, string> = {
   "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).":
     "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
   "Import devices…": "Importer des participants…",
+  "simulated in part": "simulé en partie",
+  "not simulated": "non simulé",
+  "Simulation limits": "Limites de la simulation",
+  "{0} in use": "{0} en service",
+  "Functions of the program that the simulation lacks: ETS sets them, the diagram does not run them.":
+    "Fonctions du programme que la simulation n'a pas : ETS les paramètre, le schéma ne les exécute pas.",
+  "turned on by the parameters": "activée par les paramètres",
   "{0} group addresses: the address table of this device holds {1}.":
     "{0} adresses de groupe : la table des adresses de ce participant en contient {1}.",
   "{0} associations: the association table of this device holds {1}.":

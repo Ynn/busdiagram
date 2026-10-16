@@ -42,6 +42,21 @@ export type Firmware<S> = Pick<
   | "contactKey"
 >;
 
+/**
+ * A function of the program that the firmware does not simulate, or only in part: the
+ * designer marks the parameters that turn it on, and says so when they do.
+ */
+export interface ProductLimit {
+  /** What is not simulated, in English (translated with the product's messages). */
+  text: string;
+  /** Simulated in part (`text` says what is missing), or not at all. */
+  partial?: boolean;
+  /** Parameters of the program that turn it on ("P-12", "UP-118"), whatever their reference. */
+  parameters?: readonly string[];
+  /** The values of these parameters that turn it on: by default, any but the program's default. */
+  values?: readonly string[];
+}
+
 export interface ProductSpec<S = unknown> {
   /** Identifier of the product in its range: "example/sa-2". */
   id: string;
@@ -67,6 +82,8 @@ export interface ProductSpec<S = unknown> {
   applicationId?: readonly number[];
   /** Properties of its own that its application program writes (BIM M112). */
   properties?: readonly ProductProperty[];
+  /** Functions of its program that the simulation lacks (see ProductLimit). */
+  limits?: readonly ProductLimit[];
   name: string;
   orderNumber?: string;
   description: string;

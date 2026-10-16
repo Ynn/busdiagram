@@ -1,7 +1,8 @@
 // Parameter dialog of a device of a product catalog, as ETS shows it: one page per block
 // of the program's Dynamic tree, the parameters of the branches that the current values
 // select, with the texts of the program in the designer's language. A change sets the
-// value of the project and the device's application again.
+// value of the project and the device's application again. A parameter that turns on a
+// function the simulation lacks is marked, and a first page lists these functions.
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import type {
@@ -16,10 +17,24 @@ import { programOfProduct } from "./manufacturers";
 import type { GuidedEditor } from "./guided";
 import { t } from "./lang";
 import type { Page } from "./params";
+import { tt } from "./params";
+import type { ProductLimit } from "../../src/bcu/product";
+import { limitOfParameter, limitsOf } from "./limits";
 
 type Ets = { application: string; parameters?: Record<string, string> };
 
 const lang = () => t.lang ?? "en";
+
+/** The mark of a parameter that turns on a function the simulation lacks. */
+function limitMark(l: { limit: ProductLimit; inUse: boolean } | null) {
+  if (!l) return nothing;
+  const what = l.limit.partial ? t`simulated in part` : t`not simulated`;
+  return html`<small
+    class="g-limit${l.inUse ? " on" : ""}"
+    title=${tt(l.limit.text)}
+    >⚠ ${what}</small
+  >`;
+}
 
 function field(
   ed: GuidedEditor,
@@ -27,6 +42,7 @@ function field(
   app: ApplicationProgram,
   values: Record<string, string>,
   ref: string,
+  limits?: readonly ProductLimit[],
 ): TemplateResult | typeof nothing {
   const r = app.parameterRefs.get(ref);
   const p = r ? app.parameters.get(r.ref) : undefined;
@@ -78,7 +94,9 @@ function field(
       @change=${(e: Event) => set((e.target as HTMLInputElement).value)}
     />`;
   return html`<label class="g-field g-ets"
-    ><span>${label}</span>${input}</label
+    ><span
+      >${label}${limitMark(limitOfParameter(limits, app, values, ref))}</span
+    >${input}</label
   >`;
 }
 
@@ -89,6 +107,7 @@ function items(
   app: ApplicationProgram,
   values: Record<string, string>,
   nodes: DynNode[],
+  limits?: readonly ProductLimit[],
 ): TemplateResult[] {
   const rows: { order: number; row: TemplateResult }[] = [];
   // A row without an order of its own (a separator) follows the one before it.
@@ -96,7 +115,7 @@ function items(
   const walk = (list: DynNode[]) => {
     for (const n of list) {
       if (n.kind === "param") {
-        const f = field(ed, d, app, values, n.ref);
+        const f = field(ed, d, app, values, n.ref, limits);
         last = app.parameterRefs.get(n.ref)?.displayOrder ?? last;
         if (f !== nothing) rows.push({ order: last, row: f as TemplateResult });
       } else if (n.kind === "separator") {
@@ -124,13 +143,50 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
   const app = programOfProduct(d.behavior);
   if (!ets || !app) return [];
   const values = ets.parameters ?? {};
+  const limits = ed.registry.bcuProducts.get(d.behavior)?.limits;
   const out: Page[] = [];
+  // What the simulation lacks: those that the values of the project turn on first.
+  const states = limitsOf(limits, app, values).sort(
+    (a, b) => Number(b.inUse) - Number(a.inUse),
+  );
+  if (states.length) {
+    const used = states.filter((s) => s.inUse).length;
+    out.push({
+      key: "ets:limits",
+      label: t`Simulation limits`,
+      sum: used ? t`${used} in use` : undefined,
+      body: () =>
+        html`<div class="g-row g-ets-page">
+          <p class="w-info">
+            ${t`Functions of the program that the simulation lacks: ETS sets them, the diagram does not run them.`}
+          </p>
+          <ul class="g-limits">
+            ${states.map(
+              (s) =>
+                html`<li class=${s.inUse ? "on" : ""}>
+                  ${tt(s.limit.text)}${
+                    s.limit.partial
+                      ? html` <small>(${t`simulated in part`})</small>`
+                      : nothing
+                  }${
+                    s.inUse
+                      ? html` <strong
+                          >${t`turned on by the parameters`}</strong
+                        >`
+                      : nothing
+                  }
+                </li>`,
+            )}
+          </ul>
+        </div>`,
+    });
+  }
   const top = (nodes: DynNode[]) => {
     for (const n of nodes) {
       if (n.kind === "channel") top(n.children);
       else if (n.kind === "choose") top(branch(app, values, n));
       else if (n.kind === "block" && n.access !== "None") {
-        const rows = items(ed, d, app, values, n.children);
+        const rows = items(ed, d, app, values, n.children, limits);
         // ETS hides a block that shows nothing.
         if (!rows.length) continue;
         // A block without a text of its own takes that of its parameter (ParamRefId).

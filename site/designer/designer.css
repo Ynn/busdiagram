@@ -1777,6 +1777,25 @@ bd-guided > .g-notice {
   font-size: 12.5px;
   color: #234;
 }
+/* A parameter that turns on a function the simulation lacks, and the list of these. */
+.g-limit {
+  margin-left: 6px;
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--mute);
+}
+.g-limit.on {
+  color: #a35a00;
+  font-weight: 700;
+}
+.g-limits {
+  margin: 6px 0;
+  padding-left: 20px;
+  font-size: 12.5px;
+}
+.g-limits li.on {
+  color: #a35a00;
+}
 /* “Enable group object” boxes of a parameter page. */
 .g-check.g-enable {
   align-items: flex-start;

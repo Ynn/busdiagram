@@ -60,6 +60,7 @@ export {
 } from "./bcu/product";
 export type {
   Firmware,
+  ProductLimit,
   ProductObject,
   ProductSpec,
   Product,
