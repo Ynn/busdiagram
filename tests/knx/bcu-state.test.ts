@@ -3,7 +3,7 @@
 // those of its memory after the restart that ends a download.
 import { describe, expect, it } from "vitest";
 import { createSimulator, registerParticipant } from "../../src/core";
-import { bcu1 } from "../../src/bcu";
+import { bcu1, bcuState, system7 } from "../../src/bcu";
 import { runsProduct } from "../../src/bcu/device";
 import { parseMemory } from "../../src/knx/installation";
 import { captureRegistry } from "../../src/knx/registry";
@@ -122,5 +122,20 @@ describe("application of a device", () => {
     const unloaded = mem.slice();
     unloaded[0xb6ec] = 0;
     expect(runsProduct(product, mask, unloaded)).toBe(false);
+  });
+});
+
+describe("load state machines of a BIM M112 of mask 0705h", () => {
+  it("load through the property PID_LOAD_STATE_CONTROL of each part", () => {
+    const s = bcuState(0x0705);
+    // Unload, load, allocate the association table at 4100h, load completed.
+    const control = (object: number, record: number[]) =>
+      system7.writeProperty!(s, object, 5, 1, 1, record);
+    expect(control(2, [4, ...Array(9).fill(0)])).toEqual([0]);
+    expect(control(2, [1, ...Array(9).fill(0)])).toEqual([2]);
+    control(2, [3, 0, 0, 0x41, 0x00, 0, 0, 0, 0, 0]);
+    expect(control(2, [2, ...Array(9).fill(0)])).toEqual([1]);
+    expect(system7.readProperty(s, 2, 5, 1, 1)).toEqual([1]);
+    expect(system7.readProperty(s, 2, 7, 1, 1)).toEqual([0x41, 0x00]);
   });
 });

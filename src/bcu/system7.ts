@@ -5,7 +5,9 @@
 // 1 address table, 2 association table, 3 application, 4 PEI program) and the event
 // (low nibble: 1 Load, 2 Load completed, 3 additional load control, 4 Unload), followed
 // by the record of an additional control (segment allocation, task segment with the
-// application identifier…). The load states are read at B6EAh–B6EDh. The address table
+// application identifier…). A BIM M112 of mask 0705h is loaded through the property
+// PID_LOAD_STATE_CONTROL (5) of the object of each part (1–4) instead: the event in its
+// first octet, then the same record. The load states are read at B6EAh–B6EDh. The address table
 // is at 4000h; the association table where its state machine's segment is allocated; the
 // group object table is the application's (its location is given by the product).
 import type {
@@ -167,8 +169,11 @@ export const system7: MaskProfile = {
           return [m[ASSOC_PTR]!, m[ASSOC_PTR + 1]!];
         case "3/1":
           return [0, 3];
-        case "3/5": // PID_LOAD_STATE_CONTROL of the application
-          return [m[LOAD_STATE + 2]!];
+        case "1/5": // PID_LOAD_STATE_CONTROL: address table, association table,
+        case "2/5": // application, PEI program
+        case "3/5":
+        case "4/5":
+          return [m[LOAD_STATE + object - 1]!];
         case "3/6": // PID_RUN_STATE_CONTROL: 1 running, 0 halted
           return [system7.running(s) ? 1 : 0];
         case "3/13": // PID_PROG_VERSION: the application identifier
@@ -214,6 +219,13 @@ export const system7: MaskProfile = {
     return own ? { type: own.type, max: own.max, writable: !own.value } : null;
   },
   writeProperty(s, object, pid, start, count, data) {
+    // A load control through the property of a part (mask 0705h): answered with its
+    // load state.
+    if (pid === 5 && object >= 1 && object <= 4 && start === 1 && count === 1) {
+      if (!data.length) return null;
+      loadEvent(s, [(object << 4) | (data[0]! & 0x0f), ...data.slice(1)]);
+      return [s.memory[LOAD_STATE + object - 1]!];
+    }
     // Properties of its own that the application program writes (an ABB program writes
     // its PID 204 of the application object): kept as written.
     // Kept in the memory, which the installation keeps after a restart.
