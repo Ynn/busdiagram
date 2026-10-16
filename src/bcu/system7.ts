@@ -33,6 +33,25 @@ const ADDRESS_TABLE = 0x4000;
 const ASSOC_PTR = 0xb6f0;
 const OBJECT_PTR = 0xb6f2;
 const APP_ID = 0xb6f4;
+// The properties of its own that the application program writes, one after the other
+// in the order of the product, each with room for all its elements.
+const OWN_PROPERTIES = 0xb700;
+
+/** Octets of an element of a property datatype (PDT_GENERIC_01–20: 11h–24h). */
+const elementSize = (type: number) =>
+  type >= 0x11 && type <= 0x24 ? type - 0x10 : 1;
+
+/** Where a property of its own is kept in the memory, if the product has it. */
+function ownSlot(s: BcuState, object: number, pid: number) {
+  let at = OWN_PROPERTIES;
+  for (const p of (s.extra.ownProperties as ProductProperty[] | undefined) ??
+    []) {
+    const size = elementSize(p.type);
+    if (p.object === object && p.pid === pid) return { at, size, max: p.max };
+    at += size * p.max;
+  }
+  return null;
+}
 
 const UNLOADED = 0;
 const LOADED = 1;
@@ -155,17 +174,19 @@ export const system7: MaskProfile = {
         case "4/13":
           return [0, 0, 0, 0, 0];
         default:
-          return (
-            (s.extra.properties as Record<string, number[]> | undefined)?.[
-              `${object}/${pid}`
-            ] ?? null
-          );
+          return null;
       }
     })();
+    const own = value ? null : ownSlot(s, object, pid);
+    if (own) {
+      // A property of its own: its elements, kept in the memory.
+      if (start === 0) return [own.max >> 8, own.max & 0xff];
+      const from = own.at + own.size * (start - 1);
+      return Array.from(m.subarray(from, from + own.size * Math.max(1, count)));
+    }
     if (!value) return null;
     // Element 0: the number of elements.
     if (start === 0) return [0, 1];
-    void count;
     return value;
   },
   describeProperty(s, object, pid) {
@@ -177,9 +198,11 @@ export const system7: MaskProfile = {
   writeProperty(s, object, pid, start, data) {
     // Properties of its own that the application program writes (an ABB program writes
     // its PID 204 of the application object): kept as written.
-    if (start === 0 || !system7.describeProperty!(s, object, pid)) return null;
-    const props = (s.extra.properties ??= {}) as Record<string, number[]>;
-    props[`${object}/${pid}`] = [...data];
+    // Kept in the memory, which the installation keeps after a restart.
+    const own = ownSlot(s, object, pid);
+    if (start === 0 || !own || start + data.length / own.size - 1 > own.max)
+      return null;
+    s.memory.set(data, own.at + own.size * (start - 1));
     s.written = true;
     return [...data];
   },

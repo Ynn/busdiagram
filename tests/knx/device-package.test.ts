@@ -183,6 +183,8 @@ const installed = () =>
   });
 
 const ETS = (15 << 12) | (15 << 8) | 251;
+/** What the program of the BE 1 writes in its property 3/204: 2 elements of 5 octets. */
+const OWN = [0, 0, 0x42, 0, 0, 0, 0, 0xde, 0xff, 0];
 
 /** A management client that speaks as ETS: connection, numbered data, reads back. */
 function client(m: DeviceManagement, to: number) {
@@ -226,6 +228,13 @@ function client(m: DeviceManagement, to: number) {
       data([0x02, 0x80 | bytes.length, address >> 8, address & 0xff, ...bytes]),
     property: (obj: number, pid: number) =>
       data([0x03, 0xd5, obj, pid, 0x10, 0x01])!.slice(6),
+    /** Elements from 1 of a property. */
+    elements: (obj: number, pid: number, count: number) =>
+      data([0x03, 0xd5, obj, pid, count << 4, 0x01])!.slice(6),
+    describe: (obj: number, pid: number) =>
+      data([0x03, 0xd8, obj, pid, 0x00])!.slice(2),
+    writeProperty: (obj: number, pid: number, count: number, bytes: number[]) =>
+      data([0x03, 0xd7, obj, pid, count << 4, 0x01, ...bytes])!.slice(6),
     read: (address: number, n: number) =>
       data([0x02, n, address >> 8, address & 0xff])!.slice(4),
     restart: () => m.handle(frame([0x40 | (seq << 2) | 0x03, 0x80])),
@@ -304,6 +313,30 @@ describe("download into a BCU1 by its load procedure", () => {
   });
 });
 
+describe("download without commissioning", () => {
+  beforeAll(installed);
+
+  it("says that the devices hold no memory, which ETS reads as zeros", () => {
+    const doc = emptyDoc();
+    addProductDevice(doc, "example.sa2/v1", captureRegistry(), "1.1");
+    // No installation section: the diagram runs the project as if programmed.
+    const sim = createSimulator(doc);
+    const warned: string[] = [];
+    const c = client(
+      new DeviceManagement(
+        () => sim,
+        (a) => warned.push(a),
+      ),
+      (1 << 12) | (1 << 8) | 1,
+    );
+    c.connect();
+    expect(c.descriptor()!.slice(2)).toEqual([0x00, 0x12]);
+    expect(warned).toEqual([]);
+    expect(c.read(0x104, 1)).toEqual([0]);
+    expect(warned).toEqual(["1.1.1"]);
+  });
+});
+
 describe("download into a BIM M112 (System 7) by its Load State Machines", () => {
   beforeAll(installed);
   it("loads the tables and the application, then runs it", () => {
@@ -369,6 +402,9 @@ describe("download into a BIM M112 (System 7) by its Load State Machines", () =>
         // The application: its object table (switching, C R T) and its parameter (on).
         c.write(0x4200, [0x01, 0x00, 0x00, 0x00, 0x00, 0x4c, 0x00]);
         c.write(0x4220, [0x01]);
+        // The program writes a property of its own, which ETS describes first.
+        expect(c.describe(3, 204)).toEqual([3, 204, 0, 0x95, 0, 2, 0x33]);
+        expect(c.writeProperty(3, 204, 2, OWN)).toEqual(OWN);
       }
       c.control(0x0104, [(lsm << 4) | 2, ...Array(10).fill(0)]);
     }
@@ -382,6 +418,13 @@ describe("download into a BIM M112 (System 7) by its Load State Machines", () =>
       installation: sim.installation()!,
     });
     expect(after.applicationLoaded(id)).toBe(true);
+    // The property is kept with the memory of the installation, after the restart.
+    const again = client(
+      new DeviceManagement(() => after),
+      (1 << 12) | (1 << 8) | 6,
+    );
+    again.connect();
+    expect(again.elements(3, 204, 2)).toEqual(OWN);
   });
 
   it("runs the application that the designer configured, as ETS would load it", () => {

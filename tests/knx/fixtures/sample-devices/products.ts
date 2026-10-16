@@ -102,6 +102,8 @@ export const be1Model = defineProduct({
   delivered: [],
   // Delivered with the application of its program (manufacturer, type, version).
   applicationId: [0x00, 0xfe, 0x00, 0x02, 0x10],
+  // Written by its program at the end of the download: 2 elements of 5 octets.
+  properties: [{ object: 3, pid: 204, type: 0x15, max: 2 }],
   name: "BE 1",
   description: "Example Electric BE 1: push-button interface, 1 input.",
   programs: ["M-00FE_A-0002-10"],
