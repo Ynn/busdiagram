@@ -69,10 +69,15 @@ impl Hub {
 
     /// Number of ETS tunnels, told to the diagram when it changes.
     pub fn set_ets(&self, n: usize) {
+        // The diagram before the count, as `attach` takes them: a diagram that connects
+        // meanwhile is told the new count, and neither waits for the other.
+        let page = self.page.lock().unwrap_or_else(PoisonError::into_inner);
         let mut ets = self.ets.lock().unwrap_or_else(PoisonError::into_inner);
         if *ets != n {
             *ets = n;
-            self.to_page(ToPage::Status(n));
+            if let Some((_, tx, _)) = &*page {
+                let _ = tx.send(ToPage::Status(n));
+            }
         }
     }
 
@@ -350,5 +355,33 @@ mod tests {
         ] {
             assert!(!o.allows(no), "{no}");
         }
+    }
+
+    #[test]
+    fn diagram_and_tunnels_change_together() {
+        // A diagram connecting while the number of tunnels changes: none waits for the
+        // other, and the diagram ends with the last count.
+        let (to_bus, _bus) = mpsc::sync_channel(16);
+        let hub = std::sync::Arc::new(Hub::new(to_bus));
+        let (done, finished) = mpsc::channel();
+        let h = hub.clone();
+        let counts = std::thread::spawn(move || {
+            for n in 0..2000 {
+                h.set_ets(n % 3);
+            }
+            h.set_ets(1);
+        });
+        let h = hub.clone();
+        std::thread::spawn(move || {
+            let mut rx = h.attach(0, "null");
+            for id in 1..2000 {
+                rx = h.attach(id, "null");
+            }
+            let joined = counts.join().is_ok();
+            let _ = done.send(joined.then(|| rx.try_iter().last()).flatten());
+        });
+        let last = finished.recv_timeout(std::time::Duration::from_secs(10));
+        assert!(last.is_ok(), "the hub is deadlocked");
+        assert!(matches!(last, Ok(Some(ToPage::Status(1)))));
     }
 }
