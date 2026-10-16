@@ -42,6 +42,7 @@ Chaque problème de validation a un `path` JSON, un `code` et un `message` tradu
 | `incompatible-command` | Un équipement ne peut pas appliquer la commande de sortie d'un comportement. |
 | `no-ga` | Un envoi a été demandé pour un objet sans adresse de groupe et a été ignoré. |
 | `view-error` | La vue d'un équipement a échoué ; un cadre d'avertissement la remplace pendant que la simulation continue. |
+| `unsupported-application` | Un téléchargement depuis ETS a démarré un programme d'application que le participant du fabricant ne simule pas (autre version, du catalogue en ligne, ou autre produit) : le participant n'exécute rien. Un avertissement ; la simulation continue. |
 
 ## Avertissements de configuration
 

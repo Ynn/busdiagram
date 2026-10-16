@@ -41,6 +41,7 @@ Each validation problem has a JSON `path`, a `code`, and a localized `message`.
 | `incompatible-command` | Equipment cannot apply a behavior's output command. |
 | `no-ga` | A send was requested for an object without a group address and was ignored. |
 | `view-error` | An equipment view failed; a warning frame replaces it while simulation continues. |
+| `unsupported-application` | A download from ETS started an application program that the manufacturer's device does not simulate (another version, from the online catalog, or another product): the device runs nothing. A warning; the simulation goes on. |
 
 ## Configuration warnings
 

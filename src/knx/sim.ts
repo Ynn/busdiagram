@@ -2167,6 +2167,7 @@ export class Simulation {
         message: this.t`${this.targetName(target)}: restart after a download`,
         data: { action: "restart", target },
       });
+      this.unsupportedApplication(target, b);
       this.installationChanged();
       return;
     }
@@ -2180,6 +2181,30 @@ export class Simulation {
       data: { action: "restart", target },
     });
     this.installationChanged();
+  }
+
+  /**
+   * A download started an application that the product of the device does not run (a
+   * version of its program from the online catalog, another program): it runs nothing,
+   * and the journal says why.
+   */
+  private unsupportedApplication(
+    target: string,
+    b: { profile: MaskProfile; state: BcuState },
+  ) {
+    const d = this.scenario.devicesById.get(target);
+    const product = d && this.registry.bcuProducts.get(d.behavior);
+    const id = b.profile.applicationId(b.state);
+    if (!d?.ets || !product || !id) return;
+    if (runsProduct(product, d.ets.mask, b.state.memory)) return;
+    const hex = (v: number, n: number) =>
+      v.toString(16).toUpperCase().padStart(n, "0");
+    this.warn(
+      "unsupported-application",
+      this
+        .t`${this.targetName(target)}: the application program downloaded (M-${hex(id.manufacturer, 4)}_A-${hex(id.deviceType, 4)}-${hex(id.version, 2)}) is not one this device simulates (${product.programs.join(", ")}): it runs nothing.`,
+      target,
+    );
   }
 
   /** Does the device hold an application (always, without commissioning)? */

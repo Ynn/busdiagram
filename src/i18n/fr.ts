@@ -1099,6 +1099,8 @@ export const frMessages: Record<string, string> = {
     "Le projet donne {1} adresses de groupe à {0} : sa table des adresses en contient {2}.",
   "The project gives {0} {1} associations: its association table holds {2}.":
     "Le projet donne {1} associations à {0} : sa table des associations en contient {2}.",
+  "{0}: the application program downloaded (M-{1}_A-{2}-{3}) is not one this device simulates ({4}): it runs nothing.":
+    "{0} : le programme d'application téléchargé (M-{1}_A-{2}-{3}) n'est pas un de ceux que ce participant simule ({4}) : il n'exécute rien.",
   "The device at {0} does not have the application program of the project ({1} found, {2} expected). Check that the right programming button was pressed.":
     "Le participant à l'adresse {0} n'a pas le programme d'application du projet ({1} trouvé, {2} attendu). Vérifiez que le bon bouton de programmation a été actionné.",
   "Application downloaded to {0}.": "Application téléchargée dans {0}.",

@@ -166,3 +166,33 @@ describe("memory of a scenario", () => {
     expect(parseMemory({ "65535": "FF" })?.length).toBe(0x10000);
   });
 });
+
+describe("a download of another program", () => {
+  it("runs nothing, and the journal says why", () => {
+    const doc = {
+      formatVersion: 2,
+      lines: [{ address: "1.1", powerSupply: { currentMa: 640 } }],
+      devices: [] as unknown[],
+      groupAddresses: [],
+    } as unknown as Parameters<typeof addProductDevice>[0];
+    const id = addProductDevice(
+      doc,
+      "example.be1/v1",
+      captureRegistry(),
+      "1.1",
+    );
+    const sim = createSimulator({
+      ...doc,
+      installation: { devices: [{ device: id, address: "1.1.1" }] },
+    });
+    // Loaded and started, with version 11h of its program: the product runs 10h.
+    sim.writeMemory(id, 0xb6ea, [1, 1, 1]);
+    sim.writeMemory(id, 0xb6f4, [0x00, 0xfe, 0x00, 0x02, 0x11]);
+    sim.restartDevice(id);
+    expect(sim.applicationLoaded(id)).toBe(false);
+    expect(
+      sim.diagnostics.find((d) => d.code === "unsupported-application")
+        ?.message,
+    ).toMatch(/M-00FE_A-0002-11.*M-00FE_A-0002-10/);
+  });
+});
