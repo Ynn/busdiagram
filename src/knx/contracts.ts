@@ -469,6 +469,11 @@ export interface BehaviorDefinition<S = unknown> {
   /** How the diagram and the designer present a device of this behavior. */
   presentation?(device: PresentationInput): DevicePresentation;
   createState(device: DeviceInfo): S;
+  /**
+   * Start of the simulation: the device sets its objects, which is their initial state;
+   * a telegram it would send is not transmitted. To send at start-up (as after a bus
+   * voltage recovery), schedule a timer.
+   */
   onInit?(ctx: BehaviorContext<S>): void;
   onInput?(ctx: BehaviorContext<S>, input: InputEvent): void;
   onObjectWrite?(ctx: BehaviorContext<S>, event: ObjectWriteEvent): void;

@@ -65,6 +65,8 @@ export type {
   Product,
 } from "./bcu/product";
 export { parseProgram } from "./knx/week-program";
+// Values of the time of day (DPT 10.001) and of the date (11.001) of a clock time.
+export { dateValue, knxDay, timeOfDayValue } from "./participants/shared/clock";
 export type { ProgramEntry } from "./knx/week-program";
 export {
   Network,
