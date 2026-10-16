@@ -2130,34 +2130,39 @@ export class Simulation {
 
   /**
    * Write the memory of a device (A_Memory_Write); false when it has no memory there.
-   * The programming LED and the individual address follow what the memory holds.
+   * The programming LED follows what the memory holds; the individual address that a
+   * download writes there is taken at the restart that ends it.
    */
   writeMemory(target: string, address: number, data: number[]): boolean {
     const b = this.bcus.get(target);
     if (!b || !b.profile.writeMemory(b.state, address, data)) return false;
     const p = this.physical.get(target);
     if (p) p.programmingMode = b.profile.programmingMode(b.state);
-    this.memoryWritten = true;
     return true;
   }
 
   /** A property of a BCU was written (a load control): a download is under way. */
   propertyWritten(target: string) {
-    if (this.bcus.has(target)) this.memoryWritten = true;
+    const b = this.bcus.get(target);
+    if (b) b.state.written = true;
   }
-
-  /** Has a memory changed since the last restart (an application downloaded)? */
-  private memoryWritten = false;
 
   /** Restart of a device, which leaves programming mode (A_Restart). */
   restartDevice(target: string) {
     const p = this.physical.get(target);
-    // A restart after a download: what the device holds changed.
-    if (this.memoryWritten) {
-      this.memoryWritten = false;
-      const b = this.bcus.get(target);
-      if (b) b.held = b.state.memory.slice();
-      if (p) p.programmingMode = false;
+    const b = this.bcus.get(target);
+    // A restart after a download into this device: what it holds changed. Its memory is
+    // the one source of its programming mode and individual address.
+    if (b?.state.written) {
+      b.state.written = false;
+      b.profile.setProgrammingMode(b.state, false);
+      b.held = b.state.memory.slice();
+      if (p) {
+        p.programmingMode = false;
+        const ia = b.profile.individualAddress(b.state);
+        if (ia !== 0xffff)
+          p.address = `${ia >> 12}.${(ia >> 8) & 15}.${ia & 255}`;
+      }
       this.log("input", null, {
         deviceId: this.scenario.devicesById.has(target) ? target : undefined,
         message: this.t`${this.targetName(target)}: restart after a download`,
@@ -2168,6 +2173,7 @@ export class Simulation {
     }
     if (!p?.programmingMode) return;
     p.programmingMode = false;
+    if (b) b.profile.setProgrammingMode(b.state, false);
     this.log("input", null, {
       deviceId: this.scenario.devicesById.has(target) ? target : undefined,
       message: this

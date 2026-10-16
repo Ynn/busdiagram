@@ -155,28 +155,116 @@ export function writeBits(
   }
 }
 
-/** Raw value of a parameter's text value, for memory. */
-export function rawOf(type: ParameterType | undefined, value: string): number {
-  if (!type) return 0;
-  const n = Number(value);
-  if (!Number.isFinite(n)) return 0;
-  if (type.kind === "number" && type.signed && n < 0)
-    return 2 ** type.sizeInBit + n;
-  return Math.round(n);
+/** KNX 2-octet float (DPT 9): sign, exponent (4 bits), mantissa (11 bits) ×0.01. */
+function dpt9Raw(v: number): number {
+  let m = Math.round(v * 100);
+  let e = 0;
+  while ((m < -2048 || m > 2047) && e < 15) {
+    m = Math.round(m / 2);
+    e++;
+  }
+  return ((m < 0 ? 0x8000 : 0) | (e << 11) | (m & 0x7ff)) >>> 0;
+}
+const dpt9Value = (raw: number) => {
+  const m = raw & 0x7ff;
+  return ((raw & 0x8000 ? m - 2048 : m) << ((raw >> 11) & 15)) / 100;
+};
+
+/** Octets of a parameter value, big-endian, as many as its type takes. */
+export function encodeValue(
+  type: ParameterType | undefined,
+  value: string,
+): Uint8Array {
+  const bits = sizeOf(type);
+  const out = new Uint8Array(Math.ceil(bits / 8));
+  if (!type || !bits) return out;
+  if (type.kind === "text") {
+    // ISO-8859-1, completed with NUL octets.
+    [...value].slice(0, out.length).forEach((c, i) => {
+      out[i] = Math.min(255, c.charCodeAt(0));
+    });
+    return out;
+  }
+  const n = Number(value.replace(",", "."));
+  if (!Number.isFinite(n)) return out;
+  const view = new DataView(out.buffer);
+  if (type.kind === "float") {
+    if (bits === 64) view.setFloat64(0, n);
+    else if (bits === 32) view.setFloat32(0, n);
+    else view.setUint16(0, dpt9Raw(n));
+    return out;
+  }
+  // Integers, two's complement for a negative one, on any width (BigInt above 32 bits).
+  let v = BigInt(Math.round(n));
+  if (v < 0n) v += 1n << BigInt(bits);
+  for (let i = out.length - 1; i >= 0; i--, v >>= 8n)
+    out[i] = Number(v & 0xffn);
+  // A width that is not a multiple of 8 is aligned on the right of the octets.
+  return out;
 }
 
-/** Text value of a raw parameter value read from memory. */
-export function valueFromRaw(
+/** Text value of the octets of a parameter, read with its type. */
+export function decodeValue(
   type: ParameterType | undefined,
-  raw: number,
+  bytes: Uint8Array,
 ): string {
-  if (
-    type?.kind === "number" &&
-    type.signed &&
-    raw >= 2 ** (type.sizeInBit - 1)
-  )
-    return String(raw - 2 ** type.sizeInBit);
-  return String(raw);
+  const bits = sizeOf(type);
+  if (!type || !bits) return "";
+  if (type.kind === "text") {
+    const end = bytes.indexOf(0);
+    return String.fromCharCode(...(end < 0 ? bytes : bytes.subarray(0, end)));
+  }
+  const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  if (type.kind === "float") {
+    const v =
+      bits === 64
+        ? view.getFloat64(0)
+        : bits === 32
+          ? view.getFloat32(0)
+          : dpt9Value(view.getUint16(0));
+    return String(Number(v.toPrecision(7)));
+  }
+  let v = 0n;
+  for (const b of bytes) v = (v << 8n) | BigInt(b);
+  if (type.kind === "number" && type.signed && v >= 1n << BigInt(bits - 1))
+    v -= 1n << BigInt(bits);
+  return v.toString();
+}
+
+/** Write a value at a memory location: its bits, MSB first, from a bit offset. */
+function writeValue(
+  img: Uint8Array,
+  offset: number,
+  bitOffset: number,
+  type: ParameterType | undefined,
+  value: string,
+) {
+  const bits = sizeOf(type);
+  const bytes = encodeValue(type, value);
+  const pad = bytes.length * 8 - bits;
+  // Bit-wise, so that a value narrower than its octets keeps its neighbours.
+  for (let i = 0; i < bits; i++) {
+    const src = pad + i;
+    const bit = (bytes[src >> 3]! >> (7 - (src & 7))) & 1;
+    writeBits(img, offset, bitOffset + i, 1, bit);
+  }
+}
+
+function readValue(
+  img: Uint8Array,
+  offset: number,
+  bitOffset: number,
+  type: ParameterType | undefined,
+): string {
+  const bits = sizeOf(type);
+  const bytes = new Uint8Array(Math.ceil(bits / 8));
+  const pad = bytes.length * 8 - bits;
+  for (let i = 0; i < bits; i++) {
+    const dst = pad + i;
+    if (readBits(img, offset, bitOffset + i, 1))
+      bytes[dst >> 3]! |= 1 << (7 - (dst & 7));
+  }
+  return decodeValue(type, bytes);
 }
 
 /** Bytes of each segment, by segment id: their default images, copied. */
@@ -211,7 +299,7 @@ export function writeParameters(
     const bits = sizeOf(type);
     if (!img || !bits) return;
     const v = ref ? valueOf(app, values, ref) : p.value;
-    writeBits(img, p.memory.offset, p.memory.bitOffset, bits, rawOf(type, v));
+    writeValue(img, p.memory.offset, p.memory.bitOffset, type, v);
   };
   const visibleRef = (p: Parameter) =>
     (refsOf.get(p.id) ?? []).find((r) => shown.has(r));
@@ -243,10 +331,7 @@ export function readParameters(
     const type = app.types.get(p.type);
     const bits = sizeOf(type);
     if (!img || !bits) continue;
-    out[r.id] = valueFromRaw(
-      type,
-      readBits(img, p.memory.offset, p.memory.bitOffset, bits),
-    );
+    out[r.id] = readValue(img, p.memory.offset, p.memory.bitOffset, type);
   }
   return out;
 }
