@@ -5,4 +5,5 @@ import "./system7";
 
 export * from "./profile";
 export { bcu1, readTables, writeTables, typeOctet, typeBits } from "./bcu1";
+export { TableOverflow } from "./tables";
 export { system7 } from "./system7";

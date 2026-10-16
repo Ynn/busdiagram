@@ -126,6 +126,9 @@ export interface TableLocations {
   /** Association table and group object table, as absolute addresses. */
   associations: number;
   objects: number;
+  /** Capacities the program gives its tables (see TableLayout). */
+  maxAddresses?: number;
+  maxAssociations?: number;
 }
 
 const profiles: MaskProfile[] = [];

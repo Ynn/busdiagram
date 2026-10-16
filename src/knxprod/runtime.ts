@@ -84,7 +84,12 @@ export function projectImage(
       ),
       objects,
     },
-    { associations: at(app.associationTable), objects: at(app.objectTable) },
+    {
+      associations: at(app.associationTable),
+      objects: at(app.objectTable),
+      maxAddresses: app.addressTable?.maxEntries,
+      maxAssociations: app.associationTable?.maxEntries,
+    },
   );
   profile.start?.(mem, {
     manufacturer: parseInt(/^M-([0-9A-F]{4})/i.exec(app.id)?.[1] ?? "0", 16),

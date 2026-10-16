@@ -1093,6 +1093,10 @@ export const frMessages: Record<string, string> = {
   "Several devices answer at {0}: the address is used twice on the bus. Scan the line and give each device its own address.":
     "Plusieurs participants répondent à l'adresse {0} : l'adresse est utilisée deux fois sur le bus. Scannez la ligne et donnez à chaque participant sa propre adresse.",
   coupler: "coupleur",
+  "The project gives {0} {1} group addresses: its address table holds {2}.":
+    "Le projet donne {1} adresses de groupe à {0} : sa table des adresses en contient {2}.",
+  "The project gives {0} {1} associations: its association table holds {2}.":
+    "Le projet donne {1} associations à {0} : sa table des associations en contient {2}.",
   "The device at {0} does not have the application program of the project ({1} found, {2} expected). Check that the right programming button was pressed.":
     "Le participant à l'adresse {0} n'a pas le programme d'application du projet ({1} trouvé, {2} attendu). Vérifiez que le bon bouton de programmation a été actionné.",
   "Application downloaded to {0}.": "Application téléchargée dans {0}.",

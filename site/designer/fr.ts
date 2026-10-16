@@ -601,7 +601,7 @@ export const designerFr: Record<string, string> = {
   "Place the extension files next to the page.":
     "Placez les fichiers des extensions à côté de la page.",
   "The code of the device packages {0} is embedded: share this page only with those who may have these packages.":
-    "Le code des paquets d'appareils {0} est intégré : ne partagez cette page qu'avec ceux qui peuvent avoir ces paquets.",
+    "Le code des paquets de participants {0} est intégré : ne partagez cette page qu'avec ceux qui peuvent avoir ces paquets.",
   "{0} ({1}): {2} carries a {3}, incompatible with {4}":
     "{0} ({1}) : {2} transporte un {3}, incompatible avec {4}",
   "{0} is the only address of the key using {1} ({2}): a key must send on an address":
@@ -960,4 +960,8 @@ export const designerFr: Record<string, string> = {
   "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).":
     "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
   "Import devices…": "Importer des participants…",
+  "{0} group addresses: the address table of this device holds {1}.":
+    "{0} adresses de groupe : la table des adresses de ce participant en contient {1}.",
+  "{0} associations: the association table of this device holds {1}.":
+    "{0} associations : la table des associations de ce participant en contient {1}.",
 };

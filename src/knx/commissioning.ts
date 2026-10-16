@@ -17,6 +17,7 @@ import {
   programOf,
 } from "./installation";
 import { heldApplication, sameParameters, projectMemory } from "../bcu/device";
+import { TableOverflow } from "../bcu/tables";
 import { Network } from "./network";
 import { captureRegistry } from "./registry";
 import type { Scenario } from "./scenario";
@@ -237,7 +238,19 @@ export function downloadApplication(
     };
   } else {
     const d = (raw.devices as Rec[]).find((x) => x.id === target)!;
-    const image = projectImage(d);
+    let image;
+    try {
+      image = projectImage(d);
+    } catch (e) {
+      if (!(e instanceof TableOverflow)) throw e;
+      return {
+        status: "failed",
+        message:
+          e.table === "addresses"
+            ? t`The project gives ${targetLabel(project, target, t)} ${e.count} group addresses: its address table holds ${e.capacity}.`
+            : t`The project gives ${targetLabel(project, target, t)} ${e.count} associations: its association table holds ${e.capacity}.`,
+      };
+    }
     if (image) {
       // A manufacturer's device: the memory as a complete download by ETS writes it.
       e.memory = memoryJson(image.memory);
@@ -401,7 +414,6 @@ export interface DownloadState {
 
 const json = (v: unknown) => JSON.stringify(v ?? null);
 
-/** Download state of each target of a scenario with an installation section. */
 /** Memory of a manufacturer's device with the project's settings, if it has one. */
 function projectImage(d: Rec): { mask: string; memory: Uint8Array } | null {
   const ets = d.ets;
@@ -421,6 +433,17 @@ function projectImage(d: Rec): { mask: string; memory: Uint8Array } | null {
   };
 }
 
+/** The project's image, or null when its tables do not fit: it is never loaded. */
+function fittingImage(d: Rec) {
+  try {
+    return projectImage(d);
+  } catch (e) {
+    if (e instanceof TableOverflow) return null;
+    throw e;
+  }
+}
+
+/** Download state of each target of a scenario with an installation section. */
 export function downloadStates(
   raw: unknown,
   registry = captureRegistry(),
@@ -440,7 +463,7 @@ export function downloadStates(
     const dev = project.devicesById.get(d.id as string);
     if (!dev || !commissionable(dev)) return;
     const held = k.devices.get(dev.id);
-    const image = projectImage(d);
+    const image = fittingImage(d);
     const product = image && registry.bcuProducts.get(dev.behavior);
     // A manufacturer's device holds the application of its memory, compared with the
     // one of the project's image.

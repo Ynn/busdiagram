@@ -10,6 +10,7 @@ import { programOfProduct } from "./manufacturers";
 import { objectOf, visible } from "../../src/knxprod/config";
 import { linksOf, projectImage, valuesOf } from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
+import { TableOverflow } from "../../src/bcu/tables";
 import { productOfProgram } from "../../src/bcu/product";
 import type { Product } from "../../src/bcu/product";
 import { memoryJson, parseMemory } from "../../src/knx/installation";
@@ -87,12 +88,14 @@ export function applyConfiguration(
   const product = productOf(app, registry, d.behavior);
   const ets = d.ets as unknown as Ets;
   const links = linksOf(d.objects);
-  const image = projectImage(
-    app,
-    ets.mask,
-    ets.parameters ?? {},
-    links,
-    d.address ?? "15.15.255",
+  const image = fitting(() =>
+    projectImage(
+      app,
+      ets.mask,
+      ets.parameters ?? {},
+      links,
+      d.address ?? "15.15.255",
+    ),
   );
   d.behavior = product.behavior;
   (d as { kind: string }).kind = product.kind;
@@ -132,8 +135,24 @@ export function applyConfiguration(
     });
   // The memory with the flags the project sets.
   ets.memory = memoryJson(
-    projectMemory(ets.mask, image, d.objects, d.address ?? "15.15.255"),
+    fitting(() =>
+      projectMemory(ets.mask, image, d.objects, d.address ?? "15.15.255"),
+    ),
   );
+}
+
+/** The tables of the device hold what the project links to it, or the edit is refused. */
+function fitting<T>(f: () => T): T {
+  try {
+    return f();
+  } catch (e) {
+    if (!(e instanceof TableOverflow)) throw e;
+    throw new EditRefusal(
+      e.table === "addresses"
+        ? t`${e.count} group addresses: the address table of this device holds ${e.capacity}.`
+        : t`${e.count} associations: the association table of this device holds ${e.capacity}.`,
+    );
+  }
 }
 
 /** Insert a manufacturer's product on a line, as ETS inserts it; returns its identifier. */

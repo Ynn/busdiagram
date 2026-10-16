@@ -70,6 +70,8 @@ const layout = (m: Uint8Array, at?: TableLocations): TableLayout => ({
   objects: at?.objects ?? word(m, OBJECT_PTR),
   objectHeader: 3,
   descriptor: 4,
+  maxAddresses: at?.maxAddresses,
+  maxAssociations: at?.maxAssociations,
 });
 
 /** An event of a Load State Machine (an A_Memory_Write at 0104h). */

@@ -91,6 +91,8 @@ const layout = (m: Uint8Array, at?: TableLocations): TableLayout => ({
   objects: at?.objects ?? EEPROM + m[OBJECT_PTR]!,
   objectHeader: 2,
   descriptor: 3,
+  maxAddresses: at?.maxAddresses,
+  maxAssociations: at?.maxAssociations,
 });
 
 /** Tables of realisation type 1, read from a memory. */

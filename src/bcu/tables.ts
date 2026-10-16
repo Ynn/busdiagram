@@ -15,6 +15,20 @@ export interface TableLayout {
   objectHeader: number;
   /** Octets of a descriptor (data pointer, configuration, type). */
   descriptor: number;
+  /** Capacities of the program: group addresses and associations, when it says them. */
+  maxAddresses?: number;
+  maxAssociations?: number;
+}
+
+/** The tables of a download do not fit where the program has them: nothing is written. */
+export class TableOverflow extends Error {
+  constructor(
+    readonly table: "addresses" | "associations",
+    readonly count: number,
+    readonly capacity: number,
+  ) {
+    super(`${count} ${table} for ${capacity}`);
+  }
 }
 
 const PRIORITY = ["system", "normal", "urgent", "low"] as const;
@@ -63,6 +77,30 @@ export function readTables(mem: Uint8Array, at: TableLayout): Tables {
 export function writeTables(mem: Uint8Array, c: TableContent, at: TableLayout) {
   const g = at.addressTable;
   const gas = [...new Set([...c.links.values()].flat())].sort((a, b) => a - b);
+  // Associations, the sending address of each object first, by object number.
+  const pairs: [number, number][] = [];
+  [...c.links]
+    .sort(([a], [b]) => a - b)
+    .forEach(([n, l]) => l.forEach((x) => pairs.push([gas.indexOf(x) + 1, n])));
+  // Each table within its count octet, the capacity of the program, and the space up to
+  // the table that follows it: 2-octet entries after the count.
+  const room = (from: number) => {
+    const next = [at.addressTable, at.associations, at.objects]
+      .filter((x) => x > from)
+      .reduce((a, b) => Math.min(a, b), mem.length);
+    return Math.floor((next - from - 1) / 2);
+  };
+  // The address table counts the individual address among its entries.
+  const addresses = Math.min(254, room(g) - 1, at.maxAddresses || 254);
+  if (gas.length > addresses)
+    throw new TableOverflow("addresses", gas.length, addresses);
+  const associations = Math.min(
+    255,
+    room(at.associations),
+    at.maxAssociations || 255,
+  );
+  if (pairs.length > associations)
+    throw new TableOverflow("associations", pairs.length, associations);
   mem[g] = gas.length + 1;
   mem[g + 1] = c.individualAddress >> 8;
   mem[g + 2] = c.individualAddress & 0xff;
@@ -70,11 +108,6 @@ export function writeTables(mem: Uint8Array, c: TableContent, at: TableLayout) {
     mem[g + 3 + 2 * i] = x >> 8;
     mem[g + 4 + 2 * i] = x & 0xff;
   });
-  // Associations, the sending address of each object first, by object number.
-  const pairs: [number, number][] = [];
-  [...c.links]
-    .sort(([a], [b]) => a - b)
-    .forEach(([n, l]) => l.forEach((x) => pairs.push([gas.indexOf(x) + 1, n])));
   mem[at.associations] = pairs.length;
   pairs.forEach(([tsap, asap], i) => {
     mem[at.associations + 1 + 2 * i] = tsap;
