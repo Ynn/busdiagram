@@ -22,6 +22,7 @@ import { initialWorkspace, renderWorkspace, reveal } from "./workspace";
 import { savePanels } from "./ws-state";
 import type { Commissioner } from "./ws-commission";
 import { commissionBar, pruneInstallation } from "./ws-commission";
+import { addProductDevice } from "./ets-device";
 import * as P from "./params";
 import { defaultEquipmentParams, tt } from "./params";
 
@@ -57,6 +58,7 @@ export class GuidedEditor extends LitElement implements Host {
   onSelect: (id: string | null) => void = () => {};
   /** Commissioning on the preview's simulation (set by the designer). */
   commissioner: Commissioner = { sim: () => null, apply: () => {} };
+  importDevices: () => void = () => {};
   /** Track existing devices so a newly added one opens immediately. */
   private selectAdded: Set<string> | null = null;
   /** Expanded cards (keys and outputs), preserved across renders. */
@@ -1053,6 +1055,8 @@ export class GuidedEditor extends LitElement implements Host {
           d,
           TEMPLATES.find((x) => x.id === v.slice(8))!.apply(d, { line }),
         );
+      else if (v.startsWith("bcu:"))
+        addProductDevice(d, v.slice(4), this.registry, line);
       else addGeneric(d, v.slice(4), this.registry, line);
       const added = d.devices.filter((x) => !this.selectAdded!.has(x.id));
       // Group objects in the order of their numbers, as edits keep them.
@@ -1094,6 +1098,13 @@ export class GuidedEditor extends LitElement implements Host {
   // ── View 2: device ──
 
   typeLabel(d: Dev): string {
+    // A manufacturer's product: its name and the application program of the catalog.
+    const made = this.registry.bcuProducts.get(d.behavior);
+    if (made) {
+      const program = (d.ets as { applicationName?: string } | undefined)
+        ?.applicationName;
+      return `${made.manufacturer} ${made.name}${program ? ` · ${program}` : ""}`;
+    }
     const own = designerOf(d.behavior)?.typeLabel;
     return own ? own(d) : t`Extension ${d.behavior}`;
   }

@@ -41,6 +41,8 @@ import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
 import { commissionable } from "./scenario";
 import type { DeviceInstallation } from "./installation";
+import type { BcuState, MaskProfile } from "../bcu";
+import { bcuState, profileOf } from "../bcu";
 import {
   FACTORY_ADDRESS,
   FACTORY_COUPLER_ADDRESS,
@@ -413,9 +415,7 @@ export class Simulation {
         timers: new Map(),
         down: false,
         inert:
-          !!s.commissioning &&
-          commissionable(d) &&
-          !s.commissioning.devices.get(d.id)?.application,
+          !!s.commissioning && commissionable(d) && !this.holdsApplication(d),
       };
       rt.state = def.createState(d);
       rt.ctx = this.makeContext(rt);
@@ -1934,6 +1934,30 @@ export class Simulation {
     { address: string; programmingMode: boolean }
   >();
   private installationListeners = new Set<() => void>();
+  /** BCU of the manufacturers' devices that ETS programs: its profile and its state. */
+  private bcus = new Map<
+    string,
+    {
+      profile: MaskProfile;
+      state: BcuState;
+      /** Memory as of the last restart: what the installation section keeps. */
+      held: Uint8Array | null;
+    }
+  >();
+
+  /**
+   * Does a device hold an application? A manufacturer's device holds the one started in
+   * its memory, the others the one of the installation section.
+   */
+  private holdsApplication(d: Device): boolean {
+    const held = this.scenario.commissioning?.devices.get(d.id);
+    const profile = d.ets && profileOf(d.ets.mask);
+    if (profile && this.registry.bcuProducts.has(d.behavior))
+      return (
+        !!d.memory && profile.running(bcuState(profile.masks[0]!, d.memory))
+      );
+    return !!held?.application;
+  }
 
   private initPhysical() {
     const k = this.scenario.commissioning;
@@ -1944,6 +1968,16 @@ export class Simulation {
         address: e?.address ?? FACTORY_ADDRESS,
         programmingMode: e?.programmingMode ?? false,
       });
+      const profile = d.ets && profileOf(d.ets.mask);
+      if (profile) {
+        const state = bcuState(
+          parseInt(d.ets!.mask, 16),
+          e?.memory,
+          this.registry.bcuProducts.get(d.behavior),
+        );
+        profile.setProgrammingMode(state, e?.programmingMode ?? false);
+        this.bcus.set(d.id, { profile, state, held: e?.memory ?? null });
+      }
     });
     this.network.topology.couplers.forEach((c) => {
       const e = k.couplers.get(c.address);
@@ -1993,6 +2027,8 @@ export class Simulation {
     if (!p || p.programmingMode === on || this.fault || !this.reachable(target))
       return false;
     p.programmingMode = on;
+    const b = this.bcus.get(target);
+    if (b) b.profile.setProgrammingMode(b.state, on);
     this.log("input", null, {
       deviceId: this.scenario.devicesById.has(target) ? target : undefined,
       message: on
@@ -2043,7 +2079,17 @@ export class Simulation {
   writeIndividualAddress(address: string): string[] {
     const hit = this.readAddressInProgrammingMode();
     if (this.fault || !hit.length) return [];
-    hit.forEach((k) => (this.physical.get(k)!.address = address));
+    hit.forEach((k) => {
+      this.physical.get(k)!.address = address;
+      // The BCU of a manufacturer's device keeps it in its memory.
+      const b = this.bcus.get(k);
+      const [a, l, d] = address.split(".").map(Number) as [
+        number,
+        number,
+        number,
+      ];
+      b?.profile.setIndividualAddress(b.state, (a << 12) | (l << 8) | d);
+    });
     this.log("input", null, {
       message: this
         .t`Individual address ${address} written to ${hit.map((k) => this.targetName(k)).join(", ")}`,
@@ -2064,9 +2110,62 @@ export class Simulation {
       .map(([k]) => k);
   }
 
+  /** Mask version of a device: that of its catalog product, otherwise TP1 System B. */
+  maskVersion(target: string): number {
+    const d = this.scenario.devicesById.get(target);
+    return d?.ets ? parseInt(d.ets.mask, 16) : 0x07b0;
+  }
+
+  /** BCU of a manufacturer's device that ETS programs, or null when it has none. */
+  bcu(
+    target: string,
+  ): { profile: MaskProfile; state: BcuState; held: Uint8Array | null } | null {
+    return this.bcus.get(target) ?? null;
+  }
+
+  /** Memory of a device that ETS programs, or null when it has none. */
+  memory(target: string): Uint8Array | null {
+    return this.bcus.get(target)?.state.memory ?? null;
+  }
+
+  /**
+   * Write the memory of a device (A_Memory_Write); false when it has no memory there.
+   * The programming LED and the individual address follow what the memory holds.
+   */
+  writeMemory(target: string, address: number, data: number[]): boolean {
+    const b = this.bcus.get(target);
+    if (!b || !b.profile.writeMemory(b.state, address, data)) return false;
+    const p = this.physical.get(target);
+    if (p) p.programmingMode = b.profile.programmingMode(b.state);
+    this.memoryWritten = true;
+    return true;
+  }
+
+  /** A property of a BCU was written (a load control): a download is under way. */
+  propertyWritten(target: string) {
+    if (this.bcus.has(target)) this.memoryWritten = true;
+  }
+
+  /** Has a memory changed since the last restart (an application downloaded)? */
+  private memoryWritten = false;
+
   /** Restart of a device, which leaves programming mode (A_Restart). */
   restartDevice(target: string) {
     const p = this.physical.get(target);
+    // A restart after a download: what the device holds changed.
+    if (this.memoryWritten) {
+      this.memoryWritten = false;
+      const b = this.bcus.get(target);
+      if (b) b.held = b.state.memory.slice();
+      if (p) p.programmingMode = false;
+      this.log("input", null, {
+        deviceId: this.scenario.devicesById.has(target) ? target : undefined,
+        message: this.t`${this.targetName(target)}: restart after a download`,
+        data: { action: "restart", target },
+      });
+      this.installationChanged();
+      return;
+    }
     if (!p?.programmingMode) return;
     p.programmingMode = false;
     this.log("input", null, {
@@ -2084,7 +2183,8 @@ export class Simulation {
     if (!k) return true;
     if (target.startsWith("coupler:"))
       return !!k.couplers.get(target.slice(8))?.application;
-    return !!k.devices.get(target)?.application;
+    const d = this.scenario.devicesById.get(target);
+    return d ? this.holdsApplication(d) : false;
   }
 
   /**
@@ -2109,6 +2209,7 @@ export class Simulation {
           address: p.address,
           programmingMode: p.programmingMode,
           application: k.devices.get(key)?.application ?? null,
+          memory: this.bcus.get(key)?.held ?? null,
         });
     });
     return installationJson(

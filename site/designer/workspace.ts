@@ -20,6 +20,8 @@ import { renamable } from "./ws-rename";
 import { dataTable } from "./ws-table";
 import { buildingList, buildingTree, roomTarget } from "./ws-building";
 import { stateColumns } from "./ws-commission";
+import { objectTexts } from "./ets-device";
+import { programOfProduct } from "./manufacturers";
 import type { Column } from "./ws-table";
 import { tt } from "./params";
 import {
@@ -191,7 +193,12 @@ function channelOf(d: Dev, o: Dev["objects"][number]) {
 function objectTable(host: Host, p: Panel, d: Dev) {
   const objects = E.objectsInOrder(d);
   const ports = host.registry.behaviors.get(d.behavior)?.ports ?? {};
-  const fn = (o: Dev["objects"][number]) => tt(ports[o.port]?.title) || o.port;
+  // A manufacturer's product: the functions of its product database.
+  const ets = d.ets as { parameters?: Record<string, string> } | undefined;
+  const app = programOfProduct(d.behavior);
+  const texts = app ? objectTexts(app, ets?.parameters ?? {}) : undefined;
+  const fn = (o: Dev["objects"][number]) =>
+    texts?.get(o.id)?.function ?? (tt(ports[o.port]?.title) || o.port);
   type O = Dev["objects"][number];
   return html`${dataTable<O>(
     host,
@@ -988,6 +995,14 @@ function catalogList(host: Host, doc: Doc, p: Panel): TemplateResult {
   };
   const current = shown.find((e) => e.value === ws.catalogSel);
   return html`<div class="w-content">
+      <div class="w-bar w-knxprod">
+        <span class="g-hint"
+          >${t`Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).`}</span
+        >
+        <button class="g-btn small" @click=${() => host.importDevices()}>
+          ${t`Import devices…`}
+        </button>
+      </div>
       ${dataTable<(typeof shown)[number]>(
         host,
         "catalog",

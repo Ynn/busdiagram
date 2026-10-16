@@ -72,6 +72,8 @@ export interface Host {
   typeLabel(d: Dev): string;
   /** Commissioning on the preview's simulation. */
   commissioner: Commissioner;
+  /** Import a package of devices (.bdpkg): opens the choice of a file. */
+  importDevices(): void;
 }
 
 const STORE = "busdiagram.designer.panels";

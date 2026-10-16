@@ -6,10 +6,10 @@ import type {
   JsonObject,
 } from "../../knx/contracts";
 import { DAY, MINUTE, knxDay, send } from "../shared/clock";
-import { type ProgramEntry, parseProgram } from "./program";
+import { type ProgramEntry, parseProgram } from "../../knx/week-program";
 import { programWarnings, usableEntries } from "./rules";
 
-export { parseProgram, type ProgramEntry } from "./program";
+export { parseProgram, type ProgramEntry } from "../../knx/week-program";
 
 /** Clock time of the next entry strictly after `nowMs`, looking up to eight days ahead. */
 export function nextSwitch(

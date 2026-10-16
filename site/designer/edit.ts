@@ -77,6 +77,8 @@ export interface Dev extends J {
   address?: string;
   kind: string;
   behavior: string;
+  /** Product of a catalog that ETS programs (see EtsProduct in src/knx/scenario.ts). */
+  ets?: J;
   parameters?: J;
   objects: Obj[];
   buttons?: Btn[];
@@ -1009,6 +1011,14 @@ export function objectNumbers(
   d: Dev,
   def: PortTable | undefined = captureRegistry().behaviors.get(d.behavior),
 ): Map<string, number> {
+  // A device of a product catalog: the numbers of its application program ("o<number>").
+  if (d.ets)
+    return new Map(
+      d.objects.map((o, i) => {
+        const m = /^o(\d+)$/.exec(o.id);
+        return [o.id, m ? Number(m[1]) : 1000 + i] as const;
+      }),
+    );
   const ports = Object.keys(def?.ports ?? {});
   const chPorts = ports.filter((p) =>
     ["required", "optional"].includes(def!.ports[p]!.channel ?? ""),

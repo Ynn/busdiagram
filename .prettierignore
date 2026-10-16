@@ -11,3 +11,4 @@ site/pages/**/*.md
 tests/knx/fixtures/reference/
 # Built from their TypeScript sources (site/samples/extensions/*.ts).
 site/samples/extensions/*.js
+tests/knx/fixtures/sample-devices/*.json

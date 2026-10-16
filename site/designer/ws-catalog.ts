@@ -11,6 +11,7 @@ import type {
 import { CATALOG_CATEGORIES } from "./snippet-kit";
 import { TOPOLOGY_TEMPLATES } from "./snippets";
 import { DESIGNER } from "./standard-designer";
+import { tt } from "./params";
 
 // ── Catalog ──────────────────────────────────────────────────────────────────
 
@@ -132,5 +133,32 @@ export function catalogGroups(
       channels: 0,
     }));
   if (ext.length) groups.push([t`Loaded extensions`, ext]);
+  // Manufacturers' products, programmed by ETS.
+  groups.push(...manufacturerGroups(reg));
   return groups;
+}
+
+/** The manufacturers' products of the registry, by manufacturer. */
+function manufacturerGroups(reg: Registry): [string, CatalogEntry[]][] {
+  const byMaker = new Map<string, CatalogEntry[]>();
+  for (const p of reg.bcuProducts.values()) {
+    const list = byMaker.get(p.manufacturer) ?? [];
+    list.push({
+      value: `bcu:${p.behavior}`,
+      label: `${p.manufacturer} ${p.name}`,
+      hint: `${tt(p.description)} ${t`Programmed by ETS with its application program, as the real device.`}`,
+      behavior: p.behavior,
+      objects: [],
+      channels: p.channels.length,
+    });
+    byMaker.set(p.manufacturer, list);
+  }
+  return [...byMaker]
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([maker, list]) => [
+      t`Programmed by ETS: ${maker}`,
+      list.sort((a, b) =>
+        a.label.localeCompare(b.label, "en", { numeric: true }),
+      ),
+    ]);
 }

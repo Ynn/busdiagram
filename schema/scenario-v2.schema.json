@@ -261,6 +261,17 @@
                   "behavior"
                 ],
                 "description": "Application downloaded: behavior, parameters, objects with their associations, keys, and the parameters and scenes of each channel, as in the device. Absent: no application loaded."
+              },
+              "memory": {
+                "type": "object",
+                "propertyNames": {
+                  "pattern": "^(0|[1-9][0-9]*)$"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^([0-9A-Fa-f]{2})*$"
+                },
+                "description": "Memory of a manufacturer's device as ETS wrote it; it runs the application started there. Blocks of octets in hexadecimal by start address (decimal); the others are 0."
               }
             }
           }
@@ -2214,6 +2225,60 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
           "description": "Assigned room ID; thermostats, window contacts, and temperature sensors observe that room."
+        },
+        "ets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "application",
+            "mask"
+          ],
+          "description": "Manufacturer's product that ETS programs: the device answers ETS with the mask of its application program and holds what ETS downloads. The parameter values of the project are kept by ParameterRef of its product database.",
+          "properties": {
+            "application": {
+              "type": "string",
+              "description": "Application program."
+            },
+            "mask": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{4}$",
+              "description": "Mask version (0012 for a BCU1 1.2)."
+            },
+            "manufacturer": {
+              "type": "string",
+              "description": "Manufacturer name, shown without the catalog."
+            },
+            "name": {
+              "type": "string",
+              "description": "Product name, shown without the catalog."
+            },
+            "orderNumber": {
+              "type": "string",
+              "description": "Order number."
+            },
+            "applicationName": {
+              "type": "string",
+              "description": "Name of the application program."
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Values of the project, by ParameterRef; absent: the default of the program."
+            },
+            "memory": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^([0-9A-Fa-f]{2})*$"
+              },
+              "description": "Memory with the project's settings, as a complete download writes it; the application of the device reads its parameters there. Blocks of octets in hexadecimal by start address (decimal); the others are 0."
+            }
+          }
         },
         "inFilterTables": {
           "type": "boolean",

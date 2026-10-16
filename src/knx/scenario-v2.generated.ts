@@ -39,6 +39,47 @@ medium?: ("TP" | "IP")
  */
 room?: string
 /**
+ * Manufacturer's product that ETS programs: the device answers ETS with the mask of its application program and holds what ETS downloads. The parameter values of the project are kept by ParameterRef of its product database.
+ */
+ets?: {
+/**
+ * Application program.
+ */
+application: string
+/**
+ * Mask version (0012 for a BCU1 1.2).
+ */
+mask: string
+/**
+ * Manufacturer name, shown without the catalog.
+ */
+manufacturer?: string
+/**
+ * Product name, shown without the catalog.
+ */
+name?: string
+/**
+ * Order number.
+ */
+orderNumber?: string
+/**
+ * Name of the application program.
+ */
+applicationName?: string
+/**
+ * Values of the project, by ParameterRef; absent: the default of the program.
+ */
+parameters?: {
+[k: string]: string
+}
+/**
+ * Memory with the project's settings, as a complete download writes it; the application of the device reads its parameters there. Blocks of octets in hexadecimal by start address (decimal); the others are 0.
+ */
+memory?: {
+[k: string]: string
+}
+}
+/**
  * false: do not include this virtual device in coupler filter tables.
  */
 inFilterTables?: boolean
@@ -343,6 +384,12 @@ programmingMode?: boolean
  */
 application?: {
 
+}
+/**
+ * Memory of a manufacturer's device as ETS wrote it; it runs the application started there. Blocks of octets in hexadecimal by start address (decimal); the others are 0.
+ */
+memory?: {
+[k: string]: string
 }
 }[]
 /**

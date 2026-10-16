@@ -29,6 +29,11 @@ export interface DeviceInstallation {
   programmingMode: boolean;
   /** Application part of the device as downloaded (scenario JSON), or null: none loaded. */
   application: JsonObject | null;
+  /**
+   * Memory of a manufacturer's device that ETS programs (see src/bcu), as ETS wrote it;
+   * null when nothing was written (as delivered).
+   */
+  memory: Uint8Array | null;
 }
 
 export interface CouplerInstallation {
@@ -50,6 +55,49 @@ const APP_DEVICE = ["behavior", "parameters", "objects", "buttons"] as const;
 const APP_CHANNEL = ["parameters", "scenes"] as const;
 
 type Rec = Record<string, unknown>;
+
+const HEX = /^([0-9A-Fa-f]{2})*$/;
+
+/**
+ * Memory of a device as the scenario writes it: the blocks of 256 octets that are not
+ * zero, in hexadecimal, by start address ({"256": "00FF…"}). A single hexadecimal text
+ * is the memory from address 0.
+ */
+export function memoryJson(mem: Uint8Array, block = 256): JsonObject {
+  const out: Record<string, string> = {};
+  for (let a = 0; a < mem.length; a += block) {
+    const part = mem.subarray(a, Math.min(mem.length, a + block));
+    if (part.some((b) => b !== 0))
+      out[String(a)] = Array.from(part, (x) =>
+        x.toString(16).toUpperCase().padStart(2, "0"),
+      ).join("");
+  }
+  return out;
+}
+
+/** Memory of a scenario (see memoryJson), or null when it is not one. */
+export function parseMemory(v: unknown): Uint8Array | null {
+  const blocks: [number, string][] =
+    typeof v === "string"
+      ? [[0, v]]
+      : isRecord(v)
+        ? Object.entries(v).map(([a, h]) => [Number(a), h as string])
+        : [];
+  if (
+    !blocks.length ||
+    blocks.some(
+      ([a, h]) =>
+        !Number.isInteger(a) || a < 0 || typeof h !== "string" || !HEX.test(h),
+    )
+  )
+    return typeof v === "string" && v === "" ? new Uint8Array(0) : null;
+  const size = Math.max(...blocks.map(([a, h]) => a + h.length / 2));
+  const mem = new Uint8Array(size);
+  for (const [a, h] of blocks)
+    for (let i = 0; i < h.length / 2; i++)
+      mem[a + i] = parseInt(h.slice(2 * i, 2 * i + 2), 16);
+  return mem;
+}
 const isRecord = (v: unknown): v is Rec =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 const clone = <T>(v: T): T => JSON.parse(JSON.stringify(v)) as T;
@@ -206,6 +254,7 @@ export function parseInstallation(
       "address",
       "programmingMode",
       "application",
+      "memory",
     ]);
     const id = e.device;
     if (typeof id !== "string" || !devices.has(id))
@@ -229,10 +278,21 @@ export function parseInstallation(
         );
       else application = clone(e.application) as JsonObject;
     }
+    let memory: Uint8Array | null = null;
+    if (e.memory !== undefined) {
+      memory = parseMemory(e.memory);
+      if (!memory)
+        fail(
+          `${p}.memory`,
+          "type",
+          t`memory blocks expected ({"<address>": "<hexadecimal octets>"})`,
+        );
+    }
     out.devices.set(id, {
       address: c.address ?? FACTORY_ADDRESS,
       programmingMode: c.programmingMode,
       application,
+      memory,
     });
   });
   list("couplers").forEach((e: unknown, i) => {
@@ -309,6 +369,7 @@ export function installationJson(
       const e: Rec = { device: id, address: d.address };
       if (d.programmingMode) e.programmingMode = true;
       if (d.application) e.application = clone(d.application);
+      if (d.memory) e.memory = memoryJson(d.memory);
       return e;
     });
   const couplers = couplerOrder

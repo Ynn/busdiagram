@@ -34,7 +34,13 @@ import { en } from "../i18n";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
 import type { Commissioning } from "./installation";
-import { installedDevice, parseInstallation } from "./installation";
+import {
+  installedDevice,
+  memoryJson,
+  parseInstallation,
+  parseMemory,
+} from "./installation";
+import { heldApplication } from "../bcu/device";
 import { buildTopology } from "./network";
 
 export { parseGA, parseIA } from "./address";
@@ -107,7 +113,31 @@ export interface NumberInput extends NumberInputInfo {
   index: number;
 }
 
+/**
+ * A manufacturer's product that ETS programs (src/manufacturers): its application program
+ * and mask (what it answers to ETS), the parameter values of the project by
+ * ParameterRef of its product database, and the memory a download writes.
+ */
+export interface EtsProduct {
+  application: string;
+  /** Mask version, four hexadecimal digits (0012 for a BCU1 1.2). */
+  mask: string;
+  manufacturer: string;
+  name: string;
+  orderNumber: string;
+  /** Name of the application program, as ETS shows it. */
+  applicationName: string;
+  parameters: Record<string, string>;
+  /**
+   * Memory of the device with the project's settings, as a complete download by ETS
+   * writes it (see src/bcu); its application reads its parameters there.
+   */
+  memory: Uint8Array | null;
+}
+
 export interface Device extends DeviceInfo {
+  /** Product of a catalog, programmed by ETS with its application program, or null. */
+  ets: EtsProduct | null;
   medium: "TP" | "IP";
   line: string | null;
   downstream: boolean;
@@ -335,6 +365,7 @@ const DEVICE_V2 = [
   "description",
   "inFilterTables",
   "room",
+  "ets",
 ];
 const OBJECT_V2 = [
   "id",
@@ -371,6 +402,16 @@ const CHANNEL_V2 = [
 ];
 const EQUIP_V2 = ["type", "name", "view", "room", "parameters", "initialState"];
 const OPTIONS_KEYS = ["speed", "filterTables"];
+const ETS_KEYS = [
+  "application",
+  "mask",
+  "manufacturer",
+  "name",
+  "orderNumber",
+  "applicationName",
+  "parameters",
+  "memory",
+];
 
 type Rec = Record<string, unknown>;
 /** Own property of a dictionary: « toString » or « __proto__ » does not mean anything. */
@@ -405,10 +446,26 @@ export function buildScenario(
   const devices = (rest.devices as Rec[]).map((d) => {
     const dev = project.devicesById.get(d.id as string)!;
     if (!commissionable(dev)) return d;
-    return installedDevice(
-      d,
-      commissioning.devices.get(dev.id)?.application ?? null,
-    );
+    const held = commissioning.devices.get(dev.id);
+    const product = dev.ets && registry.bcuProducts.get(dev.behavior);
+    if (product) {
+      // A manufacturer's device runs what its memory holds.
+      const ets = { ...(d.ets as Rec) };
+      delete ets.memory;
+      const app = held?.memory
+        ? heldApplication(
+            product,
+            dev.ets!.mask,
+            held.memory,
+            d.objects as unknown[],
+          )
+        : null;
+      return {
+        ...installedDevice(d, app),
+        ets: held?.memory ? { ...ets, memory: memoryJson(held.memory) } : ets,
+      };
+    }
+    return installedDevice(d, held?.application ?? null);
   });
   let installed: Scenario;
   try {
@@ -1021,12 +1078,17 @@ function buildProject(
     const behaviorId = nonEmpty(d, "behavior", p) ?? "";
     const behavior: BehaviorDefinition<unknown> | undefined =
       registry.behaviors.get(behaviorId);
-    if (behaviorId && !behavior)
+    if (behaviorId && !behavior) {
+      // A manufacturer's product comes with a package of devices, not with BusDiagram.
+      const ets = isRecord(d.ets) ? d.ets : null;
       err(
         `${p}.behavior`,
         "unknown-behavior",
-        t`unknown behavior “${behaviorId}” (extension not loaded? Available behaviors: ${[...registry.behaviors.keys()].join(", ")})`,
+        ets
+          ? t`${String(ets.manufacturer ?? "")} ${String(ets.name ?? behaviorId)} is a manufacturer's device that BusDiagram does not deliver: import the package of devices (.bdpkg) that provides “${behaviorId}”`
+          : t`unknown behavior “${behaviorId}” (extension not loaded? Available behaviors: ${[...registry.behaviors.keys()].join(", ")})`,
       );
+    }
 
     // Media and address
     let medium: "TP" | "IP" = "TP";
@@ -1612,6 +1674,10 @@ function buildProject(
 
     // Contact inputs: one key per channel, pressed and released on the diagram.
     if (behavior?.contactInputs) {
+      const etsMemory =
+        isRecord(d.ets) && d.ets.memory !== undefined
+          ? parseMemory(d.ets.memory)
+          : null;
       if (rawButtons.length)
         err(
           `${p}.buttons`,
@@ -1622,7 +1688,7 @@ function buildProject(
         const own = objects.filter((o) => o.channel === c.id);
         let key: ReturnType<NonNullable<typeof behavior.contactKey>> = {};
         try {
-          key = behavior.contactKey?.(c, own) ?? {};
+          key = behavior.contactKey?.(c, own, etsMemory) ?? {};
         } catch {
           // A failing extension gets the default key.
         }
@@ -1765,8 +1831,59 @@ function buildProject(
       shown.receiver ??
       (buttons.length === 0 && inputs.length === 0 && channels.length > 0);
 
+    let ets: EtsProduct | null = null;
+    if (d.ets !== undefined) {
+      const e = d.ets;
+      const ep = `${p}.ets`;
+      if (!isRecord(e)) err(ep, "type", t`object expected`);
+      else {
+        unknownKeys(e, ETS_KEYS, ep);
+        const s = (k: string, required = false) =>
+          str(e, k, ep, required) ?? "";
+        const mask = s("mask", true);
+        if (typeof e.mask === "string" && !/^[0-9A-Fa-f]{4}$/.test(mask))
+          err(
+            `${ep}.mask`,
+            "type",
+            t`mask version of four hexadecimal digits expected`,
+          );
+        const params: Record<string, string> = {};
+        if (e.parameters !== undefined) {
+          if (!isRecord(e.parameters))
+            err(`${ep}.parameters`, "type", t`object expected`);
+          else
+            for (const [k, v] of Object.entries(e.parameters)) {
+              if (typeof v !== "string")
+                err(`${ep}.parameters.${k}`, "type", t`text expected`);
+              else params[k] = v;
+            }
+        }
+        let memory: Uint8Array | null = null;
+        if (e.memory !== undefined) {
+          memory = parseMemory(e.memory);
+          if (!memory)
+            err(
+              `${ep}.memory`,
+              "type",
+              t`memory blocks expected ({"<address>": "<hexadecimal octets>"})`,
+            );
+        }
+        ets = {
+          application: s("application", true),
+          mask: mask.toUpperCase(),
+          manufacturer: s("manufacturer"),
+          name: s("name"),
+          orderNumber: s("orderNumber"),
+          applicationName: s("applicationName"),
+          parameters: params,
+          memory,
+        };
+      }
+    }
     const device: Device = {
       id,
+      ets,
+      memory: ets?.memory ?? null,
       name: str(d, "name", p) ?? id,
       address,
       kind,

@@ -1,3 +1,4 @@
+import type { Product as BcuProduct } from "../bcu/product";
 import type { Translate } from "../i18n";
 // Public contracts of the engine: device behaviors and controlled equipment,
 // event log and observable state. No dependence on DOM or geometry.
@@ -283,6 +284,11 @@ export interface DeviceInfo {
   readonly buttons: readonly ButtonInfo[];
   readonly inputs: readonly NumberInputInfo[];
   readonly channels: readonly ChannelInfo[];
+  /**
+   * Memory of a manufacturer's device (its BCU), where its application reads its
+   * parameters; absent for the devices of BusDiagram.
+   */
+  readonly memory?: Uint8Array | null;
 }
 
 /**
@@ -439,6 +445,8 @@ export interface BehaviorDefinition<S = unknown> {
   contactKey?(
     channel: ChannelInfo,
     objects: readonly ObjectInfo[],
+    /** Memory of a manufacturer's device, where its application has its parameters. */
+    memory?: Uint8Array | null,
   ): {
     icon?: string;
     led?: string | null;
@@ -524,6 +532,8 @@ export interface ParticipantModel {
   readonly messages?: Readonly<Record<string, Record<string, string>>>;
   /** Sizes of the views of its equipment, by view: the layout reads them without the views. */
   readonly viewSizes?: Readonly<Record<string, EquipmentSize>>;
+  /** Manufacturers' products it runs on a BCU (programmed by ETS), see src/bcu/product.ts. */
+  readonly bcuProducts?: readonly BcuProduct[];
 }
 
 export interface EquipmentDefinition<S extends JsonObject = JsonObject> {

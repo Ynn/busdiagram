@@ -14,6 +14,7 @@ import type {
   JsonObject,
   ParticipantModel,
 } from "./contracts";
+import type { Product as BcuProduct } from "../bcu/product";
 import { checkBehavior, checkEquipment } from "./definition-check";
 import { STANDARD_MODEL } from "../standard-model";
 
@@ -28,8 +29,11 @@ export interface Registry {
   readonly equipment: ReadonlyMap<string, AnyEquipment>;
   /** Sizes of the views of the delivered equipment, by view. */
   readonly viewSizes: ReadonlyMap<string, EquipmentSize>;
+  /** Manufacturers' products run on a BCU, by behavior. */
+  readonly bcuProducts: ReadonlyMap<string, BcuProduct>;
 }
 
+const bcuProducts = new Map<string, BcuProduct>();
 const behaviors = new Map<string, AnyBehavior>();
 const equipment = new Map<string, AnyEquipment>();
 const viewSizes = new Map<string, EquipmentSize>();
@@ -78,6 +82,7 @@ export function captureRegistry(): Registry {
     behaviors: new Map(behaviors),
     equipment: new Map(equipment),
     viewSizes: new Map(viewSizes),
+    bcuProducts: new Map(bcuProducts),
   };
 }
 
@@ -86,6 +91,7 @@ export interface RegistrySnapshot {
   readonly behaviors: ReadonlyMap<string, AnyBehavior>;
   readonly equipment: ReadonlyMap<string, AnyEquipment>;
   readonly viewSizes: ReadonlyMap<string, EquipmentSize>;
+  readonly bcuProducts: ReadonlyMap<string, BcuProduct>;
   readonly messages: MessagesSnapshot;
 }
 
@@ -94,6 +100,7 @@ export function saveRegistry(): RegistrySnapshot {
     behaviors: new Map(behaviors),
     equipment: new Map(equipment),
     viewSizes: new Map(viewSizes),
+    bcuProducts: new Map(bcuProducts),
     messages: saveMessages(),
   };
 }
@@ -105,6 +112,8 @@ export function restoreRegistry(s: RegistrySnapshot): void {
   s.equipment.forEach((v, k) => equipment.set(k, v));
   viewSizes.clear();
   s.viewSizes.forEach((v, k) => viewSizes.set(k, v));
+  bcuProducts.clear();
+  s.bcuProducts.forEach((v, k) => bcuProducts.set(k, v));
   restoreMessages(s.messages);
 }
 
@@ -125,6 +134,7 @@ export function registerParticipant(p: ParticipantModel) {
   Object.entries(p.viewSizes ?? {}).forEach(([view, size]) =>
     viewSizes.set(view, Object.freeze({ ...size })),
   );
+  (p.bcuProducts ?? []).forEach((x) => bcuProducts.set(x.behavior, x));
 }
 
 STANDARD_MODEL.forEach(registerParticipant);

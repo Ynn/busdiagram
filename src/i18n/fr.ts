@@ -1142,4 +1142,19 @@ export const frMessages: Record<string, string> = {
     "Bouton de programmation : cliquez pour activer le mode programmation.",
   "Individual address held by the device: {0}. The project gives {1}.":
     "Adresse individuelle contenue dans le participant : {0}. Le projet lui donne {1}.",
+  // Products.
+  "unknown product “{0}”": "produit inconnu « {0} »",
+  "{0} {1} is simulated by {2}, not {3}":
+    "{0} {1} est simulé par {2}, pas par {3}",
+  // Catalog products.
+  'memory blocks expected ({"<address>": "<hexadecimal octets>"})':
+    'blocs de mémoire attendus ({"<adresse>": "<octets hexadécimaux>"})',
+  "group object {0} not enabled, nothing sent":
+    "objet de groupe {0} non activé, rien n'est envoyé",
+  "Group object": "Objet de groupe",
+  "mask version of four hexadecimal digits expected":
+    "version de masque de quatre chiffres hexadécimaux attendue",
+  "{0}: restart after a download": "{0} : redémarrage après un téléchargement",
+  "{0} {1} is a manufacturer's device that BusDiagram does not deliver: import the package of devices (.bdpkg) that provides “{2}”":
+    "{0} {1} est un participant de fabricant que BusDiagram ne livre pas : importez le paquet de participants (.bdpkg) qui fournit « {2} »",
 };

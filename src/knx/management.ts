@@ -36,6 +36,8 @@ export const APCI = {
   individualAddressWrite: 0x0c0,
   individualAddressRead: 0x100,
   individualAddressResponse: 0x140,
+  adcRead: 0x180,
+  adcResponse: 0x1c0,
   memoryRead: 0x200,
   memoryResponse: 0x240,
   memoryWrite: 0x280,
@@ -242,15 +244,12 @@ export class DeviceManagement {
   ) {
     const { apci, short, data } = apduOf(f.tpdu);
     const four = apci & 0x3c0;
+    const bcu = sim.bcu(target);
     if (four === APCI.deviceDescriptorRead) {
       // Descriptor type 0: the mask version; other types are not supported (type 0x3F).
+      const mask = sim.maskVersion(target);
       if (short === 0)
-        reply(
-          apdu(APCI.deviceDescriptorResponse, [
-            MASK_VERSION >> 8,
-            MASK_VERSION & 0xff,
-          ]),
-        );
+        reply(apdu(APCI.deviceDescriptorResponse, [mask >> 8, mask & 0xff]));
       else reply(apdu(APCI.deviceDescriptorResponse | 0x3f));
       return;
     }
@@ -259,20 +258,41 @@ export class DeviceManagement {
       return;
     }
     if (four === APCI.memoryRead && data.length >= 2) {
-      // Memory read: as many zeros as asked (no memory image is simulated).
       const n = short;
-      reply(
-        apdu(APCI.memoryResponse | n, [
-          data[0]!,
-          data[1]!,
-          ...Array<number>(n).fill(0),
-        ]),
-      );
+      const at = (data[0]! << 8) | data[1]!;
+      // The BCU of a manufacturer's device reads its memory; outside it, a response
+      // without octets says the read failed (zeros for the devices without a BCU).
+      if (bcu) {
+        const read = bcu.profile.readMemory(bcu.state, at, n);
+        reply(
+          read
+            ? apdu(APCI.memoryResponse | n, [data[0]!, data[1]!, ...read])
+            : apdu(APCI.memoryResponse, [data[0]!, data[1]!]),
+        );
+      } else
+        reply(
+          apdu(APCI.memoryResponse | n, [
+            data[0]!,
+            data[1]!,
+            ...Array<number>(n).fill(0),
+          ]),
+        );
       return;
     }
     if (four === APCI.memoryWrite && data.length >= 2) {
-      // Refused: a memory response with 0 bytes says the write was not done.
-      reply(apdu(APCI.memoryResponse, [data[0]!, data[1]!]));
+      const at = (data[0]! << 8) | data[1]!;
+      // Written: no answer (ETS verifies by reading). Refused: a response with no octets.
+      if (!(bcu && sim.writeMemory(target, at, data.slice(2, 2 + short))))
+        reply(apdu(APCI.memoryResponse, [data[0]!, data[1]!]));
+      return;
+    }
+    if (four === APCI.adcRead && data.length >= 1) {
+      // ADC: bus voltage (channel 1) and PEI type (channel 4) of a BCU1.
+      const channel = short;
+      const value = channel === 4 ? 0 : channel === 1 ? 0x0bb8 : 0;
+      reply(
+        apdu(APCI.adcResponse | channel, [data[0]!, value >> 8, value & 0xff]),
+      );
       return;
     }
     switch (apci) {
@@ -287,7 +307,14 @@ export class DeviceManagement {
         if (data.length < 4) return;
         const [obj, pid, c1, c2] = data as [number, number, number, number];
         const start = ((c1 & 0x0f) << 8) | c2;
-        const value = this.property(sim, target, obj, pid, start);
+        // The BCU of a manufacturer's device answers; its device object has the serial
+        // number of the simulated devices.
+        const value = bcu
+          ? (bcu.profile.readProperty(bcu.state, obj, pid, start, c1 >> 4) ??
+            (obj === 0 && pid === 11
+              ? this.property(sim, target, obj, pid, start)
+              : null))
+          : this.property(sim, target, obj, pid, start);
         if (value)
           reply(apdu(APCI.propertyValueResponse, [obj, pid, c1, c2, ...value]));
         // Not supported: number of elements 0.
@@ -297,12 +324,45 @@ export class DeviceManagement {
       case APCI.propertyValueWrite: {
         if (data.length < 4) return;
         const [obj, pid, c1, c2] = data as [number, number, number, number];
-        // Writes are refused: number of elements 0.
-        reply(apdu(APCI.propertyValueResponse, [obj, pid, c1 & 0x0f, c2]));
+        // The BCU of a manufacturer's device writes its properties (load controls of a
+        // system 7); the others refuse: number of elements 0.
+        const written = bcu?.profile.writeProperty?.(
+          bcu.state,
+          obj,
+          pid,
+          ((c1 & 0x0f) << 8) | c2,
+          data.slice(4),
+        );
+        if (written) sim.propertyWritten(target);
+        reply(
+          written
+            ? apdu(APCI.propertyValueResponse, [obj, pid, c1, c2, ...written])
+            : apdu(APCI.propertyValueResponse, [obj, pid, c1 & 0x0f, c2]),
+        );
         return;
       }
       case APCI.propertyDescriptionRead: {
         if (data.length < 3) return;
+        // A property of the BCU: writable bit and type, maximum number of elements, access.
+        const desc = bcu?.profile.describeProperty?.(
+          bcu.state,
+          data[0]!,
+          data[1]!,
+        );
+        if (desc) {
+          reply(
+            apdu(APCI.propertyDescriptionResponse, [
+              data[0]!,
+              data[1]!,
+              data[2]!,
+              (desc.writable ? 0x80 : 0) | desc.type,
+              (desc.max >> 8) & 0x0f,
+              desc.max & 0xff,
+              0x33,
+            ]),
+          );
+          return;
+        }
         // Not supported: type 0, no element.
         reply(
           apdu(APCI.propertyDescriptionResponse, [

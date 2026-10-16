@@ -3,7 +3,7 @@
 import type { Translate } from "../../i18n";
 import type { RuleDeviceInfo, RuleWarning } from "../../knx/contracts";
 import { checkValue } from "../../knx/dpt";
-import { type ProgramEntry, parseProgram } from "./program";
+import { type ProgramEntry, parseProgram } from "../../knx/week-program";
 
 /** Problem of a program value with the DPT of an output object, or null. */
 export function valueProblem(

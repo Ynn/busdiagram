@@ -185,6 +185,14 @@ describe("organization of the participants", () => {
     expect(named).toEqual([]);
   });
 
+  it("delivers no manufacturer's product: they come in packages of devices", async () => {
+    // The products modeled on a manufacturer's (their product databases, their firmware)
+    // are imported by the user (.bdpkg); BusDiagram gives only what they need (src/bcu).
+    expect(existsSync(resolve(root, "src/manufacturers"))).toBe(false);
+    const { captureRegistry } = await import("../../../src/knx/registry");
+    expect([...captureRegistry().bcuProducts.keys()]).toEqual([]);
+  });
+
   it("equipment model entries and the DOM-free entry reach no view", () => {
     const equipment = readdirSync(resolve(root, "src/equipment")).filter((d) =>
       existsSync(resolve(root, "src/equipment", d, "model.ts")),

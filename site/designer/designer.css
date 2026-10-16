@@ -1961,3 +1961,20 @@ bd-guided > .g-notice {
 .w-dl.ok {
   color: var(--bus);
 }
+.g-product {
+  display: grid;
+  grid-template-columns: max-content 1fr;
+  gap: 2px 12px;
+  margin: 0 0 10px;
+  font-size: 13px;
+}
+.g-product dt {
+  color: var(--mute);
+}
+.g-product dd {
+  margin: 0;
+}
+.g-product dd.g-hint {
+  grid-column: 1 / -1;
+  margin-top: 4px;
+}

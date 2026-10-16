@@ -38,11 +38,34 @@ export type {
 export {
   registerBehavior,
   registerEquipment,
+  registerParticipant,
   captureRegistry,
   behaviorIds,
   equipmentIds,
 } from "./knx/registry";
 export type { Registry } from "./knx/registry";
+// Toolkit for the manufacturers' products, delivered in packages (.bdpkg): bus coupling
+// units (mask profiles, tables), products and the helpers of their firmware.
+export * from "./bcu";
+export {
+  defineProduct,
+  objectId,
+  send,
+  valueOf,
+  numberOf,
+  memoryOf,
+  bits,
+  programKey,
+  productOfProgram,
+} from "./bcu/product";
+export type {
+  Firmware,
+  ProductObject,
+  ProductSpec,
+  Product,
+} from "./bcu/product";
+export { parseProgram } from "./knx/week-program";
+export type { ProgramEntry } from "./knx/week-program";
 export {
   Network,
   buildTopology,

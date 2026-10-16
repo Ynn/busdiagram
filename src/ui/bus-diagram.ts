@@ -1942,7 +1942,9 @@ export class BusDiagram extends LitElement {
         <div class="cell name" title=${d.name}>
           ${d.name}${
             unloaded
-              ? html`<small class="unl" title=${this.tr`No application program loaded: download it from ETS (or the designer) for the device to work.`}
+              ? html`<small
+                  class="unl"
+                  title=${this.tr`No application program loaded: download it from ETS (or the designer) for the device to work.`}
                   >${this.tr`not loaded`}</small
                 >`
               : nothing
@@ -1964,22 +1966,27 @@ export class BusDiagram extends LitElement {
     return html`<button
         class="prog ${on ? "on" : ""}"
         aria-pressed=${on ? "true" : "false"}
-        title=${on
-          ? this.tr`Programming mode on (red LED). Click to switch it off.`
-          : this.tr`Programming button: click to switch the programming mode on.`}
+        title=${
+          on
+            ? this.tr`Programming mode on (red LED). Click to switch it off.`
+            : this
+                .tr`Programming button: click to switch the programming mode on.`
+        }
         @click=${(e: Event) => {
           e.stopPropagation();
           sim.pressProgrammingButton(target);
           this.requestUpdate();
         }}
       ></button
-      >${held !== project
-        ? html`<small
-            class="held"
-            title=${this.tr`Individual address held by the device: ${held}. The project gives ${project}.`}
-            >${held}</small
-          >`
-        : nothing}`;
+      >${
+        held !== project
+          ? html`<small
+              class="held"
+              title=${this.tr`Individual address held by the device: ${held}. The project gives ${project}.`}
+              >${held}</small
+            >`
+          : nothing
+      }`;
   }
 
   private renderPlate(d: Device, dg: DevG, sim: Simulation) {

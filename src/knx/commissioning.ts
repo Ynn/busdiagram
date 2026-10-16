@@ -12,9 +12,13 @@ import {
   FACTORY_ADDRESS,
   FACTORY_COUPLER_ADDRESS,
   applicationOf,
+  memoryJson,
+  parseMemory,
   programOf,
 } from "./installation";
+import { heldApplication, sameParameters, projectMemory } from "../bcu/device";
 import { Network } from "./network";
+import { captureRegistry } from "./registry";
 import type { Scenario } from "./scenario";
 import { buildScenario, commissionable } from "./scenario";
 import type { Simulation } from "./sim";
@@ -59,7 +63,20 @@ export function projectAddress(project: Scenario, target: string): string {
 function programIn(raw: Rec, target: string): string {
   if (target.startsWith("coupler:")) return "coupler";
   const d = (raw.devices as Rec[]).find((x) => x.id === target);
-  return d ? programOf(d) : "";
+  return d ? programLabel(d) : "";
+}
+
+const programOfDevice = (d: Scenario["devices"][number] | undefined) =>
+  d ? programLabel({ behavior: d.behavior }) : null;
+
+/**
+ * Application program of a device: that of a manufacturer's product (manufacturer,
+ * product) when it is one, otherwise its behavior.
+ */
+export function programLabel(d: { behavior?: unknown }) {
+  const behavior = typeof d.behavior === "string" ? d.behavior : "";
+  const p = captureRegistry().bcuProducts.get(behavior);
+  return p ? `${p.manufacturer} ${p.name}` : programOf(d as Rec);
 }
 
 /** Name of a target in the project, for messages. */
@@ -195,9 +212,12 @@ export function downloadApplication(
     };
   const physical = found[0]!;
   const expected = programIn(raw, target);
+  const pd = project.devicesById.get(physical);
   const held = physical.startsWith("coupler:")
     ? "coupler"
-    : (project.devicesById.get(physical)?.behavior ?? "");
+    : pd
+      ? programLabel({ behavior: pd.behavior })
+      : "";
   if (held !== expected)
     return {
       status: "failed",
@@ -217,7 +237,12 @@ export function downloadApplication(
     };
   } else {
     const d = (raw.devices as Rec[]).find((x) => x.id === target)!;
-    e.application = applicationOf(d);
+    const image = projectImage(d);
+    if (image) {
+      // A manufacturer's device: the memory as a complete download by ETS writes it.
+      e.memory = memoryJson(image.memory);
+      delete e.application;
+    } else e.application = applicationOf(d);
   }
   return done(
     physical === target
@@ -278,7 +303,10 @@ export function unloadApplication(
         : t`No device answers at ${address}.`,
     };
   const section = sectionOf(sim);
-  delete entryOf(section, sim, found[0]!).application;
+  const e = entryOf(section, sim, found[0]!);
+  delete e.application;
+  // A manufacturer's device: its memory as delivered, without an application.
+  delete e.memory;
   return done(t`Application unloaded from ${address}.`, section, true);
 }
 
@@ -309,7 +337,7 @@ export function scanLine(sim: Simulation, line: string): ScanRow[] {
       program: sim.applicationLoaded(r.target)
         ? r.target.startsWith("coupler:")
           ? "coupler"
-          : (sim.scenario.devicesById.get(r.target)?.behavior ?? null)
+          : programOfDevice(sim.scenario.devicesById.get(r.target))
         : null,
       programmingMode: sim.programmingMode(r.target),
     }))
@@ -369,14 +397,36 @@ export interface DownloadState {
 const json = (v: unknown) => JSON.stringify(v ?? null);
 
 /** Download state of each target of a scenario with an installation section. */
-export function downloadStates(raw: unknown): Map<string, DownloadState> {
+/** Memory of a manufacturer's device with the project's settings, if it has one. */
+function projectImage(d: Rec): { mask: string; memory: Uint8Array } | null {
+  const ets = d.ets;
+  if (
+    !isRecord(ets) ||
+    typeof ets.mask !== "string" ||
+    ets.memory === undefined
+  )
+    return null;
+  const memory = parseMemory(ets.memory);
+  if (!memory) return null;
+  const objects = Array.isArray(d.objects) ? (d.objects as unknown[]) : [];
+  const address = typeof d.address === "string" ? d.address : "";
+  return {
+    mask: ets.mask,
+    memory: projectMemory(ets.mask, memory, objects, address),
+  };
+}
+
+export function downloadStates(
+  raw: unknown,
+  registry = captureRegistry(),
+): Map<string, DownloadState> {
   const out = new Map<string, DownloadState>();
   if (!isRecord(raw) || !isRecord(raw.installation)) return out;
   let project: Scenario;
   let installed: Scenario;
   try {
     project = projectOf(raw);
-    installed = buildScenario(raw);
+    installed = buildScenario(raw, registry);
   } catch {
     return out;
   }
@@ -385,8 +435,29 @@ export function downloadStates(raw: unknown): Map<string, DownloadState> {
     const dev = project.devicesById.get(d.id as string);
     if (!dev || !commissionable(dev)) return;
     const held = k.devices.get(dev.id);
-    const app = held?.application as Rec | null | undefined;
-    const want = applicationOf(d) as Rec;
+    const image = projectImage(d);
+    const product = image && registry.bcuProducts.get(dev.behavior);
+    // A manufacturer's device holds the application of its memory, compared with the
+    // one of the project's image.
+    const app = (
+      product
+        ? held?.memory &&
+          heldApplication(
+            product,
+            image.mask,
+            held.memory,
+            d.objects as unknown[],
+          )
+        : held?.application
+    ) as Rec | null | undefined;
+    const want = ((product &&
+      heldApplication(
+        product,
+        image.mask,
+        image.memory,
+        d.objects as unknown[],
+      )) ??
+      applicationOf(d)) as Rec;
     const prg = !!app && programOf(app) === programOf(want);
     const objects = (o: unknown, part: "ga" | "cfg") =>
       (Array.isArray(o) ? o : [])
@@ -411,7 +482,11 @@ export function downloadStates(raw: unknown): Map<string, DownloadState> {
     out.set(dev.id, {
       adr: (held?.address ?? FACTORY_ADDRESS) === dev.address,
       prg,
-      par: prg && json(params(app!)) === json(params(want)),
+      par:
+        prg &&
+        (product
+          ? sameParameters(product, held!.memory!, image.memory)
+          : json(params(app!)) === json(params(want))),
       grp:
         prg &&
         json(objects(app!.objects, "ga")) === json(objects(want.objects, "ga")),

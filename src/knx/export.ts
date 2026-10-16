@@ -7,7 +7,7 @@ import type { PowerSupply, Scenario } from "./scenario";
 import { defaultInitial, defaultRead, defaultUpdate, portOf } from "./ports";
 import { defaultIcon } from "./scenario";
 import type { ScenarioV2 } from "./scenario-v2.generated";
-import { installationJson } from "./installation";
+import { installationJson, memoryJson } from "./installation";
 import { buildTopology } from "./network";
 
 function withoutDefaults(
@@ -142,6 +142,15 @@ export function toV2(
         address: d.address || undefined,
         kind: d.kind,
         behavior: d.behavior,
+        ets: d.ets
+          ? compact({
+              ...d.ets,
+              parameters: Object.keys(d.ets.parameters).length
+                ? d.ets.parameters
+                : undefined,
+              memory: d.ets.memory ? memoryJson(d.ets.memory) : undefined,
+            })
+          : undefined,
         parameters: withoutDefaults(d.parameters, def?.parameters),
         medium: d.medium !== defaultMedium ? d.medium : undefined,
         downstream: d.downstream || undefined,

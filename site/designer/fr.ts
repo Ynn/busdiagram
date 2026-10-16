@@ -707,7 +707,6 @@ export const designerFr: Record<string, string> = {
   Configuration: "Configuration",
   "Each key has a block of two group objects: the single or short press, then the long press.":
     "Chaque touche a un bloc de deux objets de groupe : l'appui simple ou court, puis l'appui long.",
-  "Group object": "Objet de groupe",
   "The LED and a toggle key follow the value of the key's group object. So that they follow the actual state of the load, link the status address to the same object as well: it is then listened to, after the sending address.":
     "La LED et une touche en bascule suivent la valeur de l'objet de groupe de la touche. Pour qu'elles suivent l'état réel de la charge, lier aussi l'adresse de retour d'état à ce même objet : elle est alors écoutée, après l'adresse d'émission.",
   "no load": "aucune charge",
@@ -920,4 +919,43 @@ export const designerFr: Record<string, string> = {
     "Les participants contiennent ce qui y a été téléchargé : ils démarrent à l'état de livraison (15.15.255, sans application). Programmez-les avec les commandes Télécharger de leur menu contextuel et leur bouton de programmation dans le schéma, ou depuis ETS avec Relier à ETS. Une modification du projet ne prend effet qu'une fois téléchargée.",
   "Without it, the diagram runs the project as if every device were already programmed. With it, students program the individual addresses and download the applications, as on a training board.":
     "Sans elle, le schéma exécute le projet comme si chaque participant était déjà programmé. Avec elle, les étudiants programment les adresses individuelles et téléchargent les applications, comme sur une maquette.",
+  // Products.
+  "Programmed by ETS: {0}": "Programmés par ETS : {0}",
+  "Programmed by ETS with its application program, as the real device.":
+    "Programmé par ETS avec son programme d'application, comme le vrai participant.",
+  "Application program: {0}.": "Programme d'application : {0}.",
+  Manufacturer: "Fabricant",
+  Product: "Produit",
+  "Application program": "Programme d'application",
+  // Manufacturers' products.
+  "the program {0} is not simulated": "le programme {0} n'est pas simulé",
+  "not a device of a product catalog":
+    "ce participant ne vient pas d'un catalogue de produits",
+  Parameter: "Paramètre",
+  // Packages of devices.
+  "not a package of devices (.bdpkg): it is not a zip file":
+    "ce n'est pas un paquet de participants (.bdpkg) : ce n'est pas un fichier zip",
+  "the package has no file {0}": "le paquet ne contient pas de fichier {0}",
+  "{0} of the package is not JSON": "{0} du paquet n'est pas du JSON",
+  "manifest.json: format {0} expected (a package of devices of BusDiagram)":
+    "manifest.json : format {0} attendu (un paquet de participants de BusDiagram)",
+  "manifest.json: name expected (letters, digits, - . _)":
+    "manifest.json : nom attendu (lettres, chiffres, - . _)",
+  "manifest.json: version expected": "manifest.json : version attendue",
+  "the package needs BusDiagram {0} or later (this is {1})":
+    "le paquet demande BusDiagram {0} ou plus récent (celui-ci est en {1})",
+  "manifest.json: list of products expected":
+    "manifest.json : liste de produits attendue",
+  "manifest.json: a product needs its behavior and its database":
+    "manifest.json : un produit doit avoir son comportement et sa base produit",
+  "{0} of the package is not a product database":
+    "{0} du paquet n'est pas une base produit",
+  "manifest.json: an example needs its id and its file":
+    "manifest.json : un exemple doit avoir son identifiant et son fichier",
+  "Package {0} refused: {1}": "Paquet {0} refusé : {1}",
+  "Package {0} {1}: {2} devices imported.":
+    "Paquet {0} {1} : {2} participants importés.",
+  "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).":
+    "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
+  "Import devices…": "Importer des participants…",
 };

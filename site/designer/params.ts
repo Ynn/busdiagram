@@ -1,5 +1,6 @@
 // Parameters of a device, as the parameters tab of a product: the general page, one page per
 // key or output, and the objects shared by all outputs, with their port rows.
+import { etsPages } from "./ets-pages";
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import { keyed } from "lit/directives/keyed.js";
@@ -69,6 +70,24 @@ const installationDivider = () =>
     ${PLUG} ${t`Installation`}
   </div>`;
 
+/** A manufacturer's product, as the properties of a device in ETS show it. */
+function productInfo(ed: GuidedEditor, d: Dev) {
+  const p = ed.registry.bcuProducts.get(d.behavior);
+  const ets = d.ets as { applicationName?: string } | undefined;
+  if (!p) return nothing;
+  return html`<dl class="g-product">
+    <dt>${t`Manufacturer`}</dt>
+    <dd>${p.manufacturer}</dd>
+    <dt>${t`Product`}</dt>
+    <dd>
+      ${p.name}${p.orderNumber ? html` · <code>${p.orderNumber}</code>` : nothing}
+    </dd>
+    <dt>${t`Application program`}</dt>
+    <dd>${ets?.applicationName ?? ""}</dd>
+    <dd class="g-hint">${tt(p.description)}</dd>
+  </dl>`;
+}
+
 /** General page of a device: identity, place on the bus, device settings. */
 export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
   const def = ed.registry.behaviors.get(d.behavior);
@@ -114,6 +133,7 @@ export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
         ${ed.typeLabel(d)}${def?.description ? html` — ${tt(def.description)}` : nothing}
         ${def ? nothing : html`<br /><b>${t`Behavior not loaded in the designer: data kept, limited forms.`}</b>`}
       </p>
+      ${productInfo(ed, d)}
       <div class="g-row">
         ${ed.text(t`Name`, d.name ?? "", (v) => ed.run(t`Name`, (x) => E.setDeviceField(x, d.id, "name", v)))}
         ${ed.select(visu ? t`Connection` : t`Line`, places, place, (v) =>
@@ -250,13 +270,46 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
       body: () => generalPage(ed, doc, d),
     },
   ];
-  if (def?.ports.display && !(def.acceptsKeys ?? def.acceptsInputs))
+  // A manufacturer's product: the pages of its application program, as ETS shows them,
+  // then what belongs to the installation: loads, wired push-buttons, and what is set on
+  // the device itself (the switching times of a time switch).
+  if (d.ets) {
+    pages.push(...etsPages(ed, doc, d));
+    if (def) {
+      (d.channels ?? []).forEach((c) => {
+        const name = c.label ?? c.id;
+        if (def.output)
+          pages.push({
+            key: `ch:${c.id}:${LOADS}`,
+            label: `${name} · ${t`Connected loads`}`,
+            installation: true,
+            sum: loadsText(ed, def, c),
+            body: () => connectedLoads(ed, doc, d, def, c),
+          });
+        if (def.contactInputs)
+          pages.push({
+            key: `ch:${c.id}:${KEY}`,
+            label: `${name} · ${t`Wired push-button`}`,
+            installation: true,
+            body: () => keyPage(ed, d, c),
+          });
+      });
+      layout.device.forEach((page) =>
+        pages.push({
+          key: `dev:${page.id}`,
+          label: tt(page.title),
+          installation: true,
+          body: () => layoutItems(ed, doc, d, def, undefined, page.items),
+        }),
+      );
+    }
+  } else if (def?.ports.display && !(def.acceptsKeys ?? def.acceptsInputs))
     pages.push(displayPage(ed, doc, d));
-  if (def && hasChannels(def))
+  if (def && hasChannels(def) && !d.ets)
     pages.push(
       outputsConfigPage(ed, doc, d, def, layout.channel[0]?.id ?? LOADS),
     );
-  if (def)
+  if (def && !d.ets)
     layout.device.forEach((page) =>
       pages.push({
         key: `dev:${page.id}`,
@@ -264,7 +317,7 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
         body: () => layoutItems(ed, doc, d, def, undefined, page.items),
       }),
     );
-  if (def && hasChannels(def))
+  if (def && hasChannels(def) && !d.ets)
     pages.push(...outputPages(ed, doc, d, def, layout.channel));
   const inputs = def ? inputsPage(ed, d, def) : null;
   if (inputs) pages.push(inputs);

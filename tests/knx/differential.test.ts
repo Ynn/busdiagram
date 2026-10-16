@@ -118,57 +118,67 @@ const v2Files = activeScenarios().filter(
 );
 
 describe("schema and engine render the same verdict", () => {
-  it.each(v2Files)("%s: structural mutations", (f) => {
-    const doc = raw(f) as S;
-    const muts: Mutation[] = [];
-    collect(doc, schema, [], muts);
-    expect(muts.length).toBeGreaterThan(50);
-    const mismatches: string[] = [];
-    for (const m of muts) {
-      const copy = structuredClone(doc);
-      m.apply(copy);
-      const schemaOk = validate(copy) as boolean;
-      let engineOk = true;
-      let paths: string[] = [];
-      try {
-        buildScenario(copy, registry);
-      } catch (e) {
-        if (!(e instanceof ScenarioError)) {
+  it.each(v2Files)(
+    "%s: structural mutations",
+    (f) => {
+      const doc = raw(f) as S;
+      const all: Mutation[] = [];
+      collect(doc, schema, [], all);
+      // A memory is mutated as a whole, not block by block (hexadecimal data).
+      const muts = all.filter((m) => {
+        const i = m.path.indexOf("memory");
+        return i < 0 || i === m.path.length - 1;
+      });
+      expect(muts.length).toBeGreaterThan(50);
+      const mismatches: string[] = [];
+      for (const m of muts) {
+        const copy = structuredClone(doc);
+        m.apply(copy);
+        const schemaOk = validate(copy) as boolean;
+        let engineOk = true;
+        let paths: string[] = [];
+        try {
+          buildScenario(copy, registry);
+        } catch (e) {
+          if (!(e instanceof ScenarioError)) {
+            mismatches.push(
+              `${pathText(m.path)} ${m.label} : uncaught exception ${(e as Error).message}`,
+            );
+            continue;
+          }
+          engineOk = false;
+          paths = e.details.map((p) => p.path);
+        }
+        // An inherited name changes a cross-reference invisible to the schema; require
+        // a scenario error (above), never an uncaught exception.
+        if (INHERITED.includes(m.label)) continue;
+        if (schemaOk !== engineOk) {
           mismatches.push(
-            `${pathText(m.path)} ${m.label} : uncaught exception ${(e as Error).message}`,
+            `${pathText(m.path)} ${m.label} : schema ${schemaOk ? "accepts" : "rejects"}, engine ${engineOk ? "accepts" : "rejects"}`,
           );
           continue;
         }
-        engineOk = false;
-        paths = e.details.map((p) => p.path);
-      }
-      // An inherited name changes a cross-reference invisible to the schema; require
-      // a scenario error (above), never an uncaught exception.
-      if (INHERITED.includes(m.label)) continue;
-      if (schemaOk !== engineOk) {
-        mismatches.push(
-          `${pathText(m.path)} ${m.label} : schema ${schemaOk ? "accepts" : "rejects"}, engine ${engineOk ? "accepts" : "rejects"}`,
-        );
-        continue;
-      }
-      // An engine rejection identifies the mutated field or its containing object.
-      const target = pathText(m.path);
-      const parent = pathText(m.path.slice(0, -1));
-      if (
-        !engineOk &&
-        !paths.some(
-          (p) =>
-            p === target ||
-            p.startsWith(`${target}.`) ||
-            p.startsWith(`${target}[`) ||
-            p === parent ||
-            (parent && p.startsWith(parent)),
+        // An engine rejection identifies the mutated field or its containing object.
+        const target = pathText(m.path);
+        const parent = pathText(m.path.slice(0, -1));
+        if (
+          !engineOk &&
+          !paths.some(
+            (p) =>
+              p === target ||
+              p.startsWith(`${target}.`) ||
+              p.startsWith(`${target}[`) ||
+              p === parent ||
+              (parent && p.startsWith(parent)),
+          )
         )
-      )
-        mismatches.push(
-          `${target} ${m.label} : error points to the wrong field (${paths.join(", ")})`,
-        );
-    }
-    expect(mismatches).toEqual([]);
-  });
+          mismatches.push(
+            `${target} ${m.label} : error points to the wrong field (${paths.join(", ")})`,
+          );
+      }
+      expect(mismatches).toEqual([]);
+      // The manufacturers' products have many group objects: many mutations.
+    },
+    30000,
+  );
 });

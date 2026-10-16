@@ -47,6 +47,17 @@ import { SnippetRefusal } from "./snippet-kit";
 import { TEMPLATES } from "./standard-designer";
 import { installationChanged } from "./ws-commission";
 import type { JsonObject } from "../../src/knx/contracts";
+import type { DevicePackage } from "./packages";
+import {
+  deleteStoredPackage,
+  forgetPackage,
+  installPackage,
+  onPackagesChange,
+  packageExamples,
+  readPackage,
+  storePackage,
+  storedPackages,
+} from "./packages";
 
 // ── Language: saved choice, or English on first use ──
 const LANG = "bus-diagram-designer-lang";
@@ -143,6 +154,8 @@ const EXTENSIONS = "bus-diagram-designer-extensions";
 interface LoadedExtension {
   name: string;
   source: string;
+  /** Name of the package of devices (.bdpkg) whose script it is. */
+  package?: string;
 }
 let extensions: LoadedExtension[] = [];
 /** Definitions provided by each loaded extension (marked in the manager). */
@@ -232,7 +245,13 @@ const files = import.meta.glob("../../scenarios/*.json", {
   eager: true,
   import: "default",
 }) as Record<string, unknown>;
-const templates = Object.entries(files)
+let templates: {
+  id: string;
+  title: string;
+  data: ReturnType<typeof toV2>;
+  /** Package of devices that brings it, for its examples. */
+  pkg?: string;
+}[] = Object.entries(files)
   .map(([p, data]) => {
     const v2 = toV2(buildScenario(data, registry), registry);
     return {
@@ -258,6 +277,7 @@ const empty = () => ({
 const $ = <T extends HTMLElement>(sel: string) =>
   document.querySelector(sel) as T;
 const preview = $<BusDiagram>("#preview");
+
 const guided = $<GuidedEditor>("#guided");
 const status = $<HTMLElement>("#status");
 const problemsEl = $<HTMLElement>("#problems");
@@ -536,12 +556,111 @@ guided.commissioner = {
   sim: () => preview.simulation,
   apply: setInstallation,
 };
+
+// ── Packages of devices (.bdpkg) ─────────────────────────────────────────────
+// Their script runs as an extension; their product databases and examples are kept in
+// the browser and read back at start.
+const pkgInput = document.createElement("input");
+pkgInput.type = "file";
+pkgInput.accept = ".bdpkg";
+pkgInput.addEventListener("change", () => {
+  const f = pkgInput.files?.[0];
+  pkgInput.value = "";
+  if (f) void importDevices(f);
+});
+guided.importDevices = () => pkgInput.click();
+
+async function importDevices(file: File) {
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  let pkg: DevicePackage;
+  try {
+    pkg = await readPackage(bytes, BusDiagramApi.version);
+  } catch (e) {
+    toast(t`Package ${file.name} refused: ${(e as Error).message}`);
+    return;
+  }
+  const { name, version } = pkg.manifest;
+  const entry: LoadedExtension = {
+    name: `${name} ${version}`,
+    source: pkg.script,
+    package: name,
+  };
+  // Its databases first: the catalog and the pages of its products are drawn with them.
+  installPackage(pkg);
+  const next = [...extensions.filter((x) => x.package !== name), entry];
+  if (await applyExtensions(next, [entry.name])) {
+    await storePackage(name, bytes);
+    toast(
+      t`Package ${name} ${version}: ${pkg.manifest.products.length} devices imported.`,
+    );
+  } else forgetPackage(name);
+}
+
+/** The examples of the templates, with those of the imported packages. */
+function fillTemplates() {
+  const own = templates.filter((x) => !x.pkg);
+  templates = [
+    ...own,
+    ...packageExamples().flatMap((s) => {
+      try {
+        const data = s.translations[t.lang ?? "en"] ?? s.data;
+        const v2 = toV2(buildScenario(data, registry), registry);
+        const title =
+          s.title[t.lang ?? "en"] ?? s.title.en ?? String(v2.title ?? s.id);
+        return [{ id: `${s.pkg}:${s.id}`, title, data: v2, pkg: s.pkg }];
+      } catch {
+        return [];
+      }
+    }),
+  ];
+  tplSelect.replaceChildren(tplSelect.options[0]!);
+  [{ id: "__empty", title: t`Empty installation` }, ...templates].forEach(
+    (m) => {
+      const o = document.createElement("option");
+      o.value = m.id;
+      o.textContent = m.title;
+      tplSelect.append(o);
+    },
+  );
+}
+onPackagesChange(() => {
+  fillTemplates();
+  guided.requestUpdate();
+});
+// The packages kept in the browser, whose script is loaded with the extensions.
+void storedPackages().then(async (stored) => {
+  for (const [name, bytes] of stored) {
+    if (!extensions.some((x) => x.package === name)) {
+      await deleteStoredPackage(name);
+      continue;
+    }
+    try {
+      installPackage(await readPackage(bytes, BusDiagramApi.version));
+    } catch {
+      // A package that no longer reads: its devices run, without their ETS pages.
+    }
+  }
+});
 // A programming button pressed in the diagram, or an address written by ETS.
 preview.addEventListener("bd-installation", (e) => {
   const { installation } = (
     e as CustomEvent<{ installation: JsonObject | null }>
   ).detail;
-  if (installation) setInstallation(installation, false);
+  if (!installation) return installationChanged(guided);
+  // A download from ETS into a manufacturer's device changed its memory: the simulation
+  // runs again with the application this memory holds.
+  type Section = { devices?: { device: string; memory?: unknown }[] };
+  const memories = (s: unknown) =>
+    JSON.stringify(
+      ((s as Section | undefined)?.devices ?? []).map((d) => [
+        d.device,
+        d.memory ?? null,
+      ]),
+    );
+  setInstallation(
+    installation,
+    memories(installation) !== memories(guided.doc?.installation),
+  );
   installationChanged(guided);
 });
 preview.addEventListener("bd-select", (e) => {
@@ -787,8 +906,14 @@ function renderExtensionList() {
           extensions.filter((x) => x !== ext),
           [],
         )
-      )
+      ) {
+        // A package of devices: its databases and examples go with it.
+        if (ext.package) {
+          forgetPackage(ext.package);
+          await deleteStoredPackage(ext.package);
+        }
         toast(t`Extension ${ext.name} removed.`);
+      }
     });
     row.append(name, replace, remove);
     list.append(row);
