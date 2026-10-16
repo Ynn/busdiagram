@@ -1,4 +1,4 @@
-// Manufacturers' products in the scenario (src/manufacturers): inserted with their
+// Manufacturers' products in the scenario (from packages of devices): inserted with their
 // application program, set by its parameters (the values of the project, by
 // ParameterRef) on the pages of their product database. The memory a complete download
 // writes is computed with the database and kept with the device; its
@@ -8,11 +8,11 @@ import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
 import { objectOf, visible } from "../../src/knxprod/config";
-import { linksOf, projectImage } from "../../src/knxprod/runtime";
+import { linksOf, projectImage, valuesOf } from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
 import { productOfProgram } from "../../src/bcu/product";
 import type { Product } from "../../src/bcu/product";
-import { memoryJson } from "../../src/knx/installation";
+import { memoryJson, parseMemory } from "../../src/knx/installation";
 import type { Registry } from "../../src/knx/registry";
 import type { Chan, Dev, Doc, Obj } from "./edit";
 import { EditRefusal } from "./edit";
@@ -191,6 +191,86 @@ export function setEtsParameter(
   else ets.parameters[ref] = value;
   if (!Object.keys(ets.parameters).length) delete ets.parameters;
   applyConfiguration(d, app, registry);
+}
+
+/**
+ * The project of a device as a download from ETS left it, read from the memory it holds:
+ * the parameter values (those that differ from the defaults, among the active ones), the
+ * objects with the group addresses of its tables and the names ETS gives them, and the
+ * memory. Returns the group addresses of its objects, or null when the memory holds no
+ * running application (the project is then left as it is).
+ */
+export function configurationFromMemory(
+  d: Dev,
+  app: ApplicationProgram,
+  registry: Registry,
+  memory: Uint8Array,
+): string[] | null {
+  const product = productOf(app, registry, d.behavior);
+  const ets = d.ets as unknown as Ets;
+  const read = valuesOf(app, memory);
+  const parameters: Record<string, string> = {};
+  for (const ref of visible(app, read).parameters) {
+    const r = app.parameterRefs.get(ref);
+    const def = r?.value ?? app.parameters.get(r?.ref ?? "")?.value;
+    const v = read[ref];
+    if (v !== undefined && v !== def) parameters[ref] = v;
+  }
+  const texts = objectTexts(app, parameters);
+  const held = heldApplication(
+    product,
+    ets.mask,
+    memory,
+    [...texts].map(([id, x]) => ({ id, name: x.name })),
+  ) as unknown as { objects: Obj[] } | null;
+  if (!held) return null;
+  // The objects ETS shows with these parameters, and any the tables link.
+  const shown = new Set(
+    visible(app, parameters)
+      .objects.map((r) => objectOf(app, r)?.number)
+      .filter((n): n is number => n !== undefined)
+      .map((n) => `o${n}`),
+  );
+  const gaList = (o: Obj) => (o as { ga?: string[] }).ga ?? [];
+  d.objects = held.objects.filter(
+    (o) => shown.has(o.id) || gaList(o).length > 0,
+  );
+  if (Object.keys(parameters).length) ets.parameters = parameters;
+  else delete ets.parameters;
+  ets.memory = memoryJson(memory);
+  return [...new Set(d.objects.flatMap(gaList))];
+}
+
+type Held = { device?: unknown; memory?: unknown };
+const heldDevices = (installation: unknown): Held[] => {
+  const list = (installation as { devices?: unknown } | null)?.devices;
+  return Array.isArray(list) ? (list as Held[]) : [];
+};
+
+/**
+ * After downloads from ETS: the project of each manufacturer's device whose memory changed
+ * becomes what this memory holds (configurationFromMemory), so that the scenario says how
+ * the device is really configured. Returns the identifiers of the devices changed.
+ */
+export function projectFromInstallation(
+  doc: Doc,
+  installation: unknown,
+  before: unknown,
+  registry: Registry,
+): string[] {
+  const was = new Map(
+    heldDevices(before).map((h) => [h.device, JSON.stringify(h.memory)]),
+  );
+  const changed: string[] = [];
+  for (const h of heldDevices(installation)) {
+    if (!h.memory || was.get(h.device) === JSON.stringify(h.memory)) continue;
+    const d = doc.devices.find((x) => x.id === h.device);
+    const app = d?.ets && d.behavior ? programOfProduct(d.behavior) : undefined;
+    const memory = parseMemory(h.memory);
+    if (!d || !app || !memory) continue;
+    if (configurationFromMemory(d, app, registry, memory)) changed.push(d.id);
+  }
+  return changed;
 }
 
 /** Number of a group object of a catalog device (its id is "o<number>"). */

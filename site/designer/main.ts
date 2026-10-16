@@ -38,6 +38,7 @@ import { formatJson } from "../shared/format-json";
 import { SchemaNavigator, scenarioCompletion } from "./completion";
 import type { Doc } from "./edit";
 import { EditRefusal } from "./edit";
+import { projectFromInstallation } from "./ets-device";
 import type { GuidedEditor, Refusal } from "./guided";
 import "./guided";
 import { cursorContext, nodeForPath, parsePath } from "./json-tree";
@@ -520,16 +521,20 @@ guided.onSelect = (id) => (guided.selected = id);
  * Write the installation section, outside the undo history: what the devices hold is not
  * an edit of the project. Only the changed part of the text is replaced, so that the undo
  * history of the project stays valid. `restart`: an application changed, the preview
- * loads the scenario again; otherwise it already runs this state.
+ * loads the scenario again; otherwise it already runs this state. A download from ETS
+ * into a manufacturer's device also sets its project to what its memory holds (its
+ * parameters, objects and links): that change is in the undo history.
  */
 function setInstallation(installation: JsonObject, restart: boolean) {
   const old = editor.state.doc.toString();
   const a = analyze(old);
   if (!a.valid || !a.data || typeof a.data !== "object") return;
-  const text = formatJson({
-    ...(a.data as Record<string, unknown>),
-    installation,
-  });
+  const data = structuredClone(a.data) as Doc;
+  // A download from ETS: the project of the devices is what their memory now holds.
+  const edited = restart
+    ? projectFromInstallation(data, installation, data.installation, registry)
+    : [];
+  const text = formatJson({ ...data, installation });
   if (!restart) loaded = JSON.stringify(JSON.parse(text));
   let from = 0;
   while (from < old.length && from < text.length && old[from] === text[from])
@@ -549,7 +554,7 @@ function setInstallation(installation: JsonObject, restart: boolean) {
       insert: text.slice(from, text.length - end),
     },
     userEvent: "guided",
-    annotations: Transaction.addToHistory.of(false),
+    annotations: Transaction.addToHistory.of(edited.length > 0),
   });
 }
 guided.commissioner = {

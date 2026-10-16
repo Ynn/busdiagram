@@ -9,6 +9,8 @@ import { projectImage, valuesOf } from "../../src/knxprod/runtime";
 import { DeviceManagement, decodeLData } from "../../src/knx/management";
 import type { LDataFrame } from "../../src/knx/management";
 import { captureRegistry } from "../../src/knx/registry";
+import { buildScenario } from "../../src/knx/scenario";
+import { cardHeight, drawnObjects } from "../../src/knx/layout";
 import {
   databaseOf,
   forgetPackage,
@@ -16,7 +18,12 @@ import {
   readPackage,
 } from "../../site/designer/packages";
 import { programOfProduct } from "../../site/designer/manufacturers";
-import { addProductDevice } from "../../site/designer/ets-device";
+import {
+  addProductDevice,
+  applyConfiguration,
+  projectFromInstallation,
+} from "../../site/designer/ets-device";
+import { installationAsProject } from "../../src/knx/commissioning";
 import { SAMPLE_PRODUCTS } from "./fixtures/sample-devices/products";
 
 // ── A package, as a package's build writes it (entries stored) ──────────────
@@ -310,6 +317,95 @@ describe("download into a BCU1 by its load procedure", () => {
       installation: sim.installation()!,
     });
     expect(after.applicationLoaded(id)).toBe(true);
+    // The designer sets the project to what the device holds: as configured in ETS.
+    const project = structuredClone(doc);
+    expect(
+      projectFromInstallation(
+        project,
+        sim.installation(),
+        undefined,
+        captureRegistry(),
+      ),
+    ).toEqual([id]);
+    const dev = project.devices.find((d) => d.id === id)! as unknown as {
+      ets: { parameters?: Record<string, string>; memory: unknown };
+      objects: { id: string; ga: string[] }[];
+    };
+    expect(dev.ets.parameters).toEqual({ "P-1_R-1": "1" });
+    expect(dev.objects.map((o) => [o.id, o.ga])).toEqual([
+      ["o0", ["1/2/1"]],
+      ["o1", []],
+    ]);
+    expect(dev.ets.memory).toEqual(
+      (sim.installation()!.devices as { memory: unknown }[])[0]!.memory,
+    );
+    // Nothing changed since: the project is left as it is.
+    expect(
+      projectFromInstallation(
+        project,
+        sim.installation(),
+        sim.installation(),
+        captureRegistry(),
+      ),
+    ).toEqual([]);
+  });
+});
+
+describe("card of a manufacturer's device", () => {
+  beforeAll(installed);
+
+  it("draws only the objects linked to a group address", () => {
+    const doc = emptyDoc();
+    const id = addProductDevice(
+      doc,
+      "example.sa2/v1",
+      captureRegistry(),
+      "1.1",
+    );
+    const dev = (
+      doc.devices as { id: string; objects: { ga?: string }[] }[]
+    ).find((d) => d.id === id)!;
+    dev.objects[1]!.ga = "1/0/2";
+    const d = buildScenario(
+      { ...doc, groupAddresses: [{ address: "1/0/2", name: "B" }] },
+      captureRegistry(),
+    ).devicesById.get(id)!;
+    expect(d.objects.map((o) => o.id)).toEqual(["o0", "o1"]);
+    expect(drawnObjects(d).map((o) => o.id)).toEqual(["o1"]);
+    expect(cardHeight(d)).toBe(
+      cardHeight({ ...d, ets: null, objects: [d.objects[1]!] }),
+    );
+  });
+});
+
+describe("installation as the project", () => {
+  beforeAll(installed);
+
+  it("gives a manufacturer's device the memory of the project, which it runs", () => {
+    const doc = emptyDoc();
+    const id = addProductDevice(
+      doc,
+      "example.sa2/v1",
+      captureRegistry(),
+      "1.1",
+    );
+    const dev = (
+      doc.devices as { id: string; objects: { ga?: string }[] }[]
+    ).find((d) => d.id === id)!;
+    dev.objects[0]!.ga = "1/0/1";
+    // The memory of the device is computed with its links.
+    const app = programOfProduct("example.sa2/v1")!;
+    const registry = captureRegistry();
+    const d = doc.devices.find((x) => x.id === id)!;
+    applyConfiguration(d, app, registry);
+    const sim = createSimulator({
+      ...doc,
+      installation: installationAsProject(doc),
+    });
+    expect(sim.applicationLoaded(id)).toBe(true);
+    expect(
+      drawnObjects(sim.scenario.devicesById.get(id)!).map((o) => o.id),
+    ).toEqual(["o0"]);
   });
 });
 

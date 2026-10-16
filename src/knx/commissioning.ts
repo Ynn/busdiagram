@@ -357,11 +357,16 @@ export function installationAsProject(raw: unknown): JsonObject {
       const dev = project.devicesById.get(d.id as string);
       return dev && commissionable(dev);
     })
-    .map((d) => ({
-      device: d.id,
-      address: project.devicesById.get(d.id as string)!.address,
-      application: applicationOf(d),
-    }));
+    .map((d) => {
+      // A manufacturer's device holds the memory a complete download of the project writes.
+      const memory = (d.ets as Rec | undefined)?.memory;
+      return {
+        device: d.id,
+        address: project.devicesById.get(d.id as string)!.address,
+        application: applicationOf(d),
+        ...(memory ? { memory } : {}),
+      };
+    });
   const net = new Network(project);
   const couplers = net.topology.couplers.map((c) => ({
     coupler: c.address,
