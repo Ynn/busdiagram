@@ -1,0 +1,293 @@
+{
+  "id": "M-00FE_A-0001-10-0000",
+  "name": "Switch actuator 2-fold",
+  "number": 1,
+  "version": 16,
+  "mask": "MV-0012",
+  "peiType": 0,
+  "segments": [
+    {
+      "id": "AS-0100",
+      "address": 256,
+      "size": 256,
+      "data": [
+        [
+          0,
+          "FF000000FE0001100000000000000000002F4600000001"
+        ],
+        [
+          70,
+          "02CED00000D10000"
+        ],
+        [
+          100,
+          "0000"
+        ]
+      ]
+    }
+  ],
+  "types": [
+    {
+      "id": "PT-Contact",
+      "kind": "enum",
+      "sizeInBit": 1,
+      "enums": [
+        {
+          "value": 0,
+          "text": "normally open",
+          "id": "PT-Contact_EN-0"
+        },
+        {
+          "value": 1,
+          "text": "normally closed",
+          "id": "PT-Contact_EN-1"
+        }
+      ]
+    },
+    {
+      "id": "PT-Recovery",
+      "kind": "enum",
+      "sizeInBit": 2,
+      "enums": [
+        {
+          "value": 0,
+          "text": "unchanged",
+          "id": "PT-Recovery_EN-0"
+        },
+        {
+          "value": 1,
+          "text": "off",
+          "id": "PT-Recovery_EN-1"
+        },
+        {
+          "value": 2,
+          "text": "on",
+          "id": "PT-Recovery_EN-2"
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "id": "P-1",
+      "name": "ContactA",
+      "type": "PT-Contact",
+      "text": "Contact",
+      "value": "0",
+      "access": "ReadWrite",
+      "memory": {
+        "segment": "AS-0100",
+        "offset": 100,
+        "bitOffset": 0
+      },
+      "defaultUnion": false,
+      "union": null
+    },
+    {
+      "id": "P-2",
+      "name": "RecoveryA",
+      "type": "PT-Recovery",
+      "text": "State at bus voltage recovery",
+      "value": "0",
+      "access": "ReadWrite",
+      "memory": {
+        "segment": "AS-0100",
+        "offset": 100,
+        "bitOffset": 6
+      },
+      "defaultUnion": false,
+      "union": null
+    },
+    {
+      "id": "P-3",
+      "name": "ContactB",
+      "type": "PT-Contact",
+      "text": "Contact",
+      "value": "0",
+      "access": "ReadWrite",
+      "memory": {
+        "segment": "AS-0100",
+        "offset": 101,
+        "bitOffset": 0
+      },
+      "defaultUnion": false,
+      "union": null
+    },
+    {
+      "id": "P-4",
+      "name": "RecoveryB",
+      "type": "PT-Recovery",
+      "text": "State at bus voltage recovery",
+      "value": "0",
+      "access": "ReadWrite",
+      "memory": {
+        "segment": "AS-0100",
+        "offset": 101,
+        "bitOffset": 6
+      },
+      "defaultUnion": false,
+      "union": null
+    }
+  ],
+  "parameterRefs": [
+    {
+      "id": "P-1_R-1",
+      "ref": "P-1",
+      "displayOrder": 10
+    },
+    {
+      "id": "P-2_R-2",
+      "ref": "P-2",
+      "displayOrder": 20
+    },
+    {
+      "id": "P-3_R-3",
+      "ref": "P-3",
+      "displayOrder": 30
+    },
+    {
+      "id": "P-4_R-4",
+      "ref": "P-4",
+      "displayOrder": 40
+    }
+  ],
+  "objects": [
+    {
+      "id": "O-0",
+      "name": "Output A",
+      "text": "Output A",
+      "number": 0,
+      "functionText": "Switching",
+      "size": "1 Bit",
+      "dpt": "DPST-1-1",
+      "priority": "Low",
+      "flags": {
+        "C": true,
+        "R": false,
+        "W": true,
+        "T": false,
+        "U": false,
+        "I": false
+      }
+    },
+    {
+      "id": "O-1",
+      "name": "Output B",
+      "text": "Output B",
+      "number": 1,
+      "functionText": "Switching",
+      "size": "1 Bit",
+      "dpt": "DPST-1-1",
+      "priority": "Low",
+      "flags": {
+        "C": true,
+        "R": false,
+        "W": true,
+        "T": false,
+        "U": false,
+        "I": false
+      }
+    }
+  ],
+  "objectRefs": [
+    {
+      "id": "O-0_R-0",
+      "ref": "O-0",
+      "flags": {}
+    },
+    {
+      "id": "O-1_R-1",
+      "ref": "O-1",
+      "flags": {}
+    }
+  ],
+  "addressTable": {
+    "segment": "AS-0100",
+    "offset": 22,
+    "maxEntries": 11
+  },
+  "associationTable": {
+    "segment": "AS-0100",
+    "offset": 47,
+    "maxEntries": 11
+  },
+  "objectTable": {
+    "segment": "AS-0100",
+    "offset": 70,
+    "maxEntries": 2
+  },
+  "dynamic": [
+    {
+      "kind": "channel",
+      "id": "CH-1",
+      "text": "",
+      "children": [
+        {
+          "kind": "block",
+          "id": "PB-1",
+          "name": "OutputA",
+          "text": "Output A",
+          "paramRef": "",
+          "access": "",
+          "inline": false,
+          "children": [
+            {
+              "kind": "param",
+              "ref": "P-1_R-1"
+            },
+            {
+              "kind": "param",
+              "ref": "P-2_R-2"
+            },
+            {
+              "kind": "object",
+              "ref": "O-0_R-0"
+            }
+          ]
+        },
+        {
+          "kind": "block",
+          "id": "PB-2",
+          "name": "OutputB",
+          "text": "Output B",
+          "paramRef": "",
+          "access": "",
+          "inline": false,
+          "children": [
+            {
+              "kind": "param",
+              "ref": "P-3_R-3"
+            },
+            {
+              "kind": "param",
+              "ref": "P-4_R-4"
+            },
+            {
+              "kind": "object",
+              "ref": "O-1_R-1"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "translations": {
+    "fr-FR": {
+      "PB-1|Text": "Sortie A",
+      "PB-2|Text": "Sortie B",
+      "P-1|Text": "Contact",
+      "P-3|Text": "Contact",
+      "P-2|Text": "État au retour de la tension du bus",
+      "P-4|Text": "État au retour de la tension du bus",
+      "PT-Contact_EN-0|Text": "normalement ouvert",
+      "PT-Contact_EN-1|Text": "normalement fermé",
+      "PT-Recovery_EN-0|Text": "inchangé",
+      "PT-Recovery_EN-1|Text": "arrêt",
+      "PT-Recovery_EN-2|Text": "marche",
+      "O-0|Text": "Sortie A",
+      "O-1|Text": "Sortie B",
+      "O-0|FunctionText": "Commutation",
+      "O-1|FunctionText": "Commutation"
+    }
+  }
+}

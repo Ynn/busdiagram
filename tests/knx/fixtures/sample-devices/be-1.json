@@ -1,0 +1,166 @@
+{
+  "id": "M-00FE_A-0002-10-0000",
+  "name": "Push-button interface 1-fold",
+  "number": 2,
+  "version": 16,
+  "mask": "MV-0701",
+  "peiType": 0,
+  "segments": [
+    {
+      "id": "AS-4000",
+      "address": 16384,
+      "size": 256,
+      "data": []
+    },
+    {
+      "id": "AS-4100",
+      "address": 16640,
+      "size": 256,
+      "data": []
+    },
+    {
+      "id": "AS-4200",
+      "address": 16896,
+      "size": 64,
+      "data": [
+        [
+          0,
+          "01000000000000"
+        ],
+        [
+          32,
+          "00"
+        ]
+      ]
+    }
+  ],
+  "types": [
+    {
+      "id": "PT-Reaction",
+      "kind": "enum",
+      "sizeInBit": 2,
+      "enums": [
+        {
+          "value": 0,
+          "text": "toggle",
+          "id": "PT-Reaction_EN-0"
+        },
+        {
+          "value": 1,
+          "text": "on",
+          "id": "PT-Reaction_EN-1"
+        },
+        {
+          "value": 2,
+          "text": "off",
+          "id": "PT-Reaction_EN-2"
+        }
+      ]
+    }
+  ],
+  "parameters": [
+    {
+      "id": "P-1",
+      "name": "Reaction",
+      "type": "PT-Reaction",
+      "text": "Reaction on press",
+      "value": "0",
+      "access": "ReadWrite",
+      "memory": {
+        "segment": "AS-4200",
+        "offset": 32,
+        "bitOffset": 6
+      },
+      "defaultUnion": false,
+      "union": null
+    }
+  ],
+  "parameterRefs": [
+    {
+      "id": "P-1_R-1",
+      "ref": "P-1",
+      "displayOrder": 10
+    }
+  ],
+  "objects": [
+    {
+      "id": "O-0",
+      "name": "Input",
+      "text": "Input",
+      "number": 0,
+      "functionText": "Switching",
+      "size": "1 Bit",
+      "dpt": "DPST-1-1",
+      "priority": "Low",
+      "flags": {
+        "C": true,
+        "R": true,
+        "W": false,
+        "T": true,
+        "U": false,
+        "I": false
+      }
+    }
+  ],
+  "objectRefs": [
+    {
+      "id": "O-0_R-0",
+      "ref": "O-0",
+      "flags": {}
+    }
+  ],
+  "addressTable": {
+    "segment": "AS-4000",
+    "offset": 0,
+    "maxEntries": 100
+  },
+  "associationTable": {
+    "segment": "AS-4100",
+    "offset": 0,
+    "maxEntries": 100
+  },
+  "objectTable": {
+    "segment": "AS-4200",
+    "offset": 0,
+    "maxEntries": 1
+  },
+  "dynamic": [
+    {
+      "kind": "channel",
+      "id": "CH-1",
+      "text": "",
+      "children": [
+        {
+          "kind": "block",
+          "id": "PB-1",
+          "name": "Input",
+          "text": "Input",
+          "paramRef": "",
+          "access": "",
+          "inline": false,
+          "children": [
+            {
+              "kind": "param",
+              "ref": "P-1_R-1"
+            },
+            {
+              "kind": "object",
+              "ref": "O-0_R-0"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "translations": {
+    "fr-FR": {
+      "PB-1|Text": "Entrée",
+      "P-1|Text": "Réaction à l’appui",
+      "PT-Reaction_EN-0|Text": "inverser",
+      "PT-Reaction_EN-1|Text": "marche",
+      "PT-Reaction_EN-2|Text": "arrêt",
+      "O-0|Text": "Entrée",
+      "O-0|FunctionText": "Commutation"
+    }
+  }
+}
