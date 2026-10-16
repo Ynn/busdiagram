@@ -21,6 +21,7 @@ import {
   KEY_GAP,
   PLATE_W,
   ROW,
+  drawnObjects,
   gaCell,
   layout,
   rowCenter,
@@ -1682,7 +1683,7 @@ export class BusDiagram extends LitElement {
         ? gaCell(
             srcG,
             src,
-            src.objects.findIndex((o) => o.id === tel.objectId),
+            drawnObjects(src).findIndex((o) => o.id === tel.objectId),
           )
         : ((first && g.points.get(first.id)) ?? [0, 0]);
     if (tel.plan.timing === "bus") return flash(tel.plan, topo, g, t);
@@ -1694,7 +1695,7 @@ export class BusDiagram extends LitElement {
         ? gaCell(
             dg,
             d,
-            d.objects.findIndex((o) => o.id === first),
+            drawnObjects(d).findIndex((o) => o.id === first),
           )
         : null;
     });
@@ -1860,7 +1861,7 @@ export class BusDiagram extends LitElement {
   private renderDevice(d: Device, dg: DevG, sim: Simulation) {
     const t = sim.timeMs;
     const sup = d.presentation.supervisor;
-    const cells = d.objects.map((o) => {
+    const cells = drawnObjects(d).map((o) => {
       const at = sim.objectUpdatedAt(d.id, o.id);
       const fresh = at !== null && t - at < 1300;
       const v = sim.objectValue(d.id, o.id);

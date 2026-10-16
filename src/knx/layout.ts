@@ -8,7 +8,7 @@ import type { CouplerKind, Topology } from "./network";
 import type { EquipmentSize } from "./contracts";
 import type { Registry } from "./registry";
 import { captureRegistry } from "./registry";
-import type { Device, Scenario } from "./scenario";
+import type { Device, KnxObject, Scenario } from "./scenario";
 
 export type Pt = [number, number];
 
@@ -139,7 +139,24 @@ export interface LayoutOptions {
   equipmentSize?: (view: string) => EquipmentSize | undefined;
 }
 
-export const cardHeight = (d: Device) => (2 + d.objects.length) * ROW;
+const drawn = new WeakMap<Device, KnxObject[]>();
+
+/**
+ * Objects drawn on the card of a device. A manufacturer's device has every object of its
+ * application: only those linked to a group address or driving a load are drawn; the
+ * others stay in the device (its sheet lists them all).
+ */
+export function drawnObjects(d: Device): KnxObject[] {
+  if (!d.ets) return d.objects;
+  let out = drawn.get(d);
+  if (!out) {
+    out = d.objects.filter((o) => o.gas.length > 0 || o.drivesLoad);
+    drawn.set(d, out);
+  }
+  return out;
+}
+
+export const cardHeight = (d: Device) => (2 + drawnObjects(d).length) * ROW;
 export const rowCenter = (g: DevG, i: number) => g.top + (2.5 + i) * ROW;
 /** Centre of the "group address" cell of the object line i. */
 export const gaCell = (g: DevG, d: Device, i: number): Pt => [
@@ -211,10 +228,10 @@ const SCREEN_H = 48;
 function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   const h = cardHeight(d);
   const rowsOf = (ids: Set<string>) =>
-    d.objects.flatMap((o, i) => (ids.has(o.id) ? [i] : []));
+    drawnObjects(d).flatMap((o, i) => (ids.has(o.id) ? [i] : []));
   // A thermostat has a display, placed at the head of its plate, facing its state objects.
   const screen =
-    d.presentation.screen && d.objects.length
+    d.presentation.screen && drawnObjects(d).length
       ? new Set(d.presentation.screen)
       : null;
   const controls: { kind: KeyG["kind"]; id: string; ids: Set<string> }[] = [
@@ -225,7 +242,9 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
       // A contact input faces the objects of its channel.
       ids: new Set(
         b.contact
-          ? d.objects.filter((o) => o.channel === b.id).map((o) => o.id)
+          ? drawnObjects(d)
+              .filter((o) => o.channel === b.id)
+              .map((o) => o.id)
           : [b.press, b.short, b.long].flatMap((a) => (a ? [a.object] : [])),
       ),
     })),
@@ -262,7 +281,7 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
     );
   if (overlap && keys.length) {
     // Several keys on the same objects: regular distribution over the object area.
-    const zone = d.objects.length * ROW;
+    const zone = drawnObjects(d).length * ROW;
     const kh = Math.max(40, Math.min(64, zone / keys.length));
     const start = Math.min(
       2 * ROW + (zone - kh * keys.length) / 2,
@@ -295,12 +314,12 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
   // and the stacking below separates them.
   d.channels.forEach((c) => {
     if (!c.equipmentConfigs.length) return;
-    const rows = d.objects.flatMap((o, i) =>
+    const rows = drawnObjects(d).flatMap((o, i) =>
       o.channel === c.id && o.drivesLoad ? [i] : [],
     );
     const all = rows.length
       ? rows
-      : d.objects.flatMap((o, i) => (o.channel === c.id ? [i] : []));
+      : drawnObjects(d).flatMap((o, i) => (o.channel === c.id ? [i] : []));
     if (!all.length) return;
     const cy = ((Math.min(...all) + Math.max(...all) + 1) / 2 + 2) * ROW;
     c.equipmentConfigs.forEach((_, i) => loads.push(make(c, i, all, cy)));
@@ -312,7 +331,7 @@ function localParts(d: Device, sizeOf: (view: string) => EquipmentSize) {
       : c.equipmentConfigs.map((e, i) => ({ c, i, view: e.view })),
   );
   if (orphans.length) {
-    const shared = d.objects.flatMap((o, i) => (!o.channel ? [i] : []));
+    const shared = drawnObjects(d).flatMap((o, i) => (!o.channel ? [i] : []));
     const size = (o: (typeof orphans)[number]) => sizeOf(o.view).height + 6;
     const total = orphans.reduce((a, o) => a + size(o), 0);
     let y = Math.min(2 * ROW, h - total);
