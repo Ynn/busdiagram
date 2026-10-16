@@ -600,6 +600,8 @@ export const designerFr: Record<string, string> = {
     "Les extensions sont intégrées au code : chargées telles quelles par des balises <script src>, elles entreraient en conflit (variables globales de même nom).",
   "Place the extension files next to the page.":
     "Placez les fichiers des extensions à côté de la page.",
+  "The code of the device packages {0} is embedded: share this page only with those who may have these packages.":
+    "Le code des paquets d'appareils {0} est intégré : ne partagez cette page qu'avec ceux qui peuvent avoir ces paquets.",
   "{0} ({1}): {2} carries a {3}, incompatible with {4}":
     "{0} ({1}) : {2} transporte un {3}, incompatible avec {4}",
   "{0} is the only address of the key using {1} ({2}): a key must send on an address":

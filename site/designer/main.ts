@@ -1102,6 +1102,17 @@ const integrity = () =>
     }
   })());
 
+// The script of an imported package of devices goes with the diagram it draws: the code of
+// these products, which their owner may not want shared, is then in the exported page.
+const packageWarning = () => {
+  const names = [
+    ...new Set(extensions.flatMap((x) => (x.package ? [x.package] : []))),
+  ];
+  return names.length
+    ? t`The code of the device packages ${names.join(", ")} is embedded: share this page only with those who may have these packages.`
+    : "";
+};
+
 $("#export-snippet").addEventListener("click", async () => {
   const data = current();
   if (!data) return;
@@ -1126,7 +1137,8 @@ $("#export-snippet").addEventListener("click", async () => {
           t`The extensions are embedded in the code: loaded as-is through <script src> tags, they would conflict (global variables with the same name).`
         : extensions.length
           ? " " + t`Place the extension files next to the page.`
-          : ""),
+          : "") +
+      (packageWarning() ? " " + packageWarning() : ""),
     undefined,
     `${cdnTag(cdnVersion, await integrity())}\n${extScripts}`.trimEnd(),
   );
@@ -1138,12 +1150,14 @@ $("#export-json").addEventListener("click", () => {
 });
 $("#export-page").addEventListener("click", () => {
   const data = current();
-  if (data)
-    download(
-      `${slug(data)}.html`,
-      standalonePage(data, bundleSource, options(), language, extensions),
-      "text/html",
-    );
+  if (!data) return;
+  download(
+    `${slug(data)}.html`,
+    standalonePage(data, bundleSource, options(), language, extensions),
+    "text/html",
+  );
+  const warning = packageWarning();
+  if (warning) toast(warning);
 });
 $("#export-bundle").addEventListener("click", () =>
   download("bus-diagram.js", bundleSource, "text/javascript"),
