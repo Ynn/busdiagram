@@ -7,7 +7,7 @@
 import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
-import { objectOf, visible } from "../../src/knxprod/config";
+import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
 import { linksOf, projectImage, valuesOf } from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
 import { TableOverflow } from "../../src/bcu/tables";
@@ -204,7 +204,19 @@ export function setEtsParameter(
   const ets = d.ets as { parameters?: Record<string, string> } | undefined;
   if (!ets) throw new EditRefusal(t`not a device of a product catalog`);
   const r = app.parameterRefs.get(ref);
-  const def = r?.value ?? app.parameters.get(r?.ref ?? "")?.value;
+  const param = r && app.parameters.get(r.ref);
+  if (!r || !param) throw new EditRefusal(t`parameter “${ref}” not found`);
+  switch (valueProblem(app.types.get(param.type), value)) {
+    case "choice":
+      throw new EditRefusal(t`“${value}” is not one of the choices of ${ref}`);
+    case "number":
+      throw new EditRefusal(t`“${value}” is not a number that ${ref} takes`);
+    case "range":
+      throw new EditRefusal(t`“${value}” is outside the bounds of ${ref}`);
+    case "text":
+      throw new EditRefusal(t`“${value}” does not fit the text of ${ref}`);
+  }
+  const def = r.value ?? param.value;
   ets.parameters ??= {};
   if (value === def) delete ets.parameters[ref];
   else ets.parameters[ref] = value;

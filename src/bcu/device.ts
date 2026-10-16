@@ -25,7 +25,8 @@ export function runsProduct(
   memory: Uint8Array,
 ) {
   const profile = profileOf(mask);
-  if (!profile) return false;
+  // A mask of another product: none of its programs runs there.
+  if (!profile || !product.masks.includes(parseInt(mask, 16))) return false;
   const id = profile.applicationId(
     bcuState(parseInt(mask, 16), memory, product),
   );

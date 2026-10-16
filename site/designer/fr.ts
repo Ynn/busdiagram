@@ -961,6 +961,14 @@ export const designerFr: Record<string, string> = {
     "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
   "Import devices…": "Importer des participants…",
   "simulated in part": "simulé en partie",
+  "parameter “{0}” not found": "paramètre « {0} » introuvable",
+  "“{0}” is not one of the choices of {1}":
+    "« {0} » n'est pas un des choix de {1}",
+  "“{0}” is not a number that {1} takes":
+    "« {0} » n'est pas un nombre que {1} accepte",
+  "“{0}” is outside the bounds of {1}": "« {0} » est hors des bornes de {1}",
+  "“{0}” does not fit the text of {1}":
+    "« {0} » ne tient pas dans le texte de {1}",
   "not simulated": "non simulé",
   "Simulation limits": "Limites de la simulation",
   "{0} in use": "{0} en service",

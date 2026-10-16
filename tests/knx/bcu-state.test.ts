@@ -146,3 +146,23 @@ describe("load state machines of a BIM M112 of mask 0705h", () => {
     ]);
   });
 });
+
+describe("application of a device, by its mask", () => {
+  it("does not run on a mask of another product", () => {
+    const sa2 = SAMPLE_PRODUCTS.find((p) => p.behavior === "example.sa2/v1")!;
+    const product = sa2.model.bcuProducts![0]!;
+    const mem = new Uint8Array(0x10000);
+    mem.fill(1, 0xb6ea, 0xb6ed);
+    // The identifier of its program, but in a BIM M112.
+    mem.set([0x00, 0xfe, 0x00, 0x01, 0x10], 0xb6f4);
+    expect(runsProduct(product, "0701", mem)).toBe(false);
+  });
+});
+
+describe("memory of a scenario", () => {
+  it("is no larger than the memory of a mask", () => {
+    expect(parseMemory({ "9007199254740991": "FF" })).toBeNull();
+    expect(parseMemory({ "65535": "FFFF" })).toBeNull();
+    expect(parseMemory({ "65535": "FF" })?.length).toBe(0x10000);
+  });
+});

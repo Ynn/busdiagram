@@ -105,9 +105,10 @@ export function writeTables(
   c: TableContent,
   at: TableLocations,
 ) {
+  // The tables first: refused, they leave the memory as it was, pointers included.
+  writeTablesAt(mem, c, layout(mem, at));
   mem[ASSOC_PTR] = at.associations - EEPROM;
   mem[OBJECT_PTR] = at.objects - EEPROM;
-  writeTablesAt(mem, c, layout(mem, at));
 }
 
 /** Type octet of a size as the product database writes it ("1 Bit", "2 Bytes"…). */

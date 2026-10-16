@@ -75,6 +75,9 @@ export function memoryJson(mem: Uint8Array, block = 256): JsonObject {
   return out;
 }
 
+/** Largest memory of a device (BIM M112: 64 KiB). */
+const MAX_MEMORY = 0x10000;
+
 /** Memory of a scenario (see memoryJson), or null when it is not one. */
 export function parseMemory(v: unknown): Uint8Array | null {
   const blocks: [number, string][] =
@@ -92,6 +95,8 @@ export function parseMemory(v: unknown): Uint8Array | null {
   )
     return typeof v === "string" && v === "" ? new Uint8Array(0) : null;
   const size = Math.max(...blocks.map(([a, h]) => a + h.length / 2));
+  // No mask has more than 64 KiB: a memory beyond it is not one.
+  if (size > MAX_MEMORY) return null;
   const mem = new Uint8Array(size);
   for (const [a, h] of blocks)
     for (let i = 0; i < h.length / 2; i++)

@@ -84,11 +84,14 @@ export function writeTables(mem: Uint8Array, c: TableContent, at: TableLayout) {
     .forEach(([n, l]) => l.forEach((x) => pairs.push([gas.indexOf(x) + 1, n])));
   // Each table within its count octet, the capacity of the program, and the space up to
   // the table that follows it: 2-octet entries after the count.
+  const tables = [at.addressTable, at.associations, at.objects];
   const room = (from: number) => {
-    const next = [at.addressTable, at.associations, at.objects]
+    // Another table at the same place leaves it no room.
+    if (tables.filter((x) => x === from).length > 1) return 0;
+    const next = tables
       .filter((x) => x > from)
       .reduce((a, b) => Math.min(a, b), mem.length);
-    return Math.floor((next - from - 1) / 2);
+    return Math.max(0, Math.floor((next - from - 1) / 2));
   };
   // The address table counts the individual address among its entries.
   const addresses = Math.min(254, room(g) - 1, at.maxAddresses || 254);

@@ -170,6 +170,37 @@ const dpt9Value = (raw: number) => {
   return ((raw & 0x8000 ? m - 2048 : m) << ((raw >> 11) & 15)) / 100;
 };
 
+/**
+ * Why a value does not fit its parameter type, or null when it does: not one of the
+ * choices of an enumeration, not a number, a number outside its bounds or its octets,
+ * a text too long or with characters outside ISO-8859-1.
+ */
+export function valueProblem(
+  type: ParameterType | undefined,
+  value: string,
+): "choice" | "number" | "range" | "text" | null {
+  if (!type || type.kind === "none") return null;
+  const bits = sizeOf(type);
+  if (type.kind === "enum")
+    return type.enums?.some((e) => String(e.value) === value) ? null : "choice";
+  if (type.kind === "text")
+    return [...value].length <= Math.ceil(bits / 8) &&
+      [...value].every((c) => c.charCodeAt(0) <= 0xff)
+      ? null
+      : "text";
+  const n = Number(value.replace(",", "."));
+  if (value.trim() === "" || !Number.isFinite(n)) return "number";
+  if (type.min !== undefined && n < type.min) return "range";
+  if (type.max !== undefined && n > type.max) return "range";
+  if (type.kind === "number") {
+    if (!Number.isInteger(n)) return "number";
+    const lo = type.signed ? -(2 ** (bits - 1)) : 0;
+    const hi = type.signed ? 2 ** (bits - 1) - 1 : 2 ** bits - 1;
+    if (n < lo || n > hi) return "range";
+  }
+  return null;
+}
+
 /** Octets of a parameter value, big-endian, as many as its type takes. */
 export function encodeValue(
   type: ParameterType | undefined,
@@ -222,7 +253,8 @@ export function decodeValue(
         : bits === 32
           ? view.getFloat32(0)
           : dpt9Value(view.getUint16(0));
-    return String(Number(v.toPrecision(7)));
+    // A float on 64 bits keeps all its digits; on 32 or 16, those it has.
+    return String(bits === 64 ? v : Number(v.toPrecision(7)));
   }
   let v = 0n;
   for (const b of bytes) v = (v << 8n) | BigInt(b);

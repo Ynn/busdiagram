@@ -265,9 +265,10 @@ export const system7: MaskProfile = {
     return { associations: l.associations, objects: l.objects };
   },
   writeTables(memory: Uint8Array, content: TableContent, at: TableLocations) {
+    // The tables first: refused, they leave the memory as it was, pointers included.
+    writeTablesAt(memory, content, layout(memory, at));
     setWord(memory, ASSOC_PTR, at.associations);
     setWord(memory, OBJECT_PTR, at.objects);
-    writeTablesAt(memory, content, layout(memory, at));
   },
   start(memory, app) {
     // As a complete download leaves it: the address table, the association table and

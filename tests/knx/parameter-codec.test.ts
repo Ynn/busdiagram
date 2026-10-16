@@ -2,7 +2,11 @@
 // floats; each one read back as it was written.
 import { describe, expect, it } from "vitest";
 import type { ParameterType } from "../../src/knxprod/application";
-import { decodeValue, encodeValue } from "../../src/knxprod/config";
+import {
+  decodeValue,
+  encodeValue,
+  valueProblem,
+} from "../../src/knxprod/config";
 
 const type = (kind: ParameterType["kind"], sizeInBit: number, signed = false) =>
   ({ id: "T", kind, sizeInBit, signed }) as ParameterType;
@@ -36,5 +40,29 @@ describe("parameter values in memory", () => {
     expect(roundTrip(type("float", 16), "21.5")).toBe("21.5");
     // DPT 9: 21.5 °C is 0C33h.
     expect([...encodeValue(type("float", 16), "21.5")]).toEqual([0x0c, 0x33]);
+  });
+});
+
+describe("parameter values refused", () => {
+  it("outside their type: choice, number, bounds, octets, text", () => {
+    const e = {
+      ...type("enum", 8),
+      enums: [{ value: 1, text: "on", id: "E1" }],
+    } as ParameterType;
+    expect(valueProblem(e, "1")).toBeNull();
+    expect(valueProblem(e, "2")).toBe("choice");
+    expect(valueProblem(type("number", 8), "256")).toBe("range");
+    expect(valueProblem(type("number", 8), "1.5")).toBe("number");
+    expect(valueProblem(type("number", 8, true), "-128")).toBeNull();
+    expect(
+      valueProblem({ ...type("number", 16), max: 100 } as ParameterType, "101"),
+    ).toBe("range");
+    expect(valueProblem(type("text", 16), "abc")).toBe("text");
+    expect(valueProblem(type("text", 32), "€")).toBe("text");
+    expect(valueProblem(type("float", 32), "x")).toBe("number");
+  });
+
+  it("keeps all the digits of a float on 64 bits", () => {
+    expect(roundTrip(type("float", 64), "123456789.125")).toBe("123456789.125");
   });
 });

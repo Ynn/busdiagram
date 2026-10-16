@@ -2,7 +2,7 @@
 // refused beyond it without a change to the memory.
 import { describe, expect, it } from "vitest";
 import { readTables, writeTables } from "../../src/bcu/tables";
-import { TableOverflow } from "../../src/bcu";
+import { TableOverflow, bcu1 } from "../../src/bcu";
 import type { TableContent } from "../../src/bcu";
 
 // A BCU1 program as SA 2 has it: 11 group addresses at 116h, the associations at 12Fh.
@@ -55,6 +55,29 @@ describe("tables of a download", () => {
         associations: 0x5000,
         objects: 0x6000,
       }),
+    ).toThrow(TableOverflow);
+  });
+});
+
+describe("tables refused", () => {
+  it("leave the pointers as they were", () => {
+    const mem = new Uint8Array(0x200);
+    mem[0x111] = 0x2f; // association table pointer of a BCU1
+    const before = mem.slice();
+    expect(() =>
+      bcu1.writeTables(mem, content(12), {
+        associations: 0x12f,
+        objects: 0x146,
+        maxAddresses: 11,
+      }),
+    ).toThrow(TableOverflow);
+    expect([...mem]).toEqual([...before]);
+  });
+
+  it("at the same place as another table", () => {
+    const mem = new Uint8Array(0x200);
+    expect(() =>
+      writeTables(mem, content(1), { ...at, associations: at.addressTable }),
     ).toThrow(TableOverflow);
   });
 });
