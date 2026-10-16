@@ -59,6 +59,7 @@ import {
   storePackage,
   storedPackages,
 } from "./packages";
+import { shareableScenario } from "./manufacturers";
 
 // ── Language: saved choice, or English on first use ──
 const LANG = "bus-diagram-designer-lang";
@@ -1020,6 +1021,12 @@ function current(): unknown | null {
   return a.data;
 }
 
+/** The scenario to share: without the application code of its products. */
+function shared(): unknown | null {
+  const data = current();
+  return data === null ? null : shareableScenario(data);
+}
+
 function download(name: string, text: string, type: string) {
   const a = document.createElement("a");
   a.href = URL.createObjectURL(new Blob([text], { type }));
@@ -1114,7 +1121,7 @@ const packageWarning = () => {
 };
 
 $("#export-snippet").addEventListener("click", async () => {
-  const data = current();
+  const data = shared();
   if (!data) return;
   const o = options();
   const style = o.fit === "contain" ? "height:540px" : "";
@@ -1149,7 +1156,7 @@ $("#export-json").addEventListener("click", () => {
     download(`${slug(data)}.json`, formatJson(data) + "\n", "application/json");
 });
 $("#export-page").addEventListener("click", () => {
-  const data = current();
+  const data = shared();
   if (!data) return;
   download(
     `${slug(data)}.html`,
@@ -1163,7 +1170,7 @@ $("#export-bundle").addEventListener("click", () =>
   download("bus-diagram.js", bundleSource, "text/javascript"),
 );
 $("#export-link").addEventListener("click", async () => {
-  const data = current();
+  const data = shared();
   if (!data) return;
   const url = new URL(
     `../player.html#${await encodeShare(data, options(), language)}`,

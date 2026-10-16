@@ -301,3 +301,48 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
   programs.set(db, app);
   return app;
 }
+
+/**
+ * The memory of a device that can be shared with its diagram: outside the segments of its
+ * program (the system part of the mask: load states, properties), and in them the header
+ * of the program, its tables, its parameters and the octets its database keeps. The other
+ * octets of the segments are the application code and its constants, which ETS writes
+ * from the manufacturer's catalog: they are zero in the copy returned.
+ */
+export function shareableMemory(
+  db: ProductDatabase,
+  mem: Uint8Array,
+): Uint8Array {
+  const segments = new Map(db.segments.map((s) => [s.id, s] as const));
+  const types = new Map(db.types.map((t) => [t.id, t] as const));
+  const kept = new Uint8Array(mem.length).fill(1);
+  const mark = (from: number, length: number, v: number) =>
+    kept.fill(v, Math.max(0, from), Math.min(mem.length, from + length));
+  for (const s of db.segments) mark(s.address, s.size, 0);
+  for (const s of db.segments)
+    for (const [at, h] of s.data) mark(s.address + at, h.length / 2, 1);
+  const table = (t: TableLocation | null, length: (at: number) => number) => {
+    const s = t && segments.get(t.segment);
+    if (t && s) mark(s.address + t.offset, length(s.address + t.offset), 1);
+  };
+  // The header before the address table (BCU1: manufacturer, application, RunError).
+  const at = db.addressTable && segments.get(db.addressTable.segment);
+  if (at) mark(at.address, db.addressTable!.offset, 1);
+  // Address and association tables (KNX 03_05_01 §4.16–4.17): a count, then 2-octet
+  // entries, as many as the database allows or the memory holds.
+  const m112 = /^MV-070/.test(db.mask);
+  for (const t of [db.addressTable, db.associationTable])
+    if (t) table(t, (a) => 1 + 2 * Math.max(t.maxEntries, mem[a] ?? 0));
+  // Object table: count and pointer, then the descriptors (3 octets BCU1, 4 BIM M112).
+  table(db.objectTable, (a) => {
+    const count = mem[a] ?? 0;
+    return m112 ? 3 + 4 * count : 2 + 3 * count;
+  });
+  for (const p of db.parameters) {
+    const s = p.memory && segments.get(p.memory.segment);
+    if (!p.memory || !s) continue;
+    const bits = p.memory.bitOffset + (types.get(p.type)?.sizeInBit ?? 8);
+    mark(s.address + p.memory.offset, Math.ceil(bits / 8), 1);
+  }
+  return mem.map((b, i) => (kept[i] ? b : 0));
+}
