@@ -7,7 +7,7 @@
 // by the record of an additional control (segment allocation, task segment with the
 // application identifier…). A BIM M112 of mask 0705h is loaded through the property
 // PID_LOAD_STATE_CONTROL (5) of the object of each part (1–4) instead: the event in its
-// first octet, then the same record. The load states are read at B6EAh–B6EDh. The address table
+// first octet, then the same record without its third octet. The load states are read at B6EAh–B6EDh. The address table
 // is at 4000h; the association table where its state machine's segment is allocated; the
 // group object table is the application's (its location is given by the product).
 import type {
@@ -223,7 +223,14 @@ export const system7: MaskProfile = {
     // load state.
     if (pid === 5 && object >= 1 && object <= 4 && start === 1 && count === 1) {
       if (!data.length) return null;
-      loadEvent(s, [(object << 4) | (data[0]! & 0x0f), ...data.slice(1)]);
+      // Its record (10 octets) has no octet between the type of control and the
+      // address, which the record in memory (11 octets) has.
+      loadEvent(s, [
+        (object << 4) | (data[0]! & 0x0f),
+        data[1] ?? 0,
+        0,
+        ...data.slice(2),
+      ]);
       return [s.memory[LOAD_STATE + object - 1]!];
     }
     // Properties of its own that the application program writes (an ABB program writes

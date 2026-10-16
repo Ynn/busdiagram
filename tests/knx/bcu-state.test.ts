@@ -133,9 +133,16 @@ describe("load state machines of a BIM M112 of mask 0705h", () => {
       system7.writeProperty!(s, object, 5, 1, 1, record);
     expect(control(2, [4, ...Array(9).fill(0)])).toEqual([0]);
     expect(control(2, [1, ...Array(9).fill(0)])).toEqual([2]);
-    control(2, [3, 0, 0, 0x41, 0x00, 0, 0, 0, 0, 0]);
+    control(2, [3, 0, 0x41, 0x00, 0, 0, 0, 0, 0, 0]);
     expect(control(2, [2, ...Array(9).fill(0)])).toEqual([1]);
     expect(system7.readProperty(s, 2, 5, 1, 1)).toEqual([1]);
     expect(system7.readProperty(s, 2, 7, 1, 1)).toEqual([0x41, 0x00]);
+    // The task segment of the application: its identifier, as ETS 6 sends it.
+    control(3, [4, ...Array(9).fill(0)]);
+    control(3, [1, ...Array(9).fill(0)]);
+    control(3, [3, 2, 0x43, 0xfe, 0, 0, 0xe8, 0, 0x14, 0x10]);
+    expect(system7.readProperty(s, 3, 13, 1, 1)).toEqual([
+      0, 0xe8, 0, 0x14, 0x10,
+    ]);
   });
 });
