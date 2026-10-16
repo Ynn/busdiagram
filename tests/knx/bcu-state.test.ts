@@ -4,6 +4,8 @@
 import { describe, expect, it } from "vitest";
 import { createSimulator, registerParticipant } from "../../src/core";
 import { bcu1 } from "../../src/bcu";
+import { runsProduct } from "../../src/bcu/device";
+import { parseMemory } from "../../src/knx/installation";
 import { captureRegistry } from "../../src/knx/registry";
 import { installPackage } from "../../site/designer/packages";
 import { addProductDevice } from "../../site/designer/ets-device";
@@ -75,5 +77,50 @@ describe("BCU of a device", () => {
     sim.restartDevice(a);
     expect(bcu1.individualAddress(sim.bcu(a)!.state)).toBe(0x1234);
     expect(sim.physicalAddress(a)).toBe("1.2.52");
+  });
+});
+
+describe("application of a device", () => {
+  /** The memory of a project with one device of a product, and the product. */
+  const projectOf = (behavior: string) => {
+    const doc = {
+      formatVersion: 2,
+      lines: [{ address: "1.1" }],
+      devices: [] as unknown[],
+      groupAddresses: [],
+    } as unknown as Parameters<typeof addProductDevice>[0];
+    addProductDevice(doc, behavior, captureRegistry(), "1.1");
+    const d = doc.devices[0] as unknown as {
+      ets: { memory: unknown; mask: string };
+    };
+    const product = SAMPLE_PRODUCTS.find((p) => p.behavior === behavior)!;
+    return {
+      mem: parseMemory(d.ets.memory)!,
+      mask: d.ets.mask,
+      product: product.model.bcuProducts![0]!,
+    };
+  };
+
+  it("runs only a program of its product: BCU1, by its manufacturer", () => {
+    const { mem, mask, product } = projectOf("example.sa2/v1");
+    expect(runsProduct(product, mask, mem)).toBe(true);
+    mem[0x104] = 0x77;
+    expect(runsProduct(product, mask, mem)).toBe(false);
+  });
+
+  it("runs only a program of its product: System 7, by its identifier", () => {
+    const { mem, mask, product } = projectOf("example.be1/v1");
+    expect(runsProduct(product, mask, mem)).toBe(true);
+    // Another version, another type of the same manufacturer.
+    const version = mem.slice();
+    version[0xb6f8] = 0x11;
+    expect(runsProduct(product, mask, version)).toBe(false);
+    const type = mem.slice();
+    type[0xb6f7] = 0x03;
+    expect(runsProduct(product, mask, type)).toBe(false);
+    // Not loaded.
+    const unloaded = mem.slice();
+    unloaded[0xb6ec] = 0;
+    expect(runsProduct(product, mask, unloaded)).toBe(false);
   });
 });

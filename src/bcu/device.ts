@@ -13,8 +13,40 @@ import { bcuState, profileOf } from "./profile";
 type Rec = Record<string, unknown>;
 
 /**
+ * Does a memory hold a started application that the product runs? A System 7 holds the
+ * identifier of its program (manufacturer, type, version), which must be one of the
+ * product's. A BCU1 holds at 104h the low octet of the program's manufacturer, which ETS
+ * checks, then the type and version of its code image, which differ from the program's
+ * number: only the manufacturer is compared.
+ */
+export function runsProduct(
+  product: Product,
+  mask: string,
+  memory: Uint8Array,
+) {
+  const profile = profileOf(mask);
+  if (!profile) return false;
+  const id = profile.applicationId(
+    bcuState(parseInt(mask, 16), memory, product),
+  );
+  if (!id) return false;
+  const bcu1 = /^001/.test(mask);
+  return product.programs.some((key) => {
+    const m = /^M-([0-9A-F]{4})_A-([0-9A-F]{4})-([0-9A-F]{2})/i.exec(key);
+    if (!m) return false;
+    const manufacturer = parseInt(m[1]!, 16);
+    if (bcu1) return (manufacturer & 0xff) === id.manufacturer;
+    return (
+      manufacturer === id.manufacturer &&
+      parseInt(m[2]!, 16) === id.deviceType &&
+      parseInt(m[3]!, 16) === id.version
+    );
+  });
+}
+
+/**
  * The application a memory holds, as the scenario writes it (behavior and objects), or
- * null when no application is started in it.
+ * null when no application of the product is started in it (see runsProduct).
  */
 export function heldApplication(
   product: Product,
@@ -25,7 +57,7 @@ export function heldApplication(
   const profile = profileOf(mask);
   if (!profile) return null;
   const s = bcuState(parseInt(mask, 16), memory, product);
-  if (!profile.running(s)) return null;
+  if (!runsProduct(product, mask, memory)) return null;
   const tables = profile.tables(s);
   const named = new Map(
     projectObjects

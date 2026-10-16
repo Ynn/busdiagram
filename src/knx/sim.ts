@@ -43,6 +43,7 @@ import { commissionable } from "./scenario";
 import type { DeviceInstallation } from "./installation";
 import type { BcuState, MaskProfile } from "../bcu";
 import { bcuState, profileOf } from "../bcu";
+import { runsProduct } from "../bcu/device";
 import {
   FACTORY_ADDRESS,
   FACTORY_COUPLER_ADDRESS,
@@ -1951,11 +1952,9 @@ export class Simulation {
    */
   private holdsApplication(d: Device): boolean {
     const held = this.scenario.commissioning?.devices.get(d.id);
-    const profile = d.ets && profileOf(d.ets.mask);
-    if (profile && this.registry.bcuProducts.has(d.behavior))
-      return (
-        !!d.memory && profile.running(bcuState(profile.masks[0]!, d.memory))
-      );
+    const product = this.registry.bcuProducts.get(d.behavior);
+    if (d.ets && profileOf(d.ets.mask) && product)
+      return !!d.memory && runsProduct(product, d.ets.mask, d.memory);
     return !!held?.application;
   }
 
