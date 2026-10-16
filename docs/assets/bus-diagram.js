@@ -1,5 +1,5 @@
-/*! BusDiagram v0.7.0+dev.ac44d05.modified | AGPL-3.0-only | Copyright (C) 2026 Yoann Maurel
-Development build, not a released version (commit ac44d05 with local changes); source code: https://github.com/Ynn/busdiagram
+/*! BusDiagram v0.7.0+dev.fc243a1.modified | AGPL-3.0-only | Copyright (C) 2026 Yoann Maurel
+Development build, not a released version (commit fc243a1 with local changes); source code: https://github.com/Ynn/busdiagram
 
 Third-party components included in this file:
 

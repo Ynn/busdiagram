@@ -872,6 +872,8 @@ async function applyExtensions(next: LoadedExtension[], changed: string[]) {
   refresh();
   renderExtensionList();
   fillLanguages();
+  // The examples of the packages are read with the devices their scripts register.
+  fillTemplates();
   return problems.length === 0;
 }
 function renderExtensionList() {
