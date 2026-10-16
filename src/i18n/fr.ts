@@ -357,6 +357,8 @@ export const frMessages: Record<string, string> = {
   "no bus interface in the scenario": "pas d'interface de bus dans le scénario",
   "telegram from ETS to {0} not let in: {1}":
     "télégramme d'ETS vers {0} non admis : {1}",
+  "device management from ETS not let in: {0}":
+    "gestion des participants par ETS non admise : {0}",
   "telegram from ETS to {0}: {1} bytes are not simulated":
     "télégramme d'ETS vers {0} : {1} octets ne sont pas simulés",
   "telegram from ETS to {0} not let in (see the journal)":

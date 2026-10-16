@@ -44,7 +44,13 @@ class FakeSocket implements SocketLike {
   }
 }
 
-function setup(accepting: () => string | null = () => null) {
+/** ETS reads the individual address of the devices in programming mode (broadcast). */
+const ETS_ADDRESS_READ = "11 00 B0 E0 FF FB 00 00 01 01 00";
+
+function setup(
+  accepting: () => string | null = () => null,
+  managing?: () => string | null,
+) {
   const sim: Simulation = createSimulator(raw("usb-interface.json"));
   sim.advance(3000);
   const ws = new FakeSocket();
@@ -53,6 +59,7 @@ function setup(accepting: () => string | null = () => null) {
     url: "ws://127.0.0.1:3761/ws",
     target: () => ({ sim, access: { device: "usbInterface" } }),
     accepting,
+    managing,
     onStatus: (s) => statuses.push(s),
     socket: () => ws,
   });
@@ -98,6 +105,24 @@ describe("link to ETS", () => {
     expect(sim.equipmentState("switchActuator", "s1")?.on).toBe(false);
     expect(link.current.refused).toBe(1);
     expect(link.current.lastProblem).toMatch(/simulation paused/);
+  });
+
+  it("lets device management in while paused, not once stopped", () => {
+    const paused = setup(
+      () => "simulation paused",
+      () => null,
+    );
+    paused.ws.open();
+    paused.ws.receive(bytes(ETS_ADDRESS_READ));
+    expect(paused.link.current).toMatchObject({ received: 1, refused: 0 });
+    const stopped = setup(
+      () => "simulation stopped",
+      () => "simulation stopped",
+    );
+    stopped.ws.open();
+    stopped.ws.receive(bytes(ETS_ADDRESS_READ));
+    expect(stopped.link.current.refused).toBe(1);
+    expect(stopped.link.current.lastProblem).toMatch(/device management/);
   });
 
   it("ignores confirmations and invalid frames", () => {

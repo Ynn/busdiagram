@@ -55,7 +55,7 @@ Les pages de paramètres du participant dans le designer sont celles d'ETS : mê
 ## Pendant la liaison
 
 - La simulation tourne en temps réel, même quand son onglet est en arrière-plan, puisqu'ETS continue d'envoyer et attend des réponses.
-- Un télégramme d'ETS est refusé tant que la simulation est en pause ; il n'est pas rejoué plus tard avec d'autres.
+- Un télégramme de groupe d'ETS est refusé tant que la simulation est en pause ; il n'est pas rejoué plus tard avec d'autres. La gestion des participants par ETS (adresses individuelles, téléchargements) continue : une pause arrête les applications, pas le bus. L'une et l'autre sont refusées quand la simulation est arrêtée par une faute.
 - La vitesse est **Instantané** à l'ouverture de la liaison : les télégrammes prennent le temps d'un vrai bus (environ 20 ms chacun, et autant pour chaque coupleur traversé), et les câbles qu'ils atteignent s'allument sans que rien ne se déplace. **Animé** les montre au contraire voyager au rythme du schéma : un télégramme qui traverse des coupleurs met alors quelques secondes à arriver, ce qu'ETS accepte.
 - Le pas à pas n'est pas disponible.
 

@@ -86,6 +86,12 @@ export interface EtsLinkOptions {
    * commands are refused rather than queued and played later in a batch.
    */
   accepting: () => string | null;
+  /**
+   * Why the device management of ETS (individual addresses, downloads) cannot reach the
+   * devices now (simulation stopped), or null. A pause stops the application, not the
+   * bus: ETS goes on programming the devices, and a download is not broken by it.
+   */
+  managing?: () => string | null;
   /** Status changes and telegram counts, for the view. */
   onStatus: (s: LinkStatus) => void;
   /** A telegram from ETS entered the simulation: the view must run it. */
@@ -223,6 +229,11 @@ export class EtsLink {
     const l = decodeLData(cemi);
     if (l && l.messageCode !== L_DATA_CON && DeviceManagement.concerns(l)) {
       this.update({ received: this.status.received + 1 });
+      const why = this.o.managing?.() ?? null;
+      if (why)
+        return this.refuse(
+          this.t`device management from ETS not let in: ${why}`,
+        );
       const ws = this.ws;
       for (const frame of this.management.handle(l)) {
         if (!ws || ws.readyState !== 1) break;

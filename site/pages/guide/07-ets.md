@@ -54,7 +54,7 @@ The parameter pages of the device in the designer are those of ETS: same pages, 
 ## While linked
 
 - The simulation runs in real time, also when its tab is in the background, since ETS keeps sending and waits for answers.
-- A telegram from ETS is refused while the simulation is paused; it is not played later in a batch.
+- A group telegram from ETS is refused while the simulation is paused; it is not played later in a batch. The device management of ETS (individual addresses, downloads) goes on: a pause stops the applications, not the bus. Both are refused when the simulation is stopped by a fault.
 - The speed is **Instant** when the link opens: telegrams take the time of a real bus (about 20 ms each, and as long again for each coupler crossed), and the cables they reach light up without anything travelling. **Animated** shows them travel at the pace of the diagram instead: a telegram that crosses couplers then takes a few seconds to arrive, which ETS accepts.
 - Step by step is not available.
 

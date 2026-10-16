@@ -635,6 +635,12 @@ export class BusDiagram extends LitElement {
         url,
         target: () => this.linkTarget(),
         accepting: () => this.linkAccepting(),
+        managing: () =>
+          !this.sim
+            ? this.tr`no scenario loaded`
+            : this.sim.fault
+              ? this.tr`simulation stopped`
+              : null,
         onStatus: (st) => this.onLinkStatus(st),
         onIngest: () => this.kick(),
         t: this.tr,
