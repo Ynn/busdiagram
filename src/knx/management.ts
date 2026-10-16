@@ -140,6 +140,8 @@ interface Connection {
  */
 export class DeviceManagement {
   private conns = new Map<string, Connection>();
+  /** The simulation the connections were opened with: another one has none of them. */
+  private of: Simulation | null = null;
 
   constructor(
     private readonly sim: () => Simulation | null,
@@ -163,9 +165,17 @@ export class DeviceManagement {
     );
   }
 
+  /** Forget the connections (the link stops, or follows another simulation). */
+  reset() {
+    this.conns.clear();
+    this.of = null;
+  }
+
   /** Frames answered by the devices to a frame from ETS (L_Data.req or .ind). */
   handle(f: LDataFrame): Uint8Array[] {
     const sim = this.sim();
+    if (sim !== this.of) this.reset();
+    this.of = sim;
     if (!sim) return [];
     if (f.group) return this.broadcast(sim, f);
     const address = iaText(f.destination);
@@ -191,7 +201,9 @@ export class DeviceManagement {
         return out;
       }
       if (tpci === 0x81) {
-        this.conns.delete(target);
+        // Only the peer of a connection ends it.
+        if (this.conns.get(target)?.peer === f.source)
+          this.conns.delete(target);
         return out;
       }
       // T_ACK and T_NAK of our numbered frames.

@@ -127,6 +127,37 @@ describe("connection to a device", () => {
     ).toEqual([[0x81]]);
   });
 
+  it("ends its connections with the simulation they were opened with", () => {
+    const { sim } = setup();
+    const other = setup().sim;
+    let current = sim;
+    const m = new DeviceManagement(() => current);
+    const at = ia(1, 1, 1);
+    for (const s of [sim, other]) {
+      current = s;
+      s.pressProgrammingButton("bp");
+      m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x01])));
+    }
+    current = sim;
+    m.handle(req(at, false, [0x80]));
+    // Another simulation, with the same devices: ETS is not connected to them.
+    current = other;
+    expect(
+      decoded(m.handle(req(at, false, [0x40 | 0x03, 0x00]))).map((f) => f.tpdu),
+    ).toEqual([[0x81]]);
+  });
+
+  it("is disconnected by its peer only", () => {
+    const { sim, m } = setup();
+    sim.pressProgrammingButton("bp");
+    m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x01])));
+    const at = ia(1, 1, 1);
+    m.handle(req(at, false, [0x80]));
+    m.handle({ ...req(at, false, [0x81]), source: ia(1, 1, 99) });
+    const [ack] = decoded(m.handle(req(at, false, [0x40 | 0x03, 0x00])));
+    expect(ack!.tpdu).toEqual([0xc2]);
+  });
+
   it("no device answers at a free address", () => {
     const { m } = setup();
     expect(m.handle(req(ia(1, 1, 9), false, [0x80]))).toEqual([]);

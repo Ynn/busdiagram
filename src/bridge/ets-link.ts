@@ -185,6 +185,7 @@ export class EtsLink {
     const ws = this.ws;
     this.ws = null;
     this.detach();
+    this.management.reset();
     if (ws) ws.close(1000, "closed by the reader");
     if (this.status.state !== "off")
       this.update({ state: "off", detail: "", ets: 0 });
@@ -192,6 +193,8 @@ export class EtsLink {
 
   /** Follow another simulation (scenario loaded again): tap its access point. */
   retarget() {
+    // The connections of ETS were with the devices of the former simulation.
+    this.management.reset();
     if (this.status.state === "open") this.attach();
   }
 
