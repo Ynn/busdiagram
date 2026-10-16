@@ -1,4 +1,4 @@
-// Write the product database of a manufacturer's device (src/manufacturers/…/database.json)
+// Write the product database of a manufacturer's device (database.json of a package)
 // from a product catalog: npm run product -- <catalog.knxprod> <program> <file.json>
 // ['{"P-57_R-57": "8"}'], the last argument giving the values the product fixes (its
 // type of module in a program shared by a range: only their branches are kept).

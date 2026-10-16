@@ -16,6 +16,7 @@ import type {
   ParameterType,
   TableLocation,
 } from "./application";
+import { openCatalog } from "./catalog";
 import { branch, segmentImages, sizeOf, writeParameters } from "./config";
 
 export interface ProductDatabase {
@@ -73,6 +74,42 @@ function merge(ranges: [number, number][]): [number, number][] {
     else out.push([a, n]);
   }
   return out;
+}
+
+/**
+ * System part of the memory that a database keeps: what precedes the address table
+ * (identification, pointers), and the group object table with its descriptors.
+ */
+export function systemRanges(app: ApplicationProgram): [number, number][] {
+  const out: [number, number][] = [];
+  const t = app.addressTable;
+  const seg = t && app.segments.get(t.segment);
+  if (t && seg) out.push([seg.address, t.offset]);
+  const o = app.objectTable;
+  const os = o && app.segments.get(o.segment);
+  if (o && os) {
+    const at = os.address + o.offset;
+    const count = os.data[o.offset] ?? 0;
+    // BCU1: count and RAM flags pointer, 3-octet descriptors; BIM M112 (070x): count
+    // and a 2-octet pointer, 4-octet descriptors.
+    out.push(
+      /^MV-070/.test(app.mask) ? [at, 3 + 4 * count] : [at, 2 + 3 * count],
+    );
+  }
+  return out;
+}
+
+/**
+ * Database of a program of a product catalog (.knxprod), as `npm run product` writes it:
+ * its system part, and the branches of the values the product fixes.
+ */
+export async function catalogDatabase(
+  catalog: Uint8Array,
+  program: string,
+  fixed?: Record<string, string>,
+): Promise<ProductDatabase> {
+  const app = await (await openCatalog(catalog)).application(program);
+  return databaseOf(app, systemRanges(app), fixed ? { fixed } : {});
 }
 
 /**
