@@ -13,5 +13,5 @@ if (top.status !== 0 || resolve(top.stdout.trim()) !== root) {
     console.error(installed.stderr || "Could not install the Git hook.");
     process.exit(1);
   }
-  console.log("Pre-commit hook installed.");
+  console.log("Git hooks installed.");
 }

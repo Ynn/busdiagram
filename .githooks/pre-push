@@ -1,0 +1,7 @@
+#!/bin/sh
+# Rules of this checkout that are not published (.local/pre-push), given the references
+# that are about to be pushed on its standard input.
+set -eu
+if [ -f .local/pre-push ]; then
+  exec sh .local/pre-push "$@"
+fi
