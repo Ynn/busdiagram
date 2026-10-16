@@ -152,6 +152,7 @@
       ]
     }
   ],
+  "comparedProperties": [{ "object": 0, "pid": 78, "data": "000000FE0100" }],
   "translations": {
     "fr-FR": {
       "PB-1|Text": "Entrée",

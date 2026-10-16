@@ -16,6 +16,7 @@ import type {
   ParameterType,
   TableLocation,
   WrittenProperty,
+  ComparedProperty,
 } from "./application";
 import { openCatalog } from "./catalog";
 import { branch, segmentImages, sizeOf, writeParameters } from "./config";
@@ -49,6 +50,8 @@ export interface ProductDatabase {
   dynamic: DynNode[];
   /** Properties of its own that the load procedure writes, when it writes some. */
   writtenProperties?: WrittenProperty[];
+  /** Properties of the device its load procedure compares first, when it compares some. */
+  comparedProperties?: ComparedProperty[];
   /** Translations: language → "element|attribute" → text. */
   translations: Record<string, Record<string, string>>;
 }
@@ -233,6 +236,9 @@ export function databaseOf(
     associationTable: app.associationTable,
     objectTable: app.objectTable,
     dynamic,
+    ...(app.comparedProperties.length
+      ? { comparedProperties: app.comparedProperties }
+      : {}),
     ...(app.writtenProperties.length
       ? { writtenProperties: app.writtenProperties }
       : {}),
@@ -291,6 +297,7 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
     objectTable: db.objectTable,
     dynamic: db.dynamic,
     writtenProperties: db.writtenProperties ?? [],
+    comparedProperties: db.comparedProperties ?? [],
     translations: new Map(
       Object.entries(db.translations).map(([l, m]) => [
         l,

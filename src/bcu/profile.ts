@@ -173,6 +173,12 @@ export interface ProductProperty {
   /** Property datatype (PDT_GENERIC_05: 15h…). */
   type: number;
   max: number;
+  /**
+   * A value the device is made with (its elements from the first), which no download
+   * writes: a property its load procedure compares, such as the hardware type 0/78. It
+   * is answered as it is, and is not kept in the memory.
+   */
+  value?: readonly number[];
 }
 
 /**

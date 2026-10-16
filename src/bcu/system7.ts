@@ -46,6 +46,8 @@ function ownSlot(s: BcuState, object: number, pid: number) {
   let at = OWN_PROPERTIES;
   for (const p of (s.extra.ownProperties as ProductProperty[] | undefined) ??
     []) {
+    // A value the device is made with is not in the memory.
+    if (p.value) continue;
     const size = elementSize(p.type);
     if (p.object === object && p.pid === pid) return { at, size, max: p.max };
     at += size * p.max;
@@ -179,6 +181,19 @@ export const system7: MaskProfile = {
           return null;
       }
     })();
+    // A property of its own that the device is made with: its value, as it is.
+    const made = value
+      ? undefined
+      : (s.extra.ownProperties as ProductProperty[] | undefined)?.find(
+          (p) => p.object === object && p.pid === pid && p.value,
+        );
+    if (made?.value) {
+      if (start === 0) return [made.max >> 8, made.max & 0xff];
+      const size = elementSize(made.type);
+      if (count < 1 || start + count - 1 > made.max) return null;
+      const from = size * (start - 1);
+      return made.value.slice(from, from + size * count);
+    }
     const own = value ? null : ownSlot(s, object, pid);
     if (own) {
       // A property of its own: its elements, kept in the memory.
@@ -196,7 +211,7 @@ export const system7: MaskProfile = {
     const own = (s.extra.ownProperties as ProductProperty[] | undefined)?.find(
       (p) => p.object === object && p.pid === pid,
     );
-    return own ? { type: own.type, max: own.max, writable: true } : null;
+    return own ? { type: own.type, max: own.max, writable: !own.value } : null;
   },
   writeProperty(s, object, pid, start, count, data) {
     // Properties of its own that the application program writes (an ABB program writes

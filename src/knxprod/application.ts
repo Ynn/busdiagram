@@ -129,6 +129,19 @@ export interface WrittenProperty {
   size: number;
 }
 
+/**
+ * A property of the device that the load procedure compares before loading
+ * (LdCtrlCompareProp, such as the hardware type 0/78): ETS stops when it differs.
+ */
+export interface ComparedProperty {
+  object: number;
+  pid: number;
+  /** The value it expects, in hexadecimal. */
+  data: string;
+  /** The bits it compares, in hexadecimal, when it does not compare them all. */
+  mask?: string;
+}
+
 export interface TableLocation {
   segment: string;
   offset: number;
@@ -155,6 +168,7 @@ export interface ApplicationProgram {
   dynamic: DynNode[];
   /** Properties that the load procedure writes, which the device must accept. */
   writtenProperties: WrittenProperty[];
+  comparedProperties: ComparedProperty[];
   /** Translations: language → (element id + attribute) → text. */
   translations: Map<string, Map<string, string>>;
 }
@@ -429,6 +443,16 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
     };
     written.set(`${p.object}/${p.pid}`, p);
   }
+  const compared = new Map<string, ComparedProperty>();
+  for (const c of descendants(app, "LdCtrlCompareProp")) {
+    const p = {
+      object: num(c.attrs.ObjIdx),
+      pid: num(c.attrs.PropId),
+      data: (c.attrs.InlineData ?? "").toUpperCase(),
+      ...(c.attrs.Mask ? { mask: c.attrs.Mask.toUpperCase() } : {}),
+    };
+    compared.set(`${p.object}/${p.pid}`, p);
+  }
   const translations = new Map<string, Map<string, string>>();
   for (const lang of descendants(doc, "Language")) {
     const m =
@@ -468,6 +492,7 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
       child(app, "Dynamic") ?? { name: "", attrs: {}, children: [], text: "" },
     ),
     writtenProperties: [...written.values()],
+    comparedProperties: [...compared.values()],
     translations,
   };
 }

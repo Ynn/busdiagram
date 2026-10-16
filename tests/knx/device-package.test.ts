@@ -516,6 +516,10 @@ describe("download into a BIM M112 (System 7) by its Load State Machines", () =>
         c.write(0x4220, [0x01]);
         // The program writes a property of its own, which ETS describes first.
         expect(c.describe(3, 204)).toEqual([3, 204, 0, 0x95, 0, 2, 0x33]);
+        // Its hardware type, as it is made: compared by the load procedure, not written.
+        expect(c.property(0, 78)).toEqual([0, 0, 0, 0xfe, 1, 0]);
+        expect(c.describe(0, 78)).toEqual([0, 78, 0, 0x16, 0, 1, 0x33]);
+        expect(c.writeProperty(0, 78, 1, [1, 2, 3, 4, 5, 6])).toEqual([]);
         expect(c.writeProperty(3, 204, 2, OWN)).toEqual(OWN);
         // Refused, without a change: elements beyond the property, octets that are not
         // those of the elements announced, a write without all its octets.
