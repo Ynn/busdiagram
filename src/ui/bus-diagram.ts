@@ -193,6 +193,15 @@ function parseJson(text: string, where: string, t: Translate): unknown {
 const pct = (v: unknown) =>
   typeof v === "number" ? `${Math.round(v)} %` : "—";
 
+/** The memories an installation section keeps, by device: what a download changes. */
+const memories = (s: unknown) =>
+  JSON.stringify(
+    (
+      (s as { devices?: { device: string; memory?: unknown }[] } | undefined)
+        ?.devices ?? []
+    ).map((d) => [d.device, d.memory ?? null]),
+  );
+
 export class BusDiagram extends LitElement {
   static override styles = [styles, detailStyles];
   static override properties = {
@@ -293,6 +302,8 @@ export class BusDiagram extends LitElement {
   private focusGa: string | null = null;
   private seenTels = 0;
   private loadToken = 0;
+  /** The scenario last loaded, as given: built again with a new installation. */
+  private source: unknown = null;
   /** Link to the scenario in the designer, prepared when the scenario loads. */
   private designerLink: string | null = null;
   private ro: ResizeObserver | null = null;
@@ -459,6 +470,7 @@ export class BusDiagram extends LitElement {
   load(data: unknown) {
     this.loadToken++;
     this.teardown();
+    this.source = data;
     try {
       const model = buildScenario(data, undefined, this.tr);
       const topo = buildTopology(model);
@@ -950,16 +962,31 @@ export class BusDiagram extends LitElement {
     // The timeline records each event at its own time, whatever the speed or frame rate.
     const offStep = sim.onStep(() => this.sampleTimeline());
     // Commissioning: a programming button or an address written by ETS changes what the
-    // devices hold; a host page (the designer) keeps it in the scenario.
+    // devices hold; a host page (the designer) keeps it in the scenario, and cancels the
+    // event. Without one, an application that ETS downloaded runs here: the simulation is
+    // built again with the installation, as the designer does.
     const offInstall = sim.onInstallationChange(() => {
       this.requestUpdate();
-      this.dispatchEvent(
-        new CustomEvent("bd-installation", {
-          detail: { installation: sim.installation() },
-          bubbles: true,
-          composed: true,
-        }),
-      );
+      const installation = sim.installation();
+      const event = new CustomEvent("bd-installation", {
+        detail: { installation },
+        bubbles: true,
+        composed: true,
+        cancelable: true,
+      });
+      this.dispatchEvent(event);
+      const source = this.source as { installation?: unknown } | null;
+      if (
+        event.defaultPrevented ||
+        !installation ||
+        !source ||
+        memories(installation) === memories(source.installation)
+      )
+        return;
+      const token = this.loadToken;
+      setTimeout(() => {
+        if (token === this.loadToken) this.load({ ...source, installation });
+      }, 0);
     });
     this.unsubscribe = () => {
       offTel();

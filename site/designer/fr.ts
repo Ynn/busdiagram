@@ -183,7 +183,7 @@ export const designerFr: Record<string, string> = {
     "Attention : le lecteur ne charge pas les extensions ; préférez la page autonome.",
   "Code to paste into a page…": "Code à coller dans une page…",
   "Standalone page (.html)": "Page autonome (.html)",
-  "JSON file": "Fichier JSON",
+  "JSON file (complete backup)": "Fichier JSON (sauvegarde complète)",
   "Player link…": "Lien de lecture…",
   "bus-diagram.js library": "Bibliothèque bus-diagram.js",
   Language: "Langue",
@@ -961,6 +961,8 @@ export const designerFr: Record<string, string> = {
     "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
   "Import devices…": "Importer des participants…",
   "simulated in part": "simulé en partie",
+  "Not exported: import the package of {0}, whose memory is shared only once its product database tells its parameters from its program.":
+    "Non exporté : importez le paquet de {0}, dont la mémoire n'est partagée qu'une fois que sa base de produit distingue ses paramètres de son programme.",
   "parameter “{0}” not found": "paramètre « {0} » introuvable",
   "“{0}” is not one of the choices of {1}":
     "« {0} » n'est pas un des choix de {1}",

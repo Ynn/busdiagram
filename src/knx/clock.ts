@@ -1,5 +1,8 @@
 // File of events dated in whole milliseconds, separated by an insertion number.
-// No real-time dependence: only `advance` of simulation makes time progress.
+// No real-time dependence: only `advance` of simulation makes time progress. A cancelled
+// event stays in the heap until it reaches the top, or until the cancelled ones outnumber
+// the live ones: the heap is then rebuilt without them (the order is kept, by time and
+// insertion number).
 
 export interface Scheduled<T> {
   readonly timeMs: number;
@@ -31,6 +34,19 @@ export class EventQueue<T> {
     if (e.cancelled) return;
     e.cancelled = true;
     this.live--;
+    if (this.heap.length > 64 && this.heap.length > 2 * this.live + 64)
+      this.compact();
+  }
+
+  /** Events held, cancelled ones included (what the heap occupies). */
+  get held(): number {
+    return this.heap.length;
+  }
+
+  private compact() {
+    this.heap = this.heap.filter((e) => !e.cancelled);
+    // Floyd's construction: a heap again, in linear time.
+    for (let i = (this.heap.length >> 1) - 1; i >= 0; i--) this.down(i);
   }
 
   peek(): Scheduled<T> | undefined {

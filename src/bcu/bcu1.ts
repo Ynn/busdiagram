@@ -31,6 +31,8 @@ export const bcu1: MaskProfile = {
   masks: [0x0010, 0x0011, 0x0012],
   name: "BCU1",
   memorySize: SIZE,
+  // Below the EEPROM: RAM, programming mode, system.
+  systemAreas: [[0, EEPROM]],
   factory() {
     const m = new Uint8Array(SIZE);
     // No group address (table length 1: the individual address only), stopped.

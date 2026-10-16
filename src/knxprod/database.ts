@@ -19,6 +19,7 @@ import type {
   ComparedProperty,
 } from "./application";
 import { openCatalog } from "./catalog";
+import { profileOf } from "../bcu";
 import { branch, segmentImages, sizeOf, writeParameters } from "./config";
 
 export interface ProductDatabase {
@@ -310,11 +311,13 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
 }
 
 /**
- * The memory of a device that can be shared with its diagram: outside the segments of its
- * program (the system part of the mask: load states, properties), and in them the header
- * of the program, its tables, its parameters and the octets its database keeps. The other
- * octets of the segments are the application code and its constants, which ETS writes
- * from the manufacturer's catalog: they are zero in the copy returned.
+ * The memory of a device that can be shared with its diagram, and nothing more: the
+ * system areas of its mask (load states, properties), and in the segments of its program
+ * the header of the program, its tables, its parameters and the octets its database
+ * keeps. The other octets — the application code and its constants, which ETS writes
+ * from the manufacturer's catalog, and whatever else the memory holds — are zero in the
+ * copy returned. A table counts no more entries than the program allows, and stays in
+ * its segment.
  */
 export function shareableMemory(
   db: ProductDatabase,
@@ -322,24 +325,35 @@ export function shareableMemory(
 ): Uint8Array {
   const segments = new Map(db.segments.map((s) => [s.id, s] as const));
   const types = new Map(db.types.map((t) => [t.id, t] as const));
-  const kept = new Uint8Array(mem.length).fill(1);
-  const mark = (from: number, length: number, v: number) =>
-    kept.fill(v, Math.max(0, from), Math.min(mem.length, from + length));
-  for (const s of db.segments) mark(s.address, s.size, 0);
+  const kept = new Uint8Array(mem.length);
+  const mark = (from: number, length: number) =>
+    kept.fill(1, Math.max(0, from), Math.min(mem.length, from + length));
+  for (const [at, n] of profileOf(db.mask.replace(/^MV-/, ""))?.systemAreas ??
+    [])
+    mark(at, n);
   for (const s of db.segments)
-    for (const [at, h] of s.data) mark(s.address + at, h.length / 2, 1);
+    for (const [at, h] of s.data) mark(s.address + at, h.length / 2);
+  /** A table of a segment, no further than the end of the segment. */
   const table = (t: TableLocation | null, length: (at: number) => number) => {
     const s = t && segments.get(t.segment);
-    if (t && s) mark(s.address + t.offset, length(s.address + t.offset), 1);
+    if (!t || !s) return;
+    const at = s.address + t.offset;
+    mark(at, Math.min(length(at), s.address + s.size - at));
   };
   // The header before the address table (BCU1: manufacturer, application, RunError).
-  const at = db.addressTable && segments.get(db.addressTable.segment);
-  if (at) mark(at.address, db.addressTable!.offset, 1);
+  const head = db.addressTable && segments.get(db.addressTable.segment);
+  if (head) mark(head.address, db.addressTable!.offset);
   // Address and association tables (KNX 03_05_01 §4.16–4.17): a count, then 2-octet
-  // entries, as many as the database allows or the memory holds.
+  // entries, as many as the memory holds and the program allows (the address table
+  // counts the individual address too).
   const m112 = /^MV-070/.test(db.mask);
   for (const t of [db.addressTable, db.associationTable])
-    if (t) table(t, (a) => 1 + 2 * Math.max(t.maxEntries, mem[a] ?? 0));
+    if (t)
+      table(
+        t,
+        (a) =>
+          1 + 2 * Math.min(mem[a] ?? 0, t.maxEntries ? t.maxEntries + 1 : 255),
+      );
   // Object table: count and pointer, then the descriptors (3 octets BCU1, 4 BIM M112).
   table(db.objectTable, (a) => {
     const count = mem[a] ?? 0;
@@ -349,7 +363,7 @@ export function shareableMemory(
     const s = p.memory && segments.get(p.memory.segment);
     if (!p.memory || !s) continue;
     const bits = p.memory.bitOffset + (types.get(p.type)?.sizeInBit ?? 8);
-    mark(s.address + p.memory.offset, Math.ceil(bits / 8), 1);
+    mark(s.address + p.memory.offset, Math.ceil(bits / 8));
   }
   return mem.map((b, i) => (kept[i] ? b : 0));
 }

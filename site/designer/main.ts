@@ -52,6 +52,7 @@ import type { DevicePackage } from "./packages";
 import {
   deleteStoredPackage,
   forgetPackage,
+  behaviorsOfPackage,
   installPackage,
   onPackagesChange,
   packageExamples,
@@ -99,7 +100,7 @@ const pageTexts = (): Record<string, string> => ({
   "Load an extension…": t`Load an extension…`,
   "Code to paste into a page…": t`Code to paste into a page…`,
   "Standalone page (.html)": t`Standalone page (.html)`,
-  "JSON file": t`JSON file`,
+  "JSON file (complete backup)": t`JSON file (complete backup)`,
   "Player link…": t`Player link…`,
   "bus-diagram.js library": t`bus-diagram.js library`,
   Language: t`Language`,
@@ -649,6 +650,8 @@ void storedPackages().then(async (stored) => {
 });
 // A programming button pressed in the diagram, or an address written by ETS.
 preview.addEventListener("bd-installation", (e) => {
+  // The designer keeps the installation, and builds the simulation again itself.
+  e.preventDefault();
   const { installation } = (
     e as CustomEvent<{ installation: JsonObject | null }>
   ).detail;
@@ -1021,10 +1024,21 @@ function current(): unknown | null {
   return a.data;
 }
 
-/** The scenario to share: without the application code of its products. */
+/**
+ * The scenario to share: without the application code of its products; none when the
+ * memory of a device cannot be told apart (its package is not imported).
+ */
 function shared(): unknown | null {
   const data = current();
-  return data === null ? null : shareableScenario(data);
+  if (data === null) return null;
+  const s = shareableScenario(data);
+  if (s.unshared.length) {
+    toast(
+      t`Not exported: import the package of ${s.unshared.join(", ")}, whose memory is shared only once its product database tells its parameters from its program.`,
+    );
+    return null;
+  }
+  return s.data;
 }
 
 function download(name: string, text: string, type: string) {
@@ -1109,11 +1123,22 @@ const integrity = () =>
     }
   })());
 
-// The script of an imported package of devices goes with the diagram it draws: the code of
-// these products, which their owner may not want shared, is then in the exported page.
-const packageWarning = () => {
+// The extensions an export embeds: all but the packages of devices that the scenario does
+// not use. The script of a package goes with the diagram it draws: the code of its
+// products, which their owner may not want shared, is then in the exported page.
+const embedded = (data: unknown) => {
+  const used = new Set(
+    ((data as { devices?: { behavior?: unknown }[] }).devices ?? []).map(
+      (d) => d.behavior,
+    ),
+  );
+  return extensions.filter(
+    (x) => !x.package || behaviorsOfPackage(x.package).some((b) => used.has(b)),
+  );
+};
+const packageWarning = (embeds: LoadedExtension[]) => {
   const names = [
-    ...new Set(extensions.flatMap((x) => (x.package ? [x.package] : []))),
+    ...new Set(embeds.flatMap((x) => (x.package ? [x.package] : []))),
   ];
   return names.length
     ? t`The code of the device packages ${names.join(", ")} is embedded: share this page only with those who may have these packages.`
@@ -1127,8 +1152,9 @@ $("#export-snippet").addEventListener("click", async () => {
   const style = o.fit === "contain" ? "height:540px" : "";
   // Use <script src> tags if the raw files coexist on one page; otherwise embed extensions
   // Embedded into the code and wrapped as in the designer, with the same execution contract.
-  const raw = !(await deliveryCheck(bundleSource, extensions, false)).length;
-  const extScripts = extensions
+  const embeds = embedded(data);
+  const raw = !(await deliveryCheck(bundleSource, embeds, false)).length;
+  const extScripts = embeds
     .map((x) =>
       raw
         ? `<script src="${x.name}"></script>\n`
@@ -1139,13 +1165,13 @@ $("#export-snippet").addEventListener("click", async () => {
     t`Code to paste into the page`,
     embedSnippet(data, o, style),
     t`HTML page, Markdown (Hugo, Pandoc), reveal.js slide: paste the first part once per page, and the second where each diagram goes. The first part loads version ${cdnVersion} of the library from a CDN; this exact version stays available and does not change. To work offline, download bus-diagram.js from the Export menu, place it next to the page, and use <script src="bus-diagram.js"></script> instead. The interface language follows the page's lang attribute.` +
-      (extensions.length && !raw
+      (embeds.length && !raw
         ? " " +
           t`The extensions are embedded in the code: loaded as-is through <script src> tags, they would conflict (global variables with the same name).`
-        : extensions.length
+        : embeds.length
           ? " " + t`Place the extension files next to the page.`
           : "") +
-      (packageWarning() ? " " + packageWarning() : ""),
+      (packageWarning(embeds) ? " " + packageWarning(embeds) : ""),
     undefined,
     `${cdnTag(cdnVersion, await integrity())}\n${extScripts}`.trimEnd(),
   );
@@ -1158,12 +1184,13 @@ $("#export-json").addEventListener("click", () => {
 $("#export-page").addEventListener("click", () => {
   const data = shared();
   if (!data) return;
+  const embeds = embedded(data);
   download(
     `${slug(data)}.html`,
-    standalonePage(data, bundleSource, options(), language, extensions),
+    standalonePage(data, bundleSource, options(), language, embeds),
     "text/html",
   );
-  const warning = packageWarning();
+  const warning = packageWarning(embeds);
   if (warning) toast(warning);
 });
 $("#export-bundle").addEventListener("click", () =>

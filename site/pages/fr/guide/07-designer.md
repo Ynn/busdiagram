@@ -102,7 +102,7 @@ L'aperçu peut afficher une barre d'outils complète ou compacte, masquer le mon
 | --- | --- |
 | Code à coller dans une page | Intégrer le schéma dans du HTML, une sortie Markdown ou une diapositive reveal.js. Le code vient en deux parties, chacune avec son bouton **Copier** : la bibliothèque (et les extensions) à coller une fois par page, puis le schéma à coller à l'emplacement de chacun, si bien qu'une page à plusieurs schémas ne charge la bibliothèque qu'une fois. La bibliothèque est une version publiée sur un CDN, figée par son empreinte d'intégrité ; voir [versions](versions.html). Voir [Intégration](embedding.html). |
 | Page autonome (.html) | Un seul fichier hors ligne contenant la bibliothèque, le scénario et les extensions chargées. |
-| Fichier JSON | Enregistrer le scénario pour la gestion de versions ou le charger avec `src`. |
+| Fichier JSON (sauvegarde complète) | Enregistrer le scénario pour la gestion de versions ou le charger avec `src` : en entier, mémoire téléchargée par ETS comprise. Pour partager, préférer la page, le code à coller ou le lien du lecteur. |
 | Lien de lecture | Mettre un scénario compressé dans le fragment d'une URL pour une iframe ou une autre visionneuse web. Voir [Visionneuse](viewer.html). |
 | Bibliothèque | Télécharger `bus-diagram.js` pour l'héberger à côté de votre page. |
 

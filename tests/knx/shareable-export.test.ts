@@ -60,7 +60,9 @@ describe("export to share", () => {
     sim.restartDevice(id);
     const saved = { ...doc, installation: sim.installation() };
 
-    const shared = shareableScenario(saved) as typeof saved;
+    const { data, unshared } = shareableScenario(saved);
+    expect(unshared).toEqual([]);
+    const shared = data as typeof saved;
     const held = (s: typeof saved) =>
       parseMemory(
         (s.installation!.devices as { device: string; memory?: unknown }[])[0]!
@@ -73,5 +75,31 @@ describe("export to share", () => {
     const again = createSimulator(shared);
     expect(again.memory(id)![PARAMETER]).toBe(0x81);
     expect(again.memory(id)![CODE]).toBe(0);
+  });
+
+  it("keeps nothing out of the system areas and the program's segments", () => {
+    const be1 = SAMPLE_PRODUCTS.find((p) => p.behavior === "example.be1/v1")!;
+    const mem = new Uint8Array(0x10000);
+    mem[0xb6ea] = 1; // load state of the address table
+    mem[0x8000] = 0xc3; // nothing the program or the mask places there
+    const out = shareableMemory(be1.database, mem);
+    expect(out[0xb6ea]).toBe(1);
+    expect(out[0x8000]).toBe(0);
+  });
+
+  it("counts no more table entries than the program allows", () => {
+    const mem = new Uint8Array(0x200);
+    mem[0x116] = 255; // a count beyond the 11 group addresses of SA 2
+    mem[0x150] = 0xc3; // code, after the tables
+    expect(shareableMemory(sa2.database, mem)[0x150]).toBe(0);
+  });
+
+  it("is refused for a device whose product database is missing", () => {
+    const { unshared } = shareableScenario({
+      devices: [
+        { id: "x", behavior: "nowhere/v1", ets: { memory: { "256": "FF" } } },
+      ],
+    });
+    expect(unshared).toEqual(["x"]);
   });
 });

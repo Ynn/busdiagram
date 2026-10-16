@@ -176,6 +176,9 @@ export function installPackage(p: DevicePackage) {
 
 const owners = new Map<string, string[]>();
 
+/** The behaviors whose databases a package brings. */
+export const behaviorsOfPackage = (name: string) => owners.get(name) ?? [];
+
 export function forgetPackage(name: string, notify = true) {
   (owners.get(name) ?? []).forEach((b) => databases.delete(b));
   owners.delete(name);

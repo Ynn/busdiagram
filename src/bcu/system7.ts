@@ -119,6 +119,11 @@ export const system7: MaskProfile = {
   masks: [0x0700, 0x0701, 0x0705],
   name: "BIM M112",
   memorySize: SIZE,
+  // RAM and the load control (0104h); load states, what they keep, own properties.
+  systemAreas: [
+    [0, 0x200],
+    [LOAD_STATE, 0x1000],
+  ],
   factory() {
     const m = new Uint8Array(SIZE);
     // No group address (the individual address only), nothing loaded.

@@ -52,6 +52,13 @@ export interface MaskProfile {
   name: string;
   /** Size of the memory the device has (addresses 0…size−1). */
   memorySize: number;
+  /**
+   * Where the system part of the mask is, outside the segments of a program ([start,
+   * length]): its RAM and programming mode, its load states, what it keeps of its load
+   * controls, its own properties. An export to share keeps these and the program's
+   * parameters and tables, nothing else.
+   */
+  systemAreas: readonly (readonly [number, number])[];
   /** Memory as delivered by the mask: no group address, application stopped. */
   factory(): Uint8Array;
   /** Programming LED and individual address, as the memory holds them. */
