@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Liaison à ETS · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0">
-<script src="../../assets/bus-diagram.js?v=0.7.0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.ac44d05.modified.5626d81a">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0"></script>
-<script defer src="../../assets/docs.js?v=0.7.0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/ets.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -38,7 +38,7 @@
   <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
 
   <h4>Outils</h4>
-  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li class="cur"><a href="../../fr/guide/ets.html">Liaison à ETS</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/commissioning.html">Mise en service</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li class="cur"><a href="../../fr/guide/ets.html">Liaison à ETS</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
 
   <h4>Intégrer</h4>
   <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
@@ -52,7 +52,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-
+<p class="stale" role="note">Cette traduction a été faite sur une version antérieure de la page anglaise, qui a changé depuis : elle peut être incomplète ou dépassée. <a href="../../guide/ets.html" hreflang="en">Lire la version anglaise de référence</a>.</p>
 <h1 id="link-a-diagram-to-ets"><a class="anchor" href="#link-a-diagram-to-ets">#</a>Relier un schéma à ETS</h1><p>N&#39;importe quel schéma peut être relié à ETS sur le même ordinateur : le concepteur, le lecteur, une page de cours, un fichier ouvert depuis le disque. ETS voit alors l&#39;installation simulée comme une installation KNX atteinte par une interface : son moniteur de groupe affiche les télégrammes du schéma, et une écriture ou une lecture depuis ETS agit sur les participants simulés.</p>
 <p>La liaison passe par un petit programme Windows, <strong>BusDiagram-ETS</strong>, auquel ETS se connecte comme à une interface de tunnel KNXnet/IP. La barre d&#39;outils du schéma s&#39;y relie quand le lecteur clique sur <strong>Relier à ETS</strong>.</p>
 <pre class="code"><code>ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:3761── schéma</code></pre><h2 id="get-the-program"><a class="anchor" href="#get-the-program">#</a>Obtenir le programme</h2><p>Télécharger <code>BusDiagram-ETS.exe</code> depuis les <a href="https://github.com/Ynn/busdiagram/releases/latest">versions publiées de BusDiagram</a> et le lancer : une fenêtre s&#39;ouvre, à garder ouverte pendant la séance. Elle indique si ETS et un schéma sont connectés, ce qu&#39;il faut saisir dans ETS (avec un bouton qui copie l&#39;adresse), et un journal. Le programme ne demande pas d&#39;installation ; par défaut, il n&#39;est joignable que depuis cet ordinateur.</p>
@@ -85,6 +85,10 @@
 </tr>
 </tbody></table>
 </div><p>Les télégrammes d&#39;ETS entrent sur le bus à cet endroit avec leur propre source (l&#39;adresse du tunnel, <code>15.15.251</code>), leur priorité, leur compteur de routage et leurs octets. Aucun DPT ne voyage dans un télégramme : chaque objet récepteur décode les octets avec son propre DPT, et ignore des données d&#39;une autre taille, ce que le journal explique. Les télégrammes qui atteignent le point d&#39;accès par la topologie sont envoyés à ETS, avec le compteur de routage qu&#39;ils y ont.</p>
+<h2 id="programming-individual-addresses-from-ets"><a class="anchor" href="#programming-individual-addresses-from-ets">#</a>Programmer les adresses individuelles depuis ETS</h2><p>Dans un schéma qui simule la <a href="commissioning.html">mise en service</a>, les participants démarrent en 15.15.255, comme à la livraison. Dans ETS, clic droit sur un participant du projet → <em>Télécharger</em> → <em>Adresse individuelle</em>, puis cliquez sur le bouton de programmation du participant dans le schéma (le petit carré à côté de son adresse) : sa LED s&#39;allume, ETS écrit l&#39;adresse, redémarre le participant, et la LED s&#39;éteint. Le designer, quand il affiche le schéma, enregistre la nouvelle adresse (colonne <strong>Adr</strong>). Les erreurs habituelles ont leur effet : deux LED allumées, et les deux participants répondent ; une adresse déjà utilisée sur le bus, et ETS la trouve.</p>
+<p>Les participants de BusDiagram répondent avec le descripteur 07B0 (TP1, System B) et le code fabricant de la KNX Association, comme ceux de KNX Virtual ; leurs applications se téléchargent depuis le designer.</p>
+<h2 id="downloading-an-application-from-ets"><a class="anchor" href="#downloading-an-application-from-ets">#</a>Télécharger une application depuis ETS</h2><p>Les participants des fabricants, que BusDiagram ne livre pas, s&#39;importent depuis un paquet de participants (<code>.bdpkg</code>, bouton <strong>Importer des participants…</strong> du panneau Catalogue ; voir les <a href="extensions.html#livrer-des-participants-de-fabricants-dans-un-paquet">extensions</a>), et se programment depuis ETS comme les vrais. Insérez le participant depuis la catégorie <strong>Programmés par ETS</strong> du catalogue du designer, et créez le même participant dans le projet ETS, depuis le catalogue du fabricant. Le participant répond à ETS avec le masque de son programme d&#39;application (0011 ou 0012 pour un BCU1, 0701 pour un System 7) et possède une mémoire : ETS y écrit les paramètres, la table des adresses de groupe, les associations et les objets de groupe (pour un System 7, par ses machines d&#39;états de chargement), vérifie chaque écriture par une lecture, démarre l&#39;application et redémarre le participant. Comme un participant livré, il contient le code de son fabricant et l&#39;identifiant de son application, qu&#39;ETS vérifie d&#39;abord. Le code applicatif d&#39;un participant System 7 est écrit lui aussi, ce qui prend quelques minutes, comme sur un vrai bus. Le schéma exécute alors ce que contient la mémoire, comme le participant : modifiez un paramètre dans ETS, téléchargez, et le participant se comporte en conséquence ; téléchargez sans les adresses de groupe, et il n&#39;envoie rien.</p>
+<p>Les pages de paramètres du participant dans le designer sont celles d&#39;ETS : mêmes pages, mêmes paramètres et choix, dans le même ordre, avec les noms et fonctions de ses objets de groupe. Le designer peut aussi le télécharger (menu contextuel → <em>Télécharger</em>), comme ETS le ferait.</p>
 <h2 id="while-linked"><a class="anchor" href="#while-linked">#</a>Pendant la liaison</h2><ul>
 <li>La simulation tourne en temps réel, même quand son onglet est en arrière-plan, puisqu&#39;ETS continue d&#39;envoyer et attend des réponses.</li>
 <li>Un télégramme d&#39;ETS est refusé tant que la simulation est en pause ; il n&#39;est pas rejoué plus tard avec d&#39;autres.</li>
@@ -103,8 +107,12 @@
 <td>Oui</td>
 </tr>
 <tr>
-<td>Gestion des participants (adresse individuelle, téléchargement d&#39;une application)</td>
-<td>Non : les participants du schéma se règlent dans le schéma, pas depuis ETS</td>
+<td>Adresse individuelle en mode programmation (lecture, écriture), connexion à un participant, descripteur, fabricant et numéro de série, redémarrage</td>
+<td>Oui : les participants du schéma répondent comme des participants à l&#39;état de livraison ; avec la <a href="commissioning.html">mise en service</a>, ETS programme leur adresse individuelle avec le bouton de programmation du schéma</td>
+</tr>
+<tr>
+<td>Téléchargement d&#39;une application (mémoire, propriétés)</td>
+<td>Oui pour les participants des fabricants importés d&#39;un paquet (masques BCU1 et System 7) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus</td>
 </tr>
 <tr>
 <td>Moniteur de bus, KNX Secure</td>
@@ -164,7 +172,7 @@
 <a href="../../fr/guide/language-models.html">Générer avec un modèle de langage →</a>
 </nav>
 </main>
-<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#get-the-program">Obtenir le programme</a></li><li><a href="#link-the-diagram">Relier le schéma</a></li><li><a href="#where-ets-reaches-the-bus">Où ETS accède au bus</a></li><li><a href="#while-linked">Pendant la liaison</a></li><li><a href="#limits">Limites</a></li><li><a href="#settings-of-the-program">Réglages du programme</a></li><li><a href="#for-developers">Pour les développeurs</a></li></ul></aside>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#get-the-program">Obtenir le programme</a></li><li><a href="#link-the-diagram">Relier le schéma</a></li><li><a href="#where-ets-reaches-the-bus">Où ETS accède au bus</a></li><li><a href="#programming-individual-addresses-from-ets">Programmer les adresses individuelles depuis ETS</a></li><li><a href="#downloading-an-application-from-ets">Télécharger une application depuis ETS</a></li><li><a href="#while-linked">Pendant la liaison</a></li><li><a href="#limits">Limites</a></li><li><a href="#settings-of-the-program">Réglages du programme</a></li><li><a href="#for-developers">Pour les développeurs</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.7.0 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
 </body>

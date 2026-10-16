@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>JSON scenario · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0">
-<script src="../assets/bus-diagram.js?v=0.7.0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.ac44d05.modified.5626d81a">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/reference/json.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -126,6 +126,12 @@
 <td>object</td>
 <td></td>
 <td>Initial simulation settings.</td>
+</tr>
+<tr>
+<td><code>installation</code></td>
+<td>object</td>
+<td></td>
+<td>Commissioning: what the devices and couplers hold, apart from the project. With this section, each device runs the application it was downloaded with, and one without an application does nothing; devices and couplers not listed are as delivered (15.15.255 and 15.15.0, no application).</td>
 </tr>
 </tbody></table>
 </div><h2 id="line"><a class="anchor" href="#line">#</a>Line</h2><p>TP line.</p>
@@ -320,6 +326,12 @@
 <td>string (validated format)</td>
 <td></td>
 <td>Assigned room ID; thermostats, window contacts, and temperature sensors observe that room.</td>
+</tr>
+<tr>
+<td><code>ets</code></td>
+<td>object</td>
+<td></td>
+<td>Manufacturer&#39;s product that ETS programs: the device answers ETS with the mask of its application program and holds what ETS downloads. The parameter values of the project are kept by ParameterRef of its product database.</td>
 </tr>
 <tr>
 <td><code>inFilterTables</code></td>

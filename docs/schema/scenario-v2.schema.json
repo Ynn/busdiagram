@@ -225,6 +225,123 @@
           "description": "Show coupler filter tables on startup."
         }
       }
+    },
+    "installation": {
+      "type": "object",
+      "description": "Commissioning: what the devices and couplers hold, apart from the project. With this section, each device runs the application it was downloaded with, and one without an application does nothing; devices and couplers not listed are as delivered (15.15.255 and 15.15.0, no application).",
+      "additionalProperties": false,
+      "properties": {
+        "devices": {
+          "type": "array",
+          "description": "Devices of the project, with what they hold.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "device"
+            ],
+            "properties": {
+              "device": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
+                "description": "ID of the device in the project."
+              },
+              "address": {
+                "type": "string",
+                "pattern": "^([0-9]|1[0-5])\\.([0-9]|1[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                "description": "Individual address programmed in the device (15.15.255 by default)."
+              },
+              "programmingMode": {
+                "type": "boolean",
+                "description": "Programming LED on."
+              },
+              "application": {
+                "type": "object",
+                "required": [
+                  "behavior"
+                ],
+                "description": "Application downloaded: behavior, parameters, objects with their associations, keys, and the parameters and scenes of each channel, as in the device. Absent: no application loaded."
+              },
+              "memory": {
+                "type": "object",
+                "propertyNames": {
+                  "pattern": "^(0|[1-9][0-9]*)$"
+                },
+                "additionalProperties": {
+                  "type": "string",
+                  "pattern": "^([0-9A-Fa-f]{2})*$"
+                },
+                "description": "Memory of a manufacturer's device as ETS wrote it; it runs the application started there. Blocks of octets in hexadecimal by start address (decimal); the others are 0."
+              }
+            }
+          }
+        },
+        "couplers": {
+          "type": "array",
+          "description": "Couplers and repeaters of the topology, with what they hold.",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "coupler"
+            ],
+            "properties": {
+              "coupler": {
+                "type": "string",
+                "pattern": "^([0-9]|1[0-5])\\.([0-9]|1[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                "description": "Address of the coupler or repeater in the project (A.L.0, A.0.0, or the address of a line extension)."
+              },
+              "address": {
+                "type": "string",
+                "pattern": "^([0-9]|1[0-5])\\.([0-9]|1[0-5])\\.([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$",
+                "description": "Individual address programmed in it (15.15.0 by default)."
+              },
+              "programmingMode": {
+                "type": "boolean",
+                "description": "Programming LED on."
+              },
+              "application": {
+                "type": "object",
+                "additionalProperties": false,
+                "description": "Application downloaded: filter table and routing of group telegrams. Absent: none, the coupler forwards no group telegram.",
+                "properties": {
+                  "filterTable": {
+                    "anyOf": [
+                      {
+                        "type": "array",
+                        "items": {
+                          "type": "string",
+                          "pattern": "^([0-9]|[12][0-9]|3[01])/[0-7]/([0-9]|[1-9][0-9]|1[0-9]{2}|2[0-4][0-9]|25[0-5])$"
+                        }
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ],
+                    "description": "Group addresses of the filter table; null for a repeater."
+                  },
+                  "down": {
+                    "enum": [
+                      "filter",
+                      "route",
+                      "block"
+                    ],
+                    "description": "Group telegrams downwards."
+                  },
+                  "up": {
+                    "enum": [
+                      "filter",
+                      "route",
+                      "block"
+                    ],
+                    "description": "Group telegrams upwards."
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "$defs": {
@@ -2108,6 +2225,60 @@
           "type": "string",
           "pattern": "^[A-Za-z0-9_][A-Za-z0-9_.-]*$",
           "description": "Assigned room ID; thermostats, window contacts, and temperature sensors observe that room."
+        },
+        "ets": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "application",
+            "mask"
+          ],
+          "description": "Manufacturer's product that ETS programs: the device answers ETS with the mask of its application program and holds what ETS downloads. The parameter values of the project are kept by ParameterRef of its product database.",
+          "properties": {
+            "application": {
+              "type": "string",
+              "description": "Application program."
+            },
+            "mask": {
+              "type": "string",
+              "pattern": "^[0-9A-Fa-f]{4}$",
+              "description": "Mask version (0012 for a BCU1 1.2)."
+            },
+            "manufacturer": {
+              "type": "string",
+              "description": "Manufacturer name, shown without the catalog."
+            },
+            "name": {
+              "type": "string",
+              "description": "Product name, shown without the catalog."
+            },
+            "orderNumber": {
+              "type": "string",
+              "description": "Order number."
+            },
+            "applicationName": {
+              "type": "string",
+              "description": "Name of the application program."
+            },
+            "parameters": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              },
+              "description": "Values of the project, by ParameterRef; absent: the default of the program."
+            },
+            "memory": {
+              "type": "object",
+              "propertyNames": {
+                "pattern": "^(0|[1-9][0-9]*)$"
+              },
+              "additionalProperties": {
+                "type": "string",
+                "pattern": "^([0-9A-Fa-f]{2})*$"
+              },
+              "description": "Memory with the project's settings, as a complete download writes it; the application of the device reads its parameters there. Blocks of octets in hexadecimal by start address (decimal); the others are 0."
+            }
+          }
         },
         "inFilterTables": {
           "type": "boolean",

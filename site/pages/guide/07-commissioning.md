@@ -70,6 +70,7 @@ To prepare an exercise where a board was left programmed by another group, give 
 | `devices[].address` | Individual address held by the device (15.15.255 by default). |
 | `devices[].programmingMode` | Programming LED on. |
 | `devices[].application` | Application downloaded: behavior, parameters, objects with their associations, keys, and the parameters and scenes of each channel. Absent: no application. |
+| `devices[].memory` | Memory of a manufacturer's device, as ETS wrote it (blocks of octets in hexadecimal by address); the device runs the application started there. |
 | `couplers[].coupler` | Address of the coupler or repeater in the project. |
 | `couplers[].address` | Individual address held by it (15.15.0 by default). |
 | `couplers[].application` | Filter table (`filterTable`) and routing of group telegrams (`down`, `up`). Absent: no application. |

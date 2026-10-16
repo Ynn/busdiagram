@@ -161,3 +161,25 @@ Un participant livré avec BusDiagram vit dans son propre dossier, `src/particip
 Deux listes composent les participants livrés : `src/standard-model.ts` (entrées du modèle, installées par le registre) et `site/designer/standard-designer.ts` (entrées du designer). Ajouter un participant consiste à ajouter son dossier et une ligne à chaque liste ; le moteur, le schéma et le designer ne connaissent les participants que par ces déclarations. Le code partagé volontairement par plusieurs participants se trouve dans `src/participants/shared/`. Un équipement livré suit la même organisation dans `src/equipment/<nom>/` : `equipment.ts` (modèle physique), `size.ts` (taille de ses vues, lue par la disposition), `view.ts`, `messages.fr.ts` et `model.ts`, dont l'entrée donne aussi les tailles de ses vues (`viewSizes`).
 
 Les tests vérifient cette organisation : un participant ne dépend ni du registre ni d'un autre participant, son entrée du modèle n'atteint jamais le designer, les modules partagés ne nomment aucun comportement, et ses textes sont dans ses propres catalogues.
+
+## Livrer des participants de fabricants dans un paquet
+
+BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu'il faut pour les écrire, et le designer les importe depuis un **paquet de participants** (`.bdpkg`), avec le bouton **Importer des participants…** du panneau Catalogue. Ces participants, calqués sur ceux d'un fabricant, sont programmés par ETS avec leur programme d'application.
+
+Un participant se construit avec la boîte à outils de `src/bcu`, exportée par la bibliothèque (`BusDiagram.defineProduct`…), qui fait ce que fait la partie système de tout participant, quelle que soit son application :
+
+- Un **profil de masque** par famille de masques (BCU1 pour 0010h–0012h, BIM M112 pour 0700h–0705h avec ses machines d'états de chargement) donne la mémoire du participant, où sont son adresse individuelle et son mode programmation, comment ETS la charge, et comment se lisent ses tables : adresses de groupe, associations, objets de groupe. ETS l'atteint par la gestion des participants de la simulation.
+- `defineProduct(spec)` fait d'un produit un participant : son identité (fabricant, nom, référence, programmes d'application, masques), ce que contient le participant livré (`delivered` : son code fabricant et sa configuration matérielle à des adresses données ; `applicationId` pour un System 7), où sont ses paramètres (`parameterMemory`) et, pour un System 7, sa table des objets de groupe (`objectTable`) et les propriétés qu'écrit son programme (`properties`), ses canaux, les objets de groupe qu'a son application avec une mémoire donnée (`objects(memory)`), et son firmware, qui lit ses paramètres dans la mémoire (`bits`) et envoie ses objets par numéro (`send`, `valueOf`).
+
+Sa **base produit** contient ce qu'ETS affiche et ce qu'occupent ses paramètres et ses tables : types de paramètres, paramètres et leur place en mémoire, boîte de dialogue des paramètres, objets de groupe, tables. Elle se génère depuis un catalogue que possède l'auteur, sans le code applicatif : `npm run product -- <catalogue.knxprod> <programme> <fichier.json>`. Le designer en tire les pages d'ETS et calcule la mémoire qu'écrit un téléchargement complet ; la simulation lit l'application du participant dans sa mémoire : les objets que son firmware y active, liés comme le disent les tables.
+
+Un paquet est un zip :
+
+| Fichier | Contenu |
+| --- | --- |
+| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (la version de BusDiagram qu'il demande au minimum), `products` (`behavior`, `manufacturer`, `name`, `database` : le fichier de sa base produit) et `scenarios` (`id`, `file`, `title` par langue, `translations` : un fichier dictionnaire par langue) |
+| `devices.js` | Script d'extension qui enregistre les participants : `BusDiagram.registerParticipant(model)` pour chacun, compilé en IIFE avec `bus-diagram` comme la variable globale `BusDiagram` |
+| `databases/*.json` | Les bases produit |
+| `scenarios/*.json` | Des exemples, proposés avec les modèles une fois le paquet importé |
+
+Le designer vérifie le paquet, exécute son script comme une extension (refusé sans effet en cas d'échec) et garde le paquet dans le navigateur : il est rechargé au démarrage, apparaît avec les extensions et se retire avec elles ; un export embarque son script. Un scénario qui utilise un participant d'un paquet non importé est refusé avec le nom de ce qui manque. Les tests de BusDiagram utilisent les produits d'un fabricant imaginaire (`tests/knx/fixtures/sample-devices`), dont les bases sont écrites à la main : ils montrent ce qu'écrit l'auteur d'un paquet.

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0">
-<script src="../assets/bus-diagram.js?v=0.7.0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.ac44d05.modified.5626d81a">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/extensions.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -38,7 +38,7 @@
   <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
 
   <h4>Tools</h4>
-  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/ets.html">Link to ETS</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/commissioning.html">Commissioning</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/ets.html">Link to ETS</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
 
   <h4>Integrate</h4>
   <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
@@ -388,13 +388,46 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </tbody></table>
 </div><p>Two lists compose the delivered participants: <code>src/standard-model.ts</code> (model entries, installed by the registry) and <code>site/designer/standard-designer.ts</code> (designer entries). Adding a participant means adding its folder and one line to each list; the engine, the diagram, and the designer know participants only through these declarations. Code shared on purpose by several participants is in <code>src/participants/shared/</code>. A delivered equipment follows the same layout in <code>src/equipment/&lt;name&gt;/</code>: <code>equipment.ts</code> (physical model), <code>size.ts</code> (size of its views, read by the layout), <code>view.ts</code>, <code>messages.fr.ts</code>, and <code>model.ts</code>, whose entry also gives the sizes of its views (<code>viewSizes</code>).</p>
 <p>The tests check this organization: a participant depends neither on the registry nor on another participant, its model entry never reaches the designer, shared modules name no behavior, and its texts are in its own catalogs.</p>
+<h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Deliver manufacturers&#39; devices in a package</h2><p>BusDiagram delivers no manufacturer&#39;s device: their product databases come from the manufacturers&#39; catalogs. It delivers what is needed to write them, and the designer imports them from a <strong>package of devices</strong> (<code>.bdpkg</code>), with the button <strong>Import devices…</strong> of the Catalog panel. Such devices, modeled on a manufacturer&#39;s, are programmed by ETS with their application program.</p>
+<p>A device is built with the toolkit of <code>src/bcu</code>, exported by the library (<code>BusDiagram.defineProduct</code>…), which does what the system part of every device does, whatever its application:</p>
+<ul>
+<li>A <strong>mask profile</strong> per family of masks (BCU1 for 0010h–0012h, BIM M112 for 0700h–0705h with its load state machines) gives the memory of the device, where its individual address and programming mode are, how ETS loads it, and how its tables are read: group addresses, associations, group objects. ETS reaches it through the device management of the simulation.</li>
+<li><code>defineProduct(spec)</code> turns a product into a participant: its identity (manufacturer, name, order number, application programs, masks), what the delivered device holds (<code>delivered</code>: its manufacturer code and hardware configuration at given addresses; <code>applicationId</code> for a System 7), where its parameters are (<code>parameterMemory</code>) and, for a System 7, its group object table (<code>objectTable</code>) and the properties its program writes (<code>properties</code>), its channels, the group objects its application has with a given memory (<code>objects(memory)</code>), and its firmware, which reads its parameters in the memory (<code>bits</code>) and sends its objects by number (<code>send</code>, <code>valueOf</code>).</li>
+</ul>
+<p>Its <strong>product database</strong> holds what ETS shows and what its parameters and tables occupy: parameter types, parameters and their place in memory, the parameter dialog, the group objects, the tables. It is generated from a catalog that the author holds, without the application code: <code>npm run product -- &lt;catalog.knxprod&gt; &lt;program&gt; &lt;file.json&gt;</code>. The designer shows the pages of ETS from it and computes the memory a complete download writes; the simulation reads the application of the device from its memory: the objects its firmware enables there, linked as the tables say.</p>
+<p>A package is a zip:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>File</th>
+<th>Content</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>manifest.json</code></td>
+<td><code>format</code> (<code>&quot;bdpkg/1&quot;</code>), <code>name</code>, <code>version</code>, <code>busdiagram</code> (the version of BusDiagram it needs at least), <code>products</code> (<code>behavior</code>, <code>manufacturer</code>, <code>name</code>, <code>database</code>: the file of its product database) and <code>scenarios</code> (<code>id</code>, <code>file</code>, <code>title</code> by language, <code>translations</code>: a dictionary file by language)</td>
+</tr>
+<tr>
+<td><code>devices.js</code></td>
+<td>Extension script that registers the devices: <code>BusDiagram.registerParticipant(model)</code> for each, compiled as an IIFE with <code>bus-diagram</code> as the global <code>BusDiagram</code></td>
+</tr>
+<tr>
+<td><code>databases/*.json</code></td>
+<td>The product databases</td>
+</tr>
+<tr>
+<td><code>scenarios/*.json</code></td>
+<td>Examples, offered with the templates once the package is imported</td>
+</tr>
+</tbody></table>
+</div><p>The designer checks the package, runs its script as an extension (refused without effect if it fails), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them; an export embeds its script. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (<code>tests/knx/fixtures/sample-devices</code>), whose databases are written by hand: they show what a package author writes.</p>
 
 <nav class="pager">
 <a href="../guide/versions.html">← Versions and releases</a>
 <a href="../guide/time.html">Time and step mode →</a>
 </nav>
 </main>
-<aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Deliver a participant with the library</a></li></ul></aside>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Deliver a participant with the library</a></li><li><a href="#deliver-manufacturers-devices-in-a-package">Deliver manufacturers&#39; devices in a package</a></li></ul></aside>
 </div>
 <footer class="site">BusDiagram 0.7.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
 </body>

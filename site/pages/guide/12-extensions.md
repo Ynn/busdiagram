@@ -161,3 +161,25 @@ A participant delivered with BusDiagram lives in its own folder, `src/participan
 Two lists compose the delivered participants: `src/standard-model.ts` (model entries, installed by the registry) and `site/designer/standard-designer.ts` (designer entries). Adding a participant means adding its folder and one line to each list; the engine, the diagram, and the designer know participants only through these declarations. Code shared on purpose by several participants is in `src/participants/shared/`. A delivered equipment follows the same layout in `src/equipment/<name>/`: `equipment.ts` (physical model), `size.ts` (size of its views, read by the layout), `view.ts`, `messages.fr.ts`, and `model.ts`, whose entry also gives the sizes of its views (`viewSizes`).
 
 The tests check this organization: a participant depends neither on the registry nor on another participant, its model entry never reaches the designer, shared modules name no behavior, and its texts are in its own catalogs.
+
+## Deliver manufacturers' devices in a package
+
+BusDiagram delivers no manufacturer's device: their product databases come from the manufacturers' catalogs. It delivers what is needed to write them, and the designer imports them from a **package of devices** (`.bdpkg`), with the button **Import devices…** of the Catalog panel. Such devices, modeled on a manufacturer's, are programmed by ETS with their application program.
+
+A device is built with the toolkit of `src/bcu`, exported by the library (`BusDiagram.defineProduct`…), which does what the system part of every device does, whatever its application:
+
+- A **mask profile** per family of masks (BCU1 for 0010h–0012h, BIM M112 for 0700h–0705h with its load state machines) gives the memory of the device, where its individual address and programming mode are, how ETS loads it, and how its tables are read: group addresses, associations, group objects. ETS reaches it through the device management of the simulation.
+- `defineProduct(spec)` turns a product into a participant: its identity (manufacturer, name, order number, application programs, masks), what the delivered device holds (`delivered`: its manufacturer code and hardware configuration at given addresses; `applicationId` for a System 7), where its parameters are (`parameterMemory`) and, for a System 7, its group object table (`objectTable`) and the properties its program writes (`properties`), its channels, the group objects its application has with a given memory (`objects(memory)`), and its firmware, which reads its parameters in the memory (`bits`) and sends its objects by number (`send`, `valueOf`).
+
+Its **product database** holds what ETS shows and what its parameters and tables occupy: parameter types, parameters and their place in memory, the parameter dialog, the group objects, the tables. It is generated from a catalog that the author holds, without the application code: `npm run product -- <catalog.knxprod> <program> <file.json>`. The designer shows the pages of ETS from it and computes the memory a complete download writes; the simulation reads the application of the device from its memory: the objects its firmware enables there, linked as the tables say.
+
+A package is a zip:
+
+| File | Content |
+| --- | --- |
+| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (the version of BusDiagram it needs at least), `products` (`behavior`, `manufacturer`, `name`, `database`: the file of its product database) and `scenarios` (`id`, `file`, `title` by language, `translations`: a dictionary file by language) |
+| `devices.js` | Extension script that registers the devices: `BusDiagram.registerParticipant(model)` for each, compiled as an IIFE with `bus-diagram` as the global `BusDiagram` |
+| `databases/*.json` | The product databases |
+| `scenarios/*.json` | Examples, offered with the templates once the package is imported |
+
+The designer checks the package, runs its script as an extension (refused without effect if it fails), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them; an export embeds its script. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (`tests/knx/fixtures/sample-devices`), whose databases are written by hand: they show what a package author writes.

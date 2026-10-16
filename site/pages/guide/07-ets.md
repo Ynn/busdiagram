@@ -43,7 +43,13 @@ Telegrams from ETS enter the bus there with their own source (the tunnel address
 
 In a diagram that simulates [commissioning](commissioning.html), the devices start at 15.15.255, as delivered. In ETS, right-click a device of the project → *Download* → *Individual Address*, then click the programming button of the device in the diagram (the small square beside its address): its LED lights up, ETS writes the address, restarts the device, and the LED goes out. The designer, when it shows the diagram, records the new address (column **Adr**). The usual mistakes have their effect: two LEDs on, and both devices answer; an address already used on the bus, and ETS finds it.
 
-The devices answer with the device descriptor 07B0 (TP1, System B) and the manufacturer code of KNX Association, as those of KNX Virtual. The applications are still downloaded from the designer.
+The devices of BusDiagram answer with the device descriptor 07B0 (TP1, System B) and the manufacturer code of KNX Association, as those of KNX Virtual; their applications are downloaded from the designer.
+
+## Downloading an application from ETS
+
+Manufacturers' devices, which BusDiagram does not deliver, are imported from a package of devices (`.bdpkg`, button **Import devices…** of the Catalog panel; see [extensions](extensions.html#deliver-manufacturers-devices-in-a-package)), and are programmed by ETS as the real ones. Insert the device from the **Programmed by ETS** category of the designer's catalog, and create the same device in the ETS project, from the manufacturer's catalog. The device answers ETS with the mask of its application program (0011 or 0012 for a BCU1, 0701 for a System 7) and holds a memory: ETS writes the parameters, the group address table, the associations and the group objects there (for a System 7, through its load state machines), verifies each write by a read, starts the application, and restarts the device. As a delivered device, it holds the code of its manufacturer and the identifier of its application, which ETS checks first. The application code of a System 7 device is written too, which takes a few minutes, as on a real bus. The diagram then runs what the memory holds, as the device does: change a parameter in ETS, download, and the device behaves accordingly; download without the group addresses, and it sends nothing.
+
+The parameter pages of the device in the designer are those of ETS: same pages, same parameters and choices, in the same order, with the names and functions of its group objects. The designer can also download it (context menu → *Download*), as ETS would.
 
 ## While linked
 
@@ -58,7 +64,7 @@ The devices answer with the device descriptor 07B0 (TP1, System B) and the manuf
 | --- | --- |
 | Group communication (write, read, response) | Yes |
 | Individual address in programming mode (read, write), connection to a device, device descriptor, manufacturer and serial number, restart | Yes: the devices of the diagram answer as delivered devices do; with [commissioning](commissioning.html), ETS programs their individual address with the programming button of the diagram |
-| Download of an application (memory, properties) | No: the parameters and associations of the devices are set in the diagram; ETS gets a refusal |
+| Download of an application (memory, properties) | Yes for the manufacturers' devices imported from a package (BCU1 and System 7 masks); no for the devices of BusDiagram, whose parameters and associations are set in the diagram: ETS gets a refusal |
 | Bus monitor, KNX Secure | No |
 | Several diagrams at once | No, one at a time |
 | Pages allowed to link | Files from disk, pages served on this computer, `https://ynn.github.io`; others in the settings |

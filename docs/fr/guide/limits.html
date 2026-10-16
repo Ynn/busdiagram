@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Modèle et limites · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0">
-<script src="../../assets/bus-diagram.js?v=0.7.0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.ac44d05.modified.5626d81a">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0"></script>
-<script defer src="../../assets/docs.js?v=0.7.0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/limits.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -38,7 +38,7 @@
   <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
 
   <h4>Outils</h4>
-  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/ets.html">Liaison à ETS</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li><a href="../../fr/guide/commissioning.html">Mise en service</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/ets.html">Liaison à ETS</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
 
   <h4>Intégrer</h4>
   <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
@@ -54,10 +54,10 @@
 <p class="crumb">Guide</p>
 
 <h1 id="model-and-limits"><a class="anchor" href="#model-and-limits">#</a>Modèle et limites</h1><p>BusDiagram est un outil de conception de schémas ; sa couche de simulation sert à illustrer les schémas et fait les choix suivants. Ils décrivent le modèle logiciel et ne doivent pas être pris pour une description complète d&#39;une installation KNX physique.</p>
-<p>Ce qui s&#39;exécute et ce qui est seulement montré : les fonctions des appareils, leurs objets et indicateurs, les services de groupe et le routage à travers les coupleurs s&#39;exécutent dans la simulation ; la trame TP et son signal sont calculés pour l&#39;affichage ; le bus électrique, la programmation et les autres médias ne sont pas simulés.</p>
+<p>Ce qui s&#39;exécute et ce qui est seulement montré : les fonctions des appareils, leurs objets et indicateurs, les services de groupe et le routage à travers les coupleurs s&#39;exécutent dans la simulation ; la trame TP et son signal sont calculés pour l&#39;affichage ; le bus électrique et les autres médias ne sont pas simulés. La mise en service (adresses individuelles et téléchargements) n&#39;est simulée que dans un scénario avec une section <code>installation</code>, au niveau des procédures : voir <a href="commissioning.html">mise en service</a>.</p>
 <ul>
 <li><strong>Cadence :</strong> la propagation est ralentie pour l&#39;observation ; elle ne reproduit pas la cadence réelle d&#39;un bus à paire torsadée.</li>
-<li><strong>Services de groupe :</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code> et <code>GroupValueResponse</code> sont modélisés. Les télégrammes de programmation à adresse individuelle sont hors du modèle.</li>
+<li><strong>Services de groupe :</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code> et <code>GroupValueResponse</code> sont modélisés. Avec la mise en service, le mode programmation, la lecture et l&#39;écriture des adresses individuelles et les téléchargements sont modélisés comme des procédures, sans leurs télégrammes sur le bus.</li>
 <li><strong>Échange TP :</strong> la vue des trames montre une trame de données de groupe, avec la priorité de l&#39;objet émetteur (low par défaut ; la couche liaison de données KNX donne normal par défaut pour les trames courtes, et la priorité est un réglage de chaque objet). L&#39;arbitrage du bus, l&#39;ordonnancement par priorité, les acquittements TP (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>) et les répétitions automatiques sont hors du modèle ; les détails des télégrammes dessinent l&#39;acquittement à titre d&#39;illustration, et leur signal TP1 est schématique, pas une simulation électrique.</li>
 <li><strong>Indicateurs des objets :</strong> C, R, W, T, U et I sont modélisés. La lecture à l&#39;initialisation (I) s&#39;exécute quand un appareil démarre : au démarrage de la simulation et après une coupure de la tension bus ; comme toute demande d&#39;émission, elle demande C et T. Comme dans la couche application KNX, un seul objet par appareil répond à une lecture : le premier, dans l&#39;ordre de ses objets, qui a l&#39;indicateur R et une valeur connue ; la réponse est envoyée sur son adresse d&#39;émission.</li>
 <li><strong>Associations internes :</strong> quand un appareil émet, ses autres objets sur la même adresse de groupe en sont informés, comme le prévoit la couche application KNX, et traités comme pour un télégramme reçu du bus : un objet ne prend la valeur qu&#39;avec son indicateur W (U pour une réponse).</li>

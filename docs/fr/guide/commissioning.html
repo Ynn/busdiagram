@@ -1,0 +1,158 @@
+
+
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mise en service · BusDiagram</title>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.ac44d05.modified.5626d81a">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" data-base="../../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../../fr/index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../../fr/guide/installation.html" class="cur">Guide</a>
+    <a href="../../fr/examples/index.html">Exemples</a>
+    <a href="../../fr/reference/index.html">Référence</a>
+    <a href="../../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../../guide/commissioning.html" hreflang="en" lang="en">English</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.ac44d05.modified.5626d81a" download="bus-diagram.js">Télécharger</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Premiers pas</h4>
+  <ul><li><a href="../../fr/guide/installation.html">Installation</a></li><li><a href="../../fr/guide/first-diagram.html">Premier schéma</a></li><li><a href="../../fr/guide/concepts.html">Notions</a></li></ul>
+
+  <h4>Écrire un scénario</h4>
+  <ul><li><a href="../../fr/guide/scenario.html">Structure d&#39;un scénario</a></li><li><a href="../../fr/guide/devices.html">Boutons-poussoirs et actionneurs</a></li><li><a href="../../fr/guide/shutters.html">Volets</a></li><li><a href="../../fr/guide/dali.html">Variation et DALI</a></li><li><a href="../../fr/guide/hvac.html">Chauffage</a></li><li><a href="../../fr/guide/topology.html">Topologie et supervision</a></li><li><a href="../../fr/guide/couplers.html">Coupleurs et répéteurs</a></li></ul>
+
+  <h4>Outils</h4>
+  <ul><li><a href="../../fr/guide/designer.html">Designer</a></li><li class="cur"><a href="../../fr/guide/commissioning.html">Mise en service</a></li><li><a href="../../fr/guide/usb-interface.html">Outil interface USB</a></li><li><a href="../../fr/guide/ets.html">Liaison à ETS</a></li><li><a href="../../fr/guide/language-models.html">Générer avec un modèle de langage</a></li><li><a href="../../fr/guide/prompt-generator.html">Générateur de prompt</a></li></ul>
+
+  <h4>Intégrer</h4>
+  <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
+
+  <h4>Pour les développeurs</h4>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+
+  <h4>Modèle de simulation</h4>
+  <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+<p class="stale" role="note">Cette traduction a été faite sur une version antérieure de la page anglaise, qui a changé depuis : elle peut être incomplète ou dépassée. <a href="../../guide/commissioning.html" hreflang="en">Lire la version anglaise de référence</a>.</p>
+<h1 id="commissioning"><a class="anchor" href="#commissioning">#</a>Mise en service</h1><p>Sur une maquette, les étudiants ne se contentent pas de concevoir un projet : ils programment l&#39;adresse individuelle de chaque participant avec son bouton de programmation, téléchargent les applications et cherchent pourquoi un participant ne répond pas. Un scénario peut simuler cette partie du travail. Les participants contiennent alors, à côté du projet, ce qui y a été téléchargé, comme de vrais participants.</p>
+<h2 id="turn-it-on"><a class="anchor" href="#turn-it-on">#</a>L&#39;activer</h2><p>Dans le <a href="designer.html">designer</a>, panneau <strong>Installation</strong>, cochez <strong>Simuler la mise en service</strong>. En JSON, ajoutez une section <code>installation</code> à la racine du scénario :</p>
+<pre class="code"><code><span class="k">"installation"</span>: {}</code></pre><p>Une section vide signifie que chaque participant et chaque coupleur est à l&#39;état de livraison : adresse individuelle 15.15.255 (15.15.0 pour un coupleur), sans application. Un participant sans application ne fait rien : ses touches n&#39;envoient aucun télégramme, ses sorties ne commutent pas, et sa carte dans le schéma indique <strong>non chargé</strong>. Un coupleur sans application ne transmet aucun télégramme de groupe.</p>
+<p>Sans la section, rien ne change : le schéma exécute le projet comme si chaque participant était déjà mis en service.</p>
+<h2 id="in-the-diagram"><a class="anchor" href="#in-the-diagram">#</a>Dans le schéma</h2><p>Avec la mise en service, chaque participant et chaque coupleur a un petit carré à côté de son adresse : son <strong>bouton de programmation</strong>. Un clic active le mode programmation (la LED rouge s&#39;allume) ou le désactive. Quand l&#39;adresse contenue dans un participant n&#39;est pas celle du projet, la carte l&#39;affiche après un signe <strong>≠</strong>, en rouge.</p>
+<h2 id="in-the-designer"><a class="anchor" href="#in-the-designer">#</a>Dans le designer</h2><p>Le menu contextuel d&#39;un participant (clic droit dans le panneau Topologie ou dans la liste des participants d&#39;une ligne) propose les téléchargements d&#39;ETS :</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Commande</th>
+<th>Effet</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Téléchargement complet</td>
+<td>Programme l&#39;adresse individuelle avec le bouton de programmation, puis télécharge l&#39;application. Quand le participant répond déjà à son adresse, seulement l&#39;application.</td>
+</tr>
+<tr>
+<td>Télécharger : adresse individuelle</td>
+<td>Attend un bouton de programmation, vérifie qu&#39;un seul participant est en mode programmation et qu&#39;aucun autre participant n&#39;a l&#39;adresse, l&#39;écrit et met fin au mode programmation.</td>
+</tr>
+<tr>
+<td>Télécharger : téléchargement partiel (application)</td>
+<td>Télécharge l&#39;application dans le participant qui répond à l&#39;adresse du projet.</td>
+</tr>
+<tr>
+<td>Décharger l&#39;application</td>
+<td>Retire l&#39;application du participant à cette adresse.</td>
+</tr>
+</tbody></table>
+</div><p>Le menu contextuel d&#39;une ligne ajoute <strong>Scanner la ligne</strong>, qui liste les participants qui répondent aux adresses de la ligne, avec ce qu&#39;ils contiennent ; un participant à l&#39;état de livraison (15.15.255) n&#39;y figure pas. Les coupleurs d&#39;une ligne, et le coupleur de zone d&#39;une zone, ont leurs propres commandes de téléchargement dans les mêmes menus.</p>
+<p>La liste des participants d&#39;une ligne montre l&#39;état de téléchargement, comme la topologie d&#39;ETS : <strong>Adr</strong> (adresse individuelle programmée), <strong>Prg</strong> (programme d&#39;application chargé), <strong>Par</strong> (paramètres à jour), <strong>Grp</strong> (adresses de groupe à jour) et <strong>Cfg</strong> (indicateurs, DPT et priorités à jour). Une modification du projet, comme une nouvelle association, fait passer la colonne en rouge jusqu&#39;au prochain téléchargement du participant : d&#39;ici là, il garde ses anciens réglages.</p>
+<p>La barre <strong>Mise en service</strong> au-dessus des panneaux garde l&#39;historique des opérations. Quand une opération attend un bouton de programmation, la barre dit laquelle ; elle reprend dès que le bouton est actionné dans le schéma, et <strong>Annuler</strong> l&#39;arrête. <strong>Participants en mode programmation</strong> liste les participants dont la LED est allumée. <strong>État de livraison</strong> remet tous les participants à l&#39;état de livraison, et <strong>Conforme au projet</strong> charge chaque participant avec son adresse et son application, comme après un téléchargement complet.</p>
+<p>L&#39;état des participants est conservé dans le scénario : un bouton de programmation, une adresse écrite ou un téléchargement n&#39;ajoutent pas d&#39;étape à l&#39;historique d&#39;annulation du projet.</p>
+<h2 id="what-students-can-get-wrong"><a class="anchor" href="#what-students-can-get-wrong">#</a>Les erreurs possibles des étudiants</h2><p>Les procédures agissent sur le participant qui répond, pas sur celui que l&#39;étudiant visait. Elles refusent ce qu&#39;ETS refuse :</p>
+<ul>
+<li>deux LED de programmation allumées en même temps ;</li>
+<li>une adresse individuelle déjà détenue par un autre participant du bus (scannez la ligne pour le trouver) ;</li>
+<li>un téléchargement vers une adresse où aucun participant ne répond ;</li>
+<li>un téléchargement vers un participant dont le programme d&#39;application n&#39;est pas celui du projet.</li>
+</ul>
+<p>Les autres erreurs ont leurs conséquences : si le mauvais bouton de programmation a été actionné, le mauvais participant reçoit l&#39;adresse, puis l&#39;application d&#39;un autre participant du même type, et c&#39;est la mauvaise lampe qui s&#39;allume. Une nouvelle adresse de groupe qui traverse un coupleur ne fonctionne qu&#39;une fois le coupleur téléchargé à nouveau, avec sa nouvelle table de filtrage.</p>
+<p>Pour préparer un exercice où une maquette a été laissée programmée par un autre groupe, donnez une autre adresse à certains participants dans la section <code>installation</code> :</p>
+<pre class="code"><code><span class="k">"installation"</span>: {
+  <span class="k">"devices"</span>: [{ <span class="k">"device"</span>: <span class="s">"switchActuator"</span>, <span class="k">"address"</span>: <span class="s">"1.1.1"</span> }]
+}</code></pre><h2 id="the-installation-section"><a class="anchor" href="#the-installation-section">#</a>La section installation</h2><div class="table"><table>
+<thead>
+<tr>
+<th>Champ</th>
+<th>Contenu</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>devices[].device</code></td>
+<td>ID du participant dans le projet.</td>
+</tr>
+<tr>
+<td><code>devices[].address</code></td>
+<td>Adresse individuelle contenue dans le participant (15.15.255 par défaut).</td>
+</tr>
+<tr>
+<td><code>devices[].programmingMode</code></td>
+<td>LED de programmation allumée.</td>
+</tr>
+<tr>
+<td><code>devices[].application</code></td>
+<td>Application téléchargée : comportement, paramètres, objets avec leurs associations, touches, et paramètres et scènes de chaque canal. Absente : pas d&#39;application.</td>
+</tr>
+<tr>
+<td><code>devices[].memory</code></td>
+<td>Mémoire d&#39;un participant d&#39;un fabricant, telle qu&#39;ETS l&#39;a écrite (blocs d&#39;octets en hexadécimal par adresse) ; le participant exécute l&#39;application qui y est démarrée.</td>
+</tr>
+<tr>
+<td><code>couplers[].coupler</code></td>
+<td>Adresse du coupleur ou du répéteur dans le projet.</td>
+</tr>
+<tr>
+<td><code>couplers[].address</code></td>
+<td>Adresse individuelle qu&#39;il contient (15.15.0 par défaut).</td>
+</tr>
+<tr>
+<td><code>couplers[].application</code></td>
+<td>Table de filtrage (<code>filterTable</code>) et routage des télégrammes de groupe (<code>down</code>, <code>up</code>). Absente : pas d&#39;application.</td>
+</tr>
+</tbody></table>
+</div><p>Les noms, adresses et pièces des participants, ainsi que les charges et boutons-poussoirs qui y sont câblés, restent dans le projet : ils ne sont pas téléchargés.</p>
+<h2 id="model-limits"><a class="anchor" href="#model-limits">#</a>Limites du modèle</h2><ul>
+<li>La gestion des participants atteint tout participant sous tension de bus, à travers les coupleurs, quoi qu&#39;ils contiennent.</li>
+<li>Un téléchargement redémarre la simulation : les sorties reviennent à leur état initial.</li>
+<li>Le mode programmation prend fin quand la simulation est réinitialisée, comme au retour de la tension de bus ; les adresses contenues restent.</li>
+<li>Un programme d&#39;application est identifié par le comportement du participant : deux participants du même type acceptent l&#39;application l&#39;un de l&#39;autre.</li>
+</ul>
+
+<nav class="pager">
+<a href="../../fr/guide/designer.html">← Designer</a>
+<a href="../../fr/guide/usb-interface.html">Outil interface USB →</a>
+</nav>
+</main>
+<aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#turn-it-on">L&#39;activer</a></li><li><a href="#in-the-diagram">Dans le schéma</a></li><li><a href="#in-the-designer">Dans le designer</a></li><li><a href="#what-students-can-get-wrong">Les erreurs possibles des étudiants</a></li><li><a href="#the-installation-section">La section installation</a></li><li><a href="#model-limits">Limites du modèle</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.7.0 · documentation hors ligne · <a href="../../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Code source (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Modifications</a> · <a href="../../THIRD_PARTY_NOTICES.txt">Mentions des tiers</a><br>BusDiagram est un projet pédagogique indépendant. Il n'est ni affilié à KNX Association, ni approuvé ou parrainé par elle. KNX et ETS sont des marques de KNX Association. BusDiagram simule le comportement des appareils pour l'enseignement ; il ne configure ni ne met en service de vraies installations.</footer>
+</body>
+</html>

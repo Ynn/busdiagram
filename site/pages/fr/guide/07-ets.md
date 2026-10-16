@@ -44,7 +44,13 @@ Les télégrammes d'ETS entrent sur le bus à cet endroit avec leur propre sourc
 
 Dans un schéma qui simule la [mise en service](commissioning.html), les participants démarrent en 15.15.255, comme à la livraison. Dans ETS, clic droit sur un participant du projet → *Télécharger* → *Adresse individuelle*, puis cliquez sur le bouton de programmation du participant dans le schéma (le petit carré à côté de son adresse) : sa LED s'allume, ETS écrit l'adresse, redémarre le participant, et la LED s'éteint. Le designer, quand il affiche le schéma, enregistre la nouvelle adresse (colonne **Adr**). Les erreurs habituelles ont leur effet : deux LED allumées, et les deux participants répondent ; une adresse déjà utilisée sur le bus, et ETS la trouve.
 
-Les participants répondent avec le descripteur 07B0 (TP1, System B) et le code fabricant de la KNX Association, comme ceux de KNX Virtual. Les applications se téléchargent toujours depuis le designer.
+Les participants de BusDiagram répondent avec le descripteur 07B0 (TP1, System B) et le code fabricant de la KNX Association, comme ceux de KNX Virtual ; leurs applications se téléchargent depuis le designer.
+
+## Télécharger une application depuis ETS
+
+Les participants des fabricants, que BusDiagram ne livre pas, s'importent depuis un paquet de participants (`.bdpkg`, bouton **Importer des participants…** du panneau Catalogue ; voir les [extensions](extensions.html#livrer-des-participants-de-fabricants-dans-un-paquet)), et se programment depuis ETS comme les vrais. Insérez le participant depuis la catégorie **Programmés par ETS** du catalogue du designer, et créez le même participant dans le projet ETS, depuis le catalogue du fabricant. Le participant répond à ETS avec le masque de son programme d'application (0011 ou 0012 pour un BCU1, 0701 pour un System 7) et possède une mémoire : ETS y écrit les paramètres, la table des adresses de groupe, les associations et les objets de groupe (pour un System 7, par ses machines d'états de chargement), vérifie chaque écriture par une lecture, démarre l'application et redémarre le participant. Comme un participant livré, il contient le code de son fabricant et l'identifiant de son application, qu'ETS vérifie d'abord. Le code applicatif d'un participant System 7 est écrit lui aussi, ce qui prend quelques minutes, comme sur un vrai bus. Le schéma exécute alors ce que contient la mémoire, comme le participant : modifiez un paramètre dans ETS, téléchargez, et le participant se comporte en conséquence ; téléchargez sans les adresses de groupe, et il n'envoie rien.
+
+Les pages de paramètres du participant dans le designer sont celles d'ETS : mêmes pages, mêmes paramètres et choix, dans le même ordre, avec les noms et fonctions de ses objets de groupe. Le designer peut aussi le télécharger (menu contextuel → *Télécharger*), comme ETS le ferait.
 
 ## Pendant la liaison
 
@@ -59,7 +65,7 @@ Les participants répondent avec le descripteur 07B0 (TP1, System B) et le code 
 | --- | --- |
 | Communication de groupe (écriture, lecture, réponse) | Oui |
 | Adresse individuelle en mode programmation (lecture, écriture), connexion à un participant, descripteur, fabricant et numéro de série, redémarrage | Oui : les participants du schéma répondent comme des participants à l'état de livraison ; avec la [mise en service](commissioning.html), ETS programme leur adresse individuelle avec le bouton de programmation du schéma |
-| Téléchargement d'une application (mémoire, propriétés) | Non : les paramètres et associations des participants se règlent dans le schéma ; ETS reçoit un refus |
+| Téléchargement d'une application (mémoire, propriétés) | Oui pour les participants des fabricants importés d'un paquet (masques BCU1 et System 7) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus |
 | Moniteur de bus, KNX Secure | Non |
 | Plusieurs schémas à la fois | Non, un seul à la fois |
 | Pages autorisées à se relier | Fichiers du disque, pages servies sur cet ordinateur, `https://ynn.github.io` ; les autres dans les réglages |

@@ -71,6 +71,7 @@ Pour préparer un exercice où une maquette a été laissée programmée par un 
 | `devices[].address` | Adresse individuelle contenue dans le participant (15.15.255 par défaut). |
 | `devices[].programmingMode` | LED de programmation allumée. |
 | `devices[].application` | Application téléchargée : comportement, paramètres, objets avec leurs associations, touches, et paramètres et scènes de chaque canal. Absente : pas d'application. |
+| `devices[].memory` | Mémoire d'un participant d'un fabricant, telle qu'ETS l'a écrite (blocs d'octets en hexadécimal par adresse) ; le participant exécute l'application qui y est démarrée. |
 | `couplers[].coupler` | Adresse du coupleur ou du répéteur dans le projet. |
 | `couplers[].address` | Adresse individuelle qu'il contient (15.15.0 par défaut). |
 | `couplers[].application` | Table de filtrage (`filterTable`) et routage des télégrammes de groupe (`down`, `up`). Absente : pas d'application. |

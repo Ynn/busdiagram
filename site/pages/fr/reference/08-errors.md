@@ -1,7 +1,7 @@
 ---
 title: Codes d'erreur
 translationOf: reference/08-errors.md
-sourceHash: "dda20c773df5"
+sourceHash: "2b3967a11ae9"
 order: 8
 ---
 # Codes d'erreur
@@ -21,7 +21,7 @@ Chaque problème de validation a un `path` JSON, un `code` et un `message` tradu
 | `id` | Syntaxe d'identifiant invalide. |
 | `address` | Adresse individuelle, de ligne ou de groupe mal formée ou hors plage. |
 | `duplicate` | Identifiant ou adresse en double. |
-| `reference` | Référence à une ligne, un canal, un objet, un coupleur ou un niveau de topologie absent. |
+| `reference` | Référence à une ligne, un canal, un objet, un coupleur, un niveau de topologie ou un participant absent. |
 | `port` | Port non accepté par un comportement, association de canal invalide, ou second objet sur un port qui n'en accepte qu'un. |
 | `dpt` | DPT non pris en charge ou incompatible avec un port. |
 | `association` | Tailles de données incompatibles sur une même adresse de groupe. |

@@ -20,7 +20,7 @@ Each validation problem has a JSON `path`, a `code`, and a localized `message`.
 | `id` | Invalid identifier syntax. |
 | `address` | Malformed or out-of-range individual, line, or group address. |
 | `duplicate` | Duplicate identifier or address. |
-| `reference` | Reference to a missing line, channel, object, coupler, or topology level. |
+| `reference` | Reference to a missing line, channel, object, coupler, topology level, or device. |
 | `port` | Port not accepted by a behavior, an invalid channel association, or a second object on a port that takes only one. |
 | `dpt` | Unsupported DPT or DPT incompatible with a port. |
 | `association` | Incompatible payload sizes on one group address. |
