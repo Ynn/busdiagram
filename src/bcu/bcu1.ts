@@ -76,8 +76,11 @@ export const bcu1: MaskProfile = {
     return { associations: l.associations, objects: l.objects };
   },
   writeTables: (memory, content, at) => writeTables(memory, content, at),
-  start(memory) {
+  start(memory, app) {
     memory[RUN_ERROR] = 0xff;
+    // ETS writes the code of the program's manufacturer at 104h: that of the brand that
+    // sells it, for a program made by another manufacturer (OEM).
+    if (app) memory[APP_ID] = app.manufacturer & 0xff;
   },
 };
 

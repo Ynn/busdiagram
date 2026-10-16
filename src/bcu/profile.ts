@@ -104,7 +104,8 @@ export interface MaskProfile {
   ): void;
   /**
    * Mark an image as started, as the end of a complete download leaves it, with the
-   * identifier of its application (for a BCU1 it is in the image itself).
+   * identifier of its application (for a BCU1, the image holds it, but for the code of
+   * the manufacturer at 104h, which ETS writes from the program).
    */
   start?(
     memory: Uint8Array,

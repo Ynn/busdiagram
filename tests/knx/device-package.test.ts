@@ -6,6 +6,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 import { createSimulator, registerParticipant, version } from "../../src/core";
 import { bcu1, bcuState } from "../../src/bcu";
 import { projectImage, valuesOf } from "../../src/knxprod/runtime";
+import { programOf } from "../../src/knxprod/database";
 import { DeviceManagement, decodeLData } from "../../src/knx/management";
 import type { LDataFrame } from "../../src/knx/management";
 import { captureRegistry } from "../../src/knx/registry";
@@ -348,6 +349,18 @@ describe("download into a BCU1 by its load procedure", () => {
         captureRegistry(),
       ),
     ).toEqual([]);
+  });
+});
+
+describe("program made by another manufacturer (OEM)", () => {
+  it("holds the code of the brand that sells it at 104h, as ETS writes it", () => {
+    // The SA 2 sold by another brand (FDh): its image still holds the maker's code.
+    const db = structuredClone(SAMPLE_PRODUCTS[0]!.database);
+    db.id = "M-00FD_A-0001-10-0000-O00FE";
+    const app = programOf(db);
+    expect(app.segments.get("AS-0100")!.data[4]).toBe(0xfe);
+    const image = projectImage(app, "0012", {}, new Map(), "1.1.1");
+    expect(image[0x104]).toBe(0xfd);
   });
 });
 
