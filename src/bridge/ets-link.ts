@@ -127,7 +127,14 @@ export class EtsLink {
 
   constructor(private readonly o: EtsLinkOptions) {
     this.t = o.t ?? en;
-    this.management = new DeviceManagement(() => this.o.target()?.sim ?? null);
+    this.management = new DeviceManagement(
+      () => this.o.target()?.sim ?? null,
+      (address) =>
+        this.refuse(
+          this
+            .t`ETS downloads the device ${address}: turn on Simulate commissioning (designer, Installation panel) so that the devices hold what ETS writes`,
+        ),
+    );
   }
 
   get current(): LinkStatus {

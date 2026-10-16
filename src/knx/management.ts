@@ -141,7 +141,14 @@ interface Connection {
 export class DeviceManagement {
   private conns = new Map<string, Connection>();
 
-  constructor(private readonly sim: () => Simulation | null) {}
+  constructor(
+    private readonly sim: () => Simulation | null,
+    /**
+     * ETS reads or writes the memory of a manufacturer's device while the diagram does not
+     * simulate commissioning: the device holds no memory, and ETS stops.
+     */
+    private readonly onUncommissioned: (address: string) => void = () => {},
+  ) {}
 
   /** Is this frame for device management (not a group telegram)? */
   static concerns(f: LDataFrame): boolean {
@@ -245,6 +252,12 @@ export class DeviceManagement {
     const { apci, short, data } = apduOf(f.tpdu);
     const four = apci & 0x3c0;
     const bcu = sim.bcu(target);
+    if (
+      !bcu &&
+      sim.maskVersion(target) !== MASK_VERSION &&
+      (four === APCI.memoryRead || four === APCI.memoryWrite)
+    )
+      this.onUncommissioned(iaText(f.destination));
     if (four === APCI.deviceDescriptorRead) {
       // Descriptor type 0: the mask version; other types are not supported (type 0x3F).
       const mask = sim.maskVersion(target);

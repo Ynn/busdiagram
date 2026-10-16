@@ -352,6 +352,8 @@ export const frMessages: Record<string, string> = {
   "{0} is not a usable value": "{0} n'est pas une valeur exploitable",
   closed: "fermée",
   "frame from ETS ignored: {0}": "trame d'ETS ignorée : {0}",
+  "ETS downloads the device {0}: turn on Simulate commissioning (designer, Installation panel) so that the devices hold what ETS writes":
+    "ETS télécharge le participant {0} : activez Simuler la mise en service (designer, panneau Installation) pour que les participants gardent ce qu'écrit ETS",
   "no bus interface in the scenario": "pas d'interface de bus dans le scénario",
   "telegram from ETS to {0} not let in: {1}":
     "télégramme d'ETS vers {0} non admis : {1}",
