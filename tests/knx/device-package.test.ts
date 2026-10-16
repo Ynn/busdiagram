@@ -231,6 +231,9 @@ function client(m: DeviceManagement, to: number) {
         expect(back!.slice(4)).toEqual(part);
       }
     },
+    /** A_Memory_Write that announces `count` octets and carries `bytes`. */
+    announce: (address: number, count: number, bytes: number[]) =>
+      data([0x02, 0x80 | count, address >> 8, address & 0xff, ...bytes]),
     /** A_Memory_Write without reading back (load controls of a BIM M112). */
     control: (address: number, bytes: number[]) =>
       data([0x02, 0x80 | bytes.length, address >> 8, address & 0xff, ...bytes]),
@@ -514,6 +517,13 @@ describe("download into a BIM M112 (System 7) by its Load State Machines", () =>
         // The program writes a property of its own, which ETS describes first.
         expect(c.describe(3, 204)).toEqual([3, 204, 0, 0x95, 0, 2, 0x33]);
         expect(c.writeProperty(3, 204, 2, OWN)).toEqual(OWN);
+        // Refused, without a change: elements beyond the property, octets that are not
+        // those of the elements announced, a write without all its octets.
+        expect(c.elements(3, 204, 3)).toEqual([]);
+        expect(c.writeProperty(3, 204, 2, OWN.slice(1))).toEqual([]);
+        expect(c.elements(3, 204, 2)).toEqual(OWN);
+        expect(c.announce(0x4220, 3, [0x55])!.slice(4)).toEqual([]);
+        expect(c.read(0x4220, 1)).toEqual([0x01]);
       }
       c.control(0x0104, [(lsm << 4) | 2, ...Array(10).fill(0)]);
     }

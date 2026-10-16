@@ -294,8 +294,14 @@ export class DeviceManagement {
     }
     if (four === APCI.memoryWrite && data.length >= 2) {
       const at = (data[0]! << 8) | data[1]!;
-      // Written: no answer (ETS verifies by reading). Refused: a response with no octets.
-      if (!(bcu && sim.writeMemory(target, at, data.slice(2, 2 + short))))
+      // Written: no answer (ETS verifies by reading). Refused: a response with no octets;
+      // so is a write without all the octets it announces, which changes nothing.
+      const whole = data.length >= 2 + short;
+      if (!(
+        bcu &&
+        whole &&
+        sim.writeMemory(target, at, data.slice(2, 2 + short))
+      ))
         reply(apdu(APCI.memoryResponse, [data[0]!, data[1]!]));
       return;
     }
@@ -344,6 +350,7 @@ export class DeviceManagement {
           obj,
           pid,
           ((c1 & 0x0f) << 8) | c2,
+          c1 >> 4,
           data.slice(4),
         );
         if (written) sim.propertyWritten(target);

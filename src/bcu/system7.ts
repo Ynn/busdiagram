@@ -183,13 +183,14 @@ export const system7: MaskProfile = {
     if (own) {
       // A property of its own: its elements, kept in the memory.
       if (start === 0) return [own.max >> 8, own.max & 0xff];
+      if (count < 1 || start + count - 1 > own.max) return null;
       const from = own.at + own.size * (start - 1);
-      return Array.from(m.subarray(from, from + own.size * Math.max(1, count)));
+      return Array.from(m.subarray(from, from + own.size * count));
     }
     if (!value) return null;
-    // Element 0: the number of elements.
+    // Element 0: the number of elements; the others have one.
     if (start === 0) return [0, 1];
-    return value;
+    return start === 1 && count === 1 ? value : null;
   },
   describeProperty(s, object, pid) {
     const own = (s.extra.ownProperties as ProductProperty[] | undefined)?.find(
@@ -197,12 +198,18 @@ export const system7: MaskProfile = {
     );
     return own ? { type: own.type, max: own.max, writable: true } : null;
   },
-  writeProperty(s, object, pid, start, data) {
+  writeProperty(s, object, pid, start, count, data) {
     // Properties of its own that the application program writes (an ABB program writes
     // its PID 204 of the application object): kept as written.
     // Kept in the memory, which the installation keeps after a restart.
     const own = ownSlot(s, object, pid);
-    if (start === 0 || !own || start + data.length / own.size - 1 > own.max)
+    if (
+      !own ||
+      start === 0 ||
+      count < 1 ||
+      start + count - 1 > own.max ||
+      data.length !== count * own.size
+    )
       return null;
     s.memory.set(data, own.at + own.size * (start - 1));
     s.written = true;

@@ -73,11 +73,17 @@ export interface MaskProfile {
     start: number,
     count: number,
   ): number[] | null;
+  /**
+   * A_PropertyValue_Write: `count` elements from `start`, `data` their octets; the value
+   * written, or null when refused (no property, elements out of it, octets not those of
+   * `count` elements).
+   */
   writeProperty?(
     s: BcuState,
     object: number,
     pid: number,
     start: number,
+    count: number,
     data: readonly number[],
   ): number[] | null;
   /** Description of a property (A_PropertyDescription_Read), or null when it has none. */
