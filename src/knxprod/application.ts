@@ -118,6 +118,17 @@ export interface DynWhen {
   children: DynNode[];
 }
 
+/**
+ * A property of its own that the load procedure of the program writes (LdCtrlWriteProp):
+ * its interface object and number, its number of elements and their size in octets.
+ */
+export interface WrittenProperty {
+  object: number;
+  pid: number;
+  count: number;
+  size: number;
+}
+
 export interface TableLocation {
   segment: string;
   offset: number;
@@ -142,6 +153,8 @@ export interface ApplicationProgram {
   associationTable: TableLocation | null;
   objectTable: TableLocation | null;
   dynamic: DynNode[];
+  /** Properties that the load procedure writes, which the device must accept. */
+  writtenProperties: WrittenProperty[];
   /** Translations: language → (element id + attribute) → text. */
   translations: Map<string, Map<string, string>>;
 }
@@ -405,6 +418,17 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
         }
       : null;
   };
+  const written = new Map<string, WrittenProperty>();
+  for (const w of descendants(app, "LdCtrlWriteProp")) {
+    const count = num(w.attrs.Count, 1);
+    const p = {
+      object: num(w.attrs.ObjIdx),
+      pid: num(w.attrs.PropId),
+      count,
+      size: Math.max(1, (w.attrs.InlineData ?? "").length / 2 / count),
+    };
+    written.set(`${p.object}/${p.pid}`, p);
+  }
   const translations = new Map<string, Map<string, string>>();
   for (const lang of descendants(doc, "Language")) {
     const m =
@@ -443,6 +467,7 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
     dynamic: parseDynamic(
       child(app, "Dynamic") ?? { name: "", attrs: {}, children: [], text: "" },
     ),
+    writtenProperties: [...written.values()],
     translations,
   };
 }

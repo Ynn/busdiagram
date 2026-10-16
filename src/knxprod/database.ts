@@ -15,6 +15,7 @@ import type {
   ParameterRef,
   ParameterType,
   TableLocation,
+  WrittenProperty,
 } from "./application";
 import { openCatalog } from "./catalog";
 import { branch, segmentImages, sizeOf, writeParameters } from "./config";
@@ -46,6 +47,8 @@ export interface ProductDatabase {
   associationTable: TableLocation | null;
   objectTable: TableLocation | null;
   dynamic: DynNode[];
+  /** Properties of its own that the load procedure writes, when it writes some. */
+  writtenProperties?: WrittenProperty[];
   /** Translations: language → "element|attribute" → text. */
   translations: Record<string, Record<string, string>>;
 }
@@ -230,6 +233,9 @@ export function databaseOf(
     associationTable: app.associationTable,
     objectTable: app.objectTable,
     dynamic,
+    ...(app.writtenProperties.length
+      ? { writtenProperties: app.writtenProperties }
+      : {}),
     translations: Object.fromEntries(
       [...app.translations]
         .filter(([l]) =>
@@ -284,6 +290,7 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
     associationTable: db.associationTable,
     objectTable: db.objectTable,
     dynamic: db.dynamic,
+    writtenProperties: db.writtenProperties ?? [],
     translations: new Map(
       Object.entries(db.translations).map(([l, m]) => [
         l,
