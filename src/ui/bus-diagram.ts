@@ -67,6 +67,7 @@ import {
   type TraceSpec,
 } from "./timeline";
 import { toV2 } from "../knx/export";
+import { downloadedDevices } from "../knx/changed-devices";
 import { encodeShare } from "../share";
 import type { ViewOptions } from "./options";
 import { C, hexA, styles } from "./styles";
@@ -469,6 +470,7 @@ export class BusDiagram extends LitElement {
 
   /** Load a parsed JSON scenario and stop the previous instance. */
   load(data: unknown) {
+    if (this.followDevices(data)) return;
     this.loadToken++;
     this.teardown();
     this.source = data;
@@ -504,6 +506,37 @@ export class BusDiagram extends LitElement {
     } catch (e) {
       this.fail(e);
     }
+  }
+
+  /**
+   * A scenario that differs from the one running by the devices ETS downloaded only
+   * (their memory, and the project that it gives them): these devices start again with
+   * it, in the running simulation; the time and the state of the others go on. False
+   * when it must be loaded again (an edit of the project).
+   */
+  private followDevices(data: unknown): boolean {
+    const sim = this.sim;
+    if (!sim || !this.model || sim.fault) return false;
+    const ids = downloadedDevices(this.source, data);
+    if (!ids?.length) return false;
+    let model: Scenario;
+    try {
+      model = buildScenario(data, undefined, this.tr);
+    } catch {
+      return false;
+    }
+    if (!sim.replaceDevices(model, ids)) return false;
+    this.loadToken++;
+    this.source = data;
+    this.model = model;
+    this.topo = buildTopology(model);
+    this.geo = layout(model, this.topo, {
+      equipmentSize: (v) => equipmentView(v)?.size,
+      t: this.tr,
+    });
+    this.prepareDesignerLink(model);
+    this.requestUpdate();
+    return true;
   }
 
   /** Reset to initial state at t = 0, retaining speed and display settings. */

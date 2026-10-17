@@ -333,12 +333,21 @@ export class Network {
   timing: TimingProfile = "teaching";
 
   constructor(
-    readonly scenario: Scenario,
+    public scenario: Scenario,
     topology?: Topology,
     private readonly t: Translate = en,
   ) {
     this.topology = topology ?? buildTopology(scenario);
     this.resetModes();
+  }
+
+  /**
+   * Follow a scenario of the same topology whose devices have other objects (an
+   * application downloaded): the addresses that couplers forward are those of its own.
+   */
+  follow(scenario: Scenario) {
+    this.scenario = scenario;
+    this.sideCache.clear();
   }
 
   /** Restores the extension modes defined by the scenario, with the bus voltage on. */

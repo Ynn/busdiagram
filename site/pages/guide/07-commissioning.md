@@ -80,6 +80,6 @@ The names, addresses, and rooms of the devices, and the loads and push-buttons w
 ## Model limits
 
 - Device management reaches every device that has bus voltage, through the couplers, whatever they hold.
-- A download restarts the simulation: the outputs return to their initial state.
+- A download restarts the device that received it, with the application it now holds: its deadlines end and it starts as after a restart; its loads keep their state, and the other devices, the time and the telegrams under way go on.
 - The programming mode ends when the simulation is reset, as when the bus voltage returns; the addresses held stay.
 - An application program is identified by the behavior of the device: two devices of the same type accept each other's application.

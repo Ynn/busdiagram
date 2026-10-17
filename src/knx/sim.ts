@@ -34,6 +34,8 @@ import {
   Network,
   RC0,
   behindCut,
+  buildTopology,
+  type Topology,
   type TimingProfile,
   type TransportPlan,
 } from "./network";
@@ -213,6 +215,14 @@ const EXPLANATORY = new Set<JournalKind>([
   "timer-fired",
 ]);
 
+/** What a topology is made of (its segments, their points, its couplers), to compare. */
+const topologyKey = (t: Topology) =>
+  JSON.stringify([
+    [...t.segments].map(([id, s]) => [id, s]),
+    t.couplers,
+    [...t.deviceSegment],
+  ]);
+
 /** Key of a load: "device/channel" for the first one, then "device/channel#2", "#3"… */
 export const loadKey = (deviceId: string, channelId: string, index = 0) =>
   index ? `${deviceId}/${channelId}#${index + 1}` : `${deviceId}/${channelId}`;
@@ -245,6 +255,8 @@ const sameCommand = (a: OutputCommand | null | undefined, b: OutputCommand) =>
       : a.direction === (b as typeof a).direction);
 
 export class Simulation {
+  /** The scenario run (another one after {@link replaceDevices}). */
+  scenario: Scenario;
   readonly network: Network;
   /** Translation of messages produced by the engine. */
   readonly t: Translate;
@@ -342,10 +354,8 @@ export class Simulation {
   private readonly journalLimit: number;
   private readonly tickers: DeviceRuntime[] = [];
 
-  constructor(
-    readonly scenario: Scenario,
-    options: SimulationOptions = {},
-  ) {
+  constructor(scenario: Scenario, options: SimulationOptions = {}) {
+    this.scenario = scenario;
     this.registry = options.registry ?? captureRegistry();
     this.maxSameTime = options.maxEventsPerTimestamp ?? 1000;
     this.historyLimit = options.historyLimit ?? 200;
@@ -382,46 +392,8 @@ export class Simulation {
       }),
     );
     s.devices.forEach((d) => {
-      d.objects.forEach((o) =>
-        this.objects.set(o.key, { value: o.initial, updatedAtMs: null }),
-      );
-      d.channels.forEach((c) => {
-        const key = `${d.id}/${c.id}`;
-        this.outputs.set(key, null);
-        const keys: string[] = [];
-        c.equipmentConfigs.forEach((cfg, i) => {
-          const def = this.registry.equipment.get(cfg.type);
-          if (!def) return;
-          const k = loadKey(d.id, c.id, i);
-          keys.push(k);
-          this.equipment.set(k, {
-            type: cfg.type,
-            config: cfg,
-            def,
-            state: def.create(cfg.parameters, cfg.initialState),
-          });
-        });
-        this.loads.set(key, keys);
-      });
-      const def = this.registry.behaviors.get(d.behavior);
-      if (!def)
-        throw new SimulationFault(
-          this.t`behavior “${d.behavior}” not registered`,
-        );
-      const rt: DeviceRuntime = {
-        device: d,
-        def,
-        state: undefined,
-        ctx: undefined as never,
-        timers: new Map(),
-        down: false,
-        inert:
-          !!s.commissioning && commissionable(d) && !this.holdsApplication(d),
-      };
-      rt.state = def.createState(d);
-      rt.ctx = this.makeContext(rt);
-      this.devices.set(d.id, rt);
-      if (def.onTick) this.tickers.push(rt);
+      const rt = this.setUp(d);
+      if (rt.def.onTick) this.tickers.push(rt);
     });
     // Configuration that illustrates a commissioning error: non-blocking warnings.
     configWarnings(s, this.t, this.registry).forEach((w) =>
@@ -437,6 +409,112 @@ export class Simulation {
       if (!rt.down && !rt.inert) this.readOnInit(rt);
     });
     if (this.tickers.length) this.queue.push(TICK_MS, { type: "tick" });
+  }
+
+  /**
+   * The objects, outputs, loads and runtime of a device, as at the start. `keep`: the
+   * outputs and loads that it already has stay as they are (a device restarted with
+   * another application drives the same lamps and motors).
+   */
+  private setUp(d: Device, keep = false): DeviceRuntime {
+    const s = this.scenario;
+    d.objects.forEach((o) =>
+      this.objects.set(o.key, { value: o.initial, updatedAtMs: null }),
+    );
+    d.channels.forEach((c) => {
+      const key = `${d.id}/${c.id}`;
+      if (keep && this.loads.has(key)) return;
+      this.outputs.set(key, null);
+      const keys: string[] = [];
+      c.equipmentConfigs.forEach((cfg, i) => {
+        const def = this.registry.equipment.get(cfg.type);
+        if (!def) return;
+        const k = loadKey(d.id, c.id, i);
+        keys.push(k);
+        this.equipment.set(k, {
+          type: cfg.type,
+          config: cfg,
+          def,
+          state: def.create(cfg.parameters, cfg.initialState),
+        });
+      });
+      this.loads.set(key, keys);
+    });
+    const def = this.registry.behaviors.get(d.behavior);
+    if (!def)
+      throw new SimulationFault(
+        this.t`behavior “${d.behavior}” not registered`,
+      );
+    const rt: DeviceRuntime = {
+      device: d,
+      def,
+      state: undefined,
+      ctx: undefined as never,
+      timers: new Map(),
+      down: false,
+      inert:
+        !!s.commissioning && commissionable(d) && !this.holdsApplication(d),
+    };
+    rt.state = def.createState(d);
+    rt.ctx = this.makeContext(rt);
+    this.devices.set(d.id, rt);
+    return rt;
+  }
+
+  /**
+   * Follow a scenario that differs from the one run by the devices `ids` only (an
+   * application downloaded by ETS: their objects, parameters and links): those start
+   * again with it, as after their restart; the others, the clock, the telegrams under
+   * way and the journal go on as they were. False, with nothing changed, when the
+   * scenario differs otherwise (other devices, topology): it must be loaded again.
+   */
+  replaceDevices(next: Scenario, ids: readonly string[]): boolean {
+    const now = this.scenario;
+    const changed = new Set(ids);
+    if (
+      this.fault ||
+      next.devices.length !== now.devices.length ||
+      next.devices.some((d, i) => d.id !== now.devices[i]!.id) ||
+      [...changed].some((id) => !now.devicesById.has(id)) ||
+      topologyKey(buildTopology(next)) !== topologyKey(this.network.topology)
+    )
+      return false;
+    this.scenario = next;
+    this.network.follow(next);
+    const before = this.devices;
+    this.devices = new Map();
+    const ticking = this.tickers.length > 0;
+    this.tickers.length = 0;
+    const started: DeviceRuntime[] = [];
+    for (const d of next.devices) {
+      const old = before.get(d.id)!;
+      let rt: DeviceRuntime;
+      if (changed.has(d.id)) {
+        // Its timers end with its former application; its objects are those of the new.
+        old.timers.forEach((t) => this.queue.cancel(t));
+        old.device.objects.forEach((o) => this.objects.delete(o.key));
+        rt = this.setUp(d, true);
+        rt.down = old.down;
+        started.push(rt);
+      } else {
+        rt = old;
+        rt.device = d;
+        this.devices.set(d.id, rt);
+      }
+      if (rt.def.onTick) this.tickers.push(rt);
+    }
+    this.initializing = true;
+    started.forEach((rt) =>
+      this.hook(rt, "onInit", () => rt.def.onInit?.(rt.ctx)),
+    );
+    this.initializing = false;
+    started.forEach((rt) => {
+      if (!rt.down && !rt.inert) this.readOnInit(rt);
+    });
+    // The tick goes on; it starts with a first device that has one.
+    if (this.tickers.length && !ticking)
+      this.queue.push(this.timeMs + TICK_MS, { type: "tick" });
+    return true;
   }
 
   /** Reset to initial state at t = 0; clear events, deadlines, journal, and diagnostics. */

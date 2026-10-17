@@ -81,6 +81,6 @@ Les noms, adresses et pièces des participants, ainsi que les charges et boutons
 ## Limites du modèle
 
 - La gestion des participants atteint tout participant sous tension de bus, à travers les coupleurs, quoi qu'ils contiennent.
-- Un téléchargement redémarre la simulation : les sorties reviennent à leur état initial.
+- Un téléchargement redémarre le participant qui l'a reçu, avec l'application qu'il contient désormais : ses échéances prennent fin et il démarre comme après un redémarrage ; ses charges gardent leur état, et les autres participants, le temps et les télégrammes en cours continuent.
 - Le mode programmation prend fin quand la simulation est réinitialisée, comme au retour de la tension de bus ; les adresses contenues restent.
 - Un programme d'application est identifié par le comportement du participant : deux participants du même type acceptent l'application l'un de l'autre.

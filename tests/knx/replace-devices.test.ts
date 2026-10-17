@@ -1,0 +1,85 @@
+// A device restarted with another application (a download by ETS): the simulation goes
+// on with it, and the other devices keep their state and deadlines.
+import { describe, expect, it } from "vitest";
+import { buildScenario } from "../../src/knx/scenario";
+import { Simulation } from "../../src/knx/sim";
+import {
+  changedDevices,
+  downloadedDevices,
+} from "../../src/knx/changed-devices";
+import { raw } from "./helpers";
+
+type Doc = { devices: { id: string; name?: string }[] };
+
+function running() {
+  const data = raw("timers.json") as Doc;
+  const sim = new Simulation(buildScenario(data));
+  // Staircase function of channel 1: off 10 s after it switched on (the telegram takes
+  // about 2 s with the teaching timing).
+  sim.groupWrite("pushButton", "1/1/1", 1);
+  sim.advance(4000);
+  return { data, sim };
+}
+const on = (sim: Simulation) =>
+  (sim.output("switchActuator", "s1") as { on?: boolean } | null)?.on ?? false;
+
+describe("devices restarted with another application", () => {
+  it("leave the time and the deadlines of the others as they were", () => {
+    const { data, sim } = running();
+    expect(on(sim)).toBe(true);
+    const next = structuredClone(data);
+    next.devices.find((d) => d.id === "pir")!.name = "Presence (downloaded)";
+    expect(changedDevices(data, next)).toEqual(["pir"]);
+    expect(sim.replaceDevices(buildScenario(next), ["pir"])).toBe(true);
+    expect(sim.timeMs).toBe(4000);
+    expect(sim.scenario.devicesById.get("pir")!.name).toBe(
+      "Presence (downloaded)",
+    );
+    sim.advance(7000);
+    expect(on(sim)).toBe(true);
+    // The staircase time of the actuator, started before, ends 10 s after it switched on.
+    sim.advance(4000);
+    expect(on(sim)).toBe(false);
+  });
+
+  it("start again themselves: their deadlines end with their former application", () => {
+    const { data, sim } = running();
+    const next = structuredClone(data);
+    next.devices.find((d) => d.id === "switchActuator")!.name = "Actuator";
+    expect(sim.replaceDevices(buildScenario(next), ["switchActuator"])).toBe(
+      true,
+    );
+    // Switched on again by the new application at 4 s: its staircase time runs from
+    // then; the one of the former application (ending about 13.5 s) is gone.
+    sim.groupWrite("pushButton", "1/1/1", 1);
+    sim.advance(10500);
+    expect(sim.timeMs).toBe(14500);
+    expect(on(sim)).toBe(true);
+    sim.advance(3000);
+    expect(on(sim)).toBe(false);
+  });
+
+  it("are the devices ETS downloaded only: another memory, not an edit", () => {
+    const before = {
+      devices: [{ id: "a" }, { id: "b" }],
+      installation: { devices: [{ device: "a", memory: "00" }] },
+    };
+    const download = {
+      devices: [{ id: "a", parameters: { x: 1 } }, { id: "b" }],
+      installation: { devices: [{ device: "a", memory: "01" }] },
+    };
+    expect(downloadedDevices(before, download)).toEqual(["a"]);
+    const edit = { ...before, devices: [{ id: "a" }, { id: "b", name: "B" }] };
+    expect(changedDevices(before, edit)).toEqual(["b"]);
+    expect(downloadedDevices(before, edit)).toBeNull();
+  });
+
+  it("is refused for a scenario that differs otherwise", () => {
+    const { data, sim } = running();
+    const fewer = { ...data, devices: data.devices.slice(1) };
+    expect(changedDevices(data, fewer)).toBeNull();
+    expect(sim.replaceDevices(buildScenario(fewer), [])).toBe(false);
+    expect(changedDevices(data, { ...data, title: "other" })).toBeNull();
+    expect(sim.scenario.devices.length).toBe(data.devices.length);
+  });
+});
