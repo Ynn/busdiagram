@@ -215,6 +215,40 @@ const EXPLANATORY = new Set<JournalKind>([
   "timer-fired",
 ]);
 
+/**
+ * What a scenario is apart from some of its devices, to compare two: its devices and what
+ * they hold, its rooms, lines, clock, topology and options (not the names of its group
+ * addresses, which a download may give).
+ */
+const scenarioKey = (s: Scenario, but: ReadonlySet<string>) =>
+  JSON.stringify(
+    [
+      s.title,
+      s.lines,
+      s.rooms,
+      s.clock,
+      s.topology,
+      s.options,
+      [...s.groupRanges],
+      s.devices.filter((d) => !but.has(d.id)),
+      s.commissioning
+        ? [
+            [...s.commissioning.devices].filter(([id]) => !but.has(id)),
+            [...s.commissioning.couplers],
+          ]
+        : null,
+    ],
+    // A memory: by a hash of its octets, not as a list of numbers.
+    (_k, v: unknown) => (v instanceof Uint8Array ? octetsHash(v) : v),
+  );
+
+/** A hash of octets (FNV-1a), to compare memories. */
+function octetsHash(b: Uint8Array) {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < b.length; i++) h = Math.imul(h ^ b[i]!, 0x01000193);
+  return `${b.length}:${(h >>> 0).toString(16)}`;
+}
+
 /** What a topology is made of (its segments, their points, its couplers), to compare. */
 const topologyKey = (t: Topology) =>
   JSON.stringify([
@@ -466,7 +500,9 @@ export class Simulation {
    * application downloaded by ETS: their objects, parameters and links): those start
    * again with it, as after their restart; the others, the clock, the telegrams under
    * way and the journal go on as they were. False, with nothing changed, when the
-   * scenario differs otherwise (other devices, topology): it must be loaded again.
+   * scenario differs otherwise (other devices, rooms, lines, clock, options, what the
+   * other devices hold, the topology), or a device of `ids` cannot start: it must be
+   * loaded again.
    */
   replaceDevices(next: Scenario, ids: readonly string[]): boolean {
     const now = this.scenario;
@@ -476,45 +512,68 @@ export class Simulation {
       next.devices.length !== now.devices.length ||
       next.devices.some((d, i) => d.id !== now.devices[i]!.id) ||
       [...changed].some((id) => !now.devicesById.has(id)) ||
+      scenarioKey(next, changed) !== scenarioKey(now, changed) ||
       topologyKey(buildTopology(next)) !== topologyKey(this.network.topology)
     )
       return false;
+    // Each device that starts again can: its behavior, its state. Nothing is changed
+    // before.
+    for (const d of next.devices) {
+      if (!changed.has(d.id)) continue;
+      const def = this.registry.behaviors.get(d.behavior);
+      if (!def) return false;
+      try {
+        def.createState(d);
+      } catch {
+        return false;
+      }
+    }
     this.scenario = next;
     this.network.follow(next);
     const before = this.devices;
     this.devices = new Map();
-    const ticking = this.tickers.length > 0;
-    this.tickers.length = 0;
     const started: DeviceRuntime[] = [];
     for (const d of next.devices) {
       const old = before.get(d.id)!;
-      let rt: DeviceRuntime;
-      if (changed.has(d.id)) {
-        // Its timers end with its former application; its objects are those of the new.
-        old.timers.forEach((t) => this.queue.cancel(t));
-        old.device.objects.forEach((o) => this.objects.delete(o.key));
-        rt = this.setUp(d, true);
-        rt.down = old.down;
-        started.push(rt);
-      } else {
-        rt = old;
-        rt.device = d;
-        this.devices.set(d.id, rt);
+      if (changed.has(d.id)) started.push(this.startAgain(old, d));
+      else {
+        old.device = d;
+        this.devices.set(d.id, old);
       }
-      if (rt.def.onTick) this.tickers.push(rt);
     }
+    this.started(started);
+    return true;
+  }
+
+  /**
+   * The application of a device started again (a restart after its download): its timers
+   * end, its objects are those of `d` at their initial value, its outputs and loads stay.
+   * Its start (onInit, the reads on initialisation) follows with {@link started}.
+   */
+  private startAgain(old: DeviceRuntime, d: Device): DeviceRuntime {
+    old.timers.forEach((t) => this.queue.cancel(t));
+    old.device.objects.forEach((o) => this.objects.delete(o.key));
+    const rt = this.setUp(d, true);
+    rt.down = old.down;
+    return rt;
+  }
+
+  /** The devices started again: their start, and the tick of those that have one. */
+  private started(list: DeviceRuntime[]) {
+    const ticking = this.tickers.length > 0;
+    this.tickers.length = 0;
+    this.devices.forEach((rt) => rt.def.onTick && this.tickers.push(rt));
     this.initializing = true;
-    started.forEach((rt) =>
+    list.forEach((rt) =>
       this.hook(rt, "onInit", () => rt.def.onInit?.(rt.ctx)),
     );
     this.initializing = false;
-    started.forEach((rt) => {
+    list.forEach((rt) => {
       if (!rt.down && !rt.inert) this.readOnInit(rt);
     });
     // The tick goes on; it starts with a first device that has one.
     if (this.tickers.length && !ticking)
       this.queue.push(this.timeMs + TICK_MS, { type: "tick" });
-    return true;
   }
 
   /** Reset to initial state at t = 0; clear events, deadlines, journal, and diagnostics. */
@@ -2233,6 +2292,12 @@ export class Simulation {
     if (b?.state.written) {
       b.state.written = false;
       b.profile.setProgrammingMode(b.state, false);
+      // The same octets as before: the scenario stays, the application starts again
+      // here (another memory: the host follows it with the application it holds).
+      const same =
+        !!b.held &&
+        b.held.length === b.state.memory.length &&
+        b.held.every((v, i) => v === b.state.memory[i]);
       b.held = b.state.memory.slice();
       if (p) {
         p.programmingMode = false;
@@ -2246,6 +2311,11 @@ export class Simulation {
         data: { action: "restart", target },
       });
       this.unsupportedApplication(target, b);
+      const rt = this.devices.get(target);
+      if (same && rt) {
+        this.devices.set(target, this.startAgain(rt, rt.device));
+        this.started([this.devices.get(target)!]);
+      }
       this.installationChanged();
       return;
     }

@@ -82,4 +82,43 @@ describe("devices restarted with another application", () => {
     expect(changedDevices(data, { ...data, title: "other" })).toBeNull();
     expect(sim.scenario.devices.length).toBe(data.devices.length);
   });
+
+  it("refuses, changing nothing, what its devices are not: a room, an address of another", () => {
+    const { data, sim } = running();
+    type Raw = {
+      rooms?: { temperatureC?: number }[];
+      devices: { id: string; objects?: unknown[] }[];
+    };
+    const raw = data as unknown as Raw;
+    if (raw.rooms?.[0]) {
+      const warmer = structuredClone(raw);
+      warmer.rooms![0]!.temperatureC =
+        (warmer.rooms![0]!.temperatureC ?? 20) + 3;
+      expect(sim.replaceDevices(buildScenario(warmer), [])).toBe(false);
+    }
+    // An address given to object c4 of the actuator, the presence detector declared.
+    const more = structuredClone(raw) as unknown as {
+      devices: { id: string; objects: { id: string; ga?: string }[] }[];
+    };
+    more.devices
+      .find((d) => d.id === "switchActuator")!
+      .objects.find((o) => o.id === "c4")!.ga = "1/1/9";
+    expect(
+      sim.replaceDevices(buildScenario(more as unknown as Doc), ["pir"]),
+    ).toBe(false);
+    const c4 = () =>
+      sim.scenario.devicesById
+        .get("switchActuator")!
+        .objects.find((o) => o.id === "c4")!.gas;
+    expect(c4()).toEqual([]);
+    expect(() => sim.getState()).not.toThrow();
+    // Declared, the change is followed.
+    expect(
+      sim.replaceDevices(buildScenario(more as unknown as Doc), [
+        "switchActuator",
+      ]),
+    ).toBe(true);
+    expect(c4()).toEqual(["1/1/9"]);
+    expect(() => sim.getState()).not.toThrow();
+  });
 });

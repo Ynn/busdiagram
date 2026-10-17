@@ -488,6 +488,55 @@ describe("installation as the project", () => {
   });
 });
 
+describe("restart after a download", () => {
+  beforeAll(installed);
+
+  it("starts the application again, after a download of the same octets too", () => {
+    const doc = emptyDoc();
+    (doc.devices as unknown[]).push({
+      id: "usb",
+      name: "USB",
+      address: "1.1.250",
+      kind: "interface",
+      behavior: "usbInterface/v1",
+      objects: [],
+    });
+    const id = addProductDevice(
+      doc,
+      "example.sa2/v1",
+      captureRegistry(),
+      "1.1",
+    );
+    const d = doc.devices.find((x) => x.id === id)!;
+    (d as { objects: { ga?: string }[] }).objects[0]!.ga = "1/0/1";
+    applyConfiguration(
+      d,
+      programOfProduct("example.sa2/v1")!,
+      captureRegistry(),
+    );
+    const sim = createSimulator({
+      ...doc,
+      groupAddresses: [{ address: "1/0/1", name: "Light" }],
+      installation: installationAsProject(doc),
+    });
+    sim.groupWrite("usb", "1/0/1", 1);
+    sim.advance(3000);
+    expect(sim.objectValue(id, "o0")).toBe(1);
+    // ETS writes the octets the device already holds, then restarts it.
+    const at = 0x100 + 100;
+    expect(sim.writeMemory(id, at, [sim.memory(id)![at]!])).toBe(true);
+    sim.restartDevice(id);
+    // Its objects as at its start; the time goes on.
+    expect(sim.objectValue(id, "o0")).not.toBe(1);
+    expect(sim.timeMs).toBe(3000);
+    // A restart without a download before it: its application goes on.
+    sim.groupWrite("usb", "1/0/1", 1);
+    sim.advance(3000);
+    sim.restartDevice(id);
+    expect(sim.objectValue(id, "o0")).toBe(1);
+  });
+});
+
 describe("download without commissioning", () => {
   beforeAll(installed);
 
