@@ -197,3 +197,78 @@ describe("memory reads larger than a frame", () => {
     expect(full!.tpdu.length).toBe(16);
   });
 });
+
+describe("several devices at one address", () => {
+  /** Both devices of the setup at 1.1.1, each given it in programming mode. */
+  function twice() {
+    const { sim } = setup();
+    const told: [string, string[], string | undefined][] = [];
+    const m = new DeviceManagement(
+      () => sim,
+      () => {},
+      (a, d, r) => told.push([a, d, r]),
+    );
+    for (const k of ["bp", "sa"]) {
+      sim.pressProgrammingButton(k);
+      m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x01])));
+      // Its programming mode ends.
+      sim.pressProgrammingButton(k);
+    }
+    return { sim, m, told };
+  }
+
+  it("answer a read when their answers agree, and are told once", () => {
+    const { m, told } = twice();
+    const at = ia(1, 1, 1);
+    const [d] = decoded(m.handle(req(at, false, [0x03, 0x00])));
+    expect(d!.tpdu).toEqual([
+      0x03,
+      0x40,
+      MASK_VERSION >> 8,
+      MASK_VERSION & 0xff,
+    ]);
+    m.handle(req(at, false, [0x03, 0x00]));
+    expect(told).toEqual([
+      ["1.1.1", expect.arrayContaining(["bp", "sa"]), undefined],
+    ]);
+  });
+
+  it("are told again when they share the address again", () => {
+    const { sim, m, told } = twice();
+    const at = ia(1, 1, 1);
+    const give = (address: number[]) => {
+      sim.pressProgrammingButton("bp");
+      m.handle(req(0, true, apdu(APCI.individualAddressWrite, address)));
+      sim.pressProgrammingButton("bp");
+    };
+    m.handle(req(at, false, [0x03, 0x00]));
+    give([0x11, 0x05]);
+    m.handle(req(at, false, [0x03, 0x00]));
+    give([0x11, 0x01]);
+    m.handle(req(at, false, [0x03, 0x00]));
+    expect(told.length).toBe(2);
+  });
+
+  it("do not answer a read whose answers differ (their serial numbers)", () => {
+    const { m, told } = twice();
+    const at = ia(1, 1, 1);
+    m.handle(req(at, false, [0x80]));
+    const out = decoded(
+      m.handle(req(at, false, [0x40 | 0x03, 0xd5, 0x00, 11, 0x10, 0x01])),
+    );
+    // The transport layer acknowledges; no answer comes.
+    expect(out.map((f) => f.tpdu)).toEqual([[0xc2]]);
+    expect(told.at(-1)![2]).toBe("read");
+  });
+
+  it("take no change, which is said", () => {
+    const { sim, m, told } = twice();
+    sim.pressProgrammingButton("bp");
+    sim.pressProgrammingButton("sa");
+    // A restart would end their programming mode: none restarts.
+    m.handle(req(ia(1, 1, 1), false, [0x03, 0x80]));
+    expect(sim.programmingMode("bp")).toBe(true);
+    expect(sim.programmingMode("sa")).toBe(true);
+    expect(told.at(-1)![2]).toBe("write");
+  });
+});

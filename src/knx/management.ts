@@ -150,6 +150,15 @@ interface Connection {
   send: number;
 }
 
+/** Services that change a device (APCI, or its four high bits for the short ones). */
+const CHANGES = new Set<number>([
+  APCI.memoryWrite,
+  APCI.memoryExtendedWrite,
+  APCI.restart,
+  APCI.propertyValueWrite,
+  APCI.keyWrite,
+]);
+
 /**
  * Device management of a simulation: a frame from ETS in, the frames of the devices out.
  * Group telegrams are not handled here (see EtsLink).
@@ -167,12 +176,14 @@ export class DeviceManagement {
      */
     private readonly onUncommissioned: (address: string) => void = () => {},
     /**
-     * Several devices have an individual address: the first one answers ETS for them
-     * (told once per address and simulation).
+     * Several devices have an individual address (told once per address while they
+     * do), and what ETS asked them that none did: a change ("write"), or a read whose
+     * answers differ ("read").
      */
     private readonly onDuplicate: (
       address: string,
       devices: string[],
+      refused?: "write" | "read",
     ) => void = () => {},
   ) {}
 
@@ -219,12 +230,13 @@ export class DeviceManagement {
     if (f.group) return this.broadcast(sim, f);
     const address = iaText(f.destination);
     const targets = sim.reachableAt(address);
-    // Several devices at the same address: said, and the first one answers, as identical
-    // answers sent at once on the bus make one (the address is occupied, not free).
+    // Several devices at the same address: said (again if they come back after they
+    // were not). The address is occupied; the transport layer of the first one stands
+    // for theirs, whose identical acknowledgements make one on the bus.
     if (targets.length > 1 && !this.duplicates.has(address)) {
       this.duplicates.add(address);
       this.onDuplicate(address, targets);
-    }
+    } else if (targets.length <= 1) this.duplicates.delete(address);
     if (!targets.length) return [];
     const target = targets[0]!;
     const tpci = f.tpdu[0]!;
@@ -276,8 +288,38 @@ export class DeviceManagement {
         send([0x40 | (s << 2) | (a[0]! & 0x03), ...a.slice(1)]);
       };
     } else reply = (a) => send(a);
-    this.service(sim, target, f, reply);
+    if (targets.length === 1) this.service(sim, target, f, reply);
+    else this.ambiguous(sim, targets, f, reply);
     return out;
+  }
+
+  /**
+   * A service for several devices at one address. A change is made in none of them: which
+   * one ETS meant is not known. A read is answered when they all give the same answer,
+   * which makes one on the bus; different answers collide, and none comes.
+   */
+  private ambiguous(
+    sim: Simulation,
+    targets: string[],
+    f: LDataFrame,
+    reply: (apdu: number[]) => void,
+  ) {
+    const { apci } = apduOf(f.tpdu);
+    const address = iaText(f.destination);
+    if (CHANGES.has(apci & 0x3c0) || CHANGES.has(apci)) {
+      this.onDuplicate(address, targets, "write");
+      return;
+    }
+    const answers = targets.map((t) => {
+      const a: number[][] = [];
+      this.service(sim, t, f, (x) => a.push(x));
+      return JSON.stringify(a);
+    });
+    if (answers.some((a) => a !== answers[0])) {
+      this.onDuplicate(address, targets, "read");
+      return;
+    }
+    (JSON.parse(answers[0]!) as number[][]).forEach(reply);
   }
 
   private broadcast(sim: Simulation, f: LDataFrame): Uint8Array[] {

@@ -144,10 +144,16 @@ export class EtsLink {
           this
             .t`ETS downloads the device ${address}: turn on Simulate commissioning (designer, Installation panel) so that the devices hold what ETS writes`,
         ),
-      (address, devices) =>
+      (address, devices, refused) =>
         this.refuse(
-          this
-            .t`Several devices have the address ${address} (${devices.join(", ")}): ETS sees one of them`,
+          refused === "write"
+            ? this
+                .t`Several devices have the address ${address} (${devices.join(", ")}): none of them takes what ETS writes, give each its own address`
+            : refused === "read"
+              ? this
+                  .t`Several devices have the address ${address} (${devices.join(", ")}): their answers to ETS differ and collide`
+              : this
+                  .t`Several devices have the address ${address} (${devices.join(", ")}): ETS sees the address occupied`,
         ),
     );
   }
