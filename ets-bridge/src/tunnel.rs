@@ -508,12 +508,13 @@ impl Tunnels {
         now: Instant,
         out: &mut Output,
     ) {
-        let source = con.source_address().raw();
+        // Found by the frame itself (its source included), not by the tunnel's address
+        // now: a client may have set it back since (a check that an address is free).
         let theirs = cemi::bytes(con);
         let Some((&ch, c, i)) = self
             .conns
             .iter_mut()
-            .filter(|(_, c)| !c.mgmt && !c.monitor && c.address == source)
+            .filter(|(_, c)| !c.mgmt && !c.monitor)
             .find_map(|(ch, c)| {
                 let i = c
                     .unconfirmed
@@ -1043,6 +1044,46 @@ mod tests {
         }));
         assert_eq!(parse(&out.udp[0].0).0, ServiceType::DisconnectRequest);
         assert_eq!(t.tunnels(), 0);
+    }
+
+    #[test]
+    fn a_confirmation_reaches_a_tunnel_whose_address_was_set_back() {
+        let now = Instant::now();
+        let mut t = server();
+        t.set_page_confirms(true);
+        let ch = connect(&mut t, now);
+        let write = |a: [u8; 2]| [0xF6, 0x00, 0x0B, 0x01, 53, 0x10, 0x01, a[0], a[1]];
+        // As a check that 1.1.1 is free: the tunnel takes 1.1.1, connects, takes its own.
+        let mut out = Output::default();
+        t.on_datagram(
+            &tunnelling(ch, 0, &write([0x11, 0x01])),
+            from(),
+            now,
+            &mut out,
+        );
+        t.on_datagram(&ack(ch, 0), from(), now, &mut out);
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 1, &CONNECT), from(), now, &mut out);
+        let sent = out.page[0].clone();
+        assert_eq!(&sent[4..6], &[0x11, 0x01]);
+        t.on_datagram(
+            &tunnelling(ch, 2, &write([0xFF, 0xFB])),
+            from(),
+            now,
+            &mut out,
+        );
+        t.on_datagram(&ack(ch, 1), from(), now, &mut out);
+        // The page's confirmation, source 1.1.1, still reaches ETS.
+        let mut con = sent;
+        con[0] = MessageCode::LDataCon as u8;
+        let mut out = Output::default();
+        t.on_page_frame(&con, now, 1, now, &mut out);
+        let (s, body) = parse(&out.udp[0].0);
+        assert_eq!(s, ServiceType::TunnelingRequest);
+        assert_eq!(body[4], MessageCode::LDataCon as u8);
+        let mut out = Output::default();
+        t.tick(now + CONFIRM_TIMEOUT, &mut out);
+        assert_eq!(t.tunnels(), 1);
     }
 
     #[test]

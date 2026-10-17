@@ -152,6 +152,7 @@ impl Properties {
             (OT_DEVICE, 15) => bytes(&[0; 10]),       // order info
             (OT_DEVICE, 56) => u16(15),               // max APDU length
             (OT_DEVICE, 78) => bytes(&[0; 6]),        // hardware type
+            (OT_DEVICE, 83) => u16(0x091A),           // device descriptor (mask)
             (OT_CEMI_SERVER, 51 | 53) => u16(0x0002), // medium: TP1
             (OT_CEMI_SERVER, 52) => u8(0),            // communication mode: data link
             (OT_KNXNETIP, 51) => u16(0),              // project installation
@@ -324,6 +325,15 @@ mod tests {
             ind.as_bytes(),
             &[&[0x29, 0x00][..], &WRITE[2..]].concat()[..]
         );
+    }
+
+    #[test]
+    fn device_descriptor_of_the_interface() {
+        // Read by the fast line scan of ETS before it connects to the devices.
+        let r = props()
+            .answer(&[0xFC, 0x00, 0x00, 0x01, 83, 0x10, 0x01])
+            .unwrap_or_default();
+        assert_eq!(r, [0xFB, 0x00, 0x00, 0x01, 83, 0x10, 0x01, 0x09, 0x1A]);
     }
 
     #[test]

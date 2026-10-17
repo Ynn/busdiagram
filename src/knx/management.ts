@@ -142,8 +142,29 @@ const apdu = (apci: number, data: number[] = []) => [
   ...data,
 ];
 
+/**
+ * Connection timeout of the transport layer (03_03_04): a connection that receives
+ * nothing for this long is ended by the device, with a T_Disconnect to its peer.
+ */
+export const CONNECTION_TIMEOUT_MS = 6000;
+
+/** Timers of the connections (those of the page; the tests give theirs). */
+export interface ManagementTimers {
+  set(ms: number, f: () => void): unknown;
+  clear(handle: unknown): void;
+}
+
+const realTimers: ManagementTimers = {
+  set: (ms, f) => setTimeout(f, ms),
+  clear: (h) => clearTimeout(h as ReturnType<typeof setTimeout>),
+};
+
 interface Connection {
   peer: number;
+  /** Address of the device (of the frames it sends). */
+  address: number;
+  /** Its connection timeout, armed by each frame of the peer. */
+  timer?: unknown;
   /** Sequence number expected from the peer. */
   recv: number;
   /** Sequence number of our next numbered frame. */
@@ -185,7 +206,33 @@ export class DeviceManagement {
       devices: string[],
       refused?: "write" | "read",
     ) => void = () => {},
+    /** Frames the devices send of themselves (a T_Disconnect at the timeout). */
+    private readonly emit: (frame: Uint8Array) => void = () => {},
+    private readonly timers: ManagementTimers = realTimers,
   ) {}
+
+  /** Arm again the connection timeout of a device's connection. */
+  private arm(target: string, c: Connection) {
+    if (c.timer !== undefined) this.timers.clear(c.timer);
+    c.timer = this.timers.set(CONNECTION_TIMEOUT_MS, () => {
+      if (this.conns.get(target) !== c) return;
+      this.conns.delete(target);
+      this.emit(
+        encodeLData({
+          source: c.address,
+          destination: c.peer,
+          group: false,
+          tpdu: [0x81],
+        }),
+      );
+    });
+  }
+
+  private disconnect(target: string) {
+    const c = this.conns.get(target);
+    if (c?.timer !== undefined) this.timers.clear(c.timer);
+    this.conns.delete(target);
+  }
 
   /** Addresses whose duplicates were told, for the current simulation. */
   private duplicates = new Set<string>();
@@ -216,6 +263,8 @@ export class DeviceManagement {
 
   /** Forget the connections (the link stops, or follows another simulation). */
   reset() {
+    for (const c of this.conns.values())
+      if (c.timer !== undefined) this.timers.clear(c.timer);
     this.conns.clear();
     this.duplicates.clear();
     this.of = null;
@@ -253,16 +302,26 @@ export class DeviceManagement {
     // Control PDUs: TPCI 1x00 00xx.
     if ((tpci & 0x80) !== 0) {
       if (tpci === 0x80) {
-        this.conns.set(target, { peer: f.source, recv: 0, send: 0 });
+        // A new connection replaces the former one (of this peer or another).
+        this.disconnect(target);
+        const c: Connection = {
+          peer: f.source,
+          address: f.destination,
+          recv: 0,
+          send: 0,
+        };
+        this.conns.set(target, c);
+        this.arm(target, c);
         return out;
       }
       if (tpci === 0x81) {
         // Only the peer of a connection ends it.
-        if (this.conns.get(target)?.peer === f.source)
-          this.conns.delete(target);
+        if (this.conns.get(target)?.peer === f.source) this.disconnect(target);
         return out;
       }
-      // T_ACK and T_NAK of our numbered frames.
+      // T_ACK and T_NAK of our numbered frames: the connection lives on.
+      const c = this.conns.get(target);
+      if (c?.peer === f.source) this.arm(target, c);
       return out;
     }
     const numbered = (tpci & 0x40) !== 0;
@@ -274,6 +333,7 @@ export class DeviceManagement {
         send([0x81]);
         return out;
       }
+      this.arm(target, c);
       const seq = (tpci >> 2) & 0x0f;
       if (seq !== c.recv) {
         // A repetition of the last frame: acknowledged again, not handled twice.

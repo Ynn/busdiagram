@@ -272,3 +272,79 @@ describe("several devices at one address", () => {
     expect(told.at(-1)![2]).toBe("write");
   });
 });
+
+describe("connection timeout", () => {
+  /** Timers that the test runs by hand. */
+  function clock() {
+    let now = 0;
+    const due = new Map<number, [number, () => void]>();
+    let next = 0;
+    return {
+      timers: {
+        set: (ms: number, f: () => void) => {
+          due.set(++next, [now + ms, f]);
+          return next;
+        },
+        clear: (h: unknown) => void due.delete(h as number),
+      },
+      advance(ms: number) {
+        now += ms;
+        for (const [h, [at, f]] of [...due])
+          if (at <= now) {
+            due.delete(h);
+            f();
+          }
+      },
+    };
+  }
+
+  it("ends a connection that receives nothing for 6 s, as the fast line scan finds devices", () => {
+    const { sim } = setup();
+    const c = clock();
+    const sent: Uint8Array[] = [];
+    const m = new DeviceManagement(
+      () => sim,
+      () => {},
+      () => {},
+      (f) => sent.push(f),
+      c.timers,
+    );
+    sim.pressProgrammingButton("bp");
+    m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x01])));
+    const at = ia(1, 1, 1);
+    m.handle(req(at, false, [0x80]));
+    // A frame within the timeout keeps it.
+    c.advance(5000);
+    m.handle(req(at, false, [0x43, 0x00]));
+    c.advance(5000);
+    expect(sent).toEqual([]);
+    c.advance(1000);
+    const [d] = decoded(sent);
+    expect(d!.source).toBe(at);
+    expect(d!.destination).toBe(ETS);
+    expect(d!.tpdu).toEqual([0x81]);
+    // Ended: a numbered frame now gets a T_Disconnect.
+    expect(
+      decoded(m.handle(req(at, false, [0x44 | 0x03, 0x00]))).map((f) => f.tpdu),
+    ).toEqual([[0x81]]);
+  });
+
+  it("is not armed once the peer disconnected", () => {
+    const { sim } = setup();
+    const c = clock();
+    const sent: Uint8Array[] = [];
+    const m = new DeviceManagement(
+      () => sim,
+      () => {},
+      () => {},
+      (f) => sent.push(f),
+      c.timers,
+    );
+    sim.pressProgrammingButton("bp");
+    m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x01])));
+    m.handle(req(ia(1, 1, 1), false, [0x80]));
+    m.handle(req(ia(1, 1, 1), false, [0x81]));
+    c.advance(7000);
+    expect(sent).toEqual([]);
+  });
+});

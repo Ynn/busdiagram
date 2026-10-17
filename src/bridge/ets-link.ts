@@ -23,6 +23,7 @@ import {
   rawToData,
 } from "../knx/cemi";
 import { DeviceManagement, decodeLData } from "../knx/management";
+import type { ManagementTimers } from "../knx/management";
 import type { AccessPoint, Simulation, Telegram } from "../knx/sim";
 import type { Translate } from "../i18n";
 import { en } from "../i18n";
@@ -103,6 +104,8 @@ export interface EtsLinkOptions {
   socket?: (url: string) => SocketLike;
   /** Language of the status messages. */
   t?: Translate;
+  /** Timers of the transport connections (the tests give theirs). */
+  timers?: ManagementTimers;
 }
 
 function closeReason(code: number, t: Translate): string {
@@ -155,6 +158,15 @@ export class EtsLink {
               : this
                   .t`Several devices have the address ${address} (${devices.join(", ")}): ETS sees the address occupied`,
         ),
+      // A device ends a connection ETS left without a frame (as the fast line scan of
+      // ETS finds the devices: by the T_Disconnect of each one it connected to).
+      (frame) => {
+        const ws = this.ws;
+        if (!ws || ws.readyState !== 1) return;
+        ws.send(frame);
+        this.update({ sent: this.status.sent + 1 });
+      },
+      o.timers,
     );
   }
 
