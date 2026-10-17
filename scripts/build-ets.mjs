@@ -10,6 +10,7 @@
 import { cp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
+import { homedir } from "node:os";
 import { resolve } from "node:path";
 import { parseArgs } from "node:util";
 import { components, noticesText } from "./ets-notices.mjs";
@@ -34,19 +35,51 @@ const crateVersion = /^version = "([^"]*)"/m.exec(
 if (crateVersion !== version)
   fail(`ets-bridge is ${crateVersion}, the library ${version}`);
 
-execFileSync("cargo", ["build", "--release", "--locked"], {
-  cwd: crate,
-  stdio: "inherit",
-});
+// The paths of the build machine stay out of the program: the sources of the crates, of
+// this repository and what the build scripts generate are named from neutral prefixes
+// (the panic and assertion messages keep the paths of their sources). A target of its
+// own, so that a busdiagram-ets running from target/release does not block the build.
+const target = resolve(crate, "target/dist");
+const cargoHome = process.env.CARGO_HOME ?? resolve(homedir(), ".cargo");
+const remap = [
+  [homedir(), "/home"],
+  [cargoHome, "/cargo"],
+  [root, "/busdiagram"],
+  [target, "/target"],
+]
+  .map(([from, to]) => `--remap-path-prefix=${from}=${to}`)
+  .join(" ");
+execFileSync(
+  "cargo",
+  ["build", "--release", "--locked", "--target-dir", target],
+  {
+    cwd: crate,
+    stdio: "inherit",
+    env: {
+      ...process.env,
+      RUSTFLAGS: [process.env.RUSTFLAGS, remap].filter(Boolean).join(" "),
+    },
+  },
+);
 const windows = process.platform === "win32";
 const exe = windows ? "busdiagram-ets.exe" : "busdiagram-ets";
+const built = resolve(target, "release", exe);
+
+/** Refuse a program that still names a folder of the build machine. */
+async function checkPaths(file) {
+  const bytes = await readFile(file);
+  const texts = [bytes.toString("latin1"), bytes.toString("utf16le")];
+  const home = homedir();
+  for (const path of new Set([home, home.replaceAll("\\", "/")]))
+    for (const text of texts)
+      if (text.toLowerCase().includes(path.toLowerCase()))
+        fail(`${file} names ${path}: a path of the build machine`);
+}
+await checkPaths(built);
 
 // Files are replaced in place: a folder open in Explorer or a terminal cannot be removed.
 await mkdir(out, { recursive: true });
-await cp(
-  resolve(crate, "target/release", exe),
-  resolve(out, exe.replace("busdiagram-ets", "BusDiagram-ETS")),
-);
+await cp(built, resolve(out, exe.replace("busdiagram-ets", "BusDiagram-ETS")));
 await cp(resolve(crate, "LISEZMOI.txt"), resolve(out, "LISEZMOI.txt"));
 await cp(resolve(root, "LICENSE"), resolve(out, "LICENCE.txt"));
 await cp(resolve(root, "NOTICE"), resolve(out, "NOTICE.txt"));

@@ -252,6 +252,25 @@ export function readBits(
   return v;
 }
 
+/**
+ * Unsigned value of `octets` octets at an address, most significant first, or least
+ * significant first for a program whose parameters are little-endian
+ * (`ParameterByteOrder`).
+ */
+export function readUnsigned(
+  mem: Uint8Array,
+  address: number,
+  octets: number,
+  littleEndian = false,
+): number {
+  let v = 0;
+  for (let i = 0; i < octets; i++) {
+    const at = address + (littleEndian ? octets - 1 - i : i);
+    v = v * 256 + (mem[at] ?? 0);
+  }
+  return v;
+}
+
 export function writeBits(
   mem: Uint8Array,
   address: number,
