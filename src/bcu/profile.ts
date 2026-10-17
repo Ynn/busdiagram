@@ -59,6 +59,19 @@ export interface MaskProfile {
    * parameters and tables, nothing else.
    */
   systemAreas: readonly (readonly [number, number])[];
+  /**
+   * Address of the relative segment that the device allocates to a load state machine
+   * (System B), where the product database places it.
+   */
+  relativeSegment?(lsm: number): number | undefined;
+  /**
+   * Where the tables are when the device allocates them itself (System B), as many
+   * entries as the memory holds and the program allows ([start, length]).
+   */
+  tableAreas?(
+    memory: Uint8Array,
+    max: { addresses?: number; associations?: number },
+  ): (readonly [number, number])[];
   /** Memory as delivered by the mask: no group address, application stopped. */
   factory(): Uint8Array;
   /** Programming LED and individual address, as the memory holds them. */

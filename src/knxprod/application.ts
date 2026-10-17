@@ -5,6 +5,7 @@
 // on a particular product.
 import type { XmlElement } from "./xml";
 import { child, descendants, kids } from "./xml";
+import { profileOf } from "../bcu";
 
 export interface Segment {
   id: string;
@@ -12,6 +13,11 @@ export interface Segment {
   size: number;
   /** Default image of the segment (Data), or zeros. */
   data: Uint8Array;
+  /**
+   * Load state machine of a relative segment (System B), which the device allocates: its
+   * address is where the profile of the mask puts it.
+   */
+  lsm?: number;
 }
 
 export type ParameterTypeKind =
@@ -143,6 +149,7 @@ export interface ComparedProperty {
 }
 
 export interface TableLocation {
+  /** Its segment, or "" for a table of its own load state machine (System B). */
   segment: string;
   offset: number;
   maxEntries: number;
@@ -325,6 +332,27 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
       data,
     });
   }
+  // Relative segments, which the device allocates where its mask puts them.
+  const profile = profileOf((app.attrs.MaskVersion ?? "").replace(/^MV-/, ""));
+  for (const s of descendants(child(st, "Code") ?? app, "RelativeSegment")) {
+    const size = num(s.attrs.Size);
+    const lsm = num(s.attrs.LoadStateMachine);
+    const base = profile?.relativeSegment?.(lsm);
+    if (base === undefined)
+      throw new Error(
+        `${s.attrs.Id}: no relative segment of LSM ${lsm} for ${app.attrs.MaskVersion}`,
+      );
+    const d = child(s, "Data")?.text;
+    const data = new Uint8Array(size);
+    if (d) data.set(base64(d).subarray(0, size));
+    segments.set(s.attrs.Id!, {
+      id: s.attrs.Id!,
+      address: base + num(s.attrs.Offset),
+      size,
+      data,
+      lsm,
+    });
+  }
   const types = new Map<string, ParameterType>();
   for (const t of kids(child(st, "ParameterTypes"), "ParameterType"))
     types.set(t.attrs.Id!, parseType(t));
@@ -424,9 +452,10 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
   }
   const table = (name: string): TableLocation | null => {
     const t = child(st, name);
-    return t && t.attrs.CodeSegment
+    // A table of its own load state machine (System B) has only its capacity.
+    return t && (t.attrs.CodeSegment || t.attrs.MaxEntries)
       ? {
-          segment: t.attrs.CodeSegment,
+          segment: t.attrs.CodeSegment ?? "",
           offset: num(t.attrs.Offset),
           maxEntries: num(t.attrs.MaxEntries),
         }

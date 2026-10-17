@@ -2,8 +2,10 @@
 // registered here, then looked up by mask version.
 import "./bcu1";
 import "./system7";
+import "./systemb";
 
 export * from "./profile";
 export { bcu1, readTables, writeTables, typeOctet, typeBits } from "./bcu1";
 export { TableOverflow } from "./tables";
 export { system7 } from "./system7";
+export { systemB } from "./systemb";

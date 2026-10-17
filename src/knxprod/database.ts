@@ -328,8 +328,13 @@ export function shareableMemory(
   const kept = new Uint8Array(mem.length);
   const mark = (from: number, length: number) =>
     kept.fill(1, Math.max(0, from), Math.min(mem.length, from + length));
-  for (const [at, n] of profileOf(db.mask.replace(/^MV-/, ""))?.systemAreas ??
-    [])
+  const profile = profileOf(db.mask.replace(/^MV-/, ""));
+  for (const [at, n] of profile?.systemAreas ?? []) mark(at, n);
+  // Tables that the device allocates itself (System B).
+  for (const [at, n] of profile?.tableAreas?.(mem, {
+    addresses: db.addressTable?.maxEntries,
+    associations: db.associationTable?.maxEntries,
+  }) ?? [])
     mark(at, n);
   for (const s of db.segments)
     for (const [at, h] of s.data) mark(s.address + at, h.length / 2);
