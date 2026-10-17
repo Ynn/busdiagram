@@ -6,6 +6,7 @@
 import type { XmlElement } from "./xml";
 import { child, descendants, kids } from "./xml";
 import { profileOf } from "../bcu";
+import type { ParameterCalculation } from "./calculation";
 
 export interface Segment {
   id: string;
@@ -180,6 +181,8 @@ export interface ApplicationProgram {
   dynamic: DynNode[];
   /** Properties that the load procedure writes, which the device must accept. */
   writtenProperties: WrittenProperty[];
+  /** Hidden parameters that ETS sets from those of the dialog, in their order. */
+  calculations?: ParameterCalculation[];
   comparedProperties: ComparedProperty[];
   /** Translations: language → (element id + attribute) → text. */
   translations: Map<string, Map<string, string>>;
@@ -497,6 +500,24 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
     };
     compared.set(`${p.object}/${p.pid}`, p);
   }
+  const calculations: ParameterCalculation[] = descendants(
+    app,
+    "ParameterCalculation",
+  )
+    .filter((c) => (c.attrs.Language ?? "JavaScript") === "JavaScript")
+    .map((c) => {
+      const aliases = (side: string) =>
+        kids(child(c, side), "ParameterRefRef").map((r) => ({
+          ref: r.attrs.RefId ?? "",
+          alias: r.attrs.AliasName ?? "",
+        }));
+      return {
+        id: c.attrs.Id ?? "",
+        script: child(c, "LRTransformation")?.text ?? "",
+        inputs: aliases("LParameters"),
+        outputs: aliases("RParameters"),
+      };
+    });
   const translations = new Map<string, Map<string, string>>();
   for (const lang of descendants(doc, "Language")) {
     const m =
@@ -536,6 +557,7 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
       child(app, "Dynamic") ?? { name: "", attrs: {}, children: [], text: "" },
     ),
     writtenProperties: [...written.values()],
+    ...(calculations.length ? { calculations } : {}),
     comparedProperties: [...compared.values()],
     translations,
   };

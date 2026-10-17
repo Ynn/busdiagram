@@ -8,6 +8,7 @@ import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
 import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
+import { calculate } from "../../src/knxprod/calculation";
 import { linksOf, projectImage, valuesOf } from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
 import { TableOverflow } from "../../src/bcu/tables";
@@ -216,11 +217,17 @@ export function setEtsParameter(
     case "text":
       throw new EditRefusal(t`“${value}” does not fit the text of ${ref}`);
   }
-  const def = r.value ?? param.value;
-  ets.parameters ??= {};
-  if (value === def) delete ets.parameters[ref];
-  else ets.parameters[ref] = value;
-  if (!Object.keys(ets.parameters).length) delete ets.parameters;
+  // The value, then the hidden parameters that ETS calculates from it; a value that is the
+  // default of its reference is not kept.
+  const values = calculate(app, { ...ets.parameters, [ref]: value });
+  const kept = Object.fromEntries(
+    Object.entries(values).filter(([k, v]) => {
+      const rk = app.parameterRefs.get(k);
+      return v !== (rk?.value ?? app.parameters.get(rk?.ref ?? "")?.value);
+    }),
+  );
+  if (Object.keys(kept).length) ets.parameters = kept;
+  else delete ets.parameters;
   applyConfiguration(d, app, registry);
 }
 

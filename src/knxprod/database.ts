@@ -18,6 +18,7 @@ import type {
   WrittenProperty,
   ComparedProperty,
 } from "./application";
+import type { ParameterCalculation } from "./calculation";
 import { openCatalog } from "./catalog";
 import { profileOf } from "../bcu";
 import { branch, segmentImages, sizeOf, writeParameters } from "./config";
@@ -53,6 +54,8 @@ export interface ProductDatabase {
   writtenProperties?: WrittenProperty[];
   /** Properties of the device its load procedure compares first, when it compares some. */
   comparedProperties?: ComparedProperty[];
+  /** Hidden parameters that ETS sets from those of the dialog, when the program has some. */
+  calculations?: ParameterCalculation[];
   /** Translations: language → "element|attribute" → text. */
   translations: Record<string, Record<string, string>>;
 }
@@ -171,6 +174,9 @@ export function databaseOf(
       else if ("children" in n) walk(n.children);
     });
   walk(dynamic);
+  // The parameters of the calculations, those they read and those they set.
+  for (const c of app.calculations ?? [])
+    for (const x of [...c.inputs, ...c.outputs]) refs.add(x.ref);
   const parameterRefs = [...app.parameterRefs.values()]
     .filter((r) => refs.has(r.id))
     .map((r) =>
@@ -243,6 +249,7 @@ export function databaseOf(
     ...(app.writtenProperties.length
       ? { writtenProperties: app.writtenProperties }
       : {}),
+    ...(app.calculations?.length ? { calculations: app.calculations } : {}),
     translations: Object.fromEntries(
       [...app.translations]
         .filter(([l]) =>
@@ -299,6 +306,7 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
     dynamic: db.dynamic,
     writtenProperties: db.writtenProperties ?? [],
     comparedProperties: db.comparedProperties ?? [],
+    ...(db.calculations ? { calculations: db.calculations } : {}),
     translations: new Map(
       Object.entries(db.translations).map(([l, m]) => [
         l,
