@@ -5,12 +5,16 @@
 import type { ApplicationProgram } from "./application";
 import type { ParameterValues } from "./config";
 import {
+  knownTime,
   objectOf,
   readParameters,
   segmentImages,
+  valueProblem,
   visible,
   writeParameters,
 } from "./config";
+import { calculate } from "./calculation";
+import type { CalculationProblem } from "./calculation";
 import { profileOf, typeOctet } from "../bcu";
 import type { TableContent } from "../bcu";
 
@@ -33,6 +37,43 @@ const PRIORITY: Record<string, "system" | "urgent" | "normal" | "low"> = {
   Low: "low",
 };
 
+/** A value of the project that its parameter does not take. */
+export class ParameterValueError extends Error {
+  constructor(
+    readonly ref: string,
+    readonly value: string,
+    readonly problem:
+      "unknown" | "choice" | "number" | "range" | "text" | "unit",
+  ) {
+    super(`${ref} = ${value}: ${problem}`);
+  }
+}
+
+/**
+ * The configuration a device runs with, whoever sets it (the ETS pages of the designer,
+ * an imported project, the memory of a download): each value checked against its
+ * parameter, then the hidden parameters that the program's calculations set.
+ * `problems` says which calculations were not done.
+ */
+export function effectiveValues(
+  app: ApplicationProgram,
+  values: ParameterValues,
+  problems: CalculationProblem[] = [],
+): ParameterValues {
+  for (const [ref, v] of Object.entries(values)) {
+    const r = app.parameterRefs.get(ref);
+    const p = r && app.parameters.get(r.ref);
+    if (!p) throw new ParameterValueError(ref, v, "unknown");
+    const type = app.types.get(p.type);
+    const problem = valueProblem(type, v);
+    if (problem) throw new ParameterValueError(ref, v, problem);
+    // A time in memory in a unit the codec does not write: refused rather than lost.
+    if (p.memory && type && !knownTime(type))
+      throw new ParameterValueError(ref, v, "unit");
+  }
+  return calculate(app, values, problems);
+}
+
 /** Absolute address of a segment of the program. */
 const segmentAddress = (app: ApplicationProgram, id: string) =>
   app.segments.get(id)?.address ?? 0;
@@ -52,6 +93,7 @@ export function projectImage(
   if (!profile) throw new Error(`mask ${mask}: no BCU profile`);
   const mem = profile.factory();
   const images = segmentImages(app);
+  values = effectiveValues(app, values);
   writeParameters(app, values, images);
   images.forEach((img, id) => {
     const at = segmentAddress(app, id);

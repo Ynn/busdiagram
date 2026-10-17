@@ -20,6 +20,8 @@ import type { Page } from "./params";
 import { tt } from "./params";
 import type { ProductLimit } from "../../src/bcu/product";
 import { limitOfParameter, limitsOf } from "./limits";
+import { calculate } from "../../src/knxprod/calculation";
+import type { CalculationProblem } from "../../src/knxprod/calculation";
 
 type Ets = { application: string; parameters?: Record<string, string> };
 
@@ -153,8 +155,13 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
   const states = limitsOf(limits, app, values).sort(
     (a, b) => Number(b.inUse) - Number(a.inUse),
   );
-  if (states.length) {
-    const used = states.filter((s) => s.inUse).length;
+  // The calculations of the program that the designer cannot do: the hidden parameters
+  // they set keep their values.
+  const problems: CalculationProblem[] = [];
+  calculate(app, values, problems);
+  if (states.length || problems.length) {
+    const used =
+      states.filter((s) => s.inUse).length + (problems.length ? 1 : 0);
     out.push({
       key: "ets:limits",
       label: t`Simulation limits`,
@@ -179,6 +186,12 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
                         >`
                       : nothing
                   }
+                </li>`,
+            )}
+            ${problems.map(
+              (p) =>
+                html`<li class="on">
+                  ${t`Parameter calculation ${p.calculation} of the program not done (${p.message}): the parameters it sets keep their values.`}
                 </li>`,
             )}
           </ul>

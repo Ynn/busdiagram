@@ -171,6 +171,37 @@ const dpt9Value = (raw: number) => {
 };
 
 /**
+ * Units of a time kept as an integer of that unit; the packed one the device keeps one
+ * octet each for its seconds, minutes, hours (and days). The other packed units are not
+ * known: their value (an integer of their smallest unit) is not written in memory.
+ */
+const TIME_UNITS = new Set([
+  "Years",
+  "Months",
+  "Weeks",
+  "Days",
+  "Hours",
+  "Minutes",
+  "Seconds",
+  "TenthsOfASecond",
+  "HundredthsOfASecond",
+  "Milliseconds",
+]);
+const PACKED = "PackedDaysHoursMinutesAndSeconds";
+
+/** A time whose unit the codec knows. */
+export const knownTime = (type: ParameterType) =>
+  type.kind !== "time" ||
+  type.unit === PACKED ||
+  TIME_UNITS.has(type.unit ?? "");
+
+/** Largest time in seconds that the octets of a packed time hold. */
+const packedMax = (octets: number) =>
+  octets >= 4
+    ? 255 * 86400 + 23 * 3600 + 59 * 60 + 59
+    : 255 * 3600 + 59 * 60 + 59;
+
+/**
  * Why a value does not fit its parameter type, or null when it does: not one of the
  * choices of an enumeration, not a number, a number outside its bounds or its octets,
  * a text too long or with characters outside ISO-8859-1.
@@ -195,7 +226,11 @@ export function valueProblem(
   if (type.kind === "number" || type.kind === "time") {
     if (!Number.isInteger(n)) return "number";
     const lo = type.signed ? -(2 ** (bits - 1)) : 0;
-    const hi = type.signed ? 2 ** (bits - 1) - 1 : 2 ** bits - 1;
+    const hi = packed(type)
+      ? packedMax(Math.ceil(bits / 8))
+      : type.signed
+        ? 2 ** (bits - 1) - 1
+        : 2 ** bits - 1;
     if (n < lo || n > hi) return "range";
   }
   return null;
@@ -203,7 +238,7 @@ export function valueProblem(
 
 /** A time in seconds packed as its device keeps it: seconds, minutes, hours, days. */
 const packed = (type: ParameterType | undefined) =>
-  type?.kind === "time" && type.unit === "PackedDaysHoursMinutesAndSeconds";
+  type?.kind === "time" && type.unit === PACKED;
 
 function packTime(seconds: number, out: Uint8Array) {
   const parts = [
@@ -368,7 +403,8 @@ export function writeParameters(
     const img = images.get(p.memory.segment);
     const type = app.types.get(p.type);
     const bits = sizeOf(type);
-    if (!img || !bits) return;
+    // A time of a unit not known keeps what its segment holds.
+    if (!img || !bits || (type && !knownTime(type))) return;
     const v = ref ? valueOf(app, values, ref) : p.value;
     writeValue(
       img,

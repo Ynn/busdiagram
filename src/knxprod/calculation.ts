@@ -2,13 +2,16 @@
 // hidden parameters from those of the dialog with a small script, its LRTransformation
 // (the type of a channel from the choice of its function, a time in 100 ms from one in
 // ms…). The script is not run as JavaScript: it is read with the subset that programs
-// use — assignments (separated by new lines, commas or semicolons), if / else if / else
-// with or without braces, comparisons, && || !, + − * / %, parentheses, numbers, texts
-// and the length of a text. Anything else refuses the calculation, which then sets
-// nothing.
+// use, with the precedence of JavaScript —
+// - statements: assignments (var, let and const declare), separated by new lines,
+//   commas or semicolons; if / else if / else, with or without braces;
+// - expressions: numbers, texts and their length, true and false, parentheses, ! - +,
+//   * / %, + -, < <= > >=, == != === !==, & ^ |, && || (the right operand read, not
+//   evaluated, when the left one decides), the conditional ? : (only its branch taken).
+// Anything else refuses the calculation, which then sets nothing and says why.
 import type { ApplicationProgram } from "./application";
 import type { ParameterValues } from "./config";
-import { valueOf } from "./config";
+import { valueOf, valueProblem } from "./config";
 
 /** A calculation: the parameters it reads (L) and sets (R), by their alias. */
 export interface ParameterCalculation {
@@ -23,8 +26,16 @@ type Value = number | string | boolean;
 
 export class CalculationError extends Error {}
 
+/** A calculation that set nothing, or a value it could not set, and why. */
+export interface CalculationProblem {
+  calculation: string;
+  /** The parameter reference it was to set, when the problem is its value. */
+  ref?: string;
+  message: string;
+}
+
 const TOKEN =
-  /\s*(?:(\d+(?:\.\d+)?)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|([A-Za-z_$][\w$]*)|(===|!==|==|!=|<=|>=|&&|\|\||[-+*/%<>!=(){},;.]))/y;
+  /\s*(?:(\d+(?:\.\d+)?)|('(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")|([A-Za-z_$][\w$]*)|(===|!==|==|!=|<=|>=|&&|\|\||[-+*/%<>!=(){},;.?:&|^]))/y;
 
 function tokens(src: string): string[] {
   const out: string[] = [];
@@ -42,6 +53,9 @@ function tokens(src: string): string[] {
   return out;
 }
 
+const DECLARE = new Set(["var", "let", "const"]);
+const KEYWORDS = new Set(["if", "else", "true", "false", ...DECLARE]);
+
 /** Run a script with its variables; the variables after it. */
 export function runScript(
   script: string,
@@ -50,7 +64,8 @@ export function runScript(
   const t = tokens(script);
   let i = 0;
   const env = { ...vars };
-  // Inside a branch not taken: read, not run (its variables may not be set).
+  // Inside what is read but not run (a branch not taken, the right operand of a decided
+  // && or ||): variables may be unset, and nothing is assigned.
   let skipped = 0;
   const peek = () => t[i];
   const next = () => {
@@ -60,33 +75,29 @@ export function runScript(
   const expect = (s: string) => {
     if (next() !== s) throw new CalculationError(`“${s}” expected`);
   };
+  /** Read `f` without running it. */
+  const skip = <T>(f: () => T): T => {
+    skipped++;
+    try {
+      return f();
+    } finally {
+      skipped--;
+    }
+  };
+  const num = (v: Value) => Number(v);
+  const truthy = (v: Value) => (typeof v === "string" ? v !== "" : !!v);
+  const int32 = (v: Value) => num(v) | 0;
 
-  // Expressions, by precedence.
-  const binary =
-    (
-      ops: readonly string[],
-      sub: () => Value,
-      f: (op: string, a: Value, b: Value) => Value,
-    ) =>
-    (): Value => {
-      let a = sub();
-      while (ops.includes(peek() ?? "")) {
-        const op = next();
-        a = f(op, a, sub());
-      }
-      return a;
-    };
-  const num = (v: Value) => (typeof v === "string" ? Number(v) : Number(v));
   const primary = (): Value => {
     const s = next();
     let v: Value;
     if (s === "(") {
-      v = or();
+      v = expression();
       expect(")");
     } else if (/^\d/.test(s)) v = Number(s);
     else if (/^['"]/.test(s)) v = s.slice(1, -1).replace(/\\(.)/g, "$1");
     else if (s === "true" || s === "false") v = s === "true";
-    else if (/^[A-Za-z_$]/.test(s)) {
+    else if (/^[A-Za-z_$]/.test(s) && !KEYWORDS.has(s)) {
       if (s in env) v = env[s]!;
       else if (skipped) v = 0;
       else throw new CalculationError(`unknown “${s}”`);
@@ -104,22 +115,36 @@ export function runScript(
     if (peek() === "+") return (next(), num(unary()));
     return primary();
   };
-  const truthy = (v: Value) => (typeof v === "string" ? v !== "" : !!v);
-  const mul = binary(["*", "/", "%"], unary, (op, a, b) =>
+  /** A left-associative level of binary operators. */
+  const level =
+    (
+      ops: readonly string[],
+      sub: () => Value,
+      f: (op: string, a: Value, b: Value) => Value,
+    ) =>
+    (): Value => {
+      let a = sub();
+      while (ops.includes(peek() ?? "")) {
+        const op = next();
+        a = f(op, a, sub());
+      }
+      return a;
+    };
+  const mul = level(["*", "/", "%"], unary, (op, a, b) =>
     op === "*"
       ? num(a) * num(b)
       : op === "/"
         ? num(a) / num(b)
         : num(a) % num(b),
   );
-  const add = binary(["+", "-"], mul, (op, a, b) =>
+  const add = level(["+", "-"], mul, (op, a, b) =>
     op === "-"
       ? num(a) - num(b)
       : typeof a === "string" || typeof b === "string"
         ? String(a) + String(b)
         : num(a) + num(b),
   );
-  const rel = binary(["<", "<=", ">", ">="], add, (op, a, b) => {
+  const rel = level(["<", "<=", ">", ">="], add, (op, a, b) => {
     const [x, y] =
       typeof a === "string" && typeof b === "string"
         ? [a, b]
@@ -135,7 +160,7 @@ export function runScript(
   // == compares as JavaScript does a text and a number: as numbers.
   const same = (a: Value, b: Value) =>
     typeof a === typeof b ? a === b : num(a) === num(b);
-  const eq = binary(["==", "!=", "===", "!=="], rel, (op, a, b) =>
+  const eq = level(["==", "!=", "===", "!=="], rel, (op, a, b) =>
     op === "==="
       ? a === b
       : op === "!=="
@@ -144,38 +169,73 @@ export function runScript(
           ? same(a, b)
           : !same(a, b),
   );
-  const and = binary(["&&"], eq, (_, a, b) => truthy(a) && truthy(b));
-  const or: () => Value = binary(
-    ["||"],
-    and,
-    (_, a, b) => truthy(a) || truthy(b),
-  );
+  const band = level(["&"], eq, (_, a, b) => int32(a) & int32(b));
+  const bxor = level(["^"], band, (_, a, b) => int32(a) ^ int32(b));
+  const bor = level(["|"], bxor, (_, a, b) => int32(a) | int32(b));
+  // && and ||: the value of the operand that decides, the other read only.
+  const and = (): Value => {
+    let a = bor();
+    while (peek() === "&&") {
+      next();
+      if (truthy(a)) a = bor();
+      else skip(bor);
+    }
+    return a;
+  };
+  const or = (): Value => {
+    let a = and();
+    while (peek() === "||") {
+      next();
+      if (truthy(a)) skip(and);
+      else a = and();
+    }
+    return a;
+  };
+  const expression = (): Value => {
+    const c = or();
+    if (peek() !== "?") return c;
+    next();
+    let v: Value;
+    if (truthy(c)) {
+      v = expression();
+      expect(":");
+      skip(expression);
+    } else {
+      skip(expression);
+      expect(":");
+      v = expression();
+    }
+    return v;
+  };
 
   // Statements.
   const assignment = (run: boolean) => {
+    if (DECLARE.has(peek() ?? "")) next();
     const name = next();
-    if (!/^[A-Za-z_$]/.test(name))
+    if (!/^[A-Za-z_$]/.test(name) || KEYWORDS.has(name))
       throw new CalculationError(`unexpected “${name}”`);
     expect("=");
-    const v = or();
+    const v = run ? expression() : skip(expression);
     if (run) env[name] = v;
   };
   const block = (run: boolean) => {
-    if (!run) skipped++;
-    if (peek() !== "{") statement(run);
-    else {
-      next();
-      while (peek() !== "}") statement(run);
-      next();
-    }
-    if (!run) skipped--;
+    const read = () => {
+      if (peek() !== "{") statement(run);
+      else {
+        next();
+        while (peek() !== "}") statement(run);
+        next();
+      }
+    };
+    if (run) read();
+    else skip(read);
   };
   const statement = (run: boolean): void => {
     if (peek() === ";") return void next();
     if (peek() === "if") {
       next();
       expect("(");
-      const c = truthy(or());
+      const c = run ? truthy(expression()) : (skip(expression), false);
       expect(")");
       block(run && c);
       if (peek() === "else") {
@@ -189,6 +249,8 @@ export function runScript(
       next();
       assignment(run);
     }
+    // The semicolon that ends it, before an else too.
+    if (peek() === ";") next();
   };
   while (i < t.length) statement(true);
   return env;
@@ -208,18 +270,50 @@ function scriptValue(
     : Number(v);
 }
 
+/** The text of a value calculated for a parameter, as its type keeps it, or why not. */
+function outputText(
+  app: ApplicationProgram,
+  ref: string,
+  v: Value,
+): { text: string } | { problem: string } {
+  const p = app.parameters.get(app.parameterRefs.get(ref)?.ref ?? "");
+  if (!p) return { problem: `no parameter ${ref}` };
+  const type = app.types.get(p.type);
+  if (typeof v === "number" && !Number.isFinite(v))
+    return { problem: `${v} for ${ref}` };
+  // A number for an integer (or a choice): rounded, as a division gives it; a float
+  // keeps its digits.
+  const text =
+    typeof v === "boolean"
+      ? v
+        ? "1"
+        : "0"
+      : typeof v === "number"
+        ? type?.kind === "float"
+          ? String(v)
+          : String(Math.round(v))
+        : v;
+  const problem = valueProblem(type, text);
+  return problem ? { problem: `${text} is not a value of ${ref}` } : { text };
+}
+
 /**
  * The values with what the calculations of the program set, run in their order until
- * none changes anything; a calculation that cannot be read sets nothing.
+ * none changes anything. A calculation that cannot be read, or whose value does not fit
+ * its parameter, sets nothing: `problems` says which and why, as it does for
+ * calculations that do not settle.
  */
 export function calculate(
   app: ApplicationProgram,
   values: ParameterValues,
+  problems: CalculationProblem[] = [],
 ): ParameterValues {
   const out = { ...values };
   const calcs = app.calculations ?? [];
-  for (let pass = 0; pass <= calcs.length; pass++) {
-    let changed = false;
+  const found = new Map<string, CalculationProblem>();
+  let settled = false;
+  for (let pass = 0; pass <= calcs.length && !settled; pass++) {
+    settled = true;
     for (const c of calcs) {
       let env: Record<string, Value>;
       try {
@@ -230,27 +324,32 @@ export function calculate(
           ),
         );
       } catch (e) {
-        if (e instanceof CalculationError) continue;
-        throw e;
+        if (!(e instanceof CalculationError)) throw e;
+        found.set(c.id, { calculation: c.id, message: e.message });
+        continue;
       }
       for (const o of c.outputs) {
         if (!(o.alias in env)) continue;
-        const v = env[o.alias]!;
-        if (typeof v === "number" && !Number.isFinite(v)) continue;
-        const text =
-          typeof v === "number"
-            ? String(Math.round(v))
-            : typeof v === "boolean"
-              ? v
-                ? "1"
-                : "0"
-              : v;
-        if (valueOf(app, out, o.ref) === text) continue;
-        out[o.ref] = text;
-        changed = true;
+        const r = outputText(app, o.ref, env[o.alias]!);
+        if ("problem" in r) {
+          found.set(`${c.id}|${o.ref}`, {
+            calculation: c.id,
+            ref: o.ref,
+            message: r.problem,
+          });
+          continue;
+        }
+        if (valueOf(app, out, o.ref) === r.text) continue;
+        out[o.ref] = r.text;
+        settled = false;
       }
     }
-    if (!changed) break;
   }
+  if (!settled && calcs.length)
+    found.set("", {
+      calculation: calcs.map((c) => c.id).join(", "),
+      message: "the calculations do not settle",
+    });
+  problems.push(...found.values());
   return out;
 }

@@ -5,6 +5,7 @@ import type { ParameterType } from "../../src/knxprod/application";
 import {
   decodeValue,
   encodeValue,
+  knownTime,
   valueProblem,
 } from "../../src/knxprod/config";
 
@@ -62,6 +63,28 @@ describe("times", () => {
       ),
     ]).toEqual([1, 0x2c]);
     expect(valueProblem(t, "1.5")).toBe("number");
+  });
+});
+
+describe("times of other units", () => {
+  it("knows the units it writes, and bounds a packed time by its octets", () => {
+    const packed = {
+      ...type("time", 24),
+      unit: "PackedDaysHoursMinutesAndSeconds",
+    } as ParameterType;
+    expect(knownTime(packed)).toBe(true);
+    expect(
+      knownTime({ ...type("time", 16), unit: "Seconds" } as ParameterType),
+    ).toBe(true);
+    expect(
+      knownTime({
+        ...type("time", 32),
+        unit: "PackedMinutesSecondsAndMilliseconds",
+      } as ParameterType),
+    ).toBe(false);
+    // 255 h 59 min 59 s at most in three octets.
+    expect(valueProblem(packed, String(255 * 3600 + 3599))).toBeNull();
+    expect(valueProblem(packed, String(256 * 3600))).toBe("range");
   });
 });
 

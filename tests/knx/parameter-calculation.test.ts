@@ -4,6 +4,7 @@
 import { describe, expect, it } from "vitest";
 import type { ApplicationProgram } from "../../src/knxprod/application";
 import { calculate, runScript } from "../../src/knxprod/calculation";
+import type { CalculationProblem } from "../../src/knxprod/calculation";
 
 describe("scripts of parameter calculations", () => {
   it("assigns, separated by new lines or commas", () => {
@@ -47,6 +48,23 @@ else if ((PAR_INPUT1 > 32768 ) && (PAR_INPUT2 > 32768 )) PAR_OUTPUT    = 2`;
     expect(runScript(pin, { PAR_PIN: "1234" }).PAR_RESULT).toBe(1);
     expect(runScript(pin, { PAR_PIN: "123" }).PAR_RESULT).toBe(1);
     expect(runScript(pin, { PAR_PIN: "4711" }).PAR_RESULT).toBe(0);
+  });
+
+  it("declares, chooses with ? :, and combines bits, as the KNX Mini detector does", () => {
+    const script = `var nResult = 0;
+      nResult = ((ON > 0) ? 1:0) | (((OFF > 0) ? 1:0) & DAYLIGHT);
+      USED = nResult;`;
+    expect(runScript(script, { ON: 4, OFF: 0, DAYLIGHT: 1 }).USED).toBe(1);
+    expect(runScript(script, { ON: 0, OFF: 4, DAYLIGHT: 1 }).USED).toBe(1);
+    expect(runScript(script, { ON: 0, OFF: 4, DAYLIGHT: 0 }).USED).toBe(0);
+  });
+
+  it("ends a statement with a semicolon before else, and reads && || lazily", () => {
+    expect(runScript("if (X == 1) A = 2; else A = 3;", { X: 1 }).A).toBe(2);
+    expect(runScript("A = false && UNKNOWN", {}).A).toBe(false);
+    expect(runScript("A = true || UNKNOWN", {}).A).toBe(true);
+    expect(runScript("A = X ? 1 : UNKNOWN", { X: 1 }).A).toBe(1);
+    expect(() => runScript("A = true && UNKNOWN", {})).toThrow();
   });
 
   it("refuses what it does not read", () => {
@@ -106,5 +124,48 @@ describe("calculations of a program", () => {
 
   it("changes nothing when the defaults agree", () => {
     expect(calculate(program, {})).toEqual({});
+  });
+
+  it("says which calculation it could not run, and sets nothing of it", () => {
+    const broken = {
+      ...program,
+      calculations: [
+        { ...program.calculations![0]!, script: "PAR_OUTPUT = f(PAR_INPUT)" },
+      ],
+    } as ApplicationProgram;
+    const problems: CalculationProblem[] = [];
+    expect(calculate(broken, { F0_R: "2" }, problems)).toEqual({ F0_R: "2" });
+    expect(problems).toMatchObject([{ calculation: "PC-1" }]);
+  });
+
+  it("keeps a value that its parameter takes only", () => {
+    const outOfRange = {
+      ...program,
+      types: new Map([
+        ["T", { id: "T", kind: "number", sizeInBit: 8, min: 0, max: 200 }],
+      ]),
+      calculations: [
+        {
+          ...program.calculations![0]!,
+          script: "PAR_OUTPUT = PAR_INPUT * 100",
+        },
+      ],
+    } as unknown as ApplicationProgram;
+    const problems: CalculationProblem[] = [];
+    expect(calculate(outOfRange, { F0_R: "3" }, problems)).toEqual({
+      F0_R: "3",
+    });
+    expect(problems).toMatchObject([{ calculation: "PC-1", ref: "H0_R" }]);
+  });
+
+  it("keeps the digits of a float", () => {
+    const float = {
+      ...program,
+      types: new Map([["T", { id: "T", kind: "float", sizeInBit: 32 }]]),
+      calculations: [
+        { ...program.calculations![0]!, script: "PAR_OUTPUT = PAR_INPUT / 2" },
+      ],
+    } as unknown as ApplicationProgram;
+    expect(calculate(float, { F0_R: "1" }).H0_R).toBe("0.5");
   });
 });

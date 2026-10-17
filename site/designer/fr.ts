@@ -950,6 +950,13 @@ export const designerFr: Record<string, string> = {
     "le paquet demande le contrat {0} avec BusDiagram, qui a le {1} : il faut un BusDiagram plus récent",
   "Group object {0}: the group object table of this device holds {1}.":
     "Objet de groupe {0} : la table des objets de groupe de ce participant en contient {1}.",
+  "Parameter calculation {0} of the program not done ({1}): the parameters it sets keep their values.":
+    "Calcul de paramètres {0} du programme non fait ({1}) : les paramètres qu'il règle gardent leurs valeurs.",
+  "The program has no parameter {0}.": "Le programme n'a pas de paramètre {0}.",
+  "“{0}” is not a value that {1} takes.":
+    "« {0} » n'est pas une valeur que {1} accepte.",
+  "{0} is a time in a unit that the designer does not write":
+    "{0} est une durée dans une unité que le designer n'écrit pas",
   "manifest.json: list of products expected":
     "manifest.json : liste de produits attendue",
   "manifest.json: a product needs its behavior and its database":

@@ -8,8 +8,13 @@ import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
 import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
-import { calculate } from "../../src/knxprod/calculation";
-import { linksOf, projectImage, valuesOf } from "../../src/knxprod/runtime";
+import {
+  ParameterValueError,
+  effectiveValues,
+  linksOf,
+  projectImage,
+  valuesOf,
+} from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
 import { TableOverflow } from "../../src/bcu/tables";
 import { productOfProgram } from "../../src/bcu/product";
@@ -147,6 +152,14 @@ function fitting<T>(f: () => T): T {
   try {
     return f();
   } catch (e) {
+    if (e instanceof ParameterValueError)
+      throw new EditRefusal(
+        e.problem === "unknown"
+          ? t`The program has no parameter ${e.ref}.`
+          : e.problem === "unit"
+            ? t`${e.ref} is a time in a unit that the designer does not write`
+            : t`“${e.value}” is not a value that ${e.ref} takes.`,
+      );
     if (!(e instanceof TableOverflow)) throw e;
     throw new EditRefusal(
       e.table === "addresses"
@@ -221,7 +234,9 @@ export function setEtsParameter(
   }
   // The value, then the hidden parameters that ETS calculates from it; a value that is the
   // default of its reference is not kept.
-  const values = calculate(app, { ...ets.parameters, [ref]: value });
+  const values = fitting(() =>
+    effectiveValues(app, { ...ets.parameters, [ref]: value }),
+  );
   const kept = Object.fromEntries(
     Object.entries(values).filter(([k, v]) => {
       const rk = app.parameterRefs.get(k);
