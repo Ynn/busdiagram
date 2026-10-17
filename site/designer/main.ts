@@ -57,6 +57,7 @@ import {
   onPackagesChange,
   packageExamples,
   readPackage,
+  scriptFor,
   storePackage,
   storedPackages,
 } from "./packages";
@@ -1132,9 +1133,17 @@ const embedded = (data: unknown) => {
       (d) => d.behavior,
     ),
   );
-  return extensions.filter(
-    (x) => !x.package || behaviorsOfPackage(x.package).some((b) => used.has(b)),
-  );
+  // A package: the code of the products the scenario uses only, when it has it by
+  // product (not the firmwares of the others).
+  return extensions
+    .filter(
+      (x) =>
+        !x.package || behaviorsOfPackage(x.package).some((b) => used.has(b)),
+    )
+    .map((x) => {
+      const own = x.package ? scriptFor(x.package, used) : null;
+      return own === null ? x : { ...x, source: own };
+    });
 };
 const packageWarning = (embeds: LoadedExtension[]) => {
   const names = [

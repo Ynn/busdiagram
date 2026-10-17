@@ -17,6 +17,7 @@ import {
   forgetPackage,
   installPackage,
   readPackage,
+  scriptFor,
 } from "../../site/designer/packages";
 import { programOfProduct } from "../../site/designer/manufacturers";
 import {
@@ -185,6 +186,38 @@ describe("package of devices (.bdpkg)", () => {
     });
     expect(await refused(withApi(1))).toBe("");
     expect(await refused(withApi(99))).toMatch(/needs the contract 99/);
+  });
+
+  it("gives an export the scripts of the products its scenario uses", async () => {
+    const byProduct = {
+      ...packageFiles(),
+      "manifest.json": JSON.stringify({
+        ...manifest,
+        common: "scripts/common.js",
+        products: manifest.products.map((p, i) => ({
+          ...p,
+          script: `scripts/p${i}.js`,
+        })),
+      }),
+      "scripts/common.js": "/* common */",
+      "scripts/p0.js": "/* sa2 */",
+      "scripts/p1.js": "/* be1 */",
+    };
+    const p = await readPackage(zip(byProduct), version);
+    installPackage(p);
+    expect(scriptFor("example-devices", new Set(["example.be1/v1"]))).toBe(
+      "/* common */;\n/* be1 */",
+    );
+    forgetPackage("example-devices");
+    expect(
+      scriptFor("example-devices", new Set(["example.be1/v1"])),
+    ).toBeNull();
+    // Without scripts by product: none (the whole script is embedded).
+    installPackage(await readPackage(zip(packageFiles()), version));
+    expect(
+      scriptFor("example-devices", new Set(["example.be1/v1"])),
+    ).toBeNull();
+    forgetPackage("example-devices");
   });
 
   it("leaves the former version installed when the new one does not run", async () => {

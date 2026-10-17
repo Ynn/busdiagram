@@ -178,8 +178,9 @@ A package is a zip:
 
 | File | Content |
 | --- | --- |
-| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (the version of BusDiagram it needs at least, for the readers that know no contract), `api` (the contract with BusDiagram it needs, `PACKAGE_API`: when present, it decides), `products` (`behavior`, `manufacturer`, `name`, `database`: the file of its product database) and `scenarios` (`id`, `file`, `title` by language, `translations`: a dictionary file by language) |
+| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (the version of BusDiagram it needs at least, for the readers that know no contract), `api` (the contract with BusDiagram it needs, `PACKAGE_API`: when present, it decides), `common` (optional: the script the scripts of the products need first), `products` (`behavior`, `manufacturer`, `name`, `database`: the file of its product database, `script`: optional, the script that registers this product alone) and `scenarios` (`id`, `file`, `title` by language, `translations`: a dictionary file by language) |
 | `devices.js` | Extension script that registers the devices: `BusDiagram.registerParticipant(model)` for each, compiled as an IIFE with `bus-diagram` as the global `BusDiagram` |
+| `scripts/*.js` | Optional: the common script and one script by product, compiled as `devices.js`. With them, a page exported from the designer embeds the code of the products its scenario uses, not that of the whole package |
 | `databases/*.json` | The product databases |
 | `scenarios/*.json` | Examples, offered with the templates once the package is imported |
 

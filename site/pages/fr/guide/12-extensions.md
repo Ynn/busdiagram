@@ -178,8 +178,9 @@ Un paquet est un zip :
 
 | Fichier | Contenu |
 | --- | --- |
-| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (la version de BusDiagram qu'il demande au minimum, pour les lecteurs qui ne connaissent pas de contrat), `api` (le contrat avec BusDiagram qu'il demande, `PACKAGE_API` : présent, c'est lui qui décide), `products` (`behavior`, `manufacturer`, `name`, `database` : le fichier de sa base produit) et `scenarios` (`id`, `file`, `title` par langue, `translations` : un fichier dictionnaire par langue) |
+| `manifest.json` | `format` (`"bdpkg/1"`), `name`, `version`, `busdiagram` (la version de BusDiagram qu'il demande au minimum, pour les lecteurs qui ne connaissent pas de contrat), `api` (le contrat avec BusDiagram qu'il demande, `PACKAGE_API` : présent, c'est lui qui décide), `common` (facultatif : le script dont les scripts des produits ont besoin d'abord), `products` (`behavior`, `manufacturer`, `name`, `database` : le fichier de sa base produit, `script` : facultatif, le script qui enregistre ce seul produit) et `scenarios` (`id`, `file`, `title` par langue, `translations` : un fichier dictionnaire par langue) |
 | `devices.js` | Script d'extension qui enregistre les participants : `BusDiagram.registerParticipant(model)` pour chacun, compilé en IIFE avec `bus-diagram` comme la variable globale `BusDiagram` |
+| `scripts/*.js` | Facultatif : le script commun et un script par produit, compilés comme `devices.js`. Avec eux, une page exportée du designer embarque le code des produits qu'utilise son scénario, pas celui de tout le paquet |
 | `databases/*.json` | Les bases produit |
 | `scenarios/*.json` | Des exemples, proposés avec les modèles une fois le paquet importé |
 

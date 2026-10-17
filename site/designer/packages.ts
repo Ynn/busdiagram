@@ -25,12 +25,19 @@ export interface PackageManifest {
   busdiagram?: string;
   /** Contract with BusDiagram it needs (PACKAGE_API: at least this one). */
   api?: number;
+  /** Script that the scripts of the products need first (see `products[].script`). */
+  common?: string;
   products: {
     behavior: string;
     manufacturer: string;
     name: string;
     /** File of its product database in the package. */
     database: string;
+    /**
+     * Script that registers this product alone, after `common`: an exported page embeds
+     * those of the products its scenario uses, not the whole package.
+     */
+    script?: string;
   }[];
   scenarios?: {
     id: string;
@@ -45,6 +52,8 @@ export interface DevicePackage {
   manifest: PackageManifest;
   /** Extension script that registers the participants. */
   script: string;
+  /** The scripts of its products, when it has them: common, then one by behavior. */
+  productScripts?: { common: string; products: Map<string, string> };
   databases: Map<string, ProductDatabase>;
   scenarios: {
     id: string;
@@ -168,13 +177,36 @@ export async function readPackage(
       ),
     });
   }
-  return { manifest, script: await text("devices.js"), databases, scenarios };
+  // The scripts of its products: all of them, or none (the whole script is embedded).
+  let productScripts: DevicePackage["productScripts"];
+  if (
+    typeof m.common === "string" &&
+    manifest.products.every((p) => typeof p.script === "string")
+  )
+    productScripts = {
+      common: await text(m.common),
+      products: new Map(
+        await Promise.all(
+          manifest.products.map(
+            async (p) => [p.behavior, await text(p.script!)] as const,
+          ),
+        ),
+      ),
+    };
+  return {
+    manifest,
+    script: await text("devices.js"),
+    ...(productScripts ? { productScripts } : {}),
+    databases,
+    scenarios,
+  };
 }
 
 // ── What the imported packages bring to the designer ──────────────────────────
 
 const databases = new Map<string, ProductDatabase>();
 const examples = new Map<string, DevicePackage["scenarios"]>();
+const scriptsOf = new Map<string, DevicePackage["productScripts"]>();
 const listeners = new Set<() => void>();
 
 /**
@@ -192,6 +224,7 @@ export function installPackage(p: DevicePackage): () => void {
       }),
     ),
     examples: examples.get(name),
+    scripts: scriptsOf.get(name),
   };
   forgetPackage(name, false);
   p.databases.forEach((db, behavior) => {
@@ -200,6 +233,7 @@ export function installPackage(p: DevicePackage): () => void {
   });
   examples.set(p.manifest.name, p.scenarios);
   owners.set(p.manifest.name, [...p.databases.keys()]);
+  if (p.productScripts) scriptsOf.set(name, p.productScripts);
   listeners.forEach((f) => f());
   return () => {
     forgetPackage(name, false);
@@ -209,6 +243,7 @@ export function installPackage(p: DevicePackage): () => void {
     });
     if (former.databases.size) owners.set(name, [...former.databases.keys()]);
     if (former.examples) examples.set(name, former.examples);
+    if (former.scripts) scriptsOf.set(name, former.scripts);
     listeners.forEach((f) => f());
   };
 }
@@ -225,7 +260,21 @@ export function forgetPackage(name: string, notify = true) {
   });
   owners.delete(name);
   examples.delete(name);
+  scriptsOf.delete(name);
   if (notify) listeners.forEach((f) => f());
+}
+
+/**
+ * The script of a package that a scenario using these behaviors needs: its common script
+ * and those of these products, or null when the package has no scripts by product.
+ */
+export function scriptFor(name: string, used: Set<unknown>): string | null {
+  const s = scriptsOf.get(name);
+  if (!s) return null;
+  return [
+    s.common,
+    ...[...s.products].filter(([b]) => used.has(b)).map(([, x]) => x),
+  ].join(";\n");
 }
 
 /** Product database of a behavior, from an imported package. */
