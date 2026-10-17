@@ -96,6 +96,9 @@ pub struct Tunnels {
     configured: Vec<u16>,
     /// The page confirms the frames to a device.
     page_confirms: bool,
+    /// The addresses a diagram gave the interface and its tunnels, taken when no
+    /// connection is open.
+    wanted: Option<(u16, Vec<u16>)>,
     /// Start of the relative time stamps of the bus monitor, and its sequence number.
     started: Instant,
     monitor_seq: u8,
@@ -119,6 +122,7 @@ impl Tunnels {
             next_channel: 1,
             configured,
             page_confirms: false,
+            wanted: None,
             started: Instant::now(),
             monitor_seq: 0,
         }
@@ -170,12 +174,59 @@ impl Tunnels {
         }
     }
 
-    /// Every connection closed: the addresses of the tunnels as configured.
+    /// Every connection closed: the addresses of the tunnels as configured (or as a
+    /// diagram gave them meanwhile).
     fn restore_addresses(&mut self) {
-        if self.conns.is_empty() && self.id.tunnel_addresses != self.configured {
+        if !self.conns.is_empty() {
+            return;
+        }
+        if let Some((ia, tunnels)) = self.wanted.take() {
+            self.id.individual_address = ia;
+            self.props.individual_address = ia;
+            self.configured = tunnels;
+        }
+        if self.id.tunnel_addresses != self.configured {
             self.id.tunnel_addresses = self.configured.clone();
             self.props.tunnel_addresses = self.configured.clone();
         }
+    }
+
+    /// The addresses a diagram gives the interface and its tunnels (free in the line
+    /// where ETS reaches it): the first one the interface's, the next ones its tunnels'
+    /// (as many as it has). Taken at once with no connection open, else when the last
+    /// one closes: an address never changes under ETS.
+    pub fn adopt_addresses(&mut self, list: &[u16], out: &mut Output) {
+        let n = self.configured.len();
+        let Some((&ia, rest)) = list.split_first() else {
+            return;
+        };
+        if rest.is_empty() {
+            return;
+        }
+        let mut tunnels: Vec<u16> = rest.iter().copied().take(n).collect();
+        // Fewer than its tunnels: the others keep theirs, unless one is among them.
+        for a in &self.configured {
+            if tunnels.len() >= n {
+                break;
+            }
+            if !tunnels.contains(a) && *a != ia {
+                tunnels.push(*a);
+            }
+        }
+        if ia == self.id.individual_address && tunnels == self.configured {
+            return;
+        }
+        out.log.push(format!(
+            "adresses données par le schéma : interface {}, tunnels {}",
+            ip::individual_text(ia),
+            tunnels
+                .iter()
+                .map(|a| ip::individual_text(*a))
+                .collect::<Vec<_>>()
+                .join(", ")
+        ));
+        self.wanted = Some((ia, tunnels));
+        self.restore_addresses();
     }
 
     /// L_Busmon.ind of a frame on the bus, to every bus monitor.
@@ -1159,6 +1210,57 @@ mod tests {
         let (_, con) = parse(&out.udp.last().unwrap().0);
         assert_eq!(con[4], 0xF5);
         assert_eq!(con[9] >> 4, 0);
+    }
+
+    #[test]
+    fn a_diagram_gives_the_addresses_of_its_line_when_no_connection_is_open() {
+        let now = Instant::now();
+        let mut t = server();
+        let mut out = Output::default();
+        // 1.1.254 the interface, 1.1.253 its tunnel: taken at once.
+        t.adopt_addresses(&[0x11FE, 0x11FD], &mut out);
+        assert_eq!(t.tunnel_addresses(), Vec::<u16>::new());
+        let mut b = vec![8, 1, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0];
+        b.extend_from_slice(&[4, TUNNEL_CONNECTION, TUNNEL_LINKLAYER, 0]);
+        let mut out = Output::default();
+        t.on_datagram(
+            &ip::frame(ServiceType::ConnectRequest, b),
+            from(),
+            now,
+            &mut out,
+        );
+        let (_, body) = parse(&out.udp[0].0);
+        assert_eq!(&body[10..], &[4, 4, 0x11, 0xFD]);
+        let ch = body[0];
+        // Others given while ETS is connected: taken once it has gone.
+        let mut out = Output::default();
+        t.adopt_addresses(&[0x11F0, 0x11EF], &mut out);
+        assert_eq!(t.tunnel_addresses(), vec![0x11FD]);
+        let nat = Hpai::nat_udp(0);
+        t.on_datagram(
+            &KnxIpFrame::disconnect_request(ch, nat).to_bytes(),
+            from(),
+            now,
+            &mut out,
+        );
+        assert!(t.tunnels() == 0);
+        let again = connect_at(&mut t, now);
+        assert_eq!(again, 0x11EF);
+    }
+
+    /// CONNECT_REQUEST for a link layer tunnel; returns the tunnel address it is given.
+    fn connect_at(t: &mut Tunnels, now: Instant) -> u16 {
+        let mut b = vec![8, 1, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0];
+        b.extend_from_slice(&[4, TUNNEL_CONNECTION, TUNNEL_LINKLAYER, 0]);
+        let mut out = Output::default();
+        t.on_datagram(
+            &ip::frame(ServiceType::ConnectRequest, b),
+            from(),
+            now,
+            &mut out,
+        );
+        let (_, body) = parse(&out.udp[0].0);
+        u16::from_be_bytes([body[12], body[13]])
     }
 
     #[test]

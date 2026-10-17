@@ -190,8 +190,17 @@ export class EtsLink {
     ws.binaryType = "arraybuffer";
     ws.onopen = () => {
       if (this.ws !== ws) return;
-      // The frames from ETS to a device are confirmed by the page (see the protocol).
-      ws.send(JSON.stringify({ type: "hello", confirms: true }));
+      // The frames from ETS to a device are confirmed by the page (see the protocol);
+      // the interface and its tunnels take addresses free in the line of the access
+      // point, as an interface installed there.
+      const addresses = interfaceAddresses(this.o.target());
+      ws.send(
+        JSON.stringify({
+          type: "hello",
+          confirms: true,
+          ...(addresses.length ? { addresses: addresses.join(" ") } : {}),
+        }),
+      );
       this.attach();
       this.update({ state: "open", detail: "" });
     };
@@ -341,4 +350,31 @@ export function confirmation(cemi: Uint8Array, acknowledged: boolean) {
   const ctrl1 = 2 + (out[1] ?? 0);
   out[ctrl1] = acknowledged ? out[ctrl1]! & ~0x01 : out[ctrl1]! | 0x01;
   return out;
+}
+
+/**
+ * Addresses free in the line where ETS reaches the simulation (that of its access point),
+ * from the top of the line: the interface's, then those of its four tunnels; none when
+ * the access point is not on a line (or it has not five free).
+ */
+export function interfaceAddresses(
+  target: { sim: Simulation; access: AccessPoint } | null,
+): string[] {
+  if (!target) return [];
+  const { sim, access } = target;
+  const topology = sim.network.topology;
+  const segment =
+    "device" in access
+      ? topology.deviceSegment.get(access.device)
+      : access.segment;
+  const s = segment ? topology.segments.get(segment) : undefined;
+  if (!s || s.kind !== "line" || !/^\d+\.\d+$/.test(s.ref)) return [];
+  const used = new Set([
+    ...sim.scenario.devices.map((d) => d.address),
+    ...sim.commissioningTargets().map((t) => sim.physicalAddress(t)),
+  ]);
+  const free: string[] = [];
+  for (let d = 254; d > 0 && free.length < 5; d--)
+    if (!used.has(`${s.ref}.${d}`)) free.push(`${s.ref}.${d}`);
+  return free.length === 5 ? free : [];
 }

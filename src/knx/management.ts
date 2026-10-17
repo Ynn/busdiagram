@@ -171,6 +171,9 @@ interface Connection {
   send: number;
 }
 
+/** One sample of the ADC of a BCU at the bus voltage of a TP1 line (28.8 V: × 0.15 V). */
+export const BUS_VOLTAGE_SAMPLE = 192;
+
 /** Services that change a device (APCI, or its four high bits for the short ones). */
 const CHANGES = new Set<number>([
   APCI.memoryWrite,
@@ -470,9 +473,13 @@ export class DeviceManagement {
       return;
     }
     if (four === APCI.adcRead && data.length >= 1) {
-      // ADC: bus voltage (channel 1) and PEI type (channel 4) of a BCU1.
+      // ADC of a BCU: the bus voltage (channel 1), the PEI type (channel 4). The answer
+      // is the sum of the samples read (their number asked first): for the bus voltage,
+      // 28.8 V of a TP1 bus (ETS reads 8 samples and shows their mean × 0.15 V).
       const channel = short;
-      const value = channel === 4 ? 0 : channel === 1 ? 0x0bb8 : 0;
+      const count = Math.max(1, data[0]!);
+      const sample = channel === 1 ? BUS_VOLTAGE_SAMPLE : 0;
+      const value = Math.min(0xffff, sample * count);
       reply(
         apdu(APCI.adcResponse | channel, [data[0]!, value >> 8, value & 0xff]),
       );

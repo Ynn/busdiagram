@@ -173,6 +173,18 @@ describe("programming the individual address", () => {
     });
   });
 
+  it("ends programming mode with a bus voltage failure, as at power-up", () => {
+    const doc = project();
+    const sim = createSimulator(doc);
+    sim.pressProgrammingButton("bp");
+    expect(sim.programmingMode("bp")).toBe(true);
+    const line = [...sim.network.topology.segments.keys()][0]!;
+    sim.setBusVoltage(line, false);
+    sim.setBusVoltage(line, true);
+    expect(sim.programmingMode("bp")).toBe(false);
+    expect(sim.readAddressInProgrammingMode()).toEqual([]);
+  });
+
   it("refuses with two programming LEDs on", () => {
     const doc = project();
     const sim = createSimulator(doc);

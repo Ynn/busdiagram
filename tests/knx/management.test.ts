@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createSimulator } from "../../src/core";
 import {
   APCI,
+  BUS_VOLTAGE_SAMPLE,
   DeviceManagement,
   MASK_VERSION,
   decodeLData,
@@ -346,5 +347,22 @@ describe("connection timeout", () => {
     m.handle(req(ia(1, 1, 1), false, [0x81]));
     c.advance(7000);
     expect(sent).toEqual([]);
+  });
+});
+
+describe("ADC of a device", () => {
+  it("gives the sum of the samples asked, at the bus voltage of a TP1 line", () => {
+    const { sim, m } = setup();
+    sim.pressProgrammingButton("sa");
+    m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x02])));
+    // A_ADC_Read, channel 1 (the bus voltage), 4 samples.
+    const [r] = decoded(
+      m.handle(req(ia(1, 1, 2), false, apdu(APCI.adcRead | 1, [4]))),
+    );
+    const sum = (r!.tpdu[3]! << 8) | r!.tpdu[4]!;
+    expect(r!.tpdu.slice(0, 3)).toEqual(apdu(APCI.adcResponse | 1, [4]));
+    expect(sum).toBe(4 * BUS_VOLTAGE_SAMPLE);
+    // As ETS shows it (the mean of the samples × 0.15 V): 28.8 V.
+    expect((sum / 4) * 0.15).toBeCloseTo(28.8, 1);
   });
 });

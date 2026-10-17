@@ -254,6 +254,9 @@ fn bus(
             }
         }
         tunnels.set_page_confirms(hub.confirms());
+        if let Some(a) = hub.take_addresses() {
+            tunnels.adopt_addresses(&a, &mut out);
+        }
         tunnels.tick(now, &mut out);
         let to_ets = out.to_ets;
         for (d, to) in &out.udp {

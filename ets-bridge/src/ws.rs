@@ -6,7 +6,9 @@
 //!   from a device, or the page's confirmation of a frame to a device);
 //! - text message, program → page: `{"type":"status","ets":N}`, N tunnels open by ETS;
 //! - text message, page → program: `{"type":"hello","confirms":true}`, the page
-//!   confirms the frames to a device (an older page says nothing).
+//!   confirms the frames to a device (an older page says nothing); with
+//!   `"addresses":"1.1.254 1.1.253 …"`, the individual address of the interface then
+//!   those of its tunnels, free in the line where ETS reaches the diagram.
 //!
 //! One diagram at a time, so that two installations do not answer ETS together: the
 //! diagram linked last takes over, and the previous one is told so (close code 4001).
@@ -54,6 +56,9 @@ pub struct Hub {
     ets: Mutex<usize>,
     /// The linked diagram confirms the frames to a device.
     confirms: Mutex<bool>,
+    /// The addresses the linked diagram gives the interface and its tunnels, not yet
+    /// taken.
+    addresses: Mutex<Option<Vec<u16>>>,
 }
 
 impl Hub {
@@ -63,6 +68,7 @@ impl Hub {
             to_bus: Mutex::new(to_bus),
             ets: Mutex::new(0),
             confirms: Mutex::new(false),
+            addresses: Mutex::new(None),
         }
     }
 
@@ -99,6 +105,21 @@ impl Hub {
     /// Does the linked diagram confirm the frames to a device?
     pub fn confirms(&self) -> bool {
         *self.confirms.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    /// The addresses a diagram gave the interface and its tunnels, once.
+    pub fn take_addresses(&self) -> Option<Vec<u16>> {
+        self.addresses
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner)
+            .take()
+    }
+
+    fn set_addresses(&self, a: Vec<u16>) {
+        *self
+            .addresses
+            .lock()
+            .unwrap_or_else(PoisonError::into_inner) = Some(a);
     }
 
     fn set_confirms(&self, on: bool) {
@@ -316,6 +337,9 @@ fn run(
                 if is_hello_confirming(&t) {
                     hub.set_confirms(true);
                 }
+                if let Some(a) = hello_addresses(&t) {
+                    hub.set_addresses(a);
+                }
             }
             Ok(Message::Close(_)) | Err(Error::ConnectionClosed | Error::AlreadyClosed) => {
                 return Ok(());
@@ -357,9 +381,63 @@ fn is_hello_confirming(text: &str) -> bool {
         && compact.contains("\"confirms\":true")
 }
 
+/// The member `"addresses":"1.1.254 1.1.253"` of a hello: individual addresses, at
+/// least two (the interface, a tunnel), each once; None otherwise.
+fn hello_addresses(text: &str) -> Option<Vec<u16>> {
+    let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    if !compact.contains("\"type\":\"hello\"") {
+        return None;
+    }
+    let at = text.find("\"addresses\"")?;
+    let rest = &text[at + "\"addresses\"".len()..];
+    let open = rest.find('"')?;
+    let value = &rest[open + 1..];
+    let list = &value[..value.find('"')?];
+    let out: Vec<u16> = list
+        .split_whitespace()
+        .map(individual)
+        .collect::<Option<_>>()?;
+    let mut sorted = out.clone();
+    sorted.sort_unstable();
+    sorted.dedup();
+    (out.len() >= 2 && sorted.len() == out.len()).then_some(out)
+}
+
+/// "1.1.254" → its 16 bits (area and line 0–15, device 0–255).
+fn individual(s: &str) -> Option<u16> {
+    let mut parts = s.split('.').map(|p| p.parse::<u16>().ok());
+    let (a, l, d) = (parts.next()??, parts.next()??, parts.next()??);
+    (parts.next().is_none() && a <= 15 && l <= 15 && d <= 255).then_some((a << 12) | (l << 8) | d)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn addresses_of_a_hello() {
+        assert_eq!(
+            hello_addresses(r#"{"type":"hello","confirms":true,"addresses":"1.1.254 1.1.253"}"#),
+            Some(vec![0x11FE, 0x11FD])
+        );
+        // One only, the same twice, out of bounds, not a hello: none.
+        assert_eq!(
+            hello_addresses(r#"{"type":"hello","addresses":"1.1.254"}"#),
+            None
+        );
+        assert_eq!(
+            hello_addresses(r#"{"type":"hello","addresses":"1.1.254 1.1.254"}"#),
+            None
+        );
+        assert_eq!(
+            hello_addresses(r#"{"type":"hello","addresses":"1.16.1 1.1.2"}"#),
+            None
+        );
+        assert_eq!(
+            hello_addresses(r#"{"type":"status","addresses":"1.1.1 1.1.2"}"#),
+            None
+        );
+    }
 
     #[test]
     fn origins() {

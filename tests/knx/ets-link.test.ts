@@ -160,7 +160,17 @@ describe("link to ETS", () => {
   it("says it confirms, then confirms a frame to a device as the bus acknowledges it", () => {
     const { ws } = setup();
     ws.open();
-    expect(ws.sent[0]).toBe(JSON.stringify({ type: "hello", confirms: true }));
+    // With the addresses of the interface and its tunnels, free at the top of the line
+    // of its access point.
+    const hello = JSON.parse(ws.sent[0] as string) as {
+      type: string;
+      confirms: boolean;
+      addresses: string;
+    };
+    expect(hello).toMatchObject({ type: "hello", confirms: true });
+    const list = hello.addresses.split(" ");
+    expect(list).toHaveLength(5);
+    expect(list[0]).toMatch(/^1\.1\.25[0-4]$/);
     // T_Connect from ETS to 1.1.99, where no device is.
     ws.sent = [];
     ws.receive(bytes("29 00 B0 60 FF FB 11 63 00 80"));

@@ -1999,6 +1999,7 @@ export class Simulation {
     const first = this.nextTelegramId;
     const before = this.nextEventId;
     this.network.setPowered(segmentId, on);
+    let leftProgramming = false;
     const where = sg.downstream
       ? this.t`line ${sg.ref}, second segment`
       : this.t`line ${sg.ref}`;
@@ -2022,8 +2023,18 @@ export class Simulation {
         this.hook(rt, "onBusFailure", () => rt.def.onBusFailure?.(rt.ctx));
         rt.timers.forEach((t) => this.queue.cancel(t));
         rt.timers.clear();
+        // Its programming mode ends: the device starts without it when the voltage
+        // returns, as at power-up.
+        const p = this.physical.get(rt.device.id);
+        if (p?.programmingMode) {
+          p.programmingMode = false;
+          const b = this.bcus.get(rt.device.id);
+          if (b) b.profile.setProgrammingMode(b.state, false);
+          leftProgramming = true;
+        }
       }),
     );
+    if (leftProgramming) this.installationChanged();
     const events = this.journal.filter(
       (e) => e.id >= before && EXPLANATORY.has(e.kind),
     );
