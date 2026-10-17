@@ -66,6 +66,17 @@ pub fn recode(f: &CemiFrame, code: MessageCode) -> Option<CemiFrame> {
     Some(out)
 }
 
+/// Do two L_Data frames carry the same telegram: same source, type and value of their
+/// destination, and same TPDU, whatever their message code, additional information,
+/// repetition, priority or confirmation?
+pub fn same_frame(a: &[u8], b: &[u8]) -> bool {
+    let part = |f: &[u8]| {
+        let ctrl = 2 + usize::from(*f.get(1)?);
+        Some((f.get(ctrl + 1)? & 0x80, f.get(ctrl + 2..)?.to_vec()))
+    };
+    matches!((part(a), part(b)), (Some(x), Some(y)) if x == y)
+}
+
 /// Is this L_Data.con negative (the frame was not acknowledged on the bus)?
 pub fn negative(f: &CemiFrame) -> bool {
     f.confirm() == Confirm::Error
@@ -230,11 +241,16 @@ impl Properties {
                 if data.len() != 2 * n || new.contains(&0) {
                     return Some(error(ERR_UNSPECIFIED));
                 }
-                for (i, a) in new.into_iter().enumerate() {
-                    if let Some(slot) = self.tunnel_addresses.get_mut(first + i) {
-                        *slot = a;
-                    }
+                // The whole list as written, refused when two tunnels would share an
+                // address: nothing changes then.
+                let mut list = self.tunnel_addresses.clone();
+                list.splice(first..first + n, new);
+                let mut sorted = list.clone();
+                sorted.sort_unstable();
+                if sorted.windows(2).any(|w| w[0] == w[1]) {
+                    return Some(error(ERR_UNSPECIFIED));
                 }
+                self.tunnel_addresses = list;
                 return Some(head(count));
             }
             return Some(error(ERR_READ_ONLY));

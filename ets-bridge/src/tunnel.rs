@@ -73,8 +73,8 @@ struct Connection {
     mgmt: bool,
     /// Bus monitor: receives every frame of the bus, sends none.
     monitor: bool,
-    /// Frames to a device waiting for the page's confirmation: the positive one the
-    /// interface gives if it does not come in time, and when.
+    /// Frames to a device waiting for the page's confirmation (as the positive
+    /// confirmation of the interface would give them), and until when.
     unconfirmed: VecDeque<(Vec<u8>, Instant)>,
     address: u16,
     control: SocketAddr,
@@ -149,24 +149,25 @@ impl Tunnels {
     /// The addresses of the tunnels written by a client: the open tunnels take theirs.
     fn tunnel_addresses_changed(&mut self, out: &mut Output) {
         let new = self.props.tunnel_addresses.clone();
-        for (old, now) in self.id.tunnel_addresses.iter().zip(&new) {
-            if old == now {
-                continue;
-            }
-            for c in self
-                .conns
-                .values_mut()
-                .filter(|c| !c.mgmt && !c.monitor && c.address == *old)
+        let old = std::mem::replace(&mut self.id.tunnel_addresses, new.clone());
+        // Each open tunnel keeps its slot, found in the list before the write: a
+        // permutation swaps the addresses of two tunnels and never gives them the same.
+        for c in self.conns.values_mut().filter(|c| !c.mgmt && !c.monitor) {
+            if let Some(&now) = old
+                .iter()
+                .position(|a| *a == c.address)
+                .and_then(|slot| new.get(slot))
             {
-                c.address = *now;
+                c.address = now;
             }
+        }
+        for (old, now) in old.iter().zip(&new).filter(|(a, b)| a != b) {
             out.log.push(format!(
                 "adresse de tunnel {} remplacée par {}",
                 ip::individual_text(*old),
                 ip::individual_text(*now)
             ));
         }
-        self.id.tunnel_addresses = new;
     }
 
     /// Every connection closed: the addresses of the tunnels as configured.
@@ -470,8 +471,8 @@ impl Tunnels {
         };
         cemi::fill_source(&mut f, address);
         // The interface sent it on the bus. A group telegram: positive confirmation. A
-        // frame to a device: the page confirms it, as the acknowledgement of the bus says
-        // (positive when it does not do so in time, as before).
+        // frame to a device: the page that said it confirms confirms it, as the
+        // acknowledgement of the bus says; positive at once with a page that does not.
         if let Some(con) = cemi::recode(&f, MessageCode::LDataCon) {
             let con = cemi::bytes(&con);
             if self.page_confirms && !cemi::is_group(&f) {
@@ -508,12 +509,26 @@ impl Tunnels {
         out: &mut Output,
     ) {
         let source = con.source_address().raw();
-        let Some((&ch, c)) = self.conns.iter_mut().find(|(_, c)| {
-            !c.mgmt && !c.monitor && c.address == source && !c.unconfirmed.is_empty()
-        }) else {
+        let theirs = cemi::bytes(con);
+        let Some((&ch, c, i)) = self
+            .conns
+            .iter_mut()
+            .filter(|(_, c)| !c.mgmt && !c.monitor && c.address == source)
+            .find_map(|(ch, c)| {
+                let i = c
+                    .unconfirmed
+                    .iter()
+                    .position(|(ours, _)| cemi::same_frame(ours, &theirs))?;
+                Some((ch, c, i))
+            })
+        else {
+            out.log.push(format!(
+                "confirmation du schéma sans trame en attente ignorée : {}",
+                hex(&theirs)
+            ));
             return;
         };
-        c.unconfirmed.pop_front();
+        c.unconfirmed.remove(i);
         let mut f = con.clone();
         if !cemi::negative(con) {
             f.set_confirm(knx_rs_core::types::Confirm::NoError);
@@ -641,15 +656,15 @@ impl Tunnels {
     pub fn tick(&mut self, now: Instant, out: &mut Output) {
         let mut close = Vec::new();
         for (&ch, c) in &mut self.conns {
-            while c.unconfirmed.front().is_some_and(|(_, d)| now >= *d) {
-                if let Some((con, _)) = c.unconfirmed.pop_front() {
-                    c.queue.push_back(Pending {
-                        cemi: con,
-                        deadline: None,
-                        origin: None,
-                    });
-                }
-                Self::pump(c, ch, now, out);
+            // The page said it confirms, and has not: the bridge does not know whether a
+            // device acknowledged the frame, and says neither yes nor no. The connection
+            // closes, which ETS reports as an error of its operation.
+            if c.unconfirmed.iter().any(|(_, d)| now >= *d) {
+                close.push((
+                    ch,
+                    "le schéma n'a pas confirmé une trame vers un participant",
+                ));
+                continue;
             }
             if now.saturating_duration_since(c.last_seen) > HEARTBEAT_TIMEOUT {
                 close.push((ch, "plus de nouvelles d'ETS"));
@@ -1012,7 +1027,7 @@ mod tests {
     }
 
     #[test]
-    fn a_frame_the_page_does_not_confirm_is_confirmed_in_time() {
+    fn a_page_that_does_not_confirm_in_time_closes_the_connection() {
         let now = Instant::now();
         let mut t = server();
         t.set_page_confirms(true);
@@ -1021,9 +1036,88 @@ mod tests {
         t.on_datagram(&tunnelling(ch, 0, &CONNECT), from(), now, &mut out);
         let mut out = Output::default();
         t.tick(now + CONFIRM_TIMEOUT, &mut out);
+        // No confirmation made up, positive or negative: the connection is closed.
+        assert!(out.udp.iter().all(|(d, _)| {
+            let (s, body) = parse(d);
+            s != ServiceType::TunnelingRequest || body[4] != MessageCode::LDataCon as u8
+        }));
+        assert_eq!(parse(&out.udp[0].0).0, ServiceType::DisconnectRequest);
+        assert_eq!(t.tunnels(), 0);
+    }
+
+    #[test]
+    fn the_page_confirms_the_frame_it_names() {
+        let now = Instant::now();
+        let mut t = server();
+        t.set_page_confirms(true);
+        let ch = connect(&mut t, now);
+        let mut second = CONNECT;
+        second[7] = 0x02;
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 0, &CONNECT), from(), now, &mut out);
+        t.on_datagram(&tunnelling(ch, 1, &second), from(), now, &mut out);
+        assert_eq!(out.page.len(), 2);
+        // The page confirms the frame to 1.1.2 first, negatively.
+        let mut con = out.page[1].clone();
+        con[0] = MessageCode::LDataCon as u8;
+        con[2] |= 0x01;
+        let mut out = Output::default();
+        t.on_page_frame(&con, now, 1, now, &mut out);
         let (_, body) = parse(&out.udp[0].0);
-        assert_eq!(body[4], MessageCode::LDataCon as u8);
-        assert_eq!(body[6] & 0x01, 0);
+        assert_eq!(&body[10..12], &[0x11, 0x02]);
+        assert_eq!(body[6] & 0x01, 0x01);
+        // A confirmation of no frame sent is ignored.
+        let mut out = Output::default();
+        t.on_page_frame(&con, now, 1, now, &mut out);
+        assert!(out.udp.is_empty());
+    }
+
+    #[test]
+    fn a_permutation_swaps_the_addresses_of_two_tunnels() {
+        let now = Instant::now();
+        let mut t = Tunnels::new(Identity {
+            tunnel_addresses: vec![0xFFFB, 0xFFFC],
+            ..server().id
+        });
+        let a = connect(&mut t, now);
+        let mut b = vec![8, 1, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0];
+        b.extend_from_slice(&[4, TUNNEL_CONNECTION, TUNNEL_LINKLAYER, 0]);
+        let mut out = Output::default();
+        t.on_datagram(
+            &ip::frame(ServiceType::ConnectRequest, b),
+            from(),
+            now,
+            &mut out,
+        );
+        assert_eq!(t.tunnel_addresses(), vec![0xFFFB, 0xFFFC]);
+        // Elements 1 and 2: 15.15.252, 15.15.251.
+        let mut out = Output::default();
+        t.on_datagram(
+            &tunnelling(
+                a,
+                0,
+                &[
+                    0xF6, 0x00, 0x0B, 0x01, 53, 0x20, 0x01, 0xFF, 0xFC, 0xFF, 0xFB,
+                ],
+            ),
+            from(),
+            now,
+            &mut out,
+        );
+        assert_eq!(t.tunnel_addresses(), vec![0xFFFC, 0xFFFB]);
+        // Element 2 the address of element 1: two tunnels would share it, refused.
+        let mut out = Output::default();
+        t.on_datagram(&ack(a, 0), from(), now, &mut out);
+        t.on_datagram(
+            &tunnelling(a, 1, &[0xF6, 0x00, 0x0B, 0x01, 53, 0x10, 0x02, 0xFF, 0xFC]),
+            from(),
+            now,
+            &mut out,
+        );
+        assert_eq!(t.tunnel_addresses(), vec![0xFFFC, 0xFFFB]);
+        let (_, con) = parse(&out.udp.last().unwrap().0);
+        assert_eq!(con[4], 0xF5);
+        assert_eq!(con[9] >> 4, 0);
     }
 
     #[test]
