@@ -43,6 +43,28 @@ describe("parameter values in memory", () => {
   });
 });
 
+describe("times", () => {
+  it("packs a duration in seconds as its device keeps it (seconds, minutes, hours)", () => {
+    const t = {
+      ...type("time", 24),
+      unit: "PackedDaysHoursMinutesAndSeconds",
+    } as ParameterType;
+    // As ETS writes them for a KNX Mini presence detector: 10 s, 1 min, 5 min.
+    expect([...encodeValue(t, "10")]).toEqual([10, 0, 0]);
+    expect([...encodeValue(t, "60")]).toEqual([0, 1, 0]);
+    expect(roundTrip(t, "300")).toBe("300");
+    expect(roundTrip(t, "65535")).toBe("65535");
+    // In another unit, an integer.
+    expect([
+      ...encodeValue(
+        { ...type("time", 16), unit: "Seconds" } as ParameterType,
+        "300",
+      ),
+    ]).toEqual([1, 0x2c]);
+    expect(valueProblem(t, "1.5")).toBe("number");
+  });
+});
+
 describe("parameter values refused", () => {
   it("outside their type: choice, number, bounds, octets, text", () => {
     const e = {

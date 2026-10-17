@@ -21,7 +21,7 @@ export interface Segment {
 }
 
 export type ParameterTypeKind =
-  "enum" | "number" | "float" | "text" | "none" | "picture" | "other";
+  "enum" | "number" | "float" | "time" | "text" | "none" | "picture" | "other";
 
 export interface ParameterType {
   id: string;
@@ -35,6 +35,11 @@ export interface ParameterType {
   max?: number;
   /** Text shown after the value (for numbers): unit. */
   uiHint?: string;
+  /**
+   * Time: the unit of its value (Seconds, Milliseconds…, PackedDaysHoursMinutesAndSeconds:
+   * a value in seconds, one octet each for its seconds, minutes, hours, days).
+   */
+  unit?: string;
 }
 
 /** Where a parameter is stored: in a segment at an offset, its bits counted from the MSB. */
@@ -243,6 +248,16 @@ function parseType(t: XmlElement): ParameterType {
               : 32,
         min: num(k.attrs.minInclusive, -Infinity),
         max: num(k.attrs.maxInclusive, Infinity),
+      };
+    case "TypeTime":
+      return {
+        id,
+        kind: "time",
+        sizeInBit: size,
+        min: num(k.attrs.minInclusive, 0),
+        max: num(k.attrs.maxInclusive, 2 ** size - 1),
+        unit: k.attrs.Unit ?? "Seconds",
+        uiHint: k.attrs.UIHint,
       };
     case "TypeText":
       return { id, kind: "text", sizeInBit: size };

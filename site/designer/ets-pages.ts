@@ -78,7 +78,11 @@ function field(
           </option>`,
       )}
     </select>`;
-  else if (type.kind === "number" || type.kind === "float")
+  else if (
+    type.kind === "number" ||
+    type.kind === "float" ||
+    type.kind === "time"
+  )
     input = html`<input
       type="number"
       .value=${value}

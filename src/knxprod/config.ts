@@ -192,7 +192,7 @@ export function valueProblem(
   if (value.trim() === "" || !Number.isFinite(n)) return "number";
   if (type.min !== undefined && n < type.min) return "range";
   if (type.max !== undefined && n > type.max) return "range";
-  if (type.kind === "number") {
+  if (type.kind === "number" || type.kind === "time") {
     if (!Number.isInteger(n)) return "number";
     const lo = type.signed ? -(2 ** (bits - 1)) : 0;
     const hi = type.signed ? 2 ** (bits - 1) - 1 : 2 ** bits - 1;
@@ -200,6 +200,25 @@ export function valueProblem(
   }
   return null;
 }
+
+/** A time in seconds packed as its device keeps it: seconds, minutes, hours, days. */
+const packed = (type: ParameterType | undefined) =>
+  type?.kind === "time" && type.unit === "PackedDaysHoursMinutesAndSeconds";
+
+function packTime(seconds: number, out: Uint8Array) {
+  const parts = [
+    seconds % 60,
+    Math.floor(seconds / 60) % 60,
+    Math.floor(seconds / 3600) % 24,
+    Math.floor(seconds / 86400),
+  ];
+  // Without an octet for the days, the hours take them.
+  if (out.length < 4) parts[2] = Math.floor(seconds / 3600);
+  out.forEach((_, i) => (out[i] = Math.min(255, parts[i] ?? 0)));
+}
+
+const unpackTime = (b: Uint8Array) =>
+  (b[0] ?? 0) + 60 * (b[1] ?? 0) + 3600 * (b[2] ?? 0) + 86400 * (b[3] ?? 0);
 
 /** Octets of a parameter value, big-endian, as many as its type takes. */
 export function encodeValue(
@@ -218,6 +237,10 @@ export function encodeValue(
   }
   const n = Number(value.replace(",", "."));
   if (!Number.isFinite(n)) return out;
+  if (packed(type)) {
+    packTime(Math.max(0, Math.round(n)), out);
+    return out;
+  }
   const view = new DataView(out.buffer);
   if (type.kind === "float") {
     if (bits === 64) view.setFloat64(0, n);
@@ -245,6 +268,7 @@ export function decodeValue(
     const end = bytes.indexOf(0);
     return String.fromCharCode(...(end < 0 ? bytes : bytes.subarray(0, end)));
   }
+  if (packed(type)) return String(unpackTime(bytes));
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (type.kind === "float") {
     const v =
