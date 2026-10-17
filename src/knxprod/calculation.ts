@@ -333,6 +333,10 @@ export function calculate(
         found.set(c.id, { calculation: c.id, message: e.message });
         continue;
       }
+      // All its outputs or none: a calculation whose one output its parameter does not
+      // take sets none of the others, which would not agree with it.
+      const texts: [string, string][] = [];
+      let refused = false;
       for (const o of c.outputs) {
         if (!(o.alias in env)) continue;
         const r = outputText(app, o.ref, env[o.alias]!);
@@ -342,10 +346,13 @@ export function calculate(
             ref: o.ref,
             message: r.problem,
           });
-          continue;
-        }
-        if (valueOf(app, out, o.ref) === r.text) continue;
-        out[o.ref] = r.text;
+          refused = true;
+        } else texts.push([o.ref, r.text]);
+      }
+      if (refused) continue;
+      for (const [ref, text] of texts) {
+        if (valueOf(app, out, ref) === text) continue;
+        out[ref] = text;
         settled = false;
       }
     }

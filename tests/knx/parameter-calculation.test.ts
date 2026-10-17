@@ -162,6 +162,35 @@ describe("calculations of a program", () => {
     expect(problems).toMatchObject([{ calculation: "PC-1", ref: "H0_R" }]);
   });
 
+  it("sets all the outputs of a calculation or none", () => {
+    const two = {
+      ...program,
+      types: new Map([
+        ["T", { id: "T", kind: "number", sizeInBit: 8, min: 0, max: 200 }],
+      ]),
+      calculations: [
+        {
+          id: "PC-1",
+          script: "PAR_A = PAR_INPUT, PAR_B = PAR_INPUT * 100",
+          inputs: [{ ref: "F0_R", alias: "PAR_INPUT" }],
+          outputs: [
+            { ref: "H0_R", alias: "PAR_A" },
+            { ref: "H1_R", alias: "PAR_B" },
+          ],
+        },
+      ],
+    } as unknown as ApplicationProgram;
+    const problems: CalculationProblem[] = [];
+    // 3 fits H0, 300 does not fit H1: neither is set.
+    expect(calculate(two, { F0_R: "3" }, problems)).toEqual({ F0_R: "3" });
+    expect(problems).toMatchObject([{ calculation: "PC-1", ref: "H1_R" }]);
+    expect(calculate(two, { F0_R: "2" })).toEqual({
+      F0_R: "2",
+      H0_R: "2",
+      H1_R: "200",
+    });
+  });
+
   it("keeps the digits of a float", () => {
     const float = {
       ...program,

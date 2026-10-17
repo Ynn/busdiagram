@@ -88,12 +88,14 @@ export function projectImage(
   values: ParameterValues,
   links: Map<number, string[]>,
   individualAddress: string,
+  /** What the calculations of the program could not do (their parameters keep theirs). */
+  problems: CalculationProblem[] = [],
 ): Uint8Array {
   const profile = profileOf(mask);
   if (!profile) throw new Error(`mask ${mask}: no BCU profile`);
   const mem = profile.factory();
   const images = segmentImages(app);
-  values = effectiveValues(app, values);
+  values = effectiveValues(app, values, problems);
   writeParameters(app, values, images);
   images.forEach((img, id) => {
     const at = segmentAddress(app, id);
