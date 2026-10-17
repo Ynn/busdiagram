@@ -535,7 +535,24 @@ function setInstallation(installation: JsonObject, restart: boolean) {
   const data = structuredClone(a.data) as Doc;
   // A download from ETS: the project of the devices is what their memory now holds.
   const edited = restart
-    ? projectFromInstallation(data, installation, data.installation, registry)
+    ? projectFromInstallation(
+        data,
+        installation,
+        data.installation,
+        registry,
+        // What the pages show then is not all the memory holds: said.
+        (id, r) =>
+          toast(
+            r.unexplained.length
+              ? t`${id}: the parameters read back from its memory do not write it again at ${String(r.unexplained.length)} parameters (${r.unexplained
+                  .slice(0, 3)
+                  .map((u) => `${u.address.toString(16).toUpperCase()}h`)
+                  .join(
+                    ", ",
+                  )}): its memory is kept, an edit of its parameters writes what the pages show.`
+              : t`${id}: ${String(r.problems.length)} calculations of its program could not be done in reading back its memory.`,
+          ),
+      )
     : [];
   const text = formatJson({ ...data, installation });
   if (!restart) loaded = JSON.stringify(JSON.parse(text));

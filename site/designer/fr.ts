@@ -966,6 +966,10 @@ export const designerFr: Record<string, string> = {
   "manifest.json: an example needs its id and its file":
     "manifest.json : un exemple doit avoir son identifiant et son fichier",
   "Package {0} refused: {1}": "Paquet {0} refusé : {1}",
+  "{0}: the parameters read back from its memory do not write it again at {1} parameters ({2}): its memory is kept, an edit of its parameters writes what the pages show.":
+    "{0} : les paramètres relus dans sa mémoire ne la réécrivent pas à l'identique en {1} paramètres ({2}) : sa mémoire est conservée, une modification de ses paramètres écrit ce que montrent les pages.",
+  "{0}: {1} calculations of its program could not be done in reading back its memory.":
+    "{0} : {1} calculs de son programme n'ont pas pu être faits en relisant sa mémoire.",
   "Package {0} {1}: {2} devices imported.":
     "Paquet {0} {1} : {2} participants importés.",
   "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).":

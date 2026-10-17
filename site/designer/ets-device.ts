@@ -7,19 +7,14 @@
 import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
-import {
-  objectOf,
-  revealedValues,
-  valueProblem,
-  visible,
-} from "../../src/knxprod/config";
-import { uncalculate } from "../../src/knxprod/calculation";
+import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
+import { readBack } from "../../src/knxprod/readback";
+import type { ReadBack } from "../../src/knxprod/readback";
 import {
   ParameterValueError,
   effectiveValues,
   linksOf,
   projectImage,
-  valuesOf,
 } from "../../src/knxprod/runtime";
 import { heldApplication, projectMemory } from "../../src/bcu/device";
 import { TableOverflow } from "../../src/bcu/tables";
@@ -266,20 +261,16 @@ export function configurationFromMemory(
   app: ApplicationProgram,
   registry: Registry,
   memory: Uint8Array,
+  /** What the read back could not explain, for the device (see ReadBack). */
+  report?: (r: ReadBack) => void,
 ): string[] | null {
   const product = productOf(app, registry, d.behavior);
   const ets = d.ets as unknown as Ets;
-  // With the values of the dialog that the memory does not hold: a function chosen for
-  // an output, a time in ms (as ETS reads them back), and the switches of the dialog
-  // that show what it holds (extended settings).
-  const read = revealedValues(app, uncalculate(app, valuesOf(app, memory)));
-  const parameters: Record<string, string> = {};
-  for (const ref of visible(app, read).parameters) {
-    const r = app.parameterRefs.get(ref);
-    const def = r?.value ?? app.parameters.get(r?.ref ?? "")?.value;
-    const v = read[ref];
-    if (v !== undefined && v !== def) parameters[ref] = v;
-  }
+  // The configuration of the dialog that the memory holds, checked by what it writes
+  // again (the choices it does not hold, inferred).
+  const back = readBack(app, memory);
+  report?.(back);
+  const parameters = back.values;
   const texts = objectTexts(app, parameters);
   const held = heldApplication(
     product,
@@ -321,6 +312,8 @@ export function projectFromInstallation(
   installation: unknown,
   before: unknown,
   registry: Registry,
+  /** A device whose memory the read back does not explain everywhere. */
+  report?: (deviceId: string, r: ReadBack) => void,
 ): string[] {
   const was = new Map(
     heldDevices(before).map((h) => [h.device, JSON.stringify(h.memory)]),
@@ -332,7 +325,11 @@ export function projectFromInstallation(
     const app = d?.ets && d.behavior ? programOfProduct(d.behavior) : undefined;
     const memory = parseMemory(h.memory);
     if (!d || !app || !memory) continue;
-    if (configurationFromMemory(d, app, registry, memory)) changed.push(d.id);
+    const note = (r: ReadBack) => {
+      if (r.unexplained.length || r.problems.length) report?.(d.id, r);
+    };
+    if (configurationFromMemory(d, app, registry, memory, note))
+      changed.push(d.id);
   }
   return changed;
 }

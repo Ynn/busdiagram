@@ -395,14 +395,19 @@ export function uncalculate(
       problems.push({ calculation: c.id, message: e.message });
       continue;
     }
+    // All its inputs or none, as in the other direction.
+    const texts: [string, string][] = [];
+    let refused = false;
     for (const i of c.inputs) {
       const p = app.parameters.get(app.parameterRefs.get(i.ref)?.ref ?? "");
       if (!p || p.memory || !(i.alias in env)) continue;
       const r = outputText(app, i.ref, env[i.alias]!);
-      if ("problem" in r)
+      if ("problem" in r) {
         problems.push({ calculation: c.id, ref: i.ref, message: r.problem });
-      else out[i.ref] = r.text;
+        refused = true;
+      } else texts.push([i.ref, r.text]);
     }
+    if (!refused) for (const [ref, text] of texts) out[ref] = text;
   }
   return out;
 }
