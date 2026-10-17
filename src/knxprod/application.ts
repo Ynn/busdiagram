@@ -516,6 +516,9 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
       return {
         id: c.attrs.Id ?? "",
         script: child(c, "LRTransformation")?.text ?? "",
+        ...(child(c, "RLTransformation")?.text.trim()
+          ? { reverse: child(c, "RLTransformation")!.text }
+          : {}),
         inputs: aliases("LParameters"),
         outputs: aliases("RParameters"),
       };

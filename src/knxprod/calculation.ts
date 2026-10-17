@@ -18,6 +18,11 @@ export interface ParameterCalculation {
   id: string;
   /** Script that sets the R parameters from the L ones. */
   script: string;
+  /**
+   * Script that sets the L parameters from the R ones (RLTransformation): the values of
+   * the dialog that the memory does not hold, read back from those it does.
+   */
+  reverse?: string;
   inputs: { ref: string; alias: string }[];
   outputs: { ref: string; alias: string }[];
 }
@@ -351,5 +356,46 @@ export function calculate(
       message: "the calculations do not settle",
     });
   problems.push(...found.values());
+  return out;
+}
+
+/**
+ * The values of the dialog that the memory does not hold, as the reverse scripts of the
+ * calculations give them from the values it does (a download read back): run once, in
+ * their order, as ETS does; a parameter kept in memory keeps the value read there.
+ */
+export function uncalculate(
+  app: ApplicationProgram,
+  values: ParameterValues,
+  problems: CalculationProblem[] = [],
+): ParameterValues {
+  const out = { ...values };
+  for (const c of app.calculations ?? []) {
+    if (!c.reverse) continue;
+    let env: Record<string, Value>;
+    try {
+      env = runScript(
+        c.reverse,
+        Object.fromEntries(
+          [...c.inputs, ...c.outputs].map((x) => [
+            x.alias,
+            scriptValue(app, out, x.ref),
+          ]),
+        ),
+      );
+    } catch (e) {
+      if (!(e instanceof CalculationError)) throw e;
+      problems.push({ calculation: c.id, message: e.message });
+      continue;
+    }
+    for (const i of c.inputs) {
+      const p = app.parameters.get(app.parameterRefs.get(i.ref)?.ref ?? "");
+      if (!p || p.memory || !(i.alias in env)) continue;
+      const r = outputText(app, i.ref, env[i.alias]!);
+      if ("problem" in r)
+        problems.push({ calculation: c.id, ref: i.ref, message: r.problem });
+      else out[i.ref] = r.text;
+    }
+  }
   return out;
 }

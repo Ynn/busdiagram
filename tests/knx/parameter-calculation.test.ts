@@ -3,7 +3,11 @@
 // Schneider Electric), and run in their order until none changes anything.
 import { describe, expect, it } from "vitest";
 import type { ApplicationProgram } from "../../src/knxprod/application";
-import { calculate, runScript } from "../../src/knxprod/calculation";
+import {
+  calculate,
+  runScript,
+  uncalculate,
+} from "../../src/knxprod/calculation";
 import type { CalculationProblem } from "../../src/knxprod/calculation";
 
 describe("scripts of parameter calculations", () => {
@@ -167,5 +171,89 @@ describe("calculations of a program", () => {
       ],
     } as unknown as ApplicationProgram;
     expect(calculate(float, { F0_R: "1" }).H0_R).toBe("0.5");
+  });
+});
+
+describe("reverse calculations of a program", () => {
+  // A function chosen in the dialog (F, no memory) kept in memory by its hidden copy (H),
+  // and a time in ms (T) kept in units of 100 ms (U).
+  const program = {
+    parameters: new Map([
+      ["F", { id: "F", type: "N", value: "1" }],
+      [
+        "H",
+        { id: "H", type: "N", value: "1", memory: { offset: 0, bitOffset: 0 } },
+      ],
+      ["T", { id: "T", type: "N", value: "1000" }],
+      [
+        "U",
+        {
+          id: "U",
+          type: "N",
+          value: "10",
+          memory: { offset: 1, bitOffset: 0 },
+        },
+      ],
+    ]),
+    parameterRefs: new Map(
+      ["F", "H", "T", "U"].map((id) => [
+        `${id}_R`,
+        { id: `${id}_R`, ref: id, access: "" },
+      ]),
+    ),
+    types: new Map([["N", { id: "N", kind: "number", sizeInBit: 16 }]]),
+    calculations: [
+      {
+        id: "PC-1",
+        script: "PAR_OUTPUT = PAR_INPUT",
+        reverse: "PAR_INPUT = PAR_OUTPUT",
+        inputs: [{ ref: "F_R", alias: "PAR_INPUT" }],
+        outputs: [{ ref: "H_R", alias: "PAR_OUTPUT" }],
+      },
+      {
+        id: "PC-2",
+        script: "PAR_UP = PAR_TIME / 100",
+        reverse: "PAR_TIME = PAR_UP * 100",
+        inputs: [{ ref: "T_R", alias: "PAR_TIME" }],
+        outputs: [{ ref: "U_R", alias: "PAR_UP" }],
+      },
+    ],
+  } as unknown as ApplicationProgram;
+
+  it("gives back the values of the dialog that the memory does not hold", () => {
+    expect(uncalculate(program, { H_R: "6", U_R: "300" })).toMatchObject({
+      F_R: "6",
+      H_R: "6",
+      T_R: "30000",
+      U_R: "300",
+    });
+  });
+
+  it("keeps a value read in memory", () => {
+    const kept = {
+      ...program,
+      calculations: [
+        {
+          ...program.calculations![0]!,
+          reverse: "PAR_INPUT = 2, PAR_OUTPUT = 3",
+        },
+      ],
+    } as ApplicationProgram;
+    expect(uncalculate(kept, { H_R: "6" })).toMatchObject({
+      F_R: "2",
+      H_R: "6",
+    });
+  });
+
+  it("says which reverse script it could not run", () => {
+    const broken = {
+      ...program,
+      calculations: [
+        { ...program.calculations![0]!, reverse: "PAR_INPUT = g()" },
+      ],
+    } as ApplicationProgram;
+    const problems: CalculationProblem[] = [];
+    expect(uncalculate(broken, { H_R: "6" }, problems)).toEqual({ H_R: "6" });
+    expect(problems).toMatchObject([{ calculation: "PC-1" }]);
   });
 });
