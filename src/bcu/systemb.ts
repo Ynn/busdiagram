@@ -36,7 +36,7 @@ const PEI_ID = 0x80;
  */
 const MCB = 0x100;
 const MCB_SIZE = 8;
-const MCB_ELEMENTS = 4;
+const MCB_ELEMENTS = 16;
 const OWN_PROPERTIES = 0x400;
 
 /** Segment of each load state machine: [address, room]. */
@@ -87,7 +87,7 @@ function systemSlot(object: number, pid: number) {
   if (pid === 13 && object === 4) return [APP_ID, 5, 1] as const;
   if (pid === 13 && object === 5) return [PEI_ID, 5, 1] as const;
   if (pid === 27 && object >= 1 && object <= LSMS)
-    return [MCB + 0x40 * (object - 1), MCB_SIZE, MCB_ELEMENTS] as const;
+    return [MCB + 0x80 * (object - 1), MCB_SIZE, MCB_ELEMENTS] as const;
   return null;
 }
 
@@ -128,7 +128,8 @@ function loadEvent(s: BcuState, lsm: number, data: readonly number[]) {
         m[at] = state === UNLOADED ? UNLOADED : ERROR;
         break;
       }
-      // Allocation of its relative segment (0Bh): its length, which must fit.
+      // Allocation of its relative segment (0Bh): its length, which must fit, then the
+      // mode (1: filled with the octet that follows; ETS then writes only the others).
       if (data[1] === 0x0b) {
         const length =
           (((data[2] ?? 0) << 24) |
@@ -136,7 +137,9 @@ function loadEvent(s: BcuState, lsm: number, data: readonly number[]) {
             ((data[4] ?? 0) << 8) |
             (data[5] ?? 0)) >>>
           0;
-        if (length > SEGMENTS[lsm]![1]) m[at] = ERROR;
+        const [start, room] = SEGMENTS[lsm]!;
+        if (length > room) m[at] = ERROR;
+        else if (data[6] === 1) m.fill(data[7] ?? 0, start, start + length);
       }
       break;
     }

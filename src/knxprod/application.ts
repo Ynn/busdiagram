@@ -183,6 +183,8 @@ export interface ApplicationProgram {
   writtenProperties: WrittenProperty[];
   /** Hidden parameters that ETS sets from those of the dialog, in their order. */
   calculations?: ParameterCalculation[];
+  /** Values of several octets kept least significant octet first (Options). */
+  littleEndian?: boolean;
   comparedProperties: ComparedProperty[];
   /** Translations: language → (element id + attribute) → text. */
   translations: Map<string, Map<string, string>>;
@@ -558,6 +560,10 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
     ),
     writtenProperties: [...written.values()],
     ...(calculations.length ? { calculations } : {}),
+    ...(descendants(app, "Options")[0]?.attrs.ParameterByteOrder ===
+    "LittleEndian"
+      ? { littleEndian: true }
+      : {}),
     comparedProperties: [...compared.values()],
     translations,
   };

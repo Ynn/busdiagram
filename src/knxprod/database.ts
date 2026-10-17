@@ -56,6 +56,8 @@ export interface ProductDatabase {
   comparedProperties?: ComparedProperty[];
   /** Hidden parameters that ETS sets from those of the dialog, when the program has some. */
   calculations?: ParameterCalculation[];
+  /** Values of several octets kept least significant octet first. */
+  littleEndian?: boolean;
   /** Translations: language → "element|attribute" → text. */
   translations: Record<string, Record<string, string>>;
 }
@@ -250,6 +252,7 @@ export function databaseOf(
       ? { writtenProperties: app.writtenProperties }
       : {}),
     ...(app.calculations?.length ? { calculations: app.calculations } : {}),
+    ...(app.littleEndian ? { littleEndian: true } : {}),
     translations: Object.fromEntries(
       [...app.translations]
         .filter(([l]) =>
@@ -307,6 +310,7 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
     writtenProperties: db.writtenProperties ?? [],
     comparedProperties: db.comparedProperties ?? [],
     ...(db.calculations ? { calculations: db.calculations } : {}),
+    ...(db.littleEndian ? { littleEndian: true } : {}),
     translations: new Map(
       Object.entries(db.translations).map(([l, m]) => [
         l,

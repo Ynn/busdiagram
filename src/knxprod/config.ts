@@ -287,6 +287,19 @@ export function decodeValue(
   return v.toString();
 }
 
+/**
+ * The octets of a value as a program keeps them: a number of several octets least
+ * significant first when its program says so (a text and a packed time keep their order).
+ */
+const ordered = (
+  type: ParameterType | undefined,
+  bytes: Uint8Array,
+  littleEndian: boolean,
+) =>
+  littleEndian && type?.kind !== "text" && !packed(type) && bytes.length > 1
+    ? bytes.slice().reverse()
+    : bytes;
+
 /** Write a value at a memory location: its bits, MSB first, from a bit offset. */
 function writeValue(
   img: Uint8Array,
@@ -294,9 +307,10 @@ function writeValue(
   bitOffset: number,
   type: ParameterType | undefined,
   value: string,
+  littleEndian = false,
 ) {
   const bits = sizeOf(type);
-  const bytes = encodeValue(type, value);
+  const bytes = ordered(type, encodeValue(type, value), littleEndian);
   const pad = bytes.length * 8 - bits;
   // Bit-wise, so that a value narrower than its octets keeps its neighbours.
   for (let i = 0; i < bits; i++) {
@@ -311,6 +325,7 @@ function readValue(
   offset: number,
   bitOffset: number,
   type: ParameterType | undefined,
+  littleEndian = false,
 ): string {
   const bits = sizeOf(type);
   const bytes = new Uint8Array(Math.ceil(bits / 8));
@@ -320,7 +335,7 @@ function readValue(
     if (readBits(img, offset, bitOffset + i, 1))
       bytes[dst >> 3]! |= 1 << (7 - (dst & 7));
   }
-  return decodeValue(type, bytes);
+  return decodeValue(type, ordered(type, bytes, littleEndian));
 }
 
 /** Bytes of each segment, by segment id: their default images, copied. */
@@ -355,7 +370,14 @@ export function writeParameters(
     const bits = sizeOf(type);
     if (!img || !bits) return;
     const v = ref ? valueOf(app, values, ref) : p.value;
-    writeValue(img, p.memory.offset, p.memory.bitOffset, type, v);
+    writeValue(
+      img,
+      p.memory.offset,
+      p.memory.bitOffset,
+      type,
+      v,
+      app.littleEndian,
+    );
   };
   const visibleRef = (p: Parameter) =>
     (refsOf.get(p.id) ?? []).find((r) => shown.has(r));
@@ -387,7 +409,13 @@ export function readParameters(
     const type = app.types.get(p.type);
     const bits = sizeOf(type);
     if (!img || !bits) continue;
-    out[r.id] = readValue(img, p.memory.offset, p.memory.bitOffset, type);
+    out[r.id] = readValue(
+      img,
+      p.memory.offset,
+      p.memory.bitOffset,
+      type,
+      app.littleEndian,
+    );
   }
   return out;
 }

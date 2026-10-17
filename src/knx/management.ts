@@ -53,7 +53,15 @@ export const APCI = {
   propertyValueWrite: 0x3d7,
   propertyDescriptionRead: 0x3d8,
   propertyDescriptionResponse: 0x3d9,
+  memoryExtendedWrite: 0x1fb,
+  memoryExtendedWriteResponse: 0x1fc,
+  memoryExtendedRead: 0x1fd,
+  memoryExtendedReadResponse: 0x1fe,
 } as const;
+
+/** Return codes of the extended memory services: done, or the memory refused it. */
+const EXTENDED_OK = 0x00;
+const EXTENDED_REFUSED = 0xf1;
 
 /** Read a standard L_Data frame; null when it is not one. */
 export function decodeLData(bytes: Uint8Array | number[]): LDataFrame | null {
@@ -327,6 +335,36 @@ export class DeviceManagement {
       return;
     }
     switch (apci) {
+      // Memory with a 3-octet address (System B, for its large segments): the number of
+      // octets, the address, then the octets written.
+      case APCI.memoryExtendedWrite:
+      case APCI.memoryExtendedRead: {
+        if (data.length < 4) return;
+        const n = data[0]!;
+        const addr = data.slice(1, 4);
+        const at = (addr[0]! << 16) | (addr[1]! << 8) | addr[2]!;
+        if (apci === APCI.memoryExtendedWrite) {
+          const bytes = data.slice(4, 4 + n);
+          const done =
+            !!bcu && bytes.length === n && sim.writeMemory(target, at, bytes);
+          reply(
+            apdu(APCI.memoryExtendedWriteResponse, [
+              done ? EXTENDED_OK : EXTENDED_REFUSED,
+              ...addr,
+            ]),
+          );
+          return;
+        }
+        const read = bcu?.profile.readMemory(bcu.state, at, n) ?? null;
+        reply(
+          apdu(APCI.memoryExtendedReadResponse, [
+            read ? EXTENDED_OK : EXTENDED_REFUSED,
+            ...addr,
+            ...(read ?? []),
+          ]),
+        );
+        return;
+      }
       case APCI.authorizeRequest:
         // Access level 0: full access, as a device without keys.
         reply(apdu(APCI.authorizeResponse, [0]));
