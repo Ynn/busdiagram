@@ -42,6 +42,7 @@ import {
 } from "./installation";
 import { heldApplication } from "../bcu/device";
 import { buildTopology } from "./network";
+import { outputOf } from "./contracts";
 
 export { parseGA, parseIA } from "./address";
 export type { Problem } from "./params";
@@ -1194,7 +1195,11 @@ function buildProject(
       if (!cid) return;
       if (channels.some((x) => x.id === cid))
         return err(`${cp}.id`, "duplicate", t`duplicate channel “${cid}”`);
-      const label = str(c, "label", cp) ?? cid;
+      // The label of a channel of a manufacturer's product, as its model names it, is
+      // shown in the language of the page (its product's messages); a label of its own
+      // has no translation and stays as it is.
+      const named = str(c, "label", cp) ?? cid;
+      const label = isRecord(d.ets) && t.s ? t.s(named) : named;
       const keyLabel = str(c, "keyLabel", cp) ?? null;
       let keyContact: "normallyOpen" | "normallyClosed" = "normallyOpen";
       if (c.keyContact !== undefined) {
@@ -1250,15 +1255,15 @@ function buildProject(
         if (
           def &&
           behavior &&
-          behavior.output &&
-          def.accepts !== behavior.output
+          outputOf(behavior, cid) &&
+          def.accepts !== outputOf(behavior, cid)
         )
           err(
             `${ep}.type`,
             "incompatible",
-            t`“${type}” expects “${def.accepts}” commands, behavior ${behaviorId} sends “${behavior.output}”`,
+            t`“${type}” expects “${def.accepts}” commands, behavior ${behaviorId} sends “${outputOf(behavior, cid)}”`,
           );
-        if (def && behavior && !behavior.output)
+        if (def && behavior && !outputOf(behavior, cid))
           err(
             `${ep}.type`,
             "incompatible",
@@ -1306,7 +1311,7 @@ function buildProject(
         });
       });
       // A motor output drives one motor: shutters wired in parallel need a relay.
-      if (behavior?.output === "motor" && equipment.length > 1)
+      if (outputOf(behavior, cid) === "motor" && equipment.length > 1)
         err(
           `${cp}.equipment`,
           "range",
@@ -1330,13 +1335,13 @@ function buildProject(
               return err(sp, "range", t`integer scene number 1–64 expected`);
             if (typeof v !== "number" || !Number.isFinite(v))
               return err(sp, "type", t`number expected`);
-            if (behavior?.output === "switch" && v !== 0 && v !== 1)
+            if (outputOf(behavior, cid) === "switch" && v !== 0 && v !== 1)
               return err(
                 sp,
                 "range",
                 t`preset 0 or 1 expected for a switching channel`,
               );
-            if (behavior?.output === "motor" && (v < 0 || v > 100))
+            if (outputOf(behavior, cid) === "motor" && (v < 0 || v > 100))
               return err(
                 sp,
                 "range",
@@ -1345,7 +1350,7 @@ function buildProject(
             // A dimming preset is a brightness: values outside 0–100 % are meaningless.
             // A valid preset above the channel's maximum is still accepted and limited at
             // run time, as an actuator does with its configured range.
-            if (behavior?.output === "dim" && (v < 0 || v > 100))
+            if (outputOf(behavior, cid) === "dim" && (v < 0 || v > 100))
               return err(
                 sp,
                 "range",

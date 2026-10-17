@@ -102,8 +102,15 @@ export interface ProductSpec<S = unknown> {
 
   /** Where its parameters are in memory ([address, length]), which the pages set. */
   parameterMemory: readonly [number, number][];
-  /** Its channels, as the hardware has them. */
-  channels: readonly { id: string; label: string }[];
+  /**
+   * Its channels, as the hardware has them; `output`, a channel whose output is of
+   * another type than `output` (the motor outputs of a switch and blind actuator).
+   */
+  channels: readonly {
+    id: string;
+    label: string;
+    output?: BehaviorDefinition["output"];
+  }[];
   /** Contact inputs (keys of wired push-buttons), as a push-button interface has. */
   contactInputs?: boolean;
   /** Outputs that drive loads, by command type. */
@@ -149,6 +156,13 @@ export function defineProduct<S>(spec: ProductSpec<S>): ParticipantModel {
     representsAnyDpt: true,
     ...(spec.contactInputs ? { contactInputs: true } : {}),
     ...(spec.output ? { output: spec.output } : {}),
+    ...(spec.channels.some((c) => c.output)
+      ? {
+          channelOutputs: Object.fromEntries(
+            spec.channels.flatMap((c) => (c.output ? [[c.id, c.output]] : [])),
+          ),
+        }
+      : {}),
     ...(spec.settings ? { parameters: spec.settings } : {}),
     ...spec.firmware,
   };

@@ -419,6 +419,11 @@ export interface BehaviorDefinition<S = unknown> {
   /** Type of output control emitted by this behavior ("switch", "motor"). */
   output?: OutputCommand["type"];
   /**
+   * Channels whose output is of another type than `output` (an actuator with relays and
+   * motor outputs), by channel identifier.
+   */
+  channelOutputs?: Readonly<Record<string, OutputCommand["type"]>>;
+  /**
    * The device measures or observes its room (`device.room`): temperature, window. The
    * designer tells which room assignments act on the simulation.
    */
@@ -669,3 +674,12 @@ export interface SimSnapshot {
   unpoweredSegments: string[];
   diagnostics: Diagnostic[];
 }
+
+/** Type of output a channel of a behavior drives, or undefined when it drives none. */
+export const outputOf = (
+  def:
+    Pick<BehaviorDefinition<unknown>, "output" | "channelOutputs"> | undefined,
+  channel?: string,
+): OutputCommand["type"] | undefined =>
+  (channel !== undefined ? def?.channelOutputs?.[channel] : undefined) ??
+  def?.output;

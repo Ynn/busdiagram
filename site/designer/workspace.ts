@@ -23,7 +23,7 @@ import { stateColumns } from "./ws-commission";
 import { objectTexts } from "./ets-device";
 import { programOfProduct } from "./manufacturers";
 import type { Column } from "./ws-table";
-import { tt } from "./params";
+import { channelLabel, tt } from "./params";
 import {
   addressTree,
   catalogTree,
@@ -182,7 +182,7 @@ function flagColumns<R>(
 /** Output (channel) or key of an object, as its channel in the object table. */
 function channelOf(d: Dev, o: Dev["objects"][number]) {
   const c = o.channel ? d.channels?.find((x) => x.id === o.channel) : undefined;
-  if (c) return c.label ?? c.id;
+  if (c) return channelLabel(d, c);
   const b = d.buttons?.find((x) =>
     [x.press, x.short, x.long].some((a) => a?.object === o.id),
   );

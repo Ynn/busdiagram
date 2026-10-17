@@ -162,6 +162,9 @@ export function checkBehavior<S>(
     }
   if (d.output !== undefined && !["switch", "motor", "dim"].includes(d.output))
     out.push(t`output: "switch", "motor" or "dim" expected`);
+  for (const [ch, o] of Object.entries(d.channelOutputs ?? {}))
+    if (!["switch", "motor", "dim"].includes(o))
+      out.push(t`channelOutputs.${ch}: "switch", "motor" or "dim" expected`);
   [
     "onInit",
     "onInput",

@@ -22,9 +22,19 @@ import type { GuidedEditor } from "./guided";
 import { openMenu } from "./ws-menu";
 import { dataTable } from "./ws-table";
 import type { MenuItem } from "./ws-state";
+import { outputOf } from "../../src/knx/contracts";
 
 export const tt = (text: string | undefined) =>
   text ? (t.s ? t.s(text) : text) : "";
+
+/**
+ * Label of a channel as shown: that of a manufacturer's product, as its model names it,
+ * in the language of the page; a label of its own as it is.
+ */
+export const channelLabel = (
+  d: { ets?: unknown },
+  c: { id: string; label?: string },
+) => (d.ets ? tt(c.label ?? c.id) : (c.label ?? c.id));
 
 /** A page of device parameters, or a group of pages, in the tree on the left. */
 export interface Page {
@@ -831,7 +841,7 @@ function scenesTable(
   // A DALI gateway maps KNX scenes 1–16 to the 16 DALI scenes.
   const maxScene = d.behavior.startsWith("daliGateway/") ? 16 : 64;
   const entries = E.channelScenes(d, c.id);
-  const kind = def.output;
+  const kind = outputOf(def, c.id);
   const fallback = kind === "switch" ? 1 : 100;
   const valueLabel =
     kind === "switch"
@@ -1040,9 +1050,10 @@ export function displayPage(ed: GuidedEditor, doc: Doc, d: Dev): Page {
 export function equipmentChoices(
   ed: GuidedEditor,
   def: BehaviorDefinition<unknown>,
+  channel?: string,
 ) {
   return [...ed.registry.equipment]
-    .filter(([, e]) => e.accepts === def.output)
+    .filter(([, e]) => e.accepts === outputOf(def, channel))
     .map(([id, e]) => [id, e.title ? tt(e.title) : id] as [string, string]);
 }
 
@@ -1237,7 +1248,7 @@ function outputsConfigPage(
                   class="w-link"
                   @click=${openPage(ed, d, `ch:${c.id}:${first}`)}
                 >
-                  ${c.label ?? c.id}
+                  ${channelLabel(d, c)}
                 </button>`,
             },
             ...(outputs
@@ -1421,9 +1432,9 @@ function connectedLoads(
   def: BehaviorDefinition<unknown>,
   c: Chan,
 ) {
-  const choices = equipmentChoices(ed, def);
+  const choices = equipmentChoices(ed, def, c.id);
   const loads = E.loadsOf(c);
-  const single = def.output === "motor";
+  const single = outputOf(def, c.id) === "motor";
   const watts = loads
     .map((l) => {
       const p = ed.registry.equipment.get(l.type)?.parameters?.properties
