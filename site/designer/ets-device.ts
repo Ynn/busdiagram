@@ -5,10 +5,12 @@
 // group objects ("o<number>") are those this memory enables, with the names of the
 // product database and the group addresses the project links to them.
 import type { ApplicationProgram } from "../../src/knxprod/application";
-import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
 import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
-import { readBack } from "../../src/knxprod/readback";
+import {
+  heldDevice,
+  objectTexts as textsOfObjects,
+} from "../../src/knxprod/held-device";
 import type { CalculationProblem } from "../../src/knxprod/calculation";
 import type { ReadBack } from "../../src/knxprod/readback";
 import {
@@ -53,35 +55,13 @@ function productOf(
 }
 
 /**
- * Name and function of each group object as ETS shows them with these parameters
- * ("Channel 1 value", "Send value"), by object identifier.
+ * Name and function of each group object as ETS shows them with these parameters, in the
+ * language of the designer (see objectTexts of the product database).
  */
-export function objectTexts(
+export const objectTexts = (
   app: ApplicationProgram,
   values: Record<string, string>,
-): Map<string, { name: string; function: string }> {
-  const out = new Map<string, { name: string; function: string }>();
-  const add = (ref: string) => {
-    const o = objectOf(app, ref);
-    if (!o || out.has(`o${o.number}`)) return;
-    // In the language of the designer, as ETS shows them: the reference's text, else
-    // the object's.
-    const r = app.objectRefs.get(ref)!;
-    const text = (attr: string, value: string) =>
-      (
-        textOf(app, ref, attr, "", t.lang ?? "en") ||
-        textOf(app, r.ref, attr, value, t.lang ?? "en")
-      ).trim();
-    out.set(`o${o.number}`, {
-      name: text("Text", o.text ?? `Object ${o.number}`),
-      function: text("FunctionText", o.functionText ?? ""),
-    });
-  };
-  // The references the parameters show first, then the others.
-  visible(app, values).objects.forEach(add);
-  [...app.objectRefs.keys()].forEach(add);
-  return out;
-}
+) => textsOfObjects(app, values, t.lang ?? "en");
 
 /**
  * Set the application of a device from its parameter values and the group addresses of
@@ -280,32 +260,15 @@ export function configurationFromMemory(
   const product = productOf(app, registry, d.behavior);
   const ets = d.ets as unknown as Ets;
   // The configuration of the dialog that the memory holds, checked by what it writes
-  // again (the choices it does not hold, inferred).
-  const back = readBack(app, memory);
-  report?.(back);
-  const parameters = back.values;
-  const texts = objectTexts(app, parameters);
-  const held = heldApplication(
-    product,
-    ets.mask,
-    memory,
-    [...texts].map(([id, x]) => ({ id, name: x.name })),
-  ) as unknown as { objects: Obj[] } | null;
+  // again (the choices it does not hold, inferred), and its objects.
+  const held = heldDevice(app, product, ets.mask, memory, t.lang ?? "en");
   if (!held) return null;
-  // The objects ETS shows with these parameters, and any the tables link.
-  const shown = new Set(
-    visible(app, parameters)
-      .objects.map((r) => objectOf(app, r)?.number)
-      .filter((n): n is number => n !== undefined)
-      .map((n) => `o${n}`),
-  );
-  const gaList = (o: Obj) => (o as { ga?: string[] }).ga ?? [];
-  d.objects = held.objects.filter(
-    (o) => shown.has(o.id) || gaList(o).length > 0,
-  );
-  if (Object.keys(parameters).length) ets.parameters = parameters;
+  report?.(held.readBack);
+  d.objects = held.objects as unknown as Obj[];
+  if (Object.keys(held.parameters).length) ets.parameters = held.parameters;
   else delete ets.parameters;
   ets.memory = memoryJson(memory);
+  const gaList = (o: Obj) => (o as { ga?: string[] }).ga ?? [];
   return [...new Set(d.objects.flatMap(gaList))];
 }
 

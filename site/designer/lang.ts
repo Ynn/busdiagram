@@ -10,3 +10,7 @@ export let t: Translate = translator("en");
 export function setDesignerLanguage(lang: string) {
   t = translator(lang);
 }
+
+/** A text of a product or a definition, in the language of the designer. */
+export const tt = (text: string | undefined) =>
+  text ? (t.s ? t.s(text) : text) : "";

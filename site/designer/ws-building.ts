@@ -9,13 +9,12 @@ import { live } from "lit/directives/live.js";
 import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { fieldValue } from "./field-value";
-import { t } from "./lang";
-import { tt } from "./params";
+import { t, tt } from "./lang";
 import { has } from "./ws-dnd";
 import { renamable } from "./ws-rename";
 import { dataTable } from "./ws-table";
-import { deviceNode } from "./ws-tree";
-import type { Node } from "./ws-tree";
+import { deviceNode } from "./ws-nodes";
+import type { Node } from "./ws-nodes";
 import { devOf, select, startRename } from "./ws-state";
 import type { Host, Panel } from "./ws-state";
 

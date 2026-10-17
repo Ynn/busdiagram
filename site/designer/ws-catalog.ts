@@ -2,7 +2,7 @@
 import { isStandardBehavior } from "../../src/knx/registry";
 import type { Registry } from "../../src/knx/registry";
 import type { Doc } from "./edit";
-import { t } from "./lang";
+import { t, tt } from "./lang";
 import type {
   CatalogCategory,
   DesignerContribution,
@@ -11,7 +11,6 @@ import type {
 import { CATALOG_CATEGORIES } from "./snippet-kit";
 import { TOPOLOGY_TEMPLATES } from "./snippets";
 import { DESIGNER } from "./standard-designer";
-import { tt } from "./params";
 
 // ── Catalog ──────────────────────────────────────────────────────────────────
 

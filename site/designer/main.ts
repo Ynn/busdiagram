@@ -54,6 +54,7 @@ import {
   forgetPackage,
   behaviorsOfPackage,
   installPackage,
+  notifyPackages,
   onPackagesChange,
   packageExamples,
   readPackage,
@@ -612,15 +613,17 @@ async function importDevices(file: File) {
   };
   // Its databases first: the catalog and the pages of its products are drawn with them.
   // A device another package brings: refused, nothing changed.
+  // Told to the catalog and the templates once its script ran.
   let undo: () => void;
   try {
-    undo = installPackage(pkg);
+    undo = installPackage(pkg, false);
   } catch (e) {
     toast(t`Package ${file.name} refused: ${(e as Error).message}`);
     return;
   }
   const next = [...extensions.filter((x) => x.package !== name), entry];
   if (await applyExtensions(next, [entry.name])) {
+    notifyPackages();
     const stored = await storePackage(name, bytes);
     toast(
       stored

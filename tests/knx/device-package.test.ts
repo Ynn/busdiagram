@@ -18,6 +18,8 @@ import {
   behaviorsOfPackage,
   forgetPackage,
   installPackage,
+  notifyPackages,
+  onPackagesChange,
   ownerOf,
   readPackage,
   scriptFor,
@@ -241,6 +243,20 @@ describe("package of devices (.bdpkg)", () => {
     );
     expect(ownerOf("example.sa2/v1")).toBe("example-devices");
     expect(behaviorsOfPackage("other-devices")).toEqual([]);
+    forgetPackage("example-devices");
+  });
+
+  it("tells its listeners once an import succeeded, not while its script runs", async () => {
+    const p = await readPackage(zip(packageFiles()), version);
+    let told = 0;
+    const off = onPackagesChange(() => told++);
+    const undo = installPackage(p, false);
+    undo();
+    expect(told).toBe(0);
+    installPackage(p, false);
+    notifyPackages();
+    expect(told).toBe(1);
+    off();
     forgetPackage("example-devices");
   });
 

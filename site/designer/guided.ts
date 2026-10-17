@@ -14,7 +14,7 @@ import type { Registry } from "../../src/knx/registry";
 import { buildScenario } from "../../src/knx/scenario";
 import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
-import { t } from "./lang";
+import { t, tt } from "./lang";
 import { freeAddress } from "./snippet-kit";
 import { TEMPLATES, designerOf } from "./standard-designer";
 import type { Host, WorkspaceState } from "./workspace";
@@ -24,7 +24,7 @@ import type { Commissioner } from "./ws-commission";
 import { commissionBar, pruneInstallation } from "./ws-commission";
 import { addProductDevice } from "./ets-device";
 import * as P from "./params";
-import { defaultEquipmentParams, tt } from "./params";
+import { defaultEquipmentParams } from "./params";
 
 type Mutate = (doc: Doc) => void;
 /** The installation, a device editor, and a group-address editor are the three views. A refusal appears in a banner; fields */

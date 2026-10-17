@@ -17,15 +17,12 @@ import { dptInfo } from "../../src/knx/dpt";
 import type { Registry } from "../../src/knx/registry";
 import type { Chan, Dev, Doc } from "./edit";
 import * as E from "./edit";
-import { t } from "./lang";
+import { t, tt } from "./lang";
 import type { GuidedEditor } from "./guided";
-import { openMenu } from "./ws-menu";
+import { openMenu } from "./ws-popup";
 import { dataTable } from "./ws-table";
 import type { MenuItem } from "./ws-state";
 import { outputOf } from "../../src/knx/contracts";
-
-export const tt = (text: string | undefined) =>
-  text ? (t.s ? t.s(text) : text) : "";
 
 /**
  * Label of a channel as shown: that of a manufacturer's product, as its model names it,

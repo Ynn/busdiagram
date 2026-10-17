@@ -12,10 +12,11 @@ import { dptBits, dptName } from "../../src/knx/dpt";
 import type { Dev, Doc } from "./edit";
 import * as E from "./edit";
 import { fieldValue } from "./field-value";
-import { t } from "./lang";
+import { t, tt } from "./lang";
 import { catalogGroups } from "./ws-catalog";
 import { gaTarget, lineTarget, objTarget, startGa, startObj } from "./ws-dnd";
-import { menuFor, menuView, openMenu } from "./ws-menu";
+import { menuFor, menuView } from "./ws-menu";
+import { openMenu } from "./ws-popup";
 import { renamable } from "./ws-rename";
 import { dataTable } from "./ws-table";
 import { buildingList, buildingTree, roomTarget } from "./ws-building";
@@ -23,7 +24,7 @@ import { stateColumns } from "./ws-commission";
 import { objectTexts } from "./ets-device";
 import { programOfProduct } from "./manufacturers";
 import type { Column } from "./ws-table";
-import { channelLabel, tt } from "./params";
+import { channelLabel } from "./params";
 import {
   addressTree,
   catalogTree,

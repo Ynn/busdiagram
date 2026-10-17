@@ -227,9 +227,11 @@ export const ownerOf = (behavior: string) =>
  * Register the databases and examples of a package (replacing a former version).
  * Returns what puts back the former state, the former version included, when its
  * script does not run. A device that another package brings is refused
- * (PackageConflict), before anything changes.
+ * (PackageConflict), before anything changes. `notify` false: the listeners are told
+ * nothing yet (see notifyPackages), nor at the undo; an import tells them once, when its
+ * script ran.
  */
-export function installPackage(p: DevicePackage): () => void {
+export function installPackage(p: DevicePackage, notify = true): () => void {
   const name = p.manifest.name;
   for (const behavior of p.databases.keys()) {
     const owner = ownerOf(behavior);
@@ -254,7 +256,7 @@ export function installPackage(p: DevicePackage): () => void {
   examples.set(p.manifest.name, p.scenarios);
   owners.set(p.manifest.name, [...p.databases.keys()]);
   if (p.productScripts) scriptsOf.set(name, p.productScripts);
-  listeners.forEach((f) => f());
+  if (notify) notifyPackages();
   return () => {
     forgetPackage(name, false);
     former.databases.forEach((db, b) => {
@@ -264,9 +266,12 @@ export function installPackage(p: DevicePackage): () => void {
     if (former.databases.size) owners.set(name, [...former.databases.keys()]);
     if (former.examples) examples.set(name, former.examples);
     if (former.scripts) scriptsOf.set(name, former.scripts);
-    listeners.forEach((f) => f());
+    if (notify) notifyPackages();
   };
 }
+
+/** Tell the listeners that the packages changed. */
+export const notifyPackages = () => listeners.forEach((f) => f());
 
 const owners = new Map<string, string[]>();
 
