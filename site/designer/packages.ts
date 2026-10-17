@@ -112,7 +112,11 @@ export async function readPackage(
     throw new Error(t`manifest.json: name expected (letters, digits, - . _)`);
   if (typeof m.version !== "string")
     throw new Error(t`manifest.json: version expected`);
+  // The contract, when the package names it, says what it needs; the version of
+  // BusDiagram is for the readers that know no contract (0.7 and before), which refuse a
+  // package for a later one before they run its script.
   if (
+    m.api === undefined &&
     typeof m.busdiagram === "string" &&
     compareVersions(libraryVersion, m.busdiagram) < 0
   )
@@ -173,9 +177,23 @@ const databases = new Map<string, ProductDatabase>();
 const examples = new Map<string, DevicePackage["scenarios"]>();
 const listeners = new Set<() => void>();
 
-/** Register the databases and examples of a package (replacing a former version). */
-export function installPackage(p: DevicePackage) {
-  forgetPackage(p.manifest.name, false);
+/**
+ * Register the databases and examples of a package (replacing a former version).
+ * Returns what puts back the former state, the former version included, when its
+ * script does not run.
+ */
+export function installPackage(p: DevicePackage): () => void {
+  const name = p.manifest.name;
+  const former = {
+    databases: new Map(
+      behaviorsOfPackage(name).flatMap((b) => {
+        const db = databases.get(b);
+        return db ? [[b, db] as const] : [];
+      }),
+    ),
+    examples: examples.get(name),
+  };
+  forgetPackage(name, false);
   p.databases.forEach((db, behavior) => {
     databases.set(behavior, db);
     setProductDatabase(behavior, db);
@@ -183,6 +201,16 @@ export function installPackage(p: DevicePackage) {
   examples.set(p.manifest.name, p.scenarios);
   owners.set(p.manifest.name, [...p.databases.keys()]);
   listeners.forEach((f) => f());
+  return () => {
+    forgetPackage(name, false);
+    former.databases.forEach((db, b) => {
+      databases.set(b, db);
+      setProductDatabase(b, db);
+    });
+    if (former.databases.size) owners.set(name, [...former.databases.keys()]);
+    if (former.examples) examples.set(name, former.examples);
+    listeners.forEach((f) => f());
+  };
 }
 
 const owners = new Map<string, string[]>();

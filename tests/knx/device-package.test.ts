@@ -174,6 +174,36 @@ describe("package of devices (.bdpkg)", () => {
     expect(await refused(f, "0.0.9")).toMatch(
       /needs BusDiagram 0\.1\.0 or later \(this is 0\.0\.9\)/,
     );
+    // A package that names its contract: the contract decides, not the version.
+    const withApi = (api: number) => ({
+      ...f,
+      "manifest.json": JSON.stringify({
+        ...manifest,
+        busdiagram: "9.0.0",
+        api,
+      }),
+    });
+    expect(await refused(withApi(1))).toBe("");
+    expect(await refused(withApi(99))).toMatch(/needs the contract 99/);
+  });
+
+  it("leaves the former version installed when the new one does not run", async () => {
+    const p = await readPackage(zip(packageFiles()), version);
+    installPackage(p);
+    const next = {
+      ...p,
+      databases: new Map([...p.databases].slice(0, 1)),
+      scenarios: [],
+    };
+    const undo = installPackage(next);
+    expect(databaseOf("example.be1/v1")).toBeUndefined();
+    undo();
+    expect(databaseOf("example.be1/v1")?.id).toBe("M-00FE_A-0002-10-0000");
+    expect(databaseOf("example.sa2/v1")).toBeDefined();
+    forgetPackage("example-devices");
+    // A first version that does not run leaves nothing.
+    installPackage(p)();
+    expect(databaseOf("example.sa2/v1")).toBeUndefined();
   });
 });
 

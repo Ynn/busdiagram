@@ -593,14 +593,14 @@ async function importDevices(file: File) {
     package: name,
   };
   // Its databases first: the catalog and the pages of its products are drawn with them.
-  installPackage(pkg);
+  const undo = installPackage(pkg);
   const next = [...extensions.filter((x) => x.package !== name), entry];
   if (await applyExtensions(next, [entry.name])) {
     await storePackage(name, bytes);
     toast(
       t`Package ${name} ${version}: ${pkg.manifest.products.length} devices imported.`,
     );
-  } else forgetPackage(name);
+  } else undo();
 }
 
 /** The examples of the templates, with those of the imported packages. */
