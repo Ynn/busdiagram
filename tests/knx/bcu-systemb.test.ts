@@ -4,7 +4,7 @@
 // memory control blocks and the application identifier as properties. The records and
 // tables are those of the frames ETS sent.
 import { describe, expect, it } from "vitest";
-import { bcuState, systemB } from "../../src/bcu";
+import { TableOverflow, bcuState, systemB } from "../../src/bcu";
 import { parseApplication } from "../../src/knxprod/application";
 import { parseXml } from "../../src/knxprod/xml";
 
@@ -156,5 +156,73 @@ describe("System B (mask 07B0h)", () => {
       offset: 0,
       maxEntries: 200,
     });
+  });
+
+  it("refuses tables beyond their segments, leaving the memory as it was", () => {
+    const m = systemB.factory();
+    const before = m.slice();
+    const write = (n: number) =>
+      systemB.writeTables(
+        m,
+        {
+          individualAddress: 0x1114,
+          links: new Map([[n, [2]]]),
+          objects: new Map([
+            [
+              n,
+              {
+                C: true,
+                R: false,
+                W: true,
+                T: false,
+                priority: "low",
+                type: 0,
+              },
+            ],
+          ]),
+        },
+        systemB.tableLocations(m),
+      );
+    expect(() => write(3000)).toThrow(TableOverflow);
+    expect(() => write(0)).toThrow(RangeError);
+    expect(m).toEqual(before);
+  });
+
+  it("refuses the load controls it does not do", () => {
+    const s = bcuState(0x07b0);
+    control(s, 4, "01000000000000000000");
+    // Another additional control than a segment allocation: error.
+    expect(control(s, 4, "03fe0000000000000000")).toEqual([3]);
+    const t = bcuState(0x07b0);
+    control(t, 4, "01000000000000000000");
+    // An allocation without its mode and fill octets.
+    expect(systemB.writeProperty!(t, 4, 5, 1, 1, hex("030b0000018e"))).toEqual([
+      3,
+    ]);
+  });
+
+  it("describes the properties it answers", () => {
+    const s = bcuState(0x07b0);
+    expect(systemB.describeProperty!(s, 4, 5)).toEqual({
+      type: 0x00,
+      max: 1,
+      writable: true,
+    });
+    expect(systemB.describeProperty!(s, 4, 7)).toEqual({
+      type: 0x09,
+      max: 1,
+      writable: false,
+    });
+    expect(systemB.describeProperty!(s, 0, 54)).toMatchObject({
+      writable: true,
+    });
+    expect(systemB.readProperty(s, 0, 54, 1, 1)).toEqual([0]);
+  });
+
+  it("refuses a write of its programming mode without its octet", () => {
+    const s = bcuState(0x07b0);
+    systemB.setProgrammingMode(s, true);
+    expect(systemB.writeProperty!(s, 0, 54, 1, 1, [])).toBeNull();
+    expect(systemB.programmingMode(s)).toBe(true);
   });
 });

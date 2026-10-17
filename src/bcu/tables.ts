@@ -23,7 +23,7 @@ export interface TableLayout {
 /** The tables of a download do not fit where the program has them: nothing is written. */
 export class TableOverflow extends Error {
   constructor(
-    readonly table: "addresses" | "associations",
+    readonly table: "addresses" | "associations" | "objects",
     readonly count: number,
     readonly capacity: number,
   ) {
@@ -104,6 +104,11 @@ export function writeTables(mem: Uint8Array, c: TableContent, at: TableLayout) {
   );
   if (pairs.length > associations)
     throw new TableOverflow("associations", pairs.length, associations);
+  // The descriptors are those of the program's object table: none beyond its count.
+  const count = mem[at.objects] ?? 0;
+  for (const n of [...c.objects.keys(), ...c.links.keys()])
+    if (!Number.isInteger(n) || n < 0 || n >= count)
+      throw new TableOverflow("objects", n, count);
   mem[g] = gas.length + 1;
   mem[g + 1] = c.individualAddress >> 8;
   mem[g + 2] = c.individualAddress & 0xff;

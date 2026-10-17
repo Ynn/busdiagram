@@ -946,6 +946,10 @@ export const designerFr: Record<string, string> = {
   "manifest.json: version expected": "manifest.json : version attendue",
   "the package needs BusDiagram {0} or later (this is {1})":
     "le paquet demande BusDiagram {0} ou plus récent (celui-ci est en {1})",
+  "the package needs the contract {0} with BusDiagram, which has {1}: a later BusDiagram is needed":
+    "le paquet demande le contrat {0} avec BusDiagram, qui a le {1} : il faut un BusDiagram plus récent",
+  "Group object {0}: the group object table of this device holds {1}.":
+    "Objet de groupe {0} : la table des objets de groupe de ce participant en contient {1}.",
   "manifest.json: list of products expected":
     "manifest.json : liste de produits attendue",
   "manifest.json: a product needs its behavior and its database":

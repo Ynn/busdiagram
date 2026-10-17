@@ -44,6 +44,7 @@ describe("tables of a download", () => {
   it("never run into the table that follows them", () => {
     // Without a capacity, the space up to the association table: 11 group addresses.
     const mem = new Uint8Array(0x200);
+    mem[at.objects] = 1;
     const free = { ...at, maxAddresses: undefined, maxAssociations: undefined };
     expect(() => writeTables(mem, content(11), free)).not.toThrow();
     expect(() => writeTables(mem, content(12), free)).toThrow(TableOverflow);
@@ -60,6 +61,18 @@ describe("tables of a download", () => {
 });
 
 describe("tables refused", () => {
+  it("refuse a group object beyond the object table of the program", () => {
+    const mem = new Uint8Array(0x200);
+    mem[at.objects] = 1;
+    const before = mem.slice();
+    const beyond: TableContent = {
+      ...content(1),
+      links: new Map([[1, [0x0801]]]),
+    };
+    expect(() => writeTables(mem, beyond, at)).toThrow(TableOverflow);
+    expect([...mem]).toEqual([...before]);
+  });
+
   it("leave the pointers as they were", () => {
     const mem = new Uint8Array(0x200);
     mem[0x111] = 0x2f; // association table pointer of a BCU1

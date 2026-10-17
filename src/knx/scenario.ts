@@ -447,7 +447,7 @@ export function buildScenario(
     const dev = project.devicesById.get(d.id as string)!;
     if (!commissionable(dev)) return d;
     const held = commissioning.devices.get(dev.id);
-    const product = dev.ets && registry.bcuProducts.get(dev.behavior);
+    const product = dev.ets && registry.bcuProducts?.get(dev.behavior);
     if (product) {
       // A manufacturer's device runs what its memory holds.
       const ets = { ...(d.ets as Rec) };

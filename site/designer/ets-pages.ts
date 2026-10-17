@@ -147,7 +147,7 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
   const app = programOfProduct(d.behavior);
   if (!ets || !app) return [];
   const values = ets.parameters ?? {};
-  const limits = ed.registry.bcuProducts.get(d.behavior)?.limits;
+  const limits = ed.registry.bcuProducts?.get(d.behavior)?.limits;
   const out: Page[] = [];
   // What the simulation lacks: those that the values of the project turn on first.
   const states = limitsOf(limits, app, values).sort(

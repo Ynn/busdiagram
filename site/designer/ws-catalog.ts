@@ -141,7 +141,7 @@ export function catalogGroups(
 /** The manufacturers' products of the registry, by manufacturer. */
 function manufacturerGroups(reg: Registry): [string, CatalogEntry[]][] {
   const byMaker = new Map<string, CatalogEntry[]>();
-  for (const p of reg.bcuProducts.values()) {
+  for (const p of reg.bcuProducts?.values() ?? []) {
     const list = byMaker.get(p.manufacturer) ?? [];
     list.push({
       value: `bcu:${p.behavior}`,

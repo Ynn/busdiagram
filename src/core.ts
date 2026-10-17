@@ -57,6 +57,7 @@ export {
   bits,
   programKey,
   productOfProgram,
+  PACKAGE_API,
 } from "./bcu/product";
 export type {
   Firmware,

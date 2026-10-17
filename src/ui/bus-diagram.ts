@@ -75,6 +75,7 @@ import {
   detailStyles,
   renderTelegramDetails,
 } from "./telegram-details";
+import { shareableScenario } from "../knxprod/share";
 
 const win = (t: number, a: number, b: number, fi = 250, fo = 400) =>
   Math.min(easeOut((t - a) / fi), 1 - easeOut((t - b) / fo));
@@ -1006,7 +1007,13 @@ export class BusDiagram extends LitElement {
     const token = this.loadToken;
     let scenario: unknown;
     try {
-      scenario = toV2(model, undefined, this.sim?.installation());
+      // The memory of its manufacturers' devices, kept to what is shareable; a memory
+      // that no product database tells apart is not shared: no link.
+      const shared = shareableScenario(
+        toV2(model, undefined, this.sim?.installation()),
+      );
+      if (shared.unshared.length) return;
+      scenario = shared.data;
     } catch {
       return;
     }

@@ -177,3 +177,23 @@ describe("connection to a device", () => {
     ]);
   });
 });
+
+describe("memory reads larger than a frame", () => {
+  it("are refused with a response that a frame holds", () => {
+    const { sim, m } = setup();
+    sim.pressProgrammingButton("sa");
+    m.handle(req(0, true, apdu(APCI.individualAddressWrite, [0x11, 0x02])));
+    const at = ia(1, 1, 2);
+    m.handle(req(at, false, [0x80]));
+    // 63 octets at 0000h: more than the 12 a response carries.
+    const [, refused] = decoded(
+      m.handle(req(at, false, [0x42, 0x3f, 0x00, 0x00])),
+    );
+    expect(refused!.tpdu).toEqual([0x42, 0x40, 0x00, 0x00]);
+    // 12: the most a frame holds.
+    const [, full] = decoded(
+      m.handle(req(at, false, [0x46, 0x0c, 0x00, 0x00])),
+    );
+    expect(full!.tpdu.length).toBe(16);
+  });
+});

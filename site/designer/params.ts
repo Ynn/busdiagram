@@ -72,7 +72,7 @@ const installationDivider = () =>
 
 /** A manufacturer's product, as the properties of a device in ETS show it. */
 function productInfo(ed: GuidedEditor, d: Dev) {
-  const p = ed.registry.bcuProducts.get(d.behavior);
+  const p = ed.registry.bcuProducts?.get(d.behavior);
   const ets = d.ets as { applicationName?: string } | undefined;
   if (!p) return nothing;
   return html`<dl class="g-product">

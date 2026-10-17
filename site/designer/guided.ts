@@ -1099,7 +1099,7 @@ export class GuidedEditor extends LitElement implements Host {
 
   typeLabel(d: Dev): string {
     // A manufacturer's product: its name and the application program of the catalog.
-    const made = this.registry.bcuProducts.get(d.behavior);
+    const made = this.registry.bcuProducts?.get(d.behavior);
     if (made) {
       const program = (d.ets as { applicationName?: string } | undefined)
         ?.applicationName;

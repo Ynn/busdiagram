@@ -39,8 +39,8 @@ function productOf(
   behavior?: string,
 ): Product {
   const p =
-    (behavior && registry.bcuProducts.get(behavior)) ||
-    productOfProgram(registry.bcuProducts.values(), app.id);
+    (behavior && registry.bcuProducts?.get(behavior)) ||
+    productOfProgram(registry.bcuProducts?.values() ?? [], app.id);
   if (!p) throw new EditRefusal(t`the program ${app.name} is not simulated`);
   return p;
 }
@@ -151,7 +151,9 @@ function fitting<T>(f: () => T): T {
     throw new EditRefusal(
       e.table === "addresses"
         ? t`${e.count} group addresses: the address table of this device holds ${e.capacity}.`
-        : t`${e.count} associations: the association table of this device holds ${e.capacity}.`,
+        : e.table === "objects"
+          ? t`Group object ${e.count}: the group object table of this device holds ${e.capacity}.`
+          : t`${e.count} associations: the association table of this device holds ${e.capacity}.`,
     );
   }
 }
@@ -164,7 +166,7 @@ export function addProductDevice(
   line: string,
 ): string {
   const app = programOfProduct(behavior);
-  const product = registry.bcuProducts.get(behavior);
+  const product = registry.bcuProducts?.get(behavior);
   if (!app || !product) throw new EditRefusal(t`unknown product “${behavior}”`);
   const id = freeId(
     doc,

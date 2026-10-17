@@ -12,6 +12,8 @@
 import type { ProductDatabase } from "../../src/knxprod/database";
 import { readText, readZip } from "../../src/knxprod/zip";
 import { t } from "./lang";
+import { setProductDatabase } from "../../src/knxprod/share";
+import { PACKAGE_API } from "../../src/bcu/product";
 
 export const PACKAGE_FORMAT = "bdpkg/1";
 
@@ -21,6 +23,8 @@ export interface PackageManifest {
   version: string;
   /** Version of BusDiagram the package needs ("0.8.0": at least this one). */
   busdiagram?: string;
+  /** Contract with BusDiagram it needs (PACKAGE_API: at least this one). */
+  api?: number;
   products: {
     behavior: string;
     manufacturer: string;
@@ -115,6 +119,10 @@ export async function readPackage(
     throw new Error(
       t`the package needs BusDiagram ${m.busdiagram} or later (this is ${libraryVersion})`,
     );
+  if (m.api !== undefined && (typeof m.api !== "number" || m.api > PACKAGE_API))
+    throw new Error(
+      t`the package needs the contract ${String(m.api)} with BusDiagram, which has ${PACKAGE_API}: a later BusDiagram is needed`,
+    );
   if (!Array.isArray(m.products))
     throw new Error(t`manifest.json: list of products expected`);
   const manifest = m as unknown as PackageManifest;
@@ -168,7 +176,10 @@ const listeners = new Set<() => void>();
 /** Register the databases and examples of a package (replacing a former version). */
 export function installPackage(p: DevicePackage) {
   forgetPackage(p.manifest.name, false);
-  p.databases.forEach((db, behavior) => databases.set(behavior, db));
+  p.databases.forEach((db, behavior) => {
+    databases.set(behavior, db);
+    setProductDatabase(behavior, db);
+  });
   examples.set(p.manifest.name, p.scenarios);
   owners.set(p.manifest.name, [...p.databases.keys()]);
   listeners.forEach((f) => f());
@@ -180,7 +191,10 @@ const owners = new Map<string, string[]>();
 export const behaviorsOfPackage = (name: string) => owners.get(name) ?? [];
 
 export function forgetPackage(name: string, notify = true) {
-  (owners.get(name) ?? []).forEach((b) => databases.delete(b));
+  (owners.get(name) ?? []).forEach((b) => {
+    databases.delete(b);
+    setProductDatabase(b, null);
+  });
   owners.delete(name);
   examples.delete(name);
   if (notify) listeners.forEach((f) => f());

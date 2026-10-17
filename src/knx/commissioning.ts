@@ -76,7 +76,7 @@ const programOfDevice = (d: Scenario["devices"][number] | undefined) =>
  */
 export function programLabel(d: { behavior?: unknown }) {
   const behavior = typeof d.behavior === "string" ? d.behavior : "";
-  const p = captureRegistry().bcuProducts.get(behavior);
+  const p = captureRegistry().bcuProducts?.get(behavior);
   return p ? `${p.manufacturer} ${p.name}` : programOf(d as Rec);
 }
 
@@ -248,7 +248,9 @@ export function downloadApplication(
         message:
           e.table === "addresses"
             ? t`The project gives ${targetLabel(project, target, t)} ${e.count} group addresses: its address table holds ${e.capacity}.`
-            : t`The project gives ${targetLabel(project, target, t)} ${e.count} associations: its association table holds ${e.capacity}.`,
+            : e.table === "objects"
+              ? t`The project gives ${targetLabel(project, target, t)} group object ${e.count}: its group object table holds ${e.capacity}.`
+              : t`The project gives ${targetLabel(project, target, t)} ${e.count} associations: its association table holds ${e.capacity}.`,
       };
     }
     if (image) {
@@ -464,7 +466,7 @@ export function downloadStates(
     if (!dev || !commissionable(dev)) return;
     const held = k.devices.get(dev.id);
     const image = fittingImage(d);
-    const product = image && registry.bcuProducts.get(dev.behavior);
+    const product = image && registry.bcuProducts?.get(dev.behavior);
     // A manufacturer's device holds the application of its memory, compared with the
     // one of the project's image.
     const app = (

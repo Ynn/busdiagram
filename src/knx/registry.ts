@@ -29,8 +29,11 @@ export interface Registry {
   readonly equipment: ReadonlyMap<string, AnyEquipment>;
   /** Sizes of the views of the delivered equipment, by view. */
   readonly viewSizes: ReadonlyMap<string, EquipmentSize>;
-  /** Manufacturers' products run on a BCU, by behavior. */
-  readonly bcuProducts: ReadonlyMap<string, BcuProduct>;
+  /**
+   * Manufacturers' products run on a BCU, by behavior (since 0.8; a registry without it
+   * has none).
+   */
+  readonly bcuProducts?: ReadonlyMap<string, BcuProduct>;
 }
 
 const bcuProducts = new Map<string, BcuProduct>();
@@ -113,7 +116,7 @@ export function restoreRegistry(s: RegistrySnapshot): void {
   viewSizes.clear();
   s.viewSizes.forEach((v, k) => viewSizes.set(k, v));
   bcuProducts.clear();
-  s.bcuProducts.forEach((v, k) => bcuProducts.set(k, v));
+  s.bcuProducts?.forEach((v, k) => bcuProducts.set(k, v));
   restoreMessages(s.messages);
 }
 

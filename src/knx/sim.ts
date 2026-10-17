@@ -1952,7 +1952,7 @@ export class Simulation {
    */
   private holdsApplication(d: Device): boolean {
     const held = this.scenario.commissioning?.devices.get(d.id);
-    const product = this.registry.bcuProducts.get(d.behavior);
+    const product = this.registry.bcuProducts?.get(d.behavior);
     if (d.ets && profileOf(d.ets.mask) && product)
       return !!d.memory && runsProduct(product, d.ets.mask, d.memory);
     return !!held?.application;
@@ -1972,7 +1972,7 @@ export class Simulation {
         const state = bcuState(
           parseInt(d.ets!.mask, 16),
           e?.memory,
-          this.registry.bcuProducts.get(d.behavior),
+          this.registry.bcuProducts?.get(d.behavior),
         );
         profile.setProgrammingMode(state, e?.programmingMode ?? false);
         this.bcus.set(d.id, { profile, state, held: e?.memory ?? null });
@@ -2193,7 +2193,7 @@ export class Simulation {
     b: { profile: MaskProfile; state: BcuState },
   ) {
     const d = this.scenario.devicesById.get(target);
-    const product = d && this.registry.bcuProducts.get(d.behavior);
+    const product = d && this.registry.bcuProducts?.get(d.behavior);
     const id = b.profile.applicationId(b.state);
     if (!d?.ets || !product || !id) return;
     if (runsProduct(product, d.ets.mask, b.state.memory)) return;

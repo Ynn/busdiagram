@@ -59,6 +59,14 @@ export const APCI = {
   memoryExtendedReadResponse: 0x1fe,
 } as const;
 
+/**
+ * Octets of memory a response carries at most: a standard frame holds 16 octets of TPDU,
+ * of which A_Memory_Response takes 4 and A_MemoryExtended_ReadResponse 6 (the maximum
+ * APDU length the devices announce, 15).
+ */
+const MEMORY_READ_MAX = 12;
+const EXTENDED_READ_MAX = 10;
+
 /** Return codes of the extended memory services: done, or the memory refused it. */
 const EXTENDED_OK = 0x00;
 const EXTENDED_REFUSED = 0xf1;
@@ -296,7 +304,11 @@ export class DeviceManagement {
       // The BCU of a manufacturer's device reads its memory; outside it, a response
       // without octets says the read failed (zeros for the devices without a BCU).
       if (bcu) {
-        const read = bcu.profile.readMemory(bcu.state, at, n);
+        // More than a frame holds: refused, as a read outside the memory.
+        const read =
+          n <= MEMORY_READ_MAX
+            ? bcu.profile.readMemory(bcu.state, at, n)
+            : null;
         reply(
           read
             ? apdu(APCI.memoryResponse | n, [data[0]!, data[1]!, ...read])
@@ -304,11 +316,13 @@ export class DeviceManagement {
         );
       } else
         reply(
-          apdu(APCI.memoryResponse | n, [
-            data[0]!,
-            data[1]!,
-            ...Array<number>(n).fill(0),
-          ]),
+          n <= MEMORY_READ_MAX
+            ? apdu(APCI.memoryResponse | n, [
+                data[0]!,
+                data[1]!,
+                ...Array<number>(n).fill(0),
+              ])
+            : apdu(APCI.memoryResponse, [data[0]!, data[1]!]),
         );
       return;
     }
@@ -355,7 +369,10 @@ export class DeviceManagement {
           );
           return;
         }
-        const read = bcu?.profile.readMemory(bcu.state, at, n) ?? null;
+        const read =
+          n <= EXTENDED_READ_MAX
+            ? (bcu?.profile.readMemory(bcu.state, at, n) ?? null)
+            : null;
         reply(
           apdu(APCI.memoryExtendedReadResponse, [
             read ? EXTENDED_OK : EXTENDED_REFUSED,

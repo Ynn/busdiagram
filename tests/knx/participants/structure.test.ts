@@ -190,7 +190,7 @@ describe("organization of the participants", () => {
     // are imported by the user (.bdpkg); BusDiagram gives only what they need (src/bcu).
     expect(existsSync(resolve(root, "src/manufacturers"))).toBe(false);
     const { captureRegistry } = await import("../../../src/knx/registry");
-    expect([...captureRegistry().bcuProducts.keys()]).toEqual([]);
+    expect([...(captureRegistry().bcuProducts?.keys() ?? [])]).toEqual([]);
   });
 
   it("equipment model entries and the DOM-free entry reach no view", () => {

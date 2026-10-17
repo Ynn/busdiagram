@@ -14,6 +14,14 @@ import type {
 import type { ProductProperty } from "./profile";
 import { readBits } from "./profile";
 
+/**
+ * Version of the contract between BusDiagram and the packages of manufacturers' devices
+ * (defineProduct, the mask profiles 0010h–0012h, 0700h–0705h and 07B0h, readUnsigned):
+ * a package says the one it needs (manifest `api`), which a library of an older contract
+ * refuses.
+ */
+export const PACKAGE_API = 1;
+
 /** A group object the application has: its number, its channel, its datapoint type. */
 export interface ProductObject {
   number: number;

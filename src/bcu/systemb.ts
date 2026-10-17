@@ -128,26 +128,110 @@ function loadEvent(s: BcuState, lsm: number, data: readonly number[]) {
         m[at] = state === UNLOADED ? UNLOADED : ERROR;
         break;
       }
-      // Allocation of its relative segment (0Bh): its length, which must fit, then the
-      // mode (1: filled with the octet that follows; ETS then writes only the others).
-      if (data[1] === 0x0b) {
-        const length =
-          (((data[2] ?? 0) << 24) |
-            ((data[3] ?? 0) << 16) |
-            ((data[4] ?? 0) << 8) |
-            (data[5] ?? 0)) >>>
-          0;
-        const [start, room] = SEGMENTS[lsm]!;
-        if (length > room) m[at] = ERROR;
-        else if (data[6] === 1) m.fill(data[7] ?? 0, start, start + length);
+      // The only one the device does: the allocation of its relative segment (0Bh),
+      // its length (4 octets), which must fit, then the mode (1: filled with the octet
+      // that follows; ETS then writes only the others). Any other is refused: error.
+      if (data[1] !== 0x0b || data.length < 8) {
+        m[at] = ERROR;
+        break;
       }
+      const length =
+        (((data[2] ?? 0) << 24) |
+          ((data[3] ?? 0) << 16) |
+          ((data[4] ?? 0) << 8) |
+          (data[5] ?? 0)) >>>
+        0;
+      const [start, room] = SEGMENTS[lsm]!;
+      if (length > room || data[6]! > 1) m[at] = ERROR;
+      else if (data[6] === 1) m.fill(data[7]!, start, start + length);
       break;
     }
     case 4: // Unload
       m[at] = UNLOADED;
       break;
+    case 0: // No operation
+      break;
+    default: // An event the state machine does not know.
+      m[at] = ERROR;
+      break;
   }
   s.written = true;
+}
+
+/** A property of the system part: its datatype, whether ETS may write it, its value. */
+interface SystemProperty {
+  type: number;
+  writable: boolean;
+  value(s: BcuState): number[];
+}
+
+// Property datatypes (KNX Standard 03_07_03): PDT_CONTROL, PDT_UNSIGNED_CHAR,
+// PDT_UNSIGNED_INT, PDT_UNSIGNED_LONG, PDT_GENERIC_02.
+const PDT_CONTROL = 0x00;
+const PDT_UNSIGNED_CHAR = 0x02;
+const PDT_UNSIGNED_INT = 0x04;
+const PDT_UNSIGNED_LONG = 0x09;
+const PDT_GENERIC_02 = 0x12;
+
+/** The properties of one element that the mask answers itself, by object and PID. */
+function systemProperty(object: number, pid: number): SystemProperty | null {
+  if (pid === 1 && object < OBJECT_TYPE.length)
+    return {
+      type: PDT_UNSIGNED_INT,
+      writable: false,
+      value: () => [0, OBJECT_TYPE[object]!],
+    };
+  if (object >= 1 && object <= LSMS) {
+    // PID_LOAD_STATE_CONTROL: its state (written with a load control).
+    if (pid === 5)
+      return {
+        type: PDT_CONTROL,
+        writable: true,
+        value: (s) => [s.memory[LOAD_STATE + object - 1]!],
+      };
+    // PID_TABLE_REFERENCE: where its segment is.
+    if (pid === 7) {
+      const [at] = SEGMENTS[object]!;
+      return {
+        type: PDT_UNSIGNED_LONG,
+        writable: false,
+        value: () => [0, 0, at >> 8, at & 0xff],
+      };
+    }
+  }
+  switch (`${object}/${pid}`) {
+    case "0/12": // PID_MANUFACTURER_ID
+      return {
+        type: PDT_UNSIGNED_INT,
+        writable: false,
+        value: (s) => {
+          const id = (s.extra.manufacturer as number | undefined) ?? 0;
+          return [(id >> 8) & 0xff, id & 0xff];
+        },
+      };
+    case "0/54": // PID_PROGMODE
+      return {
+        type: PDT_UNSIGNED_CHAR,
+        writable: true,
+        value: (s) => [systemB.programmingMode(s) ? 1 : 0],
+      };
+    case "0/56": // PID_MAX_APDULENGTH: that of a TP1 frame
+      return { type: PDT_UNSIGNED_INT, writable: false, value: () => [0, 15] };
+    case "0/83": // PID_DEVICE_DESCRIPTOR
+      return {
+        type: PDT_GENERIC_02,
+        writable: false,
+        value: () => [0x07, 0xb0],
+      };
+    case "4/6": // PID_RUN_STATE_CONTROL: 1 running, 0 halted
+      return {
+        type: PDT_CONTROL,
+        writable: false,
+        value: (s) => [systemB.running(s) ? 1 : 0],
+      };
+    default:
+      return null;
+  }
 }
 
 const PRIORITY = ["system", "normal", "urgent", "low"] as const;
@@ -171,10 +255,10 @@ const descriptorAt = (n: number) => OBJECTS + 2 * n;
 
 function readTables(m: Uint8Array): Tables {
   const gas: number[] = [];
-  const n = Math.min(word(m, ADDRESSES), (SEGMENTS[1]![1] - 2) / 2);
+  const n = Math.min(word(m, ADDRESSES), tableRoom(1));
   for (let i = 0; i < n; i++) gas.push(word(m, ADDRESSES + 2 + 2 * i));
   const objects: Tables["objects"] = new Map();
-  const count = Math.min(word(m, OBJECTS), SEGMENTS[3]![1] / 2 - 1);
+  const count = Math.min(word(m, OBJECTS), tableRoom(3));
   for (let k = 1; k <= count; k++) {
     const cfg = m[descriptorAt(k)]!;
     objects.set(k, {
@@ -188,7 +272,7 @@ function readTables(m: Uint8Array): Tables {
       gas: [],
     });
   }
-  const pairs = Math.min(word(m, ASSOCIATIONS), (SEGMENTS[2]![1] - 2) / 4);
+  const pairs = Math.min(word(m, ASSOCIATIONS), tableRoom(2));
   for (let i = 0; i < pairs; i++) {
     const tsap = word(m, ASSOCIATIONS + 2 + 4 * i);
     const asap = word(m, ASSOCIATIONS + 4 + 4 * i);
@@ -251,31 +335,7 @@ export const systemB: MaskProfile = {
       const from = at + 2 + n * (start - 1);
       return Array.from(m.subarray(from, from + n * count));
     }
-    const value = ((): number[] | null => {
-      if (pid === 1 && object < OBJECT_TYPE.length)
-        return [0, OBJECT_TYPE[object]!];
-      if (object >= 1 && object <= LSMS) {
-        if (pid === 5) return [m[LOAD_STATE + object - 1]!];
-        if (pid === 7) {
-          const [at] = SEGMENTS[object]!;
-          return [0, 0, at >> 8, at & 0xff];
-        }
-      }
-      switch (`${object}/${pid}`) {
-        case "0/12": // PID_MANUFACTURER_ID
-          return [0, (s.extra.manufacturer as number | undefined) ?? 0];
-        case "0/54": // PID_PROGMODE
-          return [systemB.programmingMode(s) ? 1 : 0];
-        case "0/56": // PID_MAX_APDULENGTH: that of a TP1 frame
-          return [0, 15];
-        case "0/83": // PID_DEVICE_DESCRIPTOR
-          return [0x07, 0xb0];
-        case "4/6": // PID_RUN_STATE_CONTROL: 1 running, 0 halted
-          return [systemB.running(s) ? 1 : 0];
-        default:
-          return null;
-      }
-    })();
+    const value = systemProperty(object, pid)?.value(s) ?? null;
     const made = value
       ? undefined
       : ownProperties(s).find(
@@ -306,6 +366,8 @@ export const systemB: MaskProfile = {
     const sys = systemSlot(object, pid);
     // PDT_GENERIC_08 (memory control block), PDT_GENERIC_05 (identifier).
     if (sys) return { type: 0x10 + sys[1], max: sys[2], writable: true };
+    const one = systemProperty(object, pid);
+    if (one) return { type: one.type, max: 1, writable: one.writable };
     const own = ownProperties(s).find(
       (p) => p.object === object && p.pid === pid,
     );
@@ -324,7 +386,9 @@ export const systemB: MaskProfile = {
       loadEvent(s, object, data);
       return [s.memory[LOAD_STATE + object - 1]!];
     }
-    if (`${object}/${pid}` === "0/54" && start === 1 && count === 1) {
+    if (`${object}/${pid}` === "0/54") {
+      // One element, one octet: anything else is refused, the mode as it was.
+      if (start !== 1 || count !== 1 || data.length !== 1) return null;
       systemB.setProgrammingMode(s, (data[0]! & 1) === 1);
       return [data[0]! & 1];
     }
@@ -370,6 +434,14 @@ export const systemB: MaskProfile = {
   tables: (s) => readTables(s.memory),
   tableLocations: () => ({ associations: ASSOCIATIONS, objects: OBJECTS }),
   writeTables(mem: Uint8Array, c: TableContent, at) {
+    // Everything checked before the first octet is written: a refusal leaves the memory
+    // as it was.
+    const numbers = [...c.objects.keys(), ...c.links.keys()];
+    if (numbers.some((n) => !Number.isInteger(n) || n < 1))
+      throw new RangeError("group objects are numbered from 1");
+    const highest = Math.max(0, ...numbers);
+    if (highest > tableRoom(3))
+      throw new TableOverflow("objects", highest, tableRoom(3));
     const gas = [...new Set([...c.links.values()].flat())].sort(
       (a, b) => a - b,
     );
@@ -379,16 +451,10 @@ export const systemB: MaskProfile = {
       .forEach(([n, l]) =>
         l.forEach((x) => pairs.push([gas.indexOf(x) + 1, n])),
       );
-    const addresses = Math.min(
-      (SEGMENTS[1]![1] - 2) / 2,
-      at.maxAddresses || 0xffff,
-    );
+    const addresses = Math.min(tableRoom(1), at.maxAddresses ?? 0xffff);
     if (gas.length > addresses)
       throw new TableOverflow("addresses", gas.length, addresses);
-    const associations = Math.min(
-      (SEGMENTS[2]![1] - 2) / 4,
-      at.maxAssociations || 0xffff,
-    );
+    const associations = Math.min(tableRoom(2), at.maxAssociations ?? 0xffff);
     if (pairs.length > associations)
       throw new TableOverflow("associations", pairs.length, associations);
     setWord(mem, IA, c.individualAddress);
@@ -399,7 +465,7 @@ export const systemB: MaskProfile = {
       setWord(mem, ASSOCIATIONS + 2 + 4 * i, tsap);
       setWord(mem, ASSOCIATIONS + 4 + 4 * i, asap);
     });
-    const count = Math.max(word(mem, OBJECTS), ...c.objects.keys());
+    const count = Math.max(Math.min(word(mem, OBJECTS), tableRoom(3)), highest);
     setWord(mem, OBJECTS, count);
     for (const [n, o] of c.objects) {
       mem[descriptorAt(n)] = configOf(o);
