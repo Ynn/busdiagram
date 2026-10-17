@@ -478,3 +478,65 @@ export function objectOf(
     flags: { ...o.flags, ...r.flags },
   };
 }
+
+/**
+ * The values of the dialog that a memory read back gives, with the switches that the
+ * memory does not hold (a box "extended settings", of no place in memory and no
+ * calculation) set as they explain it best: a switch is turned when, with it, the image
+ * these values write differs from the memory at fewer parameters.
+ */
+export function revealedValues(
+  app: ApplicationProgram,
+  read: ParameterValues,
+): ParameterValues {
+  const computed = new Set(
+    (app.calculations ?? []).flatMap((c) => c.outputs.map((o) => o.ref)),
+  );
+  const def = (ref: string) => {
+    const r = app.parameterRefs.get(ref);
+    return r?.value ?? app.parameters.get(r?.ref ?? "")?.value;
+  };
+  /** The other value of a switch (two choices, or 0 and 1), or null. */
+  const other = (ref: string): string | null => {
+    const p = app.parameters.get(app.parameterRefs.get(ref)?.ref ?? "");
+    if (!p || p.memory || computed.has(ref)) return null;
+    const t = app.types.get(p.type);
+    const choices =
+      t?.kind === "enum" && t.enums?.length === 2
+        ? t.enums.map((e) => String(e.value))
+        : t?.kind === "number" && t.min === 0 && t.max === 1
+          ? ["0", "1"]
+          : null;
+    const now = read[ref] ?? def(ref);
+    return choices?.find((c) => c !== now) ?? null;
+  };
+  /** Parameters at which the image of these values differs from the memory read. */
+  const unexplained = (values: ParameterValues) => {
+    const images = segmentImages(app);
+    writeParameters(app, values, images);
+    const again = readParameters(app, images);
+    return Object.keys(read).filter((r) => again[r] !== read[r]).length;
+  };
+  let values = { ...read };
+  let left = unexplained(values);
+  const tried = new Set<string>();
+  while (left > 0) {
+    let turned = false;
+    for (const ref of visible(app, values).parameters) {
+      if (tried.has(ref) || values[ref] !== undefined) continue;
+      const alt = other(ref);
+      if (alt === null) continue;
+      tried.add(ref);
+      const next = { ...values, [ref]: alt };
+      const n = unexplained(next);
+      if (n < left) {
+        values = next;
+        left = n;
+        turned = true;
+        break;
+      }
+    }
+    if (!turned) break;
+  }
+  return values;
+}

@@ -7,7 +7,12 @@
 import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
-import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
+import {
+  objectOf,
+  revealedValues,
+  valueProblem,
+  visible,
+} from "../../src/knxprod/config";
 import { uncalculate } from "../../src/knxprod/calculation";
 import {
   ParameterValueError,
@@ -264,9 +269,10 @@ export function configurationFromMemory(
 ): string[] | null {
   const product = productOf(app, registry, d.behavior);
   const ets = d.ets as unknown as Ets;
-  // With the values of the dialog that the memory does not hold (a function chosen for
-  // an output, a time in ms), as ETS reads them back.
-  const read = uncalculate(app, valuesOf(app, memory));
+  // With the values of the dialog that the memory does not hold: a function chosen for
+  // an output, a time in ms (as ETS reads them back), and the switches of the dialog
+  // that show what it holds (extended settings).
+  const read = revealedValues(app, uncalculate(app, valuesOf(app, memory)));
   const parameters: Record<string, string> = {};
   for (const ref of visible(app, read).parameters) {
     const r = app.parameterRefs.get(ref);
