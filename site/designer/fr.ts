@@ -966,6 +966,12 @@ export const designerFr: Record<string, string> = {
   "manifest.json: an example needs its id and its file":
     "manifest.json : un exemple doit avoir son identifiant et son fichier",
   "Package {0} refused: {1}": "Paquet {0} refusé : {1}",
+  "“{0}” for {1}: the calculation {2} of the program cannot be done ({3})":
+    "« {0} » pour {1} : le calcul {2} du programme ne peut pas être fait ({3})",
+  "Package {0} {1}: {2} devices imported for this page only: the browser does not keep it.":
+    "Paquet {0} {1} : {2} participants importés pour cette page seulement : le navigateur ne le conserve pas.",
+  "the device {0} is already brought by the package {1}":
+    "le participant {0} est déjà apporté par le paquet {1}",
   "{0}: the parameters read back from its memory do not write it again at {1} parameters ({2}): its memory is kept, an edit of its parameters writes what the pages show.":
     "{0} : les paramètres relus dans sa mémoire ne la réécrivent pas à l'identique en {1} paramètres ({2}) : sa mémoire est conservée, une modification de ses paramètres écrit ce que montrent les pages.",
   "{0}: {1} calculations of its program could not be done in reading back its memory.":

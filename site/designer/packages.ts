@@ -209,13 +209,33 @@ const examples = new Map<string, DevicePackage["scenarios"]>();
 const scriptsOf = new Map<string, DevicePackage["productScripts"]>();
 const listeners = new Set<() => void>();
 
+/** A package brings a product that another package already brings. */
+export class PackageConflict extends Error {
+  constructor(
+    readonly behavior: string,
+    readonly owner: string,
+  ) {
+    super(t`the device ${behavior} is already brought by the package ${owner}`);
+  }
+}
+
+/** The package that brings the database of a behavior, if one does. */
+export const ownerOf = (behavior: string) =>
+  [...owners].find(([, list]) => list.includes(behavior))?.[0] ?? null;
+
 /**
  * Register the databases and examples of a package (replacing a former version).
  * Returns what puts back the former state, the former version included, when its
- * script does not run.
+ * script does not run. A device that another package brings is refused
+ * (PackageConflict), before anything changes.
  */
 export function installPackage(p: DevicePackage): () => void {
   const name = p.manifest.name;
+  for (const behavior of p.databases.keys()) {
+    const owner = ownerOf(behavior);
+    if (owner !== null && owner !== name)
+      throw new PackageConflict(behavior, owner);
+  }
   const former = {
     databases: new Map(
       behaviorsOfPackage(name).flatMap((b) => {
@@ -303,21 +323,35 @@ function open(): Promise<IDBDatabase> {
   });
 }
 
+/**
+ * A request in a transaction: its result once the transaction is committed (a write is
+ * then durable), the connection closed after it.
+ */
 async function tx<T>(
   mode: IDBTransactionMode,
   run: (s: IDBObjectStore) => IDBRequest<T>,
 ): Promise<T> {
   const db = await open();
-  return new Promise((resolve, reject) => {
-    const r = run(db.transaction(STORE, mode).objectStore(STORE));
-    r.onsuccess = () => resolve(r.result);
-    r.onerror = () => reject(r.error ?? new Error("indexedDB"));
-  });
+  return new Promise<T>((resolve, reject) => {
+    const transaction = db.transaction(STORE, mode);
+    const r = run(transaction.objectStore(STORE));
+    const fail = () =>
+      reject(transaction.error ?? r.error ?? new Error("indexedDB"));
+    transaction.oncomplete = () => resolve(r.result);
+    transaction.onerror = fail;
+    transaction.onabort = fail;
+  }).finally(() => db.close());
 }
 
-/** Keep a package in the browser, by its name. */
+/**
+ * Keep a package in the browser, by its name: true once it is stored, false when the
+ * browser does not keep it (it is then imported for this page only).
+ */
 export const storePackage = (name: string, bytes: Uint8Array) =>
-  tx("readwrite", (s) => s.put(bytes, name)).catch(() => undefined);
+  tx("readwrite", (s) => s.put(bytes, name)).then(
+    () => true,
+    () => false,
+  );
 
 export const deleteStoredPackage = (name: string) =>
   tx("readwrite", (s) => s.delete(name)).catch(() => undefined);

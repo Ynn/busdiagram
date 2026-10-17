@@ -14,8 +14,11 @@ import { buildScenario } from "../../src/knx/scenario";
 import { cardHeight, drawnObjects } from "../../src/knx/layout";
 import {
   databaseOf,
+  PackageConflict,
+  behaviorsOfPackage,
   forgetPackage,
   installPackage,
+  ownerOf,
   readPackage,
   scriptFor,
 } from "../../site/designer/packages";
@@ -217,6 +220,27 @@ describe("package of devices (.bdpkg)", () => {
     expect(
       scriptFor("example-devices", new Set(["example.be1/v1"])),
     ).toBeNull();
+    forgetPackage("example-devices");
+  });
+
+  it("is refused, changing nothing, when another package brings one of its devices", async () => {
+    const a = await readPackage(zip(packageFiles()), version);
+    installPackage(a);
+    const other = {
+      ...a,
+      manifest: { ...a.manifest, name: "other-devices" },
+      databases: new Map([...a.databases].slice(0, 1)),
+    };
+    expect(() => installPackage(other)).toThrow(PackageConflict);
+    expect(() => installPackage(other)).toThrow(
+      /already brought by the package example-devices/,
+    );
+    // The first package as it was.
+    expect(databaseOf("example.sa2/v1")).toBe(
+      a.databases.get("example.sa2/v1"),
+    );
+    expect(ownerOf("example.sa2/v1")).toBe("example-devices");
+    expect(behaviorsOfPackage("other-devices")).toEqual([]);
     forgetPackage("example-devices");
   });
 

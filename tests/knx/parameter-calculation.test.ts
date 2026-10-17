@@ -286,3 +286,39 @@ describe("reverse calculations of a program", () => {
     expect(problems).toMatchObject([{ calculation: "PC-1" }]);
   });
 });
+
+describe("an edit of the designer", () => {
+  it("is refused when it makes a calculation of the program fail", async () => {
+    const { setEtsParameter } = await import("../../site/designer/ets-device");
+    const { captureRegistry } = await import("../../src/knx/registry");
+    const ref = (id: string) =>
+      [`${id}_R`, { id: `${id}_R`, ref: id, access: "" }] as const;
+    const app = {
+      parameters: new Map(
+        [
+          ["F0", "1"],
+          ["H0", "1"],
+        ].map(([id, value]) => [id, { id, type: "T", value }]),
+      ),
+      parameterRefs: new Map(["F0", "H0"].map(ref)),
+      types: new Map([
+        ["T", { id: "T", kind: "number", sizeInBit: 8, min: 0, max: 200 }],
+      ]),
+      segments: new Map(),
+      dynamic: [],
+      calculations: [
+        {
+          id: "PC-1",
+          script: "PAR_OUTPUT = PAR_INPUT * 100",
+          inputs: [{ ref: "F0_R", alias: "PAR_INPUT" }],
+          outputs: [{ ref: "H0_R", alias: "PAR_OUTPUT" }],
+        },
+      ],
+    } as unknown as ApplicationProgram;
+    const doc = { devices: [{ id: "d", ets: { parameters: {} } }] };
+    expect(() =>
+      setEtsParameter(doc as never, "d", app, captureRegistry(), "F0_R", "3"),
+    ).toThrow(/calculation PC-1 of the program cannot be done/);
+    expect(doc.devices[0]!.ets.parameters).toEqual({});
+  });
+});

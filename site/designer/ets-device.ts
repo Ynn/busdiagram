@@ -9,6 +9,7 @@ import { textOf } from "../../src/knxprod/application";
 import { programOfProduct } from "./manufacturers";
 import { objectOf, valueProblem, visible } from "../../src/knxprod/config";
 import { readBack } from "../../src/knxprod/readback";
+import type { CalculationProblem } from "../../src/knxprod/calculation";
 import type { ReadBack } from "../../src/knxprod/readback";
 import {
   ParameterValueError,
@@ -234,10 +235,22 @@ export function setEtsParameter(
       throw new EditRefusal(t`“${value}” does not fit the text of ${ref}`);
   }
   // The value, then the hidden parameters that ETS calculates from it; a value that is the
-  // default of its reference is not kept.
+  // default of its reference is not kept. A calculation it makes fail is refused: the
+  // hidden parameters would keep values that do not agree with it.
+  const before: CalculationProblem[] = [];
+  effectiveValues(app, ets.parameters ?? {}, before);
+  const problems: CalculationProblem[] = [];
   const values = fitting(() =>
-    effectiveValues(app, { ...ets.parameters, [ref]: value }),
+    effectiveValues(app, { ...ets.parameters, [ref]: value }, problems),
   );
+  const known = new Set(before.map((p) => `${p.calculation}|${p.ref ?? ""}`));
+  const added = problems.find(
+    (p) => !known.has(`${p.calculation}|${p.ref ?? ""}`),
+  );
+  if (added)
+    throw new EditRefusal(
+      t`“${value}” for ${ref}: the calculation ${added.calculation} of the program cannot be done (${added.message})`,
+    );
   const kept = Object.fromEntries(
     Object.entries(values).filter(([k, v]) => {
       const rk = app.parameterRefs.get(k);

@@ -611,12 +611,21 @@ async function importDevices(file: File) {
     package: name,
   };
   // Its databases first: the catalog and the pages of its products are drawn with them.
-  const undo = installPackage(pkg);
+  // A device another package brings: refused, nothing changed.
+  let undo: () => void;
+  try {
+    undo = installPackage(pkg);
+  } catch (e) {
+    toast(t`Package ${file.name} refused: ${(e as Error).message}`);
+    return;
+  }
   const next = [...extensions.filter((x) => x.package !== name), entry];
   if (await applyExtensions(next, [entry.name])) {
-    await storePackage(name, bytes);
+    const stored = await storePackage(name, bytes);
     toast(
-      t`Package ${name} ${version}: ${pkg.manifest.products.length} devices imported.`,
+      stored
+        ? t`Package ${name} ${version}: ${pkg.manifest.products.length} devices imported.`
+        : t`Package ${name} ${version}: ${pkg.manifest.products.length} devices imported for this page only: the browser does not keep it.`,
     );
   } else undo();
 }
