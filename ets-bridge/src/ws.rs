@@ -2,8 +2,11 @@
 //!
 //! Any diagram can connect when the reader asks for it: the designer, the player, a page
 //! of a course, a file opened from disk. Protocol, deliberately minimal:
-//! - binary message, both ways: one cEMI L_Data frame (a group telegram);
-//! - text message, program → page: `{"type":"status","ets":N}`, N tunnels open by ETS.
+//! - binary message, both ways: one cEMI L_Data frame (a group telegram, a frame to or
+//!   from a device, or the page's confirmation of a frame to a device);
+//! - text message, program → page: `{"type":"status","ets":N}`, N tunnels open by ETS;
+//! - text message, page → program: `{"type":"hello","confirms":true}`, the page
+//!   confirms the frames to a device (an older page says nothing).
 //!
 //! One diagram at a time, so that two installations do not answer ETS together: the
 //! diagram linked last takes over, and the previous one is told so (close code 4001).
@@ -49,6 +52,8 @@ pub struct Hub {
     /// than piling them up.
     to_bus: Mutex<SyncSender<ToBus>>,
     ets: Mutex<usize>,
+    /// The linked diagram confirms the frames to a device.
+    confirms: Mutex<bool>,
 }
 
 impl Hub {
@@ -57,6 +62,7 @@ impl Hub {
             page: Mutex::new(None),
             to_bus: Mutex::new(to_bus),
             ets: Mutex::new(0),
+            confirms: Mutex::new(false),
         }
     }
 
@@ -90,7 +96,18 @@ impl Hub {
             .map(|(_, _, origin)| origin.clone())
     }
 
+    /// Does the linked diagram confirm the frames to a device?
+    pub fn confirms(&self) -> bool {
+        *self.confirms.lock().unwrap_or_else(PoisonError::into_inner)
+    }
+
+    fn set_confirms(&self, on: bool) {
+        *self.confirms.lock().unwrap_or_else(PoisonError::into_inner) = on;
+    }
+
     fn attach(&self, id: u64, origin: &str) -> Receiver<ToPage> {
+        // A new diagram has not said yet whether it confirms.
+        self.set_confirms(false);
         let mut page = self.page.lock().unwrap_or_else(PoisonError::into_inner);
         if let Some((_, previous, _)) = page.take() {
             let _ = previous.send(ToPage::Replaced);
@@ -295,6 +312,11 @@ fn run(
                 at: Instant::now(),
                 cemi: b.to_vec(),
             }),
+            Ok(Message::Text(t)) => {
+                if is_hello_confirming(&t) {
+                    hub.set_confirms(true);
+                }
+            }
             Ok(Message::Close(_)) | Err(Error::ConnectionClosed | Error::AlreadyClosed) => {
                 return Ok(());
             }
@@ -324,6 +346,15 @@ fn run(
             ws.send(msg).map_err(io::Error::other)?;
         }
     }
+}
+
+/// `{"type":"hello","confirms":true}`, without a JSON parser: the two members, in any
+/// order and spacing.
+fn is_hello_confirming(text: &str) -> bool {
+    let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
+    compact.starts_with('{')
+        && compact.contains("\"type\":\"hello\"")
+        && compact.contains("\"confirms\":true")
 }
 
 #[cfg(test)]

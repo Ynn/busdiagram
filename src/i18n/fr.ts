@@ -625,6 +625,8 @@ export const frMessages: Record<string, string> = {
     'ports.{0}.channel : "required", "optional" ou "none" attendu',
   'output: "switch", "motor" or "dim" expected':
     'output : "switch", "motor" ou "dim" attendu',
+  'channelOutputs.{0}: "switch", "motor" or "dim" expected':
+    'channelOutputs.{0} : "switch", "motor" ou "dim" attendu',
   'ports.{0}.direction: "in", "out" or "both" expected':
     'ports.{0}.direction : "in", "out" ou "both" attendu',
   "{0}: function expected": "{0} : fonction attendue",
@@ -1099,6 +1101,8 @@ export const frMessages: Record<string, string> = {
     "Le projet donne {1} adresses de groupe à {0} : sa table des adresses en contient {2}.",
   "The project gives {0} {1} associations: its association table holds {2}.":
     "Le projet donne {1} associations à {0} : sa table des associations en contient {2}.",
+  "Several devices have the address {0} ({1}): ETS sees one of them":
+    "Plusieurs participants ont l'adresse {0} ({1}) : ETS n'en voit qu'un",
   "The project gives {0} group object {1}: its group object table holds {2}.":
     "Le projet donne l'objet de groupe {1} à {0} : sa table des objets de groupe en contient {2}.",
   "{0}: the application program downloaded (M-{1}_A-{2}-{3}) is not one this device simulates ({4}): it runs nothing.":

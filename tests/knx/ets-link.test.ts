@@ -156,4 +156,17 @@ describe("link to ETS", () => {
       hopCount: 6,
     });
   });
+
+  it("says it confirms, then confirms a frame to a device as the bus acknowledges it", () => {
+    const { ws } = setup();
+    ws.open();
+    expect(ws.sent[0]).toBe(JSON.stringify({ type: "hello", confirms: true }));
+    // T_Connect from ETS to 1.1.99, where no device is.
+    ws.sent = [];
+    ws.receive(bytes("29 00 B0 60 FF FB 11 63 00 80"));
+    const con = ws.sent.find((x): x is Uint8Array => x instanceof Uint8Array)!;
+    expect(con[0]).toBe(0x2e);
+    // Its confirm bit: not acknowledged.
+    expect(con[2]! & 0x01).toBe(1);
+  });
 });

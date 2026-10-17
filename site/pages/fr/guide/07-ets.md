@@ -67,8 +67,11 @@ Un produit pris dans le catalogue en ligne d'ETS fonctionne de même, quand son 
 | --- | --- |
 | Communication de groupe (écriture, lecture, réponse) | Oui |
 | Adresse individuelle en mode programmation (lecture, écriture), connexion à un participant, descripteur, fabricant et numéro de série, redémarrage | Oui : les participants du schéma répondent comme des participants à l'état de livraison ; avec la [mise en service](commissioning.html), ETS programme leur adresse individuelle avec le bouton de programmation du schéma |
-| Téléchargement d'une application (mémoire, propriétés) | Oui pour les participants des fabricants importés d'un paquet (masques BCU1 et System 7) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus |
-| Moniteur de bus, KNX Secure | Non |
+| Téléchargement d'une application (mémoire, propriétés) | Oui pour les participants des fabricants importés d'un paquet (masques BCU1, System 7 et System B) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus |
+| Moniteur de groupe et moniteur de bus | Oui : le moniteur de bus montre toutes les trames du bus, d'ETS et du schéma ; la simulation n'a pas de couche physique, donc aucune trame n'est en erreur et les acquittements de la couche liaison ne sont pas montrés |
+| Recherche de participants (balayage d'une ligne, vérification qu'une adresse individuelle est libre, participants en mode programmation) | Oui : une trame vers une adresse qu'aucun participant n'a est confirmée à ETS comme non acquittée, comme sur un bus ; quand plusieurs participants ont la même adresse, ETS n'en voit qu'un, comme sur un bus où leurs réponses identiques se confondent, et la barre d'outils le signale. Le balayage rapide ne trouve aucun participant : utiliser le balayage normal |
+| Numéros de série | Synthétiques : le code de BusDiagram (00FA), puis une empreinte de l'identifiant du participant dans le scénario |
+| KNX Secure | Non |
 | Plusieurs schémas à la fois | Non, un seul à la fois |
 | Pages autorisées à se relier | Fichiers du disque, pages servies sur cet ordinateur, `https://ynn.github.io` ; les autres dans les réglages |
 

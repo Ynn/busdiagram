@@ -1,7 +1,8 @@
 //! cEMI messages handled by the interface (KNX Standard 03_06_03 §4.1): L_Data frames,
-//! relayed between ETS and the page, and local device management (M_PropRead,
-//! M_PropWrite), answered by the interface itself when ETS connects. L_Data frames are read
-//! and written with knx-rs-core; property services are not, so their answers are built here.
+//! relayed between ETS and the page, the L_Busmon.ind frames of a bus monitor, and local
+//! device management (M_PropRead, M_PropWrite), answered by the interface itself when ETS
+//! connects. L_Data frames are read and written with knx-rs-core; property services and
+//! bus monitor frames are not, so they are built here.
 
 use knx_rs_core::cemi::CemiFrame;
 use knx_rs_core::message::MessageCode;
@@ -13,6 +14,8 @@ const M_PROP_READ_REQ: u8 = MessageCode::PropReadReq as u8;
 const M_PROP_READ_CON: u8 = MessageCode::PropReadCon as u8;
 const M_PROP_WRITE_REQ: u8 = MessageCode::PropWriteReq as u8;
 const M_PROP_WRITE_CON: u8 = MessageCode::PropWriteCon as u8;
+/// L_Busmon.ind: a frame as a bus monitor sees it on the medium.
+const L_BUSMON_IND: u8 = 0x2B;
 
 /// A well-formed L_Data frame (req, con or ind): a group telegram carrying at least an
 /// APCI, or a frame to a device, which may be a transport control (T_Connect, T_ACK…).
@@ -60,6 +63,40 @@ pub fn recode(f: &CemiFrame, code: MessageCode) -> Option<CemiFrame> {
     bytes.extend_from_slice(self::bytes(f).get(ctrl..)?);
     let mut out = l_data(&bytes)?;
     out.set_confirm(Confirm::NoError);
+    Some(out)
+}
+
+/// Is this L_Data.con negative (the frame was not acknowledged on the bus)?
+pub fn negative(f: &CemiFrame) -> bool {
+    f.confirm() == Confirm::Error
+}
+
+/// L_Busmon.ind of an L_Data frame on TP1 (03_06_03 §4.1.5.3.4): its status (`seq`, the
+/// sequence number of the indications) and relative time stamp in additional
+/// information, then the frame as it is on the medium, with its check octet. The
+/// simulation has no physical layer: the frames are never in error, and the link layer
+/// acknowledgements are not shown. None for an extended frame.
+pub fn busmonitor(f: &CemiFrame, timestamp: u16, seq: u8) -> Option<Vec<u8>> {
+    let b = bytes(f);
+    let at = 2 + usize::from(f.additional_info_length());
+    let (&ctrl1, &ctrl2) = (b.get(at)?, b.get(at + 1)?);
+    let addresses = b.get(at + 2..at + 6)?;
+    let length = *b.get(at + 6)?;
+    let tpdu = b.get(at + 7..)?;
+    if length > 15 || ctrl1 & 0x80 == 0 {
+        return None;
+    }
+    // Standard frame, not repeated, its priority; then the address type, the routing
+    // counter and the length.
+    let mut tp = vec![0xB0 | (ctrl1 & 0x0C)];
+    tp.extend_from_slice(addresses);
+    tp.push((ctrl2 & 0xF0) | length);
+    tp.extend_from_slice(tpdu);
+    let check = tp.iter().fold(0u8, |a, x| a ^ x) ^ 0xFF;
+    tp.push(check);
+    let mut out = vec![L_BUSMON_IND, 7, 0x03, 1, seq & 0x07, 0x04, 2];
+    out.extend_from_slice(&timestamp.to_be_bytes());
+    out.extend(tp);
     Some(out)
 }
 
@@ -129,7 +166,7 @@ impl Properties {
     }
 
     /// Answer a local device management request; `None` for M_Reset or anything else.
-    pub fn answer(&self, req: &[u8]) -> Option<Vec<u8>> {
+    pub fn answer(&mut self, req: &[u8]) -> Option<Vec<u8>> {
         let code = *req.first()?;
         let con = match code {
             M_PROP_READ_REQ => M_PROP_READ_CON,
@@ -165,10 +202,42 @@ impl Properties {
         };
         if code == M_PROP_WRITE_REQ {
             // Setting the communication mode to "data link layer", what it already is, is
-            // accepted; everything else is read only.
-            let ok = (object_type, instance, pid, start, count) == (OT_CEMI_SERVER, 1, 52, 1, 1)
-                && req.get(7..) == Some(&[0x00][..]);
-            return Some(if ok { head(1) } else { error(ERR_READ_ONLY) });
+            // accepted.
+            let data = req.get(7..).unwrap_or_default();
+            if (object_type, instance, pid, start, count) == (OT_CEMI_SERVER, 1, 52, 1, 1) {
+                return Some(if data == [0x00] {
+                    head(1)
+                } else {
+                    error(ERR_READ_ONLY)
+                });
+            }
+            // The addresses of the tunnels (PID_ADDITIONAL_INDIVIDUAL_ADDRESSES): a client
+            // checks whether an address is free with a tunnel of that address, then sets
+            // them back. Each element an individual address, none 0.0.0.
+            if (object_type, instance, pid) == (OT_KNXNETIP, 1, 53) {
+                let first = usize::from(start).wrapping_sub(1);
+                let n = usize::from(count);
+                let fits = start >= 1 && n >= 1 && first + n <= self.tunnel_addresses.len();
+                if !fits {
+                    return Some(error(ERR_INDEX_RANGE));
+                }
+                let new: Vec<u16> = data
+                    .as_chunks::<2>()
+                    .0
+                    .iter()
+                    .map(|a| u16::from_be_bytes(*a))
+                    .collect();
+                if data.len() != 2 * n || new.contains(&0) {
+                    return Some(error(ERR_UNSPECIFIED));
+                }
+                for (i, a) in new.into_iter().enumerate() {
+                    if let Some(slot) = self.tunnel_addresses.get_mut(first + i) {
+                        *slot = a;
+                    }
+                }
+                return Some(head(count));
+            }
+            return Some(error(ERR_READ_ONLY));
         }
         let Some((size, data)) = (instance == 1)
             .then(|| self.get(object_type, pid))
@@ -243,7 +312,7 @@ mod tests {
 
     #[test]
     fn tunnel_addresses_and_errors() {
-        let p = props();
+        let mut p = props();
         // KNXnet/IP object (11), PID 53, two elements from 1.
         let r = p
             .answer(&[0xFC, 0x00, 0x0B, 0x01, 53, 0x20, 0x01])

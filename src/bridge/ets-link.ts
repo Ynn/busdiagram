@@ -2,7 +2,11 @@
 // which serves this page and runs a KNXnet/IP tunnelling server that ETS connects to.
 //
 // WebSocket protocol: each binary message is one cEMI L_Data frame (a group telegram, or
-// a device management frame to or from a device), both ways; the program also sends {"type":"status","ets":N}, the number of ETS tunnels.
+// a device management frame to or from a device), both ways; the program also sends
+// {"type":"status","ets":N}, the number of ETS tunnels. The page says
+// {"type":"hello","confirms":true} when it opens: it then confirms each frame from ETS
+// to a device (L_Data.con, negative when no device acknowledges it), which the program
+// gives ETS instead of a confirmation of its own.
 //
 // The simulation is reached at one access point: a bus interface of the scenario, or,
 // without one, its main line:
@@ -140,6 +144,11 @@ export class EtsLink {
           this
             .t`ETS downloads the device ${address}: turn on Simulate commissioning (designer, Installation panel) so that the devices hold what ETS writes`,
         ),
+      (address, devices) =>
+        this.refuse(
+          this
+            .t`Several devices have the address ${address} (${devices.join(", ")}): ETS sees one of them`,
+        ),
     );
   }
 
@@ -163,6 +172,8 @@ export class EtsLink {
     ws.binaryType = "arraybuffer";
     ws.onopen = () => {
       if (this.ws !== ws) return;
+      // The frames from ETS to a device are confirmed by the page (see the protocol).
+      ws.send(JSON.stringify({ type: "hello", confirms: true }));
       this.attach();
       this.update({ state: "open", detail: "" });
     };
@@ -235,6 +246,10 @@ export class EtsLink {
           this.t`device management from ETS not let in: ${why}`,
         );
       const ws = this.ws;
+      // A frame to a device: its link layer acknowledgement first, as the interface
+      // confirms it to ETS (negative when no device has the address).
+      if (!l.group && ws && ws.readyState === 1)
+        ws.send(confirmation(cemi, this.management.acknowledges(l)));
       for (const frame of this.management.handle(l)) {
         if (!ws || ws.readyState !== 1) break;
         ws.send(frame);
@@ -296,4 +311,16 @@ export class EtsLink {
     this.untap?.();
     this.untap = null;
   }
+}
+
+/**
+ * L_Data.con of a frame from ETS (an L_Data.ind without additional information, as the
+ * program passes it): the same frame, its confirm bit set when it was not acknowledged.
+ */
+export function confirmation(cemi: Uint8Array, acknowledged: boolean) {
+  const out = Uint8Array.from(cemi);
+  out[0] = L_DATA_CON;
+  const ctrl1 = 2 + (out[1] ?? 0);
+  out[ctrl1] = acknowledged ? out[ctrl1]! & ~0x01 : out[ctrl1]! | 0x01;
+  return out;
 }

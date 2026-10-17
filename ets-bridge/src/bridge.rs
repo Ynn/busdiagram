@@ -253,6 +253,7 @@ fn bus(
                 ToBus::Closed(session) => tunnels.forget(session, &mut out),
             }
         }
+        tunnels.set_page_confirms(hub.confirms());
         tunnels.tick(now, &mut out);
         let to_ets = out.to_ets;
         for (d, to) in &out.udp {

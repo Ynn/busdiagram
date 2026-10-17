@@ -166,7 +166,29 @@ export class DeviceManagement {
      * simulate commissioning: the device holds no memory, and ETS stops.
      */
     private readonly onUncommissioned: (address: string) => void = () => {},
+    /**
+     * Several devices have an individual address: the first one answers ETS for them
+     * (told once per address and simulation).
+     */
+    private readonly onDuplicate: (
+      address: string,
+      devices: string[],
+    ) => void = () => {},
   ) {}
+
+  /** Addresses whose duplicates were told, for the current simulation. */
+  private duplicates = new Set<string>();
+
+  /**
+   * Is a frame from ETS acknowledged on the bus (its link layer acknowledgement, which
+   * the interface confirms to ETS): a group telegram always, a frame to a device when a
+   * device answers at that address, one or several.
+   */
+  acknowledges(f: LDataFrame): boolean {
+    if (f.group) return true;
+    const sim = this.sim();
+    return !!sim && sim.reachableAt(iaText(f.destination)).length > 0;
+  }
 
   /** Is this frame for device management (not a group telegram)? */
   static concerns(f: LDataFrame): boolean {
@@ -184,6 +206,7 @@ export class DeviceManagement {
   /** Forget the connections (the link stops, or follows another simulation). */
   reset() {
     this.conns.clear();
+    this.duplicates.clear();
     this.of = null;
   }
 
@@ -196,8 +219,13 @@ export class DeviceManagement {
     if (f.group) return this.broadcast(sim, f);
     const address = iaText(f.destination);
     const targets = sim.reachableAt(address);
-    // No device, or several at the same address: nobody can hold a connection.
-    if (targets.length !== 1) return [];
+    // Several devices at the same address: said, and the first one answers, as identical
+    // answers sent at once on the bus make one (the address is occupied, not free).
+    if (targets.length > 1 && !this.duplicates.has(address)) {
+      this.duplicates.add(address);
+      this.onDuplicate(address, targets);
+    }
+    if (!targets.length) return [];
     const target = targets[0]!;
     const tpci = f.tpdu[0]!;
     const out: Uint8Array[] = [];

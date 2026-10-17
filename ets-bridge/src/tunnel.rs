@@ -7,10 +7,16 @@
 //! - Group telegrams from the page are sent to every tunnel as L_Data.ind, one at a time
 //!   per tunnel (each waits for its TUNNELLING_ACK), and are dropped rather than sent late:
 //!   a command older than [`MAX_AGE`] never reaches ETS.
-//! - The interface answers ETS's property reads itself (device management).
+//! - The interface answers ETS's property reads itself (device management), and lets a
+//!   client set the addresses of its tunnels for a while (to check that an address is
+//!   free).
 //! - Frames to a device (individual destination: connection, device descriptor…) and
 //!   individual address services go to the page too, whose devices answer them; their
-//!   answers come back as L_Data.ind. The applications are not downloaded.
+//!   answers come back as L_Data.ind. A page that says so confirms each frame to a
+//!   device itself (L_Data.con, negative when no device acknowledges it): ETS gets that
+//!   confirmation, as from the bus, rather than one the interface makes up.
+//! - A bus monitor connection gets every frame of the bus, from ETS and from the page,
+//!   as L_Busmon.ind.
 
 use std::collections::{BTreeMap, VecDeque};
 use std::net::SocketAddr;
@@ -30,6 +36,11 @@ pub const MAX_AGE: Duration = Duration::from_secs(2);
 /// Tunnel queue: beyond this, telegrams from the page are dropped.
 const QUEUE: usize = 64;
 const MAX_CONNECTIONS: usize = 8;
+/// Bus monitor layer of a tunnelling connection (03_08_04 §4.4.3).
+const TUNNEL_BUSMONITOR: u8 = 0x80;
+/// Time for the page to confirm a frame to a device, after which the interface confirms
+/// it itself, positively, as one that does not know (an older page).
+pub const CONFIRM_TIMEOUT: Duration = Duration::from_millis(500);
 
 /// What a step produced: datagrams to send, frames for the page, and log lines.
 #[derive(Debug, Default)]
@@ -60,6 +71,11 @@ struct Inflight {
 struct Connection {
     /// Device management connection: property reads only, no telegrams.
     mgmt: bool,
+    /// Bus monitor: receives every frame of the bus, sends none.
+    monitor: bool,
+    /// Frames to a device waiting for the page's confirmation: the positive one the
+    /// interface gives if it does not come in time, and when.
+    unconfirmed: VecDeque<(Vec<u8>, Instant)>,
     address: u16,
     control: SocketAddr,
     data: SocketAddr,
@@ -75,6 +91,14 @@ pub struct Tunnels {
     props: Properties,
     conns: BTreeMap<u8, Connection>,
     next_channel: u8,
+    /// The addresses of the tunnels as configured, taken back when every connection is
+    /// closed (a client that set others for a while and did not set them back).
+    configured: Vec<u16>,
+    /// The page confirms the frames to a device.
+    page_confirms: bool,
+    /// Start of the relative time stamps of the bus monitor, and its sequence number.
+    started: Instant,
+    monitor_seq: u8,
 }
 
 impl Tunnels {
@@ -87,26 +111,97 @@ impl Tunnels {
             ip: id.endpoint.ip().octets(),
             friendly_name: id.friendly_name(),
         };
+        let configured = id.tunnel_addresses.clone();
         Self {
             id,
             props,
             conns: BTreeMap::new(),
             next_channel: 1,
+            configured,
+            page_confirms: false,
+            started: Instant::now(),
+            monitor_seq: 0,
         }
+    }
+
+    /// Does the linked page confirm the frames to a device (it says so when it opens)?
+    pub fn set_page_confirms(&mut self, on: bool) {
+        self.page_confirms = on;
     }
 
     /// Open tunnels (ETS connections that carry telegrams).
     pub fn tunnels(&self) -> usize {
-        self.conns.values().filter(|c| !c.mgmt).count()
+        self.conns
+            .values()
+            .filter(|c| !c.mgmt && !c.monitor)
+            .count()
     }
 
     /// Individual addresses of the open tunnels.
     pub fn tunnel_addresses(&self) -> Vec<u16> {
         self.conns
             .values()
-            .filter(|c| !c.mgmt)
+            .filter(|c| !c.mgmt && !c.monitor)
             .map(|c| c.address)
             .collect()
+    }
+
+    /// The addresses of the tunnels written by a client: the open tunnels take theirs.
+    fn tunnel_addresses_changed(&mut self, out: &mut Output) {
+        let new = self.props.tunnel_addresses.clone();
+        for (old, now) in self.id.tunnel_addresses.iter().zip(&new) {
+            if old == now {
+                continue;
+            }
+            for c in self
+                .conns
+                .values_mut()
+                .filter(|c| !c.mgmt && !c.monitor && c.address == *old)
+            {
+                c.address = *now;
+            }
+            out.log.push(format!(
+                "adresse de tunnel {} remplacée par {}",
+                ip::individual_text(*old),
+                ip::individual_text(*now)
+            ));
+        }
+        self.id.tunnel_addresses = new;
+    }
+
+    /// Every connection closed: the addresses of the tunnels as configured.
+    fn restore_addresses(&mut self) {
+        if self.conns.is_empty() && self.id.tunnel_addresses != self.configured {
+            self.id.tunnel_addresses = self.configured.clone();
+            self.props.tunnel_addresses = self.configured.clone();
+        }
+    }
+
+    /// L_Busmon.ind of a frame on the bus, to every bus monitor.
+    fn monitor(&mut self, f: &[u8], now: Instant, out: &mut Output) {
+        if !self.conns.values().any(|c| c.monitor) {
+            return;
+        }
+        let Some(frame) = cemi::l_data(f) else {
+            return;
+        };
+        let ms = now.saturating_duration_since(self.started).as_millis();
+        let stamp = (ms & 0xFFFF) as u16;
+        let Some(ind) = cemi::busmonitor(&frame, stamp, self.monitor_seq) else {
+            return;
+        };
+        self.monitor_seq = self.monitor_seq.wrapping_add(1) & 0x07;
+        for (&ch, c) in self.conns.iter_mut().filter(|(_, c)| c.monitor) {
+            if c.queue.len() >= QUEUE {
+                continue;
+            }
+            c.queue.push_back(Pending {
+                cemi: ind.clone(),
+                deadline: Some(now + MAX_AGE),
+                origin: None,
+            });
+            Self::pump(c, ch, now, out);
+        }
     }
 
     /// This server's endpoint as seen by `peer`: when it listens on every interface (ETS
@@ -166,11 +261,16 @@ impl Tunnels {
                     ));
                 } else {
                     if let Some(c) = self.conns.remove(&ch).filter(|c| !c.mgmt) {
-                        out.log.push(format!(
-                            "ETS s'est déconnecté (canal {ch}, {})",
-                            ip::individual_text(c.address)
-                        ));
+                        out.log.push(if c.monitor {
+                            format!("moniteur de bus déconnecté (canal {ch})")
+                        } else {
+                            format!(
+                                "ETS s'est déconnecté (canal {ch}, {})",
+                                ip::individual_text(c.address)
+                            )
+                        });
                     }
+                    self.restore_addresses();
                     out.udp.push((
                         ip::frame(ServiceType::DisconnectResponse, vec![ch, status]),
                         to,
@@ -234,6 +334,10 @@ impl Tunnels {
                     None => return refuse(out, ip::E_NO_MORE_CONNECTIONS),
                 }
             }
+            // A bus monitor has no tunnel address of its own.
+            Some(ip::TUNNEL_CONNECTION) if layer == Some(TUNNEL_BUSMONITOR) => {
+                self.id.individual_address
+            }
             Some(ip::TUNNEL_CONNECTION) => return refuse(out, ip::E_TUNNELLING_LAYER),
             Some(ip::DEVICE_MGMT_CONNECTION) => self.id.individual_address,
             _ => return refuse(out, ip::E_CONNECTION_TYPE),
@@ -247,10 +351,13 @@ impl Tunnels {
         }
         self.next_channel = ch.wrapping_add(1);
         let mgmt = kind == Some(ip::DEVICE_MGMT_CONNECTION);
+        let monitor = kind == Some(ip::TUNNEL_CONNECTION) && layer == Some(TUNNEL_BUSMONITOR);
         self.conns.insert(
             ch,
             Connection {
                 mgmt,
+                monitor,
+                unconfirmed: VecDeque::new(),
                 address,
                 control,
                 data,
@@ -267,10 +374,14 @@ impl Tunnels {
             b.extend_from_slice(&[0x02, ip::DEVICE_MGMT_CONNECTION]);
         } else {
             b.extend_from_slice(&ip::tunnel_crd(address));
-            out.log.push(format!(
-                "ETS connecté (canal {ch}, adresse du tunnel {})",
-                ip::individual_text(address)
-            ));
+            out.log.push(if monitor {
+                format!("moniteur de bus connecté (canal {ch})")
+            } else {
+                format!(
+                    "ETS connecté (canal {ch}, adresse du tunnel {})",
+                    ip::individual_text(address)
+                )
+            });
         }
         out.udp
             .push((ip::frame(ServiceType::ConnectResponse, b), control));
@@ -330,16 +441,26 @@ impl Tunnels {
         c.last_seen = now;
         out.udp.push((ack(seq), to));
         let address = c.address;
+        let before = self.props.tunnel_addresses.clone();
         if let Some(answer) = self.props.answer(frame) {
-            c.queue.push_back(Pending {
-                cemi: answer,
-                deadline: None,
-                origin: None,
-            });
-            Self::pump(c, ch, now, out);
+            if let Some(c) = self.conns.get_mut(&ch) {
+                c.queue.push_back(Pending {
+                    cemi: answer,
+                    deadline: None,
+                    origin: None,
+                });
+                Self::pump(c, ch, now, out);
+            }
+            if self.props.tunnel_addresses != before {
+                self.tunnel_addresses_changed(out);
+            }
             return;
         }
-        if c.mgmt || frame.first() != Some(&(MessageCode::LDataReq as u8)) {
+        let Some(c) = self.conns.get_mut(&ch) else {
+            return;
+        };
+        // A bus monitor only listens.
+        if c.mgmt || c.monitor || frame.first() != Some(&(MessageCode::LDataReq as u8)) {
             return;
         }
         let Some(mut f) = cemi::l_data(frame) else {
@@ -348,14 +469,21 @@ impl Tunnels {
             return;
         };
         cemi::fill_source(&mut f, address);
-        // The interface sent it on the bus: positive confirmation.
+        // The interface sent it on the bus. A group telegram: positive confirmation. A
+        // frame to a device: the page confirms it, as the acknowledgement of the bus says
+        // (positive when it does not do so in time, as before).
         if let Some(con) = cemi::recode(&f, MessageCode::LDataCon) {
-            c.queue.push_back(Pending {
-                cemi: cemi::bytes(&con),
-                deadline: None,
-                origin: None,
-            });
-            Self::pump(c, ch, now, out);
+            let con = cemi::bytes(&con);
+            if self.page_confirms && !cemi::is_group(&f) {
+                c.unconfirmed.push_back((con, now + CONFIRM_TIMEOUT));
+            } else {
+                c.queue.push_back(Pending {
+                    cemi: con,
+                    deadline: None,
+                    origin: None,
+                });
+                Self::pump(c, ch, now, out);
+            }
         }
         let Some(ind) = cemi::recode(&f, MessageCode::LDataInd) else {
             return;
@@ -364,9 +492,43 @@ impl Tunnels {
         // The page's devices answer: group telegrams on the simulated bus, device
         // management (a frame to a device) at once.
         out.page.push(ind.to_vec());
+        self.monitor(ind, now, out);
         // Another ETS connected at the same time sees a group telegram, as on a real bus.
         if cemi::is_group(&f) {
             self.send_to_tunnels(ind, Some(ch), None, now, now, out);
+        }
+    }
+
+    /// The page's confirmation of a frame to a device: to the tunnel that sent it (its
+    /// source), in place of the one the interface would give.
+    fn on_page_confirmation(
+        &mut self,
+        con: &knx_rs_core::cemi::CemiFrame,
+        now: Instant,
+        out: &mut Output,
+    ) {
+        let source = con.source_address().raw();
+        let Some((&ch, c)) = self.conns.iter_mut().find(|(_, c)| {
+            !c.mgmt && !c.monitor && c.address == source && !c.unconfirmed.is_empty()
+        }) else {
+            return;
+        };
+        c.unconfirmed.pop_front();
+        let mut f = con.clone();
+        if !cemi::negative(con) {
+            f.set_confirm(knx_rs_core::types::Confirm::NoError);
+        }
+        c.queue.push_back(Pending {
+            cemi: cemi::bytes(&f),
+            deadline: None,
+            origin: None,
+        });
+        Self::pump(c, ch, now, out);
+        if cemi::negative(con) {
+            out.log.push(format!(
+                "aucun participant n'acquitte la trame pour {}",
+                ip::individual_text(con.destination_address_raw())
+            ));
         }
     }
 
@@ -381,15 +543,22 @@ impl Tunnels {
         now: Instant,
         out: &mut Output,
     ) {
-        let Some(ind) = cemi::l_data(frame).and_then(|f| cemi::recode(&f, MessageCode::LDataInd))
-        else {
+        let Some(f) = cemi::l_data(frame) else {
             out.log.push(format!(
                 "trame de la page invalide ignorée : {}",
                 hex(frame)
             ));
             return;
         };
-        self.send_to_tunnels(&cemi::bytes(&ind), None, Some(session), received, now, out);
+        if f.message_code_raw() == MessageCode::LDataCon as u8 {
+            return self.on_page_confirmation(&f, now, out);
+        }
+        let Some(ind) = cemi::recode(&f, MessageCode::LDataInd) else {
+            return;
+        };
+        let ind = cemi::bytes(&ind);
+        self.monitor(&ind, now, out);
+        self.send_to_tunnels(&ind, None, Some(session), received, now, out);
     }
 
     /// The diagram of `session` is gone: its telegrams still waiting do not leave.
@@ -419,7 +588,7 @@ impl Tunnels {
         for (&ch, c) in self
             .conns
             .iter_mut()
-            .filter(|(ch, c)| !c.mgmt && Some(**ch) != except)
+            .filter(|(ch, c)| !c.mgmt && !c.monitor && Some(**ch) != except)
         {
             if c.queue.len() >= QUEUE {
                 out.log
@@ -468,10 +637,20 @@ impl Tunnels {
         }
     }
 
-    /// Repetitions, abandoned connections, heartbeats.
+    /// Repetitions, abandoned connections, heartbeats, confirmations the page did not give.
     pub fn tick(&mut self, now: Instant, out: &mut Output) {
         let mut close = Vec::new();
         for (&ch, c) in &mut self.conns {
+            while c.unconfirmed.front().is_some_and(|(_, d)| now >= *d) {
+                if let Some((con, _)) = c.unconfirmed.pop_front() {
+                    c.queue.push_back(Pending {
+                        cemi: con,
+                        deadline: None,
+                        origin: None,
+                    });
+                }
+                Self::pump(c, ch, now, out);
+            }
             if now.saturating_duration_since(c.last_seen) > HEARTBEAT_TIMEOUT {
                 close.push((ch, "plus de nouvelles d'ETS"));
                 continue;
@@ -500,6 +679,7 @@ impl Tunnels {
                 out.log.push(format!("connexion ETS {ch} fermée : {why}"));
             }
         }
+        self.restore_addresses();
     }
 }
 
@@ -751,5 +931,137 @@ mod tests {
             &mut out,
         );
         assert!(out.udp.is_empty());
+    }
+
+    /// CONNECT_REQUEST for a bus monitor; returns the channel.
+    fn connect_monitor(t: &mut Tunnels, now: Instant) -> u8 {
+        let mut b = vec![8, 1, 0, 0, 0, 0, 0, 0, 8, 1, 0, 0, 0, 0, 0, 0];
+        b.extend_from_slice(&[4, TUNNEL_CONNECTION, TUNNEL_BUSMONITOR, 0]);
+        let mut out = Output::default();
+        t.on_datagram(
+            &ip::frame(ServiceType::ConnectRequest, b),
+            from(),
+            now,
+            &mut out,
+        );
+        let (s, body) = parse(&out.udp[0].0);
+        assert_eq!(s, ServiceType::ConnectResponse);
+        assert_eq!(body[1], ip::E_NO_ERROR);
+        body[0]
+    }
+
+    const CONNECT: [u8; 10] = [0x11, 0x00, 0xB0, 0x60, 0x00, 0x00, 0x11, 0x01, 0x00, 0x80];
+
+    #[test]
+    fn a_bus_monitor_sees_the_frames_of_the_bus() {
+        let now = Instant::now();
+        let mut t = server();
+        let ets = connect(&mut t, now);
+        let mon = connect_monitor(&mut t, now);
+        // A bus monitor is not a tunnel.
+        assert_eq!(t.tunnels(), 1);
+        let mut out = Output::default();
+        t.on_page_frame(&STATUS, now, 1, now, &mut out);
+        // The group telegram, to the tunnel as L_Data.ind and to the monitor.
+        let to_monitor: Vec<_> = out
+            .udp
+            .iter()
+            .map(|(d, _)| parse(d).1)
+            .filter(|b| b[1] == mon)
+            .collect();
+        assert_eq!(to_monitor.len(), 1);
+        let ind = &to_monitor[0][4..];
+        assert_eq!(ind[0], 0x2B);
+        // Status and time stamp, then the TP1 frame: control, 1.2.1 to 1/4/1, its length.
+        assert_eq!(&ind[1..5], &[7, 0x03, 1, 0]);
+        let tp = &ind[9..];
+        assert_eq!(&tp[..6], &[0xBC, 0x12, 0x01, 0x0C, 0x01, 0xE1]);
+        assert_eq!(tp.iter().fold(0u8, |a, x| a ^ x), 0xFF);
+        // ETS's frames are seen too; the monitor sends none.
+        let mut out = Output::default();
+        t.on_datagram(&ack(ets, 0), from(), now, &mut out);
+        t.on_datagram(&ack(mon, 0), from(), now, &mut out);
+        t.on_datagram(&tunnelling(ets, 0, &CONNECT), from(), now, &mut out);
+        assert!(out.udp.iter().any(|(d, _)| parse(d).1.get(1) == Some(&mon)));
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(mon, 0, &WRITE), from(), now, &mut out);
+        assert!(out.page.is_empty());
+    }
+
+    #[test]
+    fn the_page_confirms_a_frame_to_a_device() {
+        let now = Instant::now();
+        let mut t = server();
+        t.set_page_confirms(true);
+        let ch = connect(&mut t, now);
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 0, &CONNECT), from(), now, &mut out);
+        // Acknowledged, passed to the page, not confirmed yet.
+        assert_eq!(out.udp.len(), 1);
+        assert_eq!(out.page.len(), 1);
+        // No device at 1.1.1: the page's negative confirmation reaches ETS.
+        let mut con = out.page[0].clone();
+        con[0] = MessageCode::LDataCon as u8;
+        con[2] |= 0x01;
+        let mut out = Output::default();
+        t.on_page_frame(&con, now, 1, now, &mut out);
+        let (s, body) = parse(&out.udp[0].0);
+        assert_eq!(s, ServiceType::TunnelingRequest);
+        assert_eq!(body[4], MessageCode::LDataCon as u8);
+        assert_eq!(body[6] & 0x01, 0x01);
+    }
+
+    #[test]
+    fn a_frame_the_page_does_not_confirm_is_confirmed_in_time() {
+        let now = Instant::now();
+        let mut t = server();
+        t.set_page_confirms(true);
+        let ch = connect(&mut t, now);
+        let mut out = Output::default();
+        t.on_datagram(&tunnelling(ch, 0, &CONNECT), from(), now, &mut out);
+        let mut out = Output::default();
+        t.tick(now + CONFIRM_TIMEOUT, &mut out);
+        let (_, body) = parse(&out.udp[0].0);
+        assert_eq!(body[4], MessageCode::LDataCon as u8);
+        assert_eq!(body[6] & 0x01, 0);
+    }
+
+    #[test]
+    fn a_client_sets_the_tunnel_addresses_for_a_while() {
+        let now = Instant::now();
+        let mut t = server();
+        let ch = connect(&mut t, now);
+        // M_PropWrite.req, KNXnet/IP parameter object, PID 53, element 1: 1.1.1.
+        let mut out = Output::default();
+        t.on_datagram(
+            &tunnelling(ch, 0, &[0xF6, 0x00, 0x0B, 0x01, 53, 0x10, 0x01, 0x11, 0x01]),
+            from(),
+            now,
+            &mut out,
+        );
+        let (_, body) = parse(&out.udp[1].0);
+        assert_eq!(&body[4..], &[0xF5, 0x00, 0x0B, 0x01, 53, 0x10, 0x01]);
+        assert_eq!(t.tunnel_addresses(), vec![0x1101]);
+        // A write of 0.0.0 is refused.
+        let mut out = Output::default();
+        t.on_datagram(&ack(ch, 0), from(), now, &mut out);
+        t.on_datagram(
+            &tunnelling(ch, 1, &[0xF6, 0x00, 0x0B, 0x01, 53, 0x10, 0x01, 0x00, 0x00]),
+            from(),
+            now,
+            &mut out,
+        );
+        assert_eq!(t.tunnel_addresses(), vec![0x1101]);
+        // Once disconnected, the configured address is back.
+        let nat = Hpai::nat_udp(0);
+        t.on_datagram(
+            &KnxIpFrame::disconnect_request(ch, nat).to_bytes(),
+            from(),
+            now,
+            &mut out,
+        );
+        let again = connect(&mut t, now);
+        assert!(again > 0);
+        assert_eq!(t.tunnel_addresses(), vec![0xFFFB]);
     }
 }
