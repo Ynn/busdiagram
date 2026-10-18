@@ -972,8 +972,10 @@ export const designerFr: Record<string, string> = {
     "Paquet {0} {1} : {2} participants importés pour cette page seulement : le navigateur ne le conserve pas.",
   "the device {0} is already brought by the package {1}":
     "le participant {0} est déjà apporté par le paquet {1}",
-  "{0}: the parameters read back from its memory do not write it again at {1} parameters ({2}): its memory is kept, an edit of its parameters writes what the pages show.":
-    "{0} : les paramètres relus dans sa mémoire ne la réécrivent pas à l'identique en {1} paramètres ({2}) : sa mémoire est conservée, une modification de ses paramètres écrit ce que montrent les pages.",
+  "{0}: the parameters read back from its memory do not write it again at {1} parameters: its memory is kept, see its page Simulation limits.":
+    "{0} : les paramètres relus dans sa mémoire ne la réécrivent pas à l'identique en {1} paramètres : sa mémoire est conservée, voir sa page Limites de la simulation.",
+  "The memory read back from the device holds, at these parameters, values that these pages do not write: its memory is kept as it is; an edit of its parameters writes what the pages show.":
+    "La mémoire relue dans le participant contient, à ces paramètres, des valeurs que ces pages n'écrivent pas : sa mémoire est conservée telle quelle ; une modification de ses paramètres écrit ce que montrent les pages.",
   "{0}: {1} calculations of its program could not be done in reading back its memory.":
     "{0} : {1} calculs de son programme n'ont pas pu être faits en relisant sa mémoire.",
   "Package {0} {1}: {2} devices imported.":

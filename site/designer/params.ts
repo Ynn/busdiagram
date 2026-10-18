@@ -91,8 +91,21 @@ function productInfo(ed: GuidedEditor, d: Dev) {
     </dd>
     <dt>${t`Application program`}</dt>
     <dd>${ets?.applicationName ?? ""}</dd>
-    <dd class="g-hint">${tt(p.description)}</dd>
+    ${description(tt(p.description))}
   </dl>`;
+}
+
+/** A description of a product: folded when it is long, so that the fields come first. */
+function description(text: string) {
+  if (!text) return nothing;
+  if (text.length <= 160) return html`<dd class="g-hint">${text}</dd>`;
+  const cut = text.slice(0, 120).replace(/\s+\S*$/, "");
+  return html`<dd class="g-hint">
+    <details class="g-desc">
+      <summary>${cut}…</summary>
+      ${text}
+    </details>
+  </dd>`;
 }
 
 /** General page of a device: identity, place on the bus, device settings. */
@@ -137,7 +150,12 @@ export function generalPage(ed: GuidedEditor, doc: Doc, d: Dev) {
   return html`<section class="g-sec">
       <h3>${d.name ?? d.id} <code>${d.address ?? "IP"}</code></h3>
       <p class="g-hint">
-        ${ed.typeLabel(d)}${def?.description ? html` — ${tt(def.description)}` : nothing}
+        ${ed.typeLabel(d)}${
+          // A product says what it is below.
+          def?.description && !ed.registry.bcuProducts?.has(d.behavior)
+            ? html` — ${tt(def.description)}`
+            : nothing
+        }
         ${def ? nothing : html`<br /><b>${t`Behavior not loaded in the designer: data kept, limited forms.`}</b>`}
       </p>
       ${productInfo(ed, d)}

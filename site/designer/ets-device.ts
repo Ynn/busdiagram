@@ -64,18 +64,29 @@ export const objectTexts = (
 ) => textsOfObjects(app, values, t.lang ?? "en");
 
 /**
+ * The memory read back from a catalog device that its pages do not explain everywhere
+ * (see ReadBack), by device identifier: shown with its pages until its parameters are
+ * set again, its memory then being what they show.
+ */
+export const readBacks = new Map<string, ReadBack>();
+
+/**
  * Set the application of a device from its parameter values and the group addresses of
  * its objects: memory image, channels (keeping their labels, loads and wired
- * push-buttons), and objects (keeping their addresses).
+ * push-buttons), and objects (keeping their addresses). Returns the calculations that
+ * could not be done (their hidden parameters keep their values): an edit refuses those
+ * it adds ({@link setEtsParameter}); a product inserted with those of its own defaults
+ * keeps them, and its pages list them.
  */
 export function applyConfiguration(
   d: Dev,
   app: ApplicationProgram,
   registry: Registry,
-) {
+): CalculationProblem[] {
   const product = productOf(app, registry, d.behavior);
   const ets = d.ets as unknown as Ets;
   const links = linksOf(d.objects);
+  const problems: CalculationProblem[] = [];
   const image = fitting(() =>
     projectImage(
       app,
@@ -83,6 +94,7 @@ export function applyConfiguration(
       ets.parameters ?? {},
       links,
       d.address ?? "15.15.255",
+      problems,
     ),
   );
   d.behavior = product.behavior;
@@ -127,6 +139,9 @@ export function applyConfiguration(
       projectMemory(ets.mask, image, d.objects, d.address ?? "15.15.255"),
     ),
   );
+  // Its memory is now what its pages show.
+  readBacks.delete(d.id);
+  return problems;
 }
 
 /** The tables of the device hold what the project links to it, or the edit is refused. */
@@ -264,6 +279,8 @@ export function configurationFromMemory(
   const held = heldDevice(app, product, ets.mask, memory, t.lang ?? "en");
   if (!held) return null;
   report?.(held.readBack);
+  if (held.readBack.unexplained.length) readBacks.set(d.id, held.readBack);
+  else readBacks.delete(d.id);
   d.objects = held.objects as unknown as Obj[];
   if (Object.keys(held.parameters).length) ets.parameters = held.parameters;
   else delete ets.parameters;

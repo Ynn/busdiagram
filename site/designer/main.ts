@@ -545,12 +545,7 @@ function setInstallation(installation: JsonObject, restart: boolean) {
         (id, r) =>
           toast(
             r.unexplained.length
-              ? t`${id}: the parameters read back from its memory do not write it again at ${String(r.unexplained.length)} parameters (${r.unexplained
-                  .slice(0, 3)
-                  .map((u) => `${u.address.toString(16).toUpperCase()}h`)
-                  .join(
-                    ", ",
-                  )}): its memory is kept, an edit of its parameters writes what the pages show.`
+              ? t`${id}: the parameters read back from its memory do not write it again at ${String(r.unexplained.length)} parameters: its memory is kept, see its page Simulation limits.`
               : t`${id}: ${String(r.problems.length)} calculations of its program could not be done in reading back its memory.`,
           ),
       )

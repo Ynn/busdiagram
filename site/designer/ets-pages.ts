@@ -12,7 +12,7 @@ import type {
 import { textOf } from "../../src/knxprod/application";
 import { branch, valueOf } from "../../src/knxprod/config";
 import type { Dev, Doc } from "./edit";
-import { setEtsParameter } from "./ets-device";
+import { readBacks, setEtsParameter } from "./ets-device";
 import { programOfProduct } from "./manufacturers";
 import type { GuidedEditor } from "./guided";
 import { t, tt } from "./lang";
@@ -158,9 +158,13 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
   // they set keep their values.
   const problems: CalculationProblem[] = [];
   calculate(app, values, problems);
-  if (states.length || problems.length) {
+  // What the memory read back from the device holds that these pages do not show.
+  const unexplained = readBacks.get(d.id)?.unexplained ?? [];
+  if (states.length || problems.length || unexplained.length) {
     const used =
-      states.filter((s) => s.inUse).length + (problems.length ? 1 : 0);
+      states.filter((s) => s.inUse).length +
+      (problems.length ? 1 : 0) +
+      (unexplained.length ? 1 : 0);
     out.push({
       key: "ets:limits",
       label: t`Simulation limits`,
@@ -193,6 +197,26 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
                   ${t`Parameter calculation ${p.calculation} of the program not done (${p.message}): the parameters it sets keep their values.`}
                 </li>`,
             )}
+            ${
+              unexplained.length
+                ? html`<li class="on">
+                    ${t`The memory read back from the device holds, at these parameters, values that these pages do not write: its memory is kept as it is; an edit of its parameters writes what the pages show.`}
+                    <ul>
+                      ${unexplained.map((u) => {
+                        const r = app.parameterRefs.get(u.ref);
+                        const p = r && app.parameters.get(r.ref);
+                        const label = p
+                          ? textOf(app, p.id, "Text", r.text ?? p.text, lang())
+                          : u.ref;
+                        return html`<li>
+                          ${label}
+                          <code>${u.address.toString(16).toUpperCase()}h</code>
+                        </li>`;
+                      })}
+                    </ul>
+                  </li>`
+                : nothing
+            }
           </ul>
         </div>`,
     });

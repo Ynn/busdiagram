@@ -1997,3 +1997,9 @@ bd-guided > .g-notice {
   grid-column: 1 / -1;
   margin-top: 4px;
 }
+.g-desc summary {
+  cursor: pointer;
+}
+.g-desc[open] summary {
+  display: none;
+}
