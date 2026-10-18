@@ -980,8 +980,14 @@ export const designerFr: Record<string, string> = {
     "{0} : {1} calculs de son programme n'ont pas pu être faits en relisant sa mémoire.",
   "Package {0} {1}: {2} devices imported.":
     "Paquet {0} {1} : {2} participants importés.",
-  "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).":
-    "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg).",
+  "The packages of devices kept in the browser cannot be read: their devices run without their ETS pages; import them again.":
+    "Les paquets de participants conservés dans le navigateur ne peuvent pas être lus : leurs participants fonctionnent sans leurs pages ETS ; importez-les à nouveau.",
+  "Package {0} kept in the browser no longer reads ({1}): its devices run without their ETS pages; import it again.":
+    "Le paquet {0} conservé dans le navigateur ne se lit plus ({1}) : ses participants fonctionnent sans leurs pages ETS ; importez-le à nouveau.",
+  "Extension {0} removed from this page; the browser could not forget its package, which comes back at the next start.":
+    "Extension {0} retirée de cette page ; le navigateur n'a pas pu oublier son paquet, qui reviendra au prochain démarrage.",
+  "Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg) whose origin you trust, as it runs code in the page.":
+    "Participants de fabricants, programmés par ETS : importez un paquet de participants (.bdpkg) dont vous connaissez l'origine, car il exécute du code dans la page.",
   "Import devices…": "Importer des participants…",
   "simulated in part": "simulé en partie",
   "Not exported: import the package of {0}, whose memory is shared only once its product database tells its parameters from its program.":

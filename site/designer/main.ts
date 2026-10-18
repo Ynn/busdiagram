@@ -661,6 +661,13 @@ onPackagesChange(() => {
 });
 // The packages kept in the browser, whose script is loaded with the extensions.
 void storedPackages().then(async (stored) => {
+  if (!stored) {
+    if (extensions.some((x) => x.package))
+      toast(
+        t`The packages of devices kept in the browser cannot be read: their devices run without their ETS pages; import them again.`,
+      );
+    return;
+  }
   for (const [name, bytes] of stored) {
     if (!extensions.some((x) => x.package === name)) {
       await deleteStoredPackage(name);
@@ -668,8 +675,11 @@ void storedPackages().then(async (stored) => {
     }
     try {
       installPackage(await readPackage(bytes, BusDiagramApi.version));
-    } catch {
+    } catch (e) {
       // A package that no longer reads: its devices run, without their ETS pages.
+      toast(
+        t`Package ${name} kept in the browser no longer reads (${(e as Error).message}): its devices run without their ETS pages; import it again.`,
+      );
     }
   }
 });
@@ -946,7 +956,10 @@ function renderExtensionList() {
         // A package of devices: its databases and examples go with it.
         if (ext.package) {
           forgetPackage(ext.package);
-          await deleteStoredPackage(ext.package);
+          if (!(await deleteStoredPackage(ext.package)))
+            return toast(
+              t`Extension ${ext.name} removed from this page; the browser could not forget its package, which comes back at the next start.`,
+            );
         }
         toast(t`Extension ${ext.name} removed.`);
       }

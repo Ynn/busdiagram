@@ -358,11 +358,21 @@ export const storePackage = (name: string, bytes: Uint8Array) =>
     () => false,
   );
 
+/** Remove a package kept in the browser: false when the browser could not. */
 export const deleteStoredPackage = (name: string) =>
-  tx("readwrite", (s) => s.delete(name)).catch(() => undefined);
+  tx("readwrite", (s) => s.delete(name)).then(
+    () => true,
+    () => false,
+  );
 
-/** The packages kept in the browser: name → bytes. */
-export async function storedPackages(): Promise<Map<string, Uint8Array>> {
+/**
+ * The packages kept in the browser: name → bytes; null when the browser cannot read them
+ * (storage unavailable or refused).
+ */
+export async function storedPackages(): Promise<Map<
+  string,
+  Uint8Array
+> | null> {
   try {
     const keys = (await tx("readonly", (s) => s.getAllKeys())) as string[];
     const out = new Map<string, Uint8Array>();
@@ -373,6 +383,6 @@ export async function storedPackages(): Promise<Map<string, Uint8Array>> {
     }
     return out;
   } catch {
-    return new Map();
+    return null;
   }
 }

@@ -998,7 +998,7 @@ function catalogList(host: Host, doc: Doc, p: Panel): TemplateResult {
   return html`<div class="w-content">
       <div class="w-bar w-knxprod">
         <span class="g-hint"
-          >${t`Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg).`}</span
+          >${t`Devices of manufacturers, programmed by ETS: import a package of devices (.bdpkg) whose origin you trust, as it runs code in the page.`}</span
         >
         <button class="g-btn small" @click=${() => host.importDevices()}>
           ${t`Import devices…`}
