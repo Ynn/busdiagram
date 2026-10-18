@@ -213,6 +213,14 @@ export const styles = css`
     font-size: 12px;
     color: ${unsafeCSS(C.mute)};
   }
+  .link .iface {
+    font-size: 12px;
+    font-family: ui-monospace, monospace;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .link .iface.pending {
+    color: ${unsafeCSS(C.amber)};
+  }
   .link a.btn {
     text-decoration: none;
   }

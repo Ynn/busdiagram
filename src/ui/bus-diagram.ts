@@ -896,6 +896,19 @@ export class BusDiagram extends LitElement {
       ${
         state === "open" && st
           ? html`<span class="where">${where}</span>
+              ${
+                st.interfaceAddress
+                  ? html`<span
+                      class="iface ${st.addressPending ? "pending" : ""}"
+                      title=${
+                        st.addressPending
+                          ? t`Interface address of this line: ETS keeps the former one until it has closed its connections`
+                          : t`Individual address of the interface ETS reaches`
+                      }
+                      >${st.interfaceAddress}${st.addressPending ? " ⏳" : ""}</span
+                    >`
+                  : nothing
+              }
               <span
                 class="cnt"
                 title=${t`Telegrams received from ETS · sent to ETS`}

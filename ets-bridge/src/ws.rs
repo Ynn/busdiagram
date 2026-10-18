@@ -8,7 +8,9 @@
 //! - text message, page → program: `{"type":"hello","confirms":true}`, the page
 //!   confirms the frames to a device (an older page says nothing); with
 //!   `"addresses":"1.1.254 1.1.253 …"`, the individual address of the interface then
-//!   those of its tunnels, free in the line where ETS reaches the diagram.
+//!   those of its tunnels, free in the line where ETS reaches the diagram, sent again
+//!   when the diagram changes its access point (`"addresses":""`: those the program
+//!   started with).
 //!
 //! One diagram at a time, so that two installations do not answer ETS together: the
 //! diagram linked last takes over, and the previous one is told so (close code 4001).
@@ -382,7 +384,8 @@ fn is_hello_confirming(text: &str) -> bool {
 }
 
 /// The member `"addresses":"1.1.254 1.1.253"` of a hello: individual addresses, at
-/// least two (the interface, a tunnel), each once; None otherwise.
+/// least two (the interface, a tunnel), each once; empty, those the program started
+/// with; None otherwise.
 fn hello_addresses(text: &str) -> Option<Vec<u16>> {
     let compact: String = text.chars().filter(|c| !c.is_whitespace()).collect();
     if !compact.contains("\"type\":\"hello\"") {
@@ -393,6 +396,9 @@ fn hello_addresses(text: &str) -> Option<Vec<u16>> {
     let open = rest.find('"')?;
     let value = &rest[open + 1..];
     let list = &value[..value.find('"')?];
+    if list.trim().is_empty() {
+        return Some(Vec::new());
+    }
     let out: Vec<u16> = list
         .split_whitespace()
         .map(individual)
@@ -436,6 +442,11 @@ mod tests {
         assert_eq!(
             hello_addresses(r#"{"type":"status","addresses":"1.1.1 1.1.2"}"#),
             None
+        );
+        // Empty: those the program started with.
+        assert_eq!(
+            hello_addresses(r#"{"type":"hello","confirms":true,"addresses":""}"#),
+            Some(Vec::new())
         );
     }
 

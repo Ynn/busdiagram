@@ -47,6 +47,8 @@ class FakeSocket implements SocketLike {
 /** ETS reads the individual address of the devices in programming mode (broadcast). */
 const ETS_ADDRESS_READ = "11 00 B0 E0 FF FB 00 00 01 01 00";
 
+type Access = { device: string } | { segment: string } | null;
+
 function setup(
   accepting: () => string | null = () => null,
   managing?: () => string | null,
@@ -55,16 +57,17 @@ function setup(
   sim.advance(3000);
   const ws = new FakeSocket();
   const statuses: LinkStatus[] = [];
+  const at: { access: Access } = { access: { device: "usbInterface" } };
   const link = new EtsLink({
     url: "ws://127.0.0.1:3761/ws",
-    target: () => ({ sim, access: { device: "usbInterface" } }),
+    target: () => (at.access ? { sim, access: at.access } : null),
     accepting,
     managing,
     onStatus: (s) => statuses.push(s),
     socket: () => ws,
   });
   link.connect();
-  return { sim, ws, link, statuses };
+  return { sim, ws, link, statuses, at };
 }
 
 describe("link to ETS", () => {
@@ -178,5 +181,48 @@ describe("link to ETS", () => {
     expect(con[0]).toBe(0x2e);
     // Its confirm bit: not acknowledged.
     expect(con[2]! & 0x01).toBe(1);
+  });
+
+  it("gives the interface the addresses of the line of another access point", () => {
+    const { sim, ws, link, at } = setup();
+    ws.open(0);
+    const hellos = () =>
+      ws.sent
+        .filter((x): x is string => typeof x === "string")
+        .map((x) => JSON.parse(x) as { type: string; addresses?: string })
+        .filter((m) => m.type === "hello");
+    expect(hellos()[0]!.addresses).toMatch(/^1\.1\.254 /);
+    expect(link.current).toMatchObject({
+      interfaceAddress: "1.1.254",
+      addressPending: false,
+    });
+    // The same access point again: nothing more said.
+    link.retarget();
+    expect(hellos()).toHaveLength(1);
+    // Line 1.2, where the actuator is, with ETS connected: taken once ETS has gone.
+    ws.receive(JSON.stringify({ type: "status", ets: 1 }));
+    at.access = {
+      segment: sim.network.topology.deviceSegment.get("switchActuator")!,
+    };
+    link.retarget();
+    expect(hellos()).toHaveLength(2);
+    expect(hellos()[1]!.addresses!.split(" ")).toEqual([
+      "1.2.254",
+      "1.2.253",
+      "1.2.252",
+      "1.2.251",
+      "1.2.250",
+    ]);
+    expect(link.current).toMatchObject({
+      interfaceAddress: "1.2.254",
+      addressPending: true,
+    });
+    ws.receive(JSON.stringify({ type: "status", ets: 0 }));
+    expect(link.current.addressPending).toBe(false);
+    // No line to give addresses in: those the program started with.
+    at.access = null;
+    link.retarget();
+    expect(hellos()[2]).toMatchObject({ confirms: true, addresses: "" });
+    expect(link.current.interfaceAddress).toBe("");
   });
 });

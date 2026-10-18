@@ -99,6 +99,8 @@ pub struct Tunnels {
     /// The addresses a diagram gave the interface and its tunnels, taken when no
     /// connection is open.
     wanted: Option<(u16, Vec<u16>)>,
+    /// The addresses of the interface and its tunnels the program started with.
+    original: (u16, Vec<u16>),
     /// Start of the relative time stamps of the bus monitor, and its sequence number.
     started: Instant,
     monitor_seq: u8,
@@ -115,6 +117,7 @@ impl Tunnels {
             friendly_name: id.friendly_name(),
         };
         let configured = id.tunnel_addresses.clone();
+        let original = (id.individual_address, id.tunnel_addresses.clone());
         Self {
             id,
             props,
@@ -123,6 +126,7 @@ impl Tunnels {
             configured,
             page_confirms: false,
             wanted: None,
+            original,
             started: Instant::now(),
             monitor_seq: 0,
         }
@@ -194,26 +198,37 @@ impl Tunnels {
     /// The addresses a diagram gives the interface and its tunnels (free in the line
     /// where ETS reaches it): the first one the interface's, the next ones its tunnels'
     /// (as many as it has). Taken at once with no connection open, else when the last
-    /// one closes: an address never changes under ETS.
+    /// one closes: an address never changes under ETS. An empty list: the addresses the
+    /// program started with (the diagram has none to give).
     pub fn adopt_addresses(&mut self, list: &[u16], out: &mut Output) {
         let n = self.configured.len();
-        let Some((&ia, rest)) = list.split_first() else {
-            return;
+        let (ia, tunnels) = match list.split_first() {
+            None => self.original.clone(),
+            Some((_, [])) => return,
+            Some((&ia, rest)) => {
+                let mut tunnels: Vec<u16> = rest.iter().copied().take(n).collect();
+                // Fewer than its tunnels: the others keep theirs, unless one is among them.
+                for a in &self.configured {
+                    if tunnels.len() >= n {
+                        break;
+                    }
+                    if !tunnels.contains(a) && *a != ia {
+                        tunnels.push(*a);
+                    }
+                }
+                (ia, tunnels)
+            }
         };
-        if rest.is_empty() {
+        // The same as those it will take; those it has: none others wait.
+        if self
+            .wanted
+            .as_ref()
+            .is_some_and(|(a, t)| *a == ia && *t == tunnels)
+        {
             return;
-        }
-        let mut tunnels: Vec<u16> = rest.iter().copied().take(n).collect();
-        // Fewer than its tunnels: the others keep theirs, unless one is among them.
-        for a in &self.configured {
-            if tunnels.len() >= n {
-                break;
-            }
-            if !tunnels.contains(a) && *a != ia {
-                tunnels.push(*a);
-            }
         }
         if ia == self.id.individual_address && tunnels == self.configured {
+            self.wanted = None;
             return;
         }
         out.log.push(format!(
@@ -1246,6 +1261,24 @@ mod tests {
         assert!(t.tunnels() == 0);
         let again = connect_at(&mut t, now);
         assert_eq!(again, 0x11EF);
+    }
+
+    #[test]
+    fn a_diagram_with_no_addresses_to_give_takes_back_those_of_the_start() {
+        let now = Instant::now();
+        let original = connect_at(&mut server(), now);
+        let mut t = server();
+        let mut out = Output::default();
+        t.adopt_addresses(&[0x11FE, 0x11FD], &mut out);
+        assert_eq!(connect_at(&mut t, now), 0x11FD);
+        // Given while ETS is connected, then given back before it has gone: nothing waits.
+        t.adopt_addresses(&[0x12FE, 0x12FD], &mut out);
+        t.adopt_addresses(&[0x11FE, 0x11FD], &mut out);
+        assert!(t.wanted.is_none());
+        let mut t = server();
+        t.adopt_addresses(&[0x11FE, 0x11FD], &mut out);
+        t.adopt_addresses(&[], &mut out);
+        assert_eq!(connect_at(&mut t, now), original);
     }
 
     /// CONNECT_REQUEST for a link layer tunnel; returns the tunnel address it is given.

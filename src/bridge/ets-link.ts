@@ -64,6 +64,17 @@ export interface LinkStatus {
   refused: number;
   /** Last problem met while open (frame refused, telegram not let in…). */
   lastProblem: string;
+  /**
+   * The individual address given to the interface, free in the line of the access
+   * point; empty when the diagram has none to give (the program keeps those it started
+   * with).
+   */
+  interfaceAddress: string;
+  /**
+   * Given while ETS had connections open: the program takes it when they have all
+   * closed, and until then ETS sees the former one.
+   */
+  addressPending: boolean;
 }
 
 /** Minimal WebSocket, so that tests can provide their own. */
@@ -132,7 +143,11 @@ export class EtsLink {
     received: 0,
     refused: 0,
     lastProblem: "",
+    interfaceAddress: "",
+    addressPending: false,
   };
+  /** The addresses last given to the program, joined; null before the first hello. */
+  private announced: string | null = null;
 
   private readonly t: Translate;
   /** Device management of the simulated devices (individual address, descriptor…). */
@@ -190,17 +205,8 @@ export class EtsLink {
     ws.binaryType = "arraybuffer";
     ws.onopen = () => {
       if (this.ws !== ws) return;
-      // The frames from ETS to a device are confirmed by the page (see the protocol);
-      // the interface and its tunnels take addresses free in the line of the access
-      // point, as an interface installed there.
-      const addresses = interfaceAddresses(this.o.target());
-      ws.send(
-        JSON.stringify({
-          type: "hello",
-          confirms: true,
-          ...(addresses.length ? { addresses: addresses.join(" ") } : {}),
-        }),
-      );
+      this.announced = null;
+      this.announce(ws);
       this.attach();
       this.update({ state: "open", detail: "" });
     };
@@ -218,6 +224,7 @@ export class EtsLink {
       this.update({
         state: ev.code === 4001 ? "off" : "closed",
         ets: 0,
+        addressPending: false,
         detail: closeReason(ev.code, this.t),
       });
     };
@@ -232,14 +239,43 @@ export class EtsLink {
     this.management.reset();
     if (ws) ws.close(1000, "closed by the reader");
     if (this.status.state !== "off")
-      this.update({ state: "off", detail: "", ets: 0 });
+      this.update({ state: "off", detail: "", ets: 0, addressPending: false });
   }
 
-  /** Follow another simulation (scenario loaded again): tap its access point. */
+  /**
+   * Follow another simulation (scenario loaded again) or another access point: tap it,
+   * and give the interface the addresses of its line.
+   */
   retarget() {
     // The connections of ETS were with the devices of the former simulation.
     this.management.reset();
-    if (this.status.state === "open") this.attach();
+    if (this.status.state !== "open") return;
+    this.attach();
+    if (this.ws) this.announce(this.ws);
+  }
+
+  /**
+   * The frames from ETS to a device are confirmed by the page (see the protocol); the
+   * interface and its tunnels take addresses free in the line of the access point, as
+   * an interface installed there (none: those the program started with). Sent again
+   * when they change.
+   */
+  private announce(ws: SocketLike) {
+    const addresses = interfaceAddresses(this.o.target()).join(" ");
+    if (addresses === this.announced) return;
+    const first = this.announced === null;
+    this.announced = addresses;
+    ws.send(
+      JSON.stringify({
+        type: "hello",
+        confirms: true,
+        ...(addresses || !first ? { addresses } : {}),
+      }),
+    );
+    this.update({
+      interfaceAddress: addresses.split(" ")[0]!,
+      addressPending: !first && this.status.ets > 0,
+    });
   }
 
   private update(p: Partial<LinkStatus>) {
@@ -255,7 +291,10 @@ export class EtsLink {
     try {
       const m = JSON.parse(text) as { type?: string; ets?: unknown };
       if (m.type === "status" && typeof m.ets === "number")
-        this.update({ ets: m.ets });
+        this.update({
+          ets: m.ets,
+          addressPending: this.status.addressPending && m.ets > 0,
+        });
     } catch {
       // Not a status: ignored.
     }
