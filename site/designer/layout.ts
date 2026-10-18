@@ -4,6 +4,8 @@
 import { t } from "./lang";
 
 const KEY = "busdiagram.designer.layout";
+/** Where the layout of the designer is kept in the browser. */
+export const LAYOUT = KEY;
 const MIN = 28;
 const MAX = 78;
 

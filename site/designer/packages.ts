@@ -365,6 +365,19 @@ export const deleteStoredPackage = (name: string) =>
     () => false,
   );
 
+/** Forget every package kept in the browser: false when the browser could not. */
+export const clearStoredPackages = () =>
+  new Promise<boolean>((resolve) => {
+    try {
+      const r = indexedDB.deleteDatabase(DB);
+      r.onsuccess = () => resolve(true);
+      r.onerror = () => resolve(false);
+      r.onblocked = () => resolve(false);
+    } catch {
+      resolve(false);
+    }
+  });
+
 /**
  * The packages kept in the browser: name → bytes; null when the browser cannot read them
  * (storage unavailable or refused).

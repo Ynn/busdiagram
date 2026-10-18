@@ -116,7 +116,7 @@ Une mise à jour n'est acceptée que si toutes les extensions chargées, dépend
 
 Les paramètres obligatoires et les états initiaux se saisissent avant l'ajout d'un nouvel appareil d'extension. L'éditeur distingue une valeur omise, une chaîne vide et `null` là où le schéma les permet.
 
-Ne chargez que des scripts de confiance : une extension s'exécute comme une partie de la page. Les pages autonomes incluent les extensions chargées. Les codes à coller référencent des fichiers d'extension que vous devez héberger à côté de la page ; les liens de lecture ne transportent pas le code des extensions.
+Ne chargez que des scripts de confiance : une extension s'exécute comme une partie de la page. Les pages autonomes incluent les extensions chargées. Les codes à coller référencent des fichiers d'extension que vous devez héberger à côté de la page ; les liens de lecture ne transportent pas le code des extensions. **Réinitialiser le designer…**, dans la même boîte, retire du navigateur toutes les extensions et tous les paquets de participants ainsi que le projet qu'il conserve (exportez-le d'abord), et rouvre le designer comme à la première visite, dans sa langue.
 
 ## Langues
 

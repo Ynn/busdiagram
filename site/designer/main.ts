@@ -43,13 +43,16 @@ import type { GuidedEditor, Refusal } from "./guided";
 import "./guided";
 import { cursorContext, nodeForPath, parsePath } from "./json-tree";
 import { setDesignerLanguage, t } from "./lang";
-import { initLayout } from "./layout";
+import { LAYOUT, initLayout } from "./layout";
+import { PANELS } from "./ws-state";
+import { COLUMNS } from "./ws-table";
 import { SnippetRefusal } from "./snippet-kit";
 import { TEMPLATES } from "./standard-designer";
 import { installationChanged } from "./ws-commission";
 import type { JsonObject } from "../../src/knx/contracts";
 import type { DevicePackage } from "./packages";
 import {
+  clearStoredPackages,
   deleteStoredPackage,
   forgetPackage,
   behaviorsOfPackage,
@@ -98,8 +101,9 @@ const pageTexts = (): Record<string, string> => ({
   "Extensions…": t`Extensions…`,
   "Load, replace or remove extensions (.js)": t`Load, replace or remove extensions (.js)`,
   Extensions: t`Extensions`,
-  "Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.": t`Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.`,
+  "Scripts adding behaviours, equipment or views, and the packages of devices imported from the Catalog panel. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.": t`Scripts adding behaviours, equipment or views, and the packages of devices imported from the Catalog panel. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.`,
   "Load an extension…": t`Load an extension…`,
+  "Reset the designer…": t`Reset the designer…`,
   "Code to paste into a page…": t`Code to paste into a page…`,
   "Standalone page (.html)": t`Standalone page (.html)`,
   "JSON file (complete backup)": t`JSON file (complete backup)`,
@@ -590,6 +594,50 @@ pkgInput.addEventListener("change", () => {
   if (f) void importDevices(f);
 });
 guided.importDevices = () => pkgInput.click();
+guided.importedPackages = () =>
+  extensions.flatMap((x) =>
+    x.package
+      ? [
+          {
+            name: x.package,
+            label: x.name,
+            devices: (provided.get(x.name) ?? []).length,
+          },
+        ]
+      : [],
+  );
+guided.removePackage = (name) => {
+  const ext = extensions.find((x) => x.package === name);
+  if (ext) void removeExtension(ext);
+};
+
+/**
+ * Remove an extension; a package of devices goes with its databases and examples, and
+ * the browser forgets it.
+ */
+async function removeExtension(ext: LoadedExtension) {
+  if (
+    !(await applyExtensions(
+      extensions.filter((x) => x !== ext),
+      [],
+    ))
+  )
+    return;
+  if (ext.package) {
+    forgetPackage(ext.package);
+    if (!(await deleteStoredPackage(ext.package)))
+      return toast(
+        t`Extension ${ext.name} removed from this page; the browser could not forget its package, which comes back at the next start.`,
+      );
+  }
+  toast(
+    ext.package
+      ? t`Package ${ext.name} removed: its devices are no longer in the catalog; import it again to bring them back.`
+      : t`Extension ${ext.name} removed.`,
+  );
+  renderExtensionList();
+  guided.requestUpdate();
+}
 
 async function importDevices(file: File) {
   const bytes = new Uint8Array(await file.arrayBuffer());
@@ -941,29 +989,14 @@ function renderExtensionList() {
     const replace = document.createElement("button");
     replace.textContent = t`Replace…`;
     replace.addEventListener("click", () => {
+      // A package is replaced by a package of the same name.
+      if (ext.package) return pkgInput.click();
       replaceTarget = ext.name;
       $<HTMLInputElement>("#ext-file").click();
     });
     const remove = document.createElement("button");
     remove.textContent = t`Remove`;
-    remove.addEventListener("click", async () => {
-      if (
-        await applyExtensions(
-          extensions.filter((x) => x !== ext),
-          [],
-        )
-      ) {
-        // A package of devices: its databases and examples go with it.
-        if (ext.package) {
-          forgetPackage(ext.package);
-          if (!(await deleteStoredPackage(ext.package)))
-            return toast(
-              t`Extension ${ext.name} removed from this page; the browser could not forget its package, which comes back at the next start.`,
-            );
-        }
-        toast(t`Extension ${ext.name} removed.`);
-      }
-    });
+    remove.addEventListener("click", () => void removeExtension(ext));
     row.append(name, replace, remove);
     list.append(row);
   });
@@ -980,6 +1013,28 @@ $("#ext-add").addEventListener("click", () => {
 $("#ext-close").addEventListener("click", () =>
   $<HTMLDialogElement>("#ext-dialog").close(),
 );
+// The designer as on a first visit: no extension nor package, no project kept, panels
+// and columns as delivered (the language stays).
+$("#ext-reset").addEventListener("click", async () => {
+  if (
+    !confirm(
+      t`Reset the designer? Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it).`,
+    )
+  )
+    return;
+  const stored = await clearStoredPackages();
+  try {
+    for (const k of [EXTENSIONS, DRAFT, TAB, PANELS, COLUMNS, LAYOUT])
+      localStorage.removeItem(k);
+  } catch {
+    // Storage unavailable: nothing was kept.
+  }
+  if (!stored)
+    toast(
+      t`The browser could not forget the packages of devices: close the other tabs of the designer, then reset again.`,
+    );
+  else location.reload();
+});
 $("#about").addEventListener("click", () => {
   // The banner of the bundled library names the build and its source code.
   const build = buildInfo(bundleSource);

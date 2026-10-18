@@ -1004,6 +1004,21 @@ function catalogList(host: Host, doc: Doc, p: Panel): TemplateResult {
           ${t`Import devices…`}
         </button>
       </div>
+      ${host.importedPackages().map(
+        (p) =>
+          html`<div class="w-bar w-pkg">
+            <span
+              >${t`Package ${p.label}: ${String(p.devices)} devices. Import it again to replace it.`}</span
+            >
+            <button
+              class="g-btn small"
+              title=${t`Remove this package from the designer and from this browser: its devices, their product databases and its examples`}
+              @click=${() => host.removePackage(p.name)}
+            >
+              ${t`Remove`}
+            </button>
+          </div>`,
+      )}
       ${dataTable<(typeof shown)[number]>(
         host,
         "catalog",

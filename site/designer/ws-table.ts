@@ -27,6 +27,8 @@ interface TableState {
 }
 
 const STORE = "busdiagram.designer.columns";
+/** Where the columns of the tables are kept in the browser. */
+export const COLUMNS = STORE;
 const states = new Map<string, TableState>();
 let loaded = false;
 

@@ -59,6 +59,9 @@ export class GuidedEditor extends LitElement implements Host {
   /** Commissioning on the preview's simulation (set by the designer). */
   commissioner: Commissioner = { sim: () => null, apply: () => {} };
   importDevices: () => void = () => {};
+  importedPackages: () => { name: string; label: string; devices: number }[] =
+    () => [];
+  removePackage: (name: string) => void = () => {};
   /** Track existing devices so a newly added one opens immediately. */
   private selectAdded: Set<string> | null = null;
   /** Expanded cards (keys and outputs), preserved across renders. */

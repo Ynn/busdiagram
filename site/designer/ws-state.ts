@@ -74,9 +74,15 @@ export interface Host {
   commissioner: Commissioner;
   /** Import a package of devices (.bdpkg): opens the choice of a file. */
   importDevices(): void;
+  /** The packages of devices imported: name, name and version, number of devices. */
+  importedPackages(): { name: string; label: string; devices: number }[];
+  /** Remove an imported package of devices: its devices, databases and examples. */
+  removePackage(name: string): void;
 }
 
 const STORE = "busdiagram.designer.panels";
+/** Where the panels of the designer are kept in the browser. */
+export const PANELS = STORE;
 export const CONTENTS: PanelContent[] = [
   "topology",
   "addresses",

@@ -116,7 +116,7 @@ An update is accepted only when all loaded extensions, including their dependenc
 
 Required parameters and initial states are entered before a new extension device is added. The editor distinguishes an omitted value, an empty string, and `null` where the schema permits them.
 
-Load only scripts you trust: an extension executes as part of the page. Standalone pages include loaded extensions. Code snippets reference extension files that you must host beside the page; viewer links do not carry extension code.
+Load only scripts you trust: an extension executes as part of the page. Standalone pages include loaded extensions. Code snippets reference extension files that you must host beside the page; viewer links do not carry extension code. **Reset the designer…**, in the same dialog, removes every extension and package of devices from the browser and the project it keeps (export it first), and reopens the designer as on a first visit, in its language.
 
 ## Languages
 

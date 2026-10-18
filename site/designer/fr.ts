@@ -584,8 +584,19 @@ export const designerFr: Record<string, string> = {
   "Replace…": "Remplacer…",
   "Extension {0} removed.": "Extension {0} retirée.",
   Extensions: "Extensions",
-  "Scripts adding behaviours, equipment or views. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.":
-    "Scripts qui ajoutent des comportements, équipements ou vues. Ils sont mémorisés dans ce navigateur et embarqués dans la page autonome exportée. Un script qui échoue ne laisse aucune définition chargée.",
+  "Scripts adding behaviours, equipment or views, and the packages of devices imported from the Catalog panel. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.":
+    "Scripts ajoutant des comportements, équipements ou vues, et paquets de participants importés depuis le panneau Catalogue. Ils sont conservés dans ce navigateur et intégrés à la page autonome exportée. Un script en échec ne laisse aucune définition chargée.",
+  "Reset the designer…": "Réinitialiser le designer…",
+  "Package {0} removed: its devices are no longer in the catalog; import it again to bring them back.":
+    "Paquet {0} retiré : ses participants ne sont plus dans le catalogue ; importez-le à nouveau pour les retrouver.",
+  "Reset the designer? Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it).":
+    "Réinitialiser le designer ? Toutes les extensions et tous les paquets de participants sont retirés de ce navigateur, et le projet conservé ici est perdu (exportez-le d'abord pour le garder).",
+  "The browser could not forget the packages of devices: close the other tabs of the designer, then reset again.":
+    "Le navigateur n'a pas pu oublier les paquets de participants : fermez les autres onglets du designer, puis réinitialisez à nouveau.",
+  "Package {0}: {1} devices. Import it again to replace it.":
+    "Paquet {0} : {1} participants. Importez-le à nouveau pour le remplacer.",
+  "Remove this package from the designer and from this browser: its devices, their product databases and its examples":
+    "Retirer ce paquet du designer et de ce navigateur : ses participants, leurs bases de produits et ses exemples",
   "Load an extension…": "Charger une extension…",
   "Load, replace or remove extensions (.js)":
     "Charger, remplacer ou retirer des extensions (.js)",
