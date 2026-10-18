@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Topology and supervision · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.abec6e1.modified.deef63e0">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/topology.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -88,7 +88,8 @@
 <p>A TP backbone and TP main lines are lines too, each with its own power supply. They are given in <code>topology.powerSupplies</code>, by the address of the line: <code>0.0</code> for the backbone, <code>1.0</code> for the main line of area 1:</p>
 <pre class="code"><code><span class="k">"topology"</span>: {
   <span class="k">"powerSupplies"</span>: { <span class="k">"0.0"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> }, <span class="k">"1.0"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> }, <span class="k">"2.0"</span>: {} }
-}</code></pre><p>A key that names no TP backbone or main line of the installation is refused (an IP network that acts as the backbone or main lines needs none). Without its power supply, a backbone or main line gets the same configuration warning as a line. On the diagram, its supply is drawn by its name, and a click cuts its bus voltage: the couplers on it then forward nothing across it. When an edit in the designer makes a backbone or a main line appear (a second area, a second line in an area), it gets a 640 mA supply, as a new line does; the <strong>Topology</strong> section sets them.</p>
+}</code></pre><p>Scenarios written for 0.7, which had no such field, now get this warning for their TP main lines and backbone: add their supplies to <code>topology.powerSupplies</code> (or in the designer); the simulation itself is unchanged.</p>
+<p>A key that names no TP backbone or main line of the installation is refused (an IP network that acts as the backbone or main lines needs none). Without its power supply, a backbone or main line gets the same configuration warning as a line. On the diagram, its supply is drawn by its name, and a click cuts its bus voltage: the couplers on it then forward nothing across it. When an edit in the designer makes a backbone or a main line appear (a second area, a second line in an area), it gets a 640 mA supply, as a new line does; the <strong>Topology</strong> section sets them.</p>
 <h2 id="knxnet-ip-routers"><a class="anchor" href="#knxnet-ip-routers">#</a>KNXnet/IP routers</h2><p>A KNXnet/IP router replaces a coupler and uses its individual address:</p>
 <div class="table"><table>
 <thead>

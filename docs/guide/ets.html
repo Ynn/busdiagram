@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Link to ETS · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.abec6e1.modified.deef63e0">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/ets.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -124,6 +124,10 @@
 <td>Yes: a frame to an address that no device has is confirmed to ETS as not acknowledged, as on a bus; a frame the diagram does not confirm within half a second (a page that no longer answers) closes the ETS connection rather than being confirmed; when several devices have the same address, the address is occupied and the toolbar says so: a read is answered when all their answers agree (they make one on a bus), not when they differ (they collide), and a change (memory, properties, restart) is made in none of them. A device ends a connection that ETS leaves without a frame for 6 s, as the transport layer does: the fast line scan finds the devices by it</td>
 </tr>
 <tr>
+<td>Way to the devices</td>
+<td>A device answers ETS only when the frames of ETS reach it from the access point through segments with bus voltage: a line, main line or backbone without voltage on the way hides it from the searches, the device information and the downloads, as it stops the group telegrams</td>
+</tr>
+<tr>
 <td>Device information</td>
 <td>Yes: mask version, manufacturer, programming mode, application program and its load and run states (System B), tables, group objects and their addresses. The bus voltage is that of a TP1 line (28.8 V). For a BCU1, ETS reads its run state in the octet of its programming mode (60h): it shows &quot;Halted&quot; unless the device is in programming mode</td>
 </tr>
@@ -138,6 +142,10 @@
 <tr>
 <td>KNX Secure</td>
 <td>No</td>
+</tr>
+<tr>
+<td>Qualification</td>
+<td>The screens above were tried with ETS6 and the services with the Falcon library of ETS, on the simulation through BusDiagram-ETS; this is neither a KNX certification nor a test on hardware</td>
 </tr>
 <tr>
 <td>Several diagrams at once</td>

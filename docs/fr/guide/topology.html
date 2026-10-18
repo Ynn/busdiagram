@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Topologie et supervision · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.abec6e1.modified.deef63e0">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/topology.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -88,7 +88,8 @@
 <p>Une ligne de zone TP et des lignes principales TP sont aussi des lignes, chacune avec sa propre alimentation. Elles se donnent dans <code>topology.powerSupplies</code>, par l&#39;adresse de la ligne : <code>0.0</code> pour la ligne de zone, <code>1.0</code> pour la ligne principale de la zone 1 :</p>
 <pre class="code"><code><span class="k">"topology"</span>: {
   <span class="k">"powerSupplies"</span>: { <span class="k">"0.0"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> }, <span class="k">"1.0"</span>: { <span class="k">"currentMa"</span>: <span class="n">640</span> }, <span class="k">"2.0"</span>: {} }
-}</code></pre><p>Une clé qui ne nomme aucune ligne de zone ou principale TP de l&#39;installation est refusée (un réseau IP qui tient lieu de ligne de zone ou de lignes principales n&#39;en a pas besoin). Sans son alimentation, une ligne de zone ou principale reçoit le même avertissement de configuration qu&#39;une ligne. Sur le schéma, son alimentation est dessinée près de son nom, et un clic coupe sa tension de bus : les coupleurs qui s&#39;y trouvent ne transmettent alors plus rien à travers elle. Quand une modification dans le designer fait apparaître une ligne de zone ou principale (une deuxième zone, une deuxième ligne dans une zone), elle reçoit une alimentation de 640 mA, comme une nouvelle ligne ; la section <strong>Topologie</strong> les règle.</p>
+}</code></pre><p>Les scénarios écrits pour la 0.7, qui n&#39;avait pas ce champ, reçoivent maintenant cet avertissement pour leurs lignes principales et leur ligne de zone TP : ajoutez leurs alimentations à <code>topology.powerSupplies</code> (ou dans le designer) ; la simulation elle-même ne change pas.</p>
+<p>Une clé qui ne nomme aucune ligne de zone ou principale TP de l&#39;installation est refusée (un réseau IP qui tient lieu de ligne de zone ou de lignes principales n&#39;en a pas besoin). Sans son alimentation, une ligne de zone ou principale reçoit le même avertissement de configuration qu&#39;une ligne. Sur le schéma, son alimentation est dessinée près de son nom, et un clic coupe sa tension de bus : les coupleurs qui s&#39;y trouvent ne transmettent alors plus rien à travers elle. Quand une modification dans le designer fait apparaître une ligne de zone ou principale (une deuxième zone, une deuxième ligne dans une zone), elle reçoit une alimentation de 640 mA, comme une nouvelle ligne ; la section <strong>Topologie</strong> les règle.</p>
 <h2 id="knxnet-ip-routers"><a class="anchor" href="#knxnet-ip-routers">#</a>Routeurs KNXnet/IP</h2><p>Un routeur KNXnet/IP remplace un coupleur et utilise son adresse individuelle :</p>
 <div class="table"><table>
 <thead>

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Écrire un participant de fabricant · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.abec6e1.modified.deef63e0">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/manufacturer-devices.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.abec6e1.modified.deef63e0" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a7f5c34.modified.a01950ed" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -386,6 +386,7 @@ BusDiagram.registerParticipant(sa2);</code></pre><p>Le paquet est un zip de ce s
   test: { environment: <span class="s">"node"</span>, setupFiles: [<span class="s">"tests/setup.ts"</span>] },
 });</code></pre><p>Un setup (<code>setupFiles</code>) enregistre les modèles et installe les bases, comme le fait l&#39;import du paquet ; un test insère ensuite le produit comme le designer, règle ses paramètres ETS, et lance la simulation :</p>
 <pre class="code"><code><span class="kw">import</span> { createSimulator, registerParticipant } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> type { ProductDatabase } <span class="kw">from</span> <span class="s">"@busdiagram/src/knxprod/database"</span>;
 <span class="kw">import</span> { captureRegistry } <span class="kw">from</span> <span class="s">"@busdiagram/src/knx/registry"</span>;
 <span class="kw">import</span> { installPackage } <span class="kw">from</span> <span class="s">"@busdiagram/site/designer/packages"</span>;
 <span class="kw">import</span> {
@@ -397,16 +398,25 @@ BusDiagram.registerParticipant(sa2);</code></pre><p>Le paquet est un zip de ce s
 <span class="kw">import</span> { sa2 } <span class="kw">from</span> <span class="s">"../src/sa-2/model"</span>;
 <span class="kw">import</span> database <span class="kw">from</span> <span class="s">"../src/sa-2/database.json"</span>;
 
+<span class="c">// La base de cet exemple, écrite à la main, est connue : un paquet lu ailleurs est</span>
+<span class="c">// vérifié par le designer à son import.</span>
+<span class="kw">const</span> sa2Database = database as unknown as ProductDatabase;
+
 registerParticipant(sa2);
 installPackage({
-  manifest: { format: <span class="s">"bdpkg/1"</span>, name: <span class="s">"example-devices"</span>, version: <span class="s">"test"</span>, products: [] },
+  manifest: {
+    format: <span class="s">"bdpkg/1"</span>,
+    name: <span class="s">"example-devices"</span>,
+    version: <span class="s">"test"</span>,
+    products: [],
+  },
   script: <span class="s">""</span>,
-  databases: <span class="kw">new</span> Map([[<span class="s">"example.sa2/v1"</span>, database]]),
+  databases: <span class="kw">new</span> Map([[<span class="s">"example.sa2/v1"</span>, sa2Database]]),
   scenarios: [],
 });
 
 it(<span class="s">"a normally closed output is on while its object is off"</span>, () =&gt; {
-  <span class="kw">const</span> doc = {
+  <span class="kw">const</span> doc: Parameters&lt;typeof addProductDevice&gt;[<span class="n">0</span>] = {
     formatVersion: <span class="n">2</span>,
     lines: [{ address: <span class="s">"1.1"</span>, powerSupply: { currentMa: <span class="n">640</span> } }],
     devices: [],
