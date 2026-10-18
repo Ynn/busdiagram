@@ -3,6 +3,7 @@
 import { describe, expect, it } from "vitest";
 import { buildScenario } from "../../src/knx/scenario";
 import { Simulation } from "../../src/knx/sim";
+import { captureRegistry } from "../../src/knx/registry";
 import {
   changedDevices,
   downloadedDevices,
@@ -120,5 +121,50 @@ describe("devices restarted with another application", () => {
     ).toBe(true);
     expect(c4()).toEqual(["1/1/9"]);
     expect(() => sim.getState()).not.toThrow();
+  });
+
+  it("make the state of each device once, and change nothing when it cannot be made", () => {
+    const data = raw("timers.json") as {
+      devices: { id: string; name?: string; behavior: string }[];
+    };
+    const registry = captureRegistry();
+    const pir = data.devices.find((d) => d.id === "pir")!;
+    const real = registry.behaviors.get(pir.behavior)!;
+    let made = 0;
+    let fail = false;
+    const behaviors = new Map(registry.behaviors);
+    behaviors.set(pir.behavior, {
+      ...real,
+      createState: (d) => {
+        made++;
+        if (fail) throw new Error("no state");
+        return real.createState(d);
+      },
+    });
+    const sim = new Simulation(buildScenario(data), {
+      registry: { ...registry, behaviors },
+    });
+    sim.groupWrite("pushButton", "1/1/1", 1);
+    sim.advance(4000);
+    made = 0;
+    const next = structuredClone(data);
+    next.devices.find((d) => d.id === "pir")!.name = "Presence (downloaded)";
+    expect(sim.replaceDevices(buildScenario(next), ["pir"])).toBe(true);
+    expect(made).toBe(1);
+    // Its state cannot be made: refused, the scenario, the devices and the time stay.
+    const before = sim.getState();
+    const again = structuredClone(next);
+    again.devices.find((d) => d.id === "pir")!.name = "Presence (again)";
+    fail = true;
+    expect(sim.replaceDevices(buildScenario(again), ["pir"])).toBe(false);
+    expect(sim.scenario.devicesById.get("pir")!.name).toBe(
+      "Presence (downloaded)",
+    );
+    expect(sim.getState()).toEqual(before);
+    fail = false;
+    sim.advance(7000);
+    expect(on(sim)).toBe(true);
+    sim.advance(4000);
+    expect(on(sim)).toBe(false);
   });
 });

@@ -182,6 +182,9 @@ type Item =
     }
   | { type: "tick" };
 
+/** The behavior of a device and its state, made before it starts. */
+type Prepared = Pick<DeviceRuntime, "def" | "state">;
+
 interface DeviceRuntime {
   device: Device;
   // The type of state is specific to each behavior.
@@ -448,9 +451,10 @@ export class Simulation {
   /**
    * The objects, outputs, loads and runtime of a device, as at the start. `keep`: the
    * outputs and loads that it already has stay as they are (a device restarted with
-   * another application drives the same lamps and motors).
+   * another application drives the same lamps and motors). `prepared`: its behavior and
+   * state, made already.
    */
-  private setUp(d: Device, keep = false): DeviceRuntime {
+  private setUp(d: Device, keep = false, prepared?: Prepared): DeviceRuntime {
     const s = this.scenario;
     d.objects.forEach((o) =>
       this.objects.set(o.key, { value: o.initial, updatedAtMs: null }),
@@ -474,7 +478,7 @@ export class Simulation {
       });
       this.loads.set(key, keys);
     });
-    const def = this.registry.behaviors.get(d.behavior);
+    const def = prepared?.def ?? this.registry.behaviors.get(d.behavior);
     if (!def)
       throw new SimulationFault(
         this.t`behavior “${d.behavior}” not registered`,
@@ -489,7 +493,7 @@ export class Simulation {
       inert:
         !!s.commissioning && commissionable(d) && !this.holdsApplication(d),
     };
-    rt.state = def.createState(d);
+    rt.state = prepared ? prepared.state : def.createState(d);
     rt.ctx = this.makeContext(rt);
     this.devices.set(d.id, rt);
     return rt;
@@ -516,14 +520,15 @@ export class Simulation {
       topologyKey(buildTopology(next)) !== topologyKey(this.network.topology)
     )
       return false;
-    // Each device that starts again can: its behavior, its state. Nothing is changed
-    // before.
+    // Each device that starts again can: its behavior, its state, made once here and
+    // kept. Nothing is changed before.
+    const prepared = new Map<string, Prepared>();
     for (const d of next.devices) {
       if (!changed.has(d.id)) continue;
       const def = this.registry.behaviors.get(d.behavior);
       if (!def) return false;
       try {
-        def.createState(d);
+        prepared.set(d.id, { def, state: def.createState(d) });
       } catch {
         return false;
       }
@@ -535,7 +540,8 @@ export class Simulation {
     const started: DeviceRuntime[] = [];
     for (const d of next.devices) {
       const old = before.get(d.id)!;
-      if (changed.has(d.id)) started.push(this.startAgain(old, d));
+      if (changed.has(d.id))
+        started.push(this.startAgain(old, d, prepared.get(d.id)!));
       else {
         old.device = d;
         this.devices.set(d.id, old);
@@ -550,10 +556,14 @@ export class Simulation {
    * end, its objects are those of `d` at their initial value, its outputs and loads stay.
    * Its start (onInit, the reads on initialisation) follows with {@link started}.
    */
-  private startAgain(old: DeviceRuntime, d: Device): DeviceRuntime {
+  private startAgain(
+    old: DeviceRuntime,
+    d: Device,
+    prepared?: Prepared,
+  ): DeviceRuntime {
     old.timers.forEach((t) => this.queue.cancel(t));
     old.device.objects.forEach((o) => this.objects.delete(o.key));
-    const rt = this.setUp(d, true);
+    const rt = this.setUp(d, true, prepared);
     rt.down = old.down;
     return rt;
   }
