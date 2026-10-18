@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.cb7b1d9.modified.b34443d0">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.cb7b1d9.modified.b34443d0"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.cb7b1d9.modified.b34443d0"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.cb7b1d9.modified.b34443d0" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/extensions.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.cb7b1d9.modified.b34443d0" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -425,7 +425,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Examples, offered with the templates once the package is imported</td>
 </tr>
 </tbody></table>
-</div><p>A package is code, not inert data: import only one whose origin you trust, as any extension. The designer checks the package, runs its script as an extension (refused if it fails: the behaviors, views, product databases and messages it registered are taken back, and a former version of the package stays as it was; what the script did otherwise in the page cannot be undone), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them; an export embeds its script, and says so with the names of the packages it embeds. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (<code>tests/knx/fixtures/sample-devices</code>), whose databases are written by hand: they show what a package author writes.</p>
+</div><p>A package is code, not inert data: import only one whose origin you trust, as any extension. The designer checks the package, runs its script as an extension (refused if it fails: the behaviors, views, product databases and messages it registered are taken back, and a former version of the package stays as it was; what the script did otherwise in the page cannot be undone), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them (or with its <strong>Remove</strong> button in the Catalog panel, which lists the packages imported; importing a package again replaces it); an export embeds its script, and says so with the names of the packages it embeds. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (<code>tests/knx/fixtures/sample-devices</code>), whose databases are written by hand: they show what a package author writes.</p>
 <p>The texts of a package are of two kinds. Those of its product databases (pages, parameters, group objects) come with their translations from the catalog, in the languages it has. Those of its models (description, channels, limits) are messages the package registers (<code>registerMessages</code>), shown in the language of the page as soon as it is imported. The texts of a scenario (names of devices, rooms, addresses) stay in the language its author wrote them in.</p>
 
 <nav class="pager">
