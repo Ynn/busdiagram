@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Link to ETS · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.e6123b4.modified.e2788fc9">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.e6123b4.modified.e2788fc9"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.e6123b4.modified.e2788fc9"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.e6123b4.modified.e2788fc9" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/ets.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.e6123b4.modified.e2788fc9" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -55,11 +55,11 @@
 
 <h1 id="link-a-diagram-to-ets"><a class="anchor" href="#link-a-diagram-to-ets">#</a>Link a diagram to ETS</h1><p>Any diagram can be linked to ETS on the same computer: the designer, the player, a page of a course, a file opened from disk. ETS then sees the simulated installation as a KNX installation reached through an interface: its group monitor shows the telegrams of the diagram, and a write or a read from ETS acts on the simulated devices.</p>
 <p>The link needs a small Windows program, <strong>BusDiagram-ETS</strong>, that ETS connects to as a KNXnet/IP tunnelling interface. The diagram&#39;s toolbar connects to it when the reader clicks <strong>Link to ETS</strong>.</p>
-<pre class="code"><code>ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:3761── diagram</code></pre><h2 id="get-the-program"><a class="anchor" href="#get-the-program">#</a>Get the program</h2><p>Download <code>BusDiagram-ETS.exe</code> from the <a href="https://github.com/Ynn/busdiagram/releases/latest">releases of BusDiagram</a> and start it: a window opens, to keep open during the session. It shows whether ETS and a diagram are connected, what to enter in ETS (with a button that copies the address), and a journal. It needs no installation; by default it is reachable from this computer only.</p>
+<pre class="code"><code>ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:3761── diagram</code></pre><h2 id="get-the-program"><a class="anchor" href="#get-the-program">#</a>Get the program</h2><p>Download the archive <code>BusDiagram-ETS-&lt;version&gt;-windows-x64.zip</code> from the <a href="https://github.com/Ynn/busdiagram/releases/latest">releases of BusDiagram</a> (its <code>.sha256</code> file gives its checksum), extract it in a folder, and start <code>BusDiagram-ETS.exe</code> from there: a window opens, to keep open during the session. It shows whether ETS and a diagram are connected, what to enter in ETS (with a button that copies the address), and a journal. It needs no installation; by default it is reachable from this computer only.</p>
 <p>Port 3672 is chosen so as not to compete with KNX Virtual, which uses 3671: both can run at the same time.</p>
 <h2 id="link-the-diagram"><a class="anchor" href="#link-the-diagram">#</a>Link the diagram</h2><ol>
 <li>Start BusDiagram-ETS.</li>
-<li>In the diagram&#39;s toolbar, click <strong>Link to ETS</strong>. The control shows <em>ETS: waiting for ETS</em>, then <em>ETS linked</em> once ETS is connected.</li>
+<li>In the diagram&#39;s toolbar, click <strong>Link to ETS</strong>. The control shows <em>ETS: waiting for ETS</em>, then <em>ETS linked</em> once ETS is connected, with the individual address of the interface ETS reaches (free at the top of the line of the access point). After a change of access point, ⏳ beside it says that ETS keeps the former address until it has closed its connections.</li>
 <li>In the ETS project, add the connection once (ETS 6.4: connection button at the right of the toolbar → <em>Manage configured connections</em> → <em>Add</em>): type <em>Tunneling IP</em>, address <code>127.0.0.1</code>, port <code>3672</code>, without NAT.</li>
 <li>Click <strong>Addresses for ETS</strong> in the toolbar and import the file in the ETS project (right-click <em>Group Addresses</em> → <em>Import Group Addresses</em>): the group monitor then decodes the values with the names and DPTs of the diagram.</li>
 <li>In ETS, open <em>Panels</em> → <em>Monitors</em> → <em>Group Monitor</em>, click <em>Start</em>, and choose the <em>Tunneling IP (127.0.0.1:3672)</em> connection.</li>
