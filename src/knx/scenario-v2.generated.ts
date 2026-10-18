@@ -291,6 +291,12 @@ address: number
 name?: string
 }[]
 /**
+ * Bus power supplies of the TP backbone (key 0.0) and of the TP main lines (keys A.0, such as 1.0): each TP line needs its own. Those of the lines are given with the lines.
+ */
+powerSupplies?: {
+[k: string]: PowerSupply2
+}
+/**
  * Group-telegram routing settings for couplers and routers; filtering is the default.
  */
 couplers?: {
@@ -514,6 +520,19 @@ windowOpen?: boolean
  * Thermal loss time constant in simulated milliseconds; defaults to 300,000 ms.
  */
 timeConstantMs?: number
+}
+/**
+ * KNX power supply with choke. Shown on the diagram; the bus load is not computed.
+ */
+export interface PowerSupply2 {
+/**
+ * Name, such as a product reference.
+ */
+name?: string
+/**
+ * Rated current in mA, such as 160, 320, 640, or 1280.
+ */
+currentMa?: number
 }
 /**
  * Declared group address.

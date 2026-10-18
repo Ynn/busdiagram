@@ -1992,8 +1992,8 @@ export class Simulation {
   }
 
   /**
-   * Cut or restore the bus voltage of a line segment (`L1.1`, or `L1.1b` behind its
-   * extension), as when its power supply is switched off. Its devices run their bus
+   * Cut or restore the bus voltage of a TP segment (line `L1.1`, `L1.1b` behind its
+   * extension, main line `ML1`, backbone `BB`), as when its power supply is switched off. Its devices run their bus
    * failure or recovery behavior; while the voltage is cut they neither receive nor send,
    * and couplers do not forward telegrams to the segment. Returns the telegrams sent.
    */
@@ -2001,7 +2001,7 @@ export class Simulation {
     const sg = this.network.topology.segments.get(segmentId);
     if (
       !sg ||
-      sg.kind !== "line" ||
+      sg.kind === "ip" ||
       this.fault ||
       this.network.powered(segmentId) === on
     )
@@ -2010,9 +2010,14 @@ export class Simulation {
     const before = this.nextEventId;
     this.network.setPowered(segmentId, on);
     let leftProgramming = false;
-    const where = sg.downstream
-      ? this.t`line ${sg.ref}, second segment`
-      : this.t`line ${sg.ref}`;
+    const where =
+      sg.kind === "backbone"
+        ? this.t`backbone 0.0`
+        : sg.kind === "main"
+          ? this.t`main line ${sg.ref}.0`
+          : sg.downstream
+            ? this.t`line ${sg.ref}, second segment`
+            : this.t`line ${sg.ref}`;
     const ev = this.log("input", null, {
       message: on
         ? this.t`Bus voltage restored on ${where}`

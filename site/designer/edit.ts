@@ -138,6 +138,8 @@ export interface Topo extends J {
   ip?: IpRole;
   areas?: { address: number; name?: string }[];
   couplers?: CouplerSet[];
+  /** Power supplies of the TP backbone ("0.0") and main lines ("A.0"). */
+  powerSupplies?: Record<string, J>;
 }
 
 export const clone = <T>(v: T): T => structuredClone(v);
@@ -615,7 +617,64 @@ function pruneTopology(doc: Doc) {
     topo.couplers = topo.couplers.filter((c) => exist.has(c.address));
     if (!topo.couplers.length) delete topo.couplers;
   }
+  // The power supply of a backbone or main line that is no longer there goes with it.
+  if (topo.powerSupplies) {
+    const exist = new Set(upperLines(doc));
+    for (const k of Object.keys(topo.powerSupplies))
+      if (!exist.has(k)) delete topo.powerSupplies[k];
+    if (!Object.keys(topo.powerSupplies).length) delete topo.powerSupplies;
+  }
   if (!Object.keys(topo).length) delete doc.topology;
+}
+
+/** The TP backbone ("0.0") and main lines ("A.0") of the installation. */
+export function upperLines(doc: Doc): string[] {
+  const lv = levelsOf(doc);
+  return [
+    ...(lv.backbone ? ["0.0"] : []),
+    ...lv.mainLines.map((a) => `${a}.0`),
+  ];
+}
+
+/**
+ * The backbone and main lines that an edit made appear get a power supply, as a line
+ * added (each TP line has its own); those that went lose theirs.
+ */
+export function followUpperLines(doc: Doc, before: readonly string[]) {
+  const added = upperLines(doc).filter((l) => !before.includes(l));
+  if (added.length) {
+    const topo = (doc.topology ??= {});
+    const psus = (topo.powerSupplies ??= {});
+    for (const l of added) psus[l] ??= { currentMa: 640 };
+  }
+  pruneTopology(doc);
+}
+
+/**
+ * Set the power supply of the TP backbone ("0.0") or of a TP main line ("A.0"): null
+ * removes it, 0 shows it without a current.
+ */
+export function setUpperPowerSupply(
+  doc: Doc,
+  line: string,
+  currentMa: number | null,
+) {
+  if (!upperLines(doc).includes(line))
+    throw new EditRefusal(
+      line === "0.0"
+        ? t`this installation has no TP backbone 0.0`
+        : t`this installation has no TP main line ${line}`,
+    );
+  const topo = (doc.topology ??= {});
+  const psus = (topo.powerSupplies ??= {});
+  if (currentMa === null) delete psus[line];
+  else {
+    const psu: J = { ...psus[line] };
+    if (currentMa > 0) psu.currentMa = currentMa;
+    else delete psu.currentMa;
+    psus[line] = psu;
+  }
+  pruneTopology(doc);
 }
 
 export interface CouplerView {

@@ -213,6 +213,11 @@ export interface TopologyConfig {
   mainLines: number[];
   /** Author values, to rewrite the JSON. */
   forced: { backbone: boolean; mainLines: boolean };
+  /**
+   * Power supplies of the TP backbone ("0.0") and of the TP main lines ("A.0"), as each
+   * TP line has its own (those of the lines are in Line).
+   */
+  powerSupplies: Map<string, PowerSupply>;
   /** Areas of installation (reduce lines), with their name. */
   areas: { address: number; name: string }[];
   /** Explicit coupler settings, by individual address. */
@@ -342,7 +347,14 @@ const ROOM_KEYS = [
   "windowOpen",
   "timeConstantMs",
 ];
-const TOPOLOGY_KEYS = ["backbone", "mainLines", "ip", "areas", "couplers"];
+const TOPOLOGY_KEYS = [
+  "backbone",
+  "mainLines",
+  "ip",
+  "areas",
+  "couplers",
+  "powerSupplies",
+];
 const AREA_KEYS = ["address", "name"];
 const COUPLER_KEYS = ["address", "name", "down", "up"];
 const ROUTING: GroupRouting[] = ["filter", "route", "block"];
@@ -626,6 +638,23 @@ function buildProject(
   const title = str(raw, "title", "") ?? "";
   const description = str(raw, "description", "") ?? "";
 
+  // Power supply of a segment: an optional name and rated current.
+  const psu = (v: unknown, at: string): PowerSupply | null => {
+    if (v === undefined) return null;
+    if (!isRecord(v)) {
+      err(at, "type", t`object expected`);
+      return null;
+    }
+    unknownKeys(v, PSU_KEYS, at);
+    const c = v.currentMa;
+    if (c !== undefined && (typeof c !== "number" || !(c > 0)))
+      err(`${at}.currentMa`, "range", t`strictly positive number expected`);
+    return {
+      name: str(v, "name", at) ?? "",
+      currentMa: typeof c === "number" && c > 0 ? c : null,
+    };
+  };
+
   // ── Lines
   const lines: Line[] = [];
   const rawLines = arr(raw, "lines", "", true);
@@ -658,22 +687,6 @@ function buildProject(
       );
     if (lines.some((x) => x.address === address))
       return err(p, "duplicate", t`duplicate line ${address}`);
-    // Power supply of a segment: an optional name and rated current.
-    const psu = (v: unknown, at: string): PowerSupply | null => {
-      if (v === undefined) return null;
-      if (!isRecord(v)) {
-        err(at, "type", t`object expected`);
-        return null;
-      }
-      unknownKeys(v, PSU_KEYS, at);
-      const c = v.currentMa;
-      if (c !== undefined && (typeof c !== "number" || !(c > 0)))
-        err(`${at}.currentMa`, "range", t`strictly positive number expected`);
-      return {
-        name: str(v, "name", at) ?? "",
-        currentMa: typeof c === "number" && c > 0 ? c : null,
-      };
-    };
     const powerSupply = psu(l.powerSupply, `${p}.powerSupply`);
     let extension: Line["extension"] = null;
     if (l.extension !== undefined) {
@@ -897,11 +910,41 @@ function buildProject(
     });
   });
 
+  // Power supplies of the backbone 0.0 and of the main lines A.0, by their address.
+  const powerSupplies = new Map<string, PowerSupply>();
+  const rawPsu = topo.powerSupplies;
+  if (rawPsu !== undefined && !isRecord(rawPsu))
+    err("topology.powerSupplies", "type", t`object expected`);
+  else if (rawPsu)
+    for (const [key, v] of Object.entries(rawPsu)) {
+      const at = `topology.powerSupplies.${key}`;
+      const main = /^(\d+)\.0$/.exec(key);
+      if (
+        key === "0.0"
+          ? !tpBackbone
+          : !main || !mainLines.includes(Number(main[1]))
+      ) {
+        err(
+          at,
+          "reference",
+          key === "0.0"
+            ? t`this installation has no TP backbone 0.0`
+            : main
+              ? t`this installation has no TP main line ${key}`
+              : t`“${key}” is neither the backbone 0.0 nor a main line A.0; the power supply of a line is given with the line`,
+        );
+        continue;
+      }
+      const supply = psu(v, at);
+      if (supply) powerSupplies.set(key, supply);
+    }
+
   const topology: TopologyConfig = {
     ip,
     backbone: tpBackbone,
     mainLines,
     forced: { backbone: forcedBackbone, mainLines: forcedMainLines },
+    powerSupplies,
     areas: areaIds.map((a) => ({ address: a, name: areaNames.get(a) ?? "" })),
     couplers: couplerSettings,
     routerName,

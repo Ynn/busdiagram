@@ -2101,13 +2101,22 @@ export class BusDiagram extends LitElement {
   }
 
   /**
-   * Power supply of a line segment (L1.1) or of its downstream segment (L1.1b); a click
-   * cuts or restores the bus voltage of the segment.
+   * Power supply of a TP segment: a line (L1.1), its downstream segment (L1.1b), a main
+   * line (ML1) or the backbone (BB); a click cuts or restores its bus voltage.
    */
   private segPsu(s: Scenario, segId: string) {
     const m = /^L(\d+\.\d+)(b?)$/.exec(segId);
     const l = m ? s.lines.find((x) => x.address === m[1]) : undefined;
-    const psu = m?.[2] ? l?.extension?.powerSupply : l?.powerSupply;
+    // A main line (ML1, line 1.0) or the backbone (BB, 0.0): from the topology.
+    const upper = /^ML(\d+)$/.exec(segId)?.[1];
+    const psu =
+      segId === "BB"
+        ? s.topology.powerSupplies.get("0.0")
+        : upper
+          ? s.topology.powerSupplies.get(`${upper}.0`)
+          : m?.[2]
+            ? l?.extension?.powerSupply
+            : l?.powerSupply;
     if (!psu) return nothing;
     const on = this.sim?.busVoltage(segId) ?? true;
     const text = psu.currentMa
@@ -2149,7 +2158,7 @@ export class BusDiagram extends LitElement {
           class="seglabel"
           style="left:${x}px;top:${y}px;${color}transform:rotate(-90deg);transform-origin:left top"
         >
-          ${sg.label}
+          ${sg.label}${this.segPsu(s, sg.id)}
         </div>`;
       return html`<div
         class="seglabel"

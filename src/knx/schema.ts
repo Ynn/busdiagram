@@ -225,6 +225,13 @@ export function buildAuthorSchema(registry: Registry): Record<string, unknown> {
               },
             },
           },
+          powerSupplies: {
+            type: "object",
+            description:
+              "Bus power supplies of the TP backbone (key 0.0) and of the TP main lines (keys A.0, such as 1.0): each TP line needs its own. Those of the lines are given with the lines.",
+            propertyNames: { pattern: "^(0|[1-9]|1[0-5])\\.0$" },
+            additionalProperties: { $ref: "#/$defs/powerSupply" },
+          },
           couplers: {
             type: "array",
             description:

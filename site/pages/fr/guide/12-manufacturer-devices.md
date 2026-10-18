@@ -1,13 +1,13 @@
 ---
 title: Écrire un participant de fabricant
 translationOf: guide/12-manufacturer-devices.md
-sourceHash: "b78a290a9715"
+sourceHash: "660eccbcde35"
 order: 12.5
 ---
 
 # Écrire un participant de fabricant
 
-Un participant de fabricant est simulé comme ETS voit le vrai : il a le programme d'application du catalogue du fabricant, ETS le télécharge, et la simulation exécute ce que sa mémoire contient alors. BusDiagram ne livre aucun participant de ce genre. Il livre l'outillage pour les écrire, et le designer les importe depuis un **paquet de participants** (`.bdpkg`, voir [extensions](extensions.html#deliver-manufacturers-devices-in-a-package)).
+Un participant de fabricant est simulé comme ETS voit le vrai : il a le programme d'application du catalogue du fabricant, ETS le télécharge, et la simulation exécute ce que sa mémoire contient alors. BusDiagram ne livre aucun participant de ce genre. Il livre le toolkit pour les écrire, et le designer les importe depuis un **paquet de participants** (`.bdpkg`, voir [extensions](extensions.html#deliver-manufacturers-devices-in-a-package)).
 
 Ce guide en écrit un, pas à pas, avec les produits d'un fabricant imaginaire, **Example Electric** (code fabricant FEh), qu'utilisent les tests de BusDiagram : `tests/knx/fixtures/sample-devices`. Son **SA 2** est un actionneur de commutation à deux sorties sur un BCU1 (masque 0012h), programme `M-00FE_A-0001-10`. Sa base de produit est écrite à la main : le dossier ne contient aucune donnée de fabricant.
 
@@ -30,7 +30,7 @@ Le catalogue et le manuel appartiennent au fabricant : gardez les paquets que vo
 
 ## Choisir le programme et son masque
 
-Dans le catalogue, un produit exécute un programme d'application (`ApplicationProgram`), nommé `M-<fabricant>_A-<numéro>-<version>-<empreinte>`. L'outillage exécute les programmes de trois familles de masques (son `MaskVersion`) :
+Dans le catalogue, un produit exécute un programme d'application (`ApplicationProgram`), nommé `M-<fabricant>_A-<numéro>-<version>-<hash>`. Le toolkit exécute les programmes de trois familles de masques (son `MaskVersion`) :
 
 | Masque | Famille | Comment ETS le télécharge |
 | --- | --- | --- |
@@ -124,7 +124,7 @@ export const sa2Model = defineProduct({
 | `id`, `behavior` | Le produit dans sa gamme, et le comportement par lequel un scénario le nomme (`"example.sa2/v1"`) |
 | `kind` | Comment le schéma le dessine : `switchActuator`, `shutterActuator`, `buttonInterface`… |
 | `manufacturerId`, `delivered` | Ce qu'ETS lit avant de charger : le code fabricant, et ce que contient le participant livré |
-| `programs`, `masks` | Les programmes qu'il exécute (sans leur empreinte) et les masques de son coupleur |
+| `programs`, `masks` | Les programmes qu'il exécute (sans leur hash) et les masques de son coupleur |
 | `parameterMemory` | Les octets de ses paramètres (`[adresse, longueur]`) |
 | `channels`, `output`, `contactInputs` | Son matériel : sorties qui pilotent des charges (`switch`, `motor`, `dimmer`…), ou entrées de contact pour des boutons-poussoirs raccordés |
 | `objects(memory)` | Les objets de groupe de son application avec cette mémoire |
@@ -136,7 +136,7 @@ Le libellé d'un canal le nomme dans l'arbre des pages du designer : un canal li
 
 ## Écrire le firmware
 
-Le firmware a les crochets d'un comportement (voir [extensions](extensions.html#register-a-behavior)), et lit ses paramètres dans la mémoire à chaque fois : un téléchargement depuis ETS les change, et le participant redémarre.
+Le firmware est fait des hooks d'un comportement (`createState`, `onInit`, `onObjectWrite`…, voir [extensions](extensions.html#register-a-behavior)). Il lit ses paramètres dans la mémoire du participant chaque fois qu'il s'en sert, plutôt qu'une seule fois : un téléchargement depuis ETS change cette mémoire, puis le participant redémarre et son hook `onInit` s'exécute à nouveau.
 
 ```ts
 import { bits, objectId } from "bus-diagram";
@@ -184,9 +184,9 @@ export const sa2Firmware: Firmware<State> = {
 };
 ```
 
-Les aides de l'outillage :
+Les helpers du toolkit :
 
-| Aide | Ce qu'elle fait |
+| Helper | Ce qu'il fait |
 | --- | --- |
 | `bits(ctx, adresse, décalage, nombre)` | Des bits de la mémoire, poids fort en premier |
 | `readUnsigned(memoryOf(ctx), adresse, octets, littleEndian)` | Une valeur de plusieurs octets, dans l'ordre des octets du programme |
@@ -288,7 +288,7 @@ Le [guide des extensions](extensions.html#deliver-manufacturers-devices-in-a-pac
 
 ## Le tester
 
-Les tests d'un paquet s'exécutent sur les sources du clone de BusDiagram placé à côté. Dans Vitest, `bus-diagram` est son point d'entrée sans DOM, et ses sources s'atteignent par un alias :
+Les tests d'un paquet s'exécutent sur les sources du clone de BusDiagram placé à côté. Dans Vitest, `bus-diagram` est son entry point sans DOM, et ses sources s'atteignent par un alias :
 
 ```ts
 // vitest.config.ts du paquet
@@ -307,7 +307,7 @@ export default defineConfig({
 });
 ```
 
-Une préparation enregistre les modèles et installe les bases, comme le fait l'import du paquet ; un test insère ensuite le produit comme le designer, règle ses paramètres ETS, et lance la simulation :
+Un setup (`setupFiles`) enregistre les modèles et installe les bases, comme le fait l'import du paquet ; un test insère ensuite le produit comme le designer, règle ses paramètres ETS, et lance la simulation :
 
 ```ts
 import { createSimulator, registerParticipant } from "bus-diagram";

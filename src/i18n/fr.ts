@@ -381,6 +381,16 @@ export const frMessages: Record<string, string> = {
   "Main group {0}": "Groupe principal {0}",
   "Middle group {0}/{1}": "Groupe médian {0}/{1}",
   "ETS: waiting for ETS": "ETS : en attente d'ETS",
+  "this installation has no TP backbone 0.0":
+    "cette installation n'a pas de ligne de zone TP 0.0",
+  "this installation has no TP main line {0}":
+    "cette installation n'a pas de ligne principale TP {0}",
+  "“{0}” is neither the backbone 0.0 nor a main line A.0; the power supply of a line is given with the line":
+    "« {0} » n'est ni la ligne de zone 0.0 ni une ligne principale Z.0 ; l'alimentation d'une ligne se donne avec la ligne",
+  "backbone 0.0 has no bus power supply: a TP backbone needs its own, with its choke":
+    "la ligne de zone 0.0 n'a pas d'alimentation de bus : une ligne de zone TP a besoin de la sienne, avec sa self",
+  "main line {0} has no bus power supply: a TP main line needs its own, with its choke":
+    "la ligne principale {0} n'a pas d'alimentation de bus : une ligne principale TP a besoin de la sienne, avec sa self",
   "Zoom out": "Réduire",
   "Zoom in": "Agrandir",
   "Fit the diagram": "Ajuster le schéma",

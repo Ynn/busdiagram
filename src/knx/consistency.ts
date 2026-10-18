@@ -41,6 +41,20 @@ export function configWarnings(
           message: t`segment ${seg} has no bus power supply: each TP segment needs its own, with its choke`,
         });
   }
+  // The TP backbone and main lines too (topology.powerSupplies).
+  const T = s.topology;
+  for (const line of [
+    ...(T.backbone ? ["0.0"] : []),
+    ...T.mainLines.map((a) => `${a}.0`),
+  ])
+    if (!T.powerSupplies.has(line))
+      out.push({
+        code: "config-no-power-supply",
+        message:
+          line === "0.0"
+            ? t`backbone 0.0 has no bus power supply: a TP backbone needs its own, with its choke`
+            : t`main line ${line} has no bus power supply: a TP main line needs its own, with its choke`,
+      });
 
   // A TP1 segment takes up to 64 connected devices (KNX TP1 specification, TP1-64
   // devices); a coupler, a router, or a line extension has a TP1 connection on each of its

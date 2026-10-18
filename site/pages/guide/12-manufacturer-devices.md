@@ -135,7 +135,7 @@ The label of a channel names it in the tree of the designer's pages: a channel l
 
 ## Write the firmware
 
-The firmware has the hooks of a behavior (see [extensions](extensions.html#register-a-behavior)), and reads its parameters in the memory each time: a download from ETS changes them, and the device starts again.
+The firmware is made of the hooks of a behavior (`createState`, `onInit`, `onObjectWrite`…, see [extensions](extensions.html#register-a-behavior)). It reads its parameters from the memory of the device whenever it uses them, rather than once: a download from ETS changes that memory, then the device restarts and its `onInit` hook runs again.
 
 ```ts
 import { bits, objectId } from "bus-diagram";

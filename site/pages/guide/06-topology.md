@@ -37,6 +37,16 @@ Each twisted-pair line, and each segment behind a line repeater or segment coupl
 
 `currentMa` is the rated current (common values are 160, 320, 640, and 1280 mA); both fields are optional. The modeled supply has no individual address and no communication objects (some supplies with diagnostics are KNX devices in their own right). BusDiagram does not compute the bus load: the consumption of each device is not modeled. The designer sets the supply of each line in its **Topology** section.
 
+A TP backbone and TP main lines are lines too, each with its own power supply. They are given in `topology.powerSupplies`, by the address of the line: `0.0` for the backbone, `1.0` for the main line of area 1:
+
+```json
+"topology": {
+  "powerSupplies": { "0.0": { "currentMa": 640 }, "1.0": { "currentMa": 640 }, "2.0": {} }
+}
+```
+
+A key that names no TP backbone or main line of the installation is refused (an IP network that acts as the backbone or main lines needs none). Without its power supply, a backbone or main line gets the same configuration warning as a line. On the diagram, its supply is drawn by its name, and a click cuts its bus voltage: the couplers on it then forward nothing across it. When an edit in the designer makes a backbone or a main line appear (a second area, a second line in an area), it gets a 640 mA supply, as a new line does; the **Topology** section sets them.
+
 ## KNXnet/IP routers
 
 A KNXnet/IP router replaces a coupler and uses its individual address:

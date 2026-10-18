@@ -51,17 +51,23 @@ function topologyV2(s: Scenario) {
           }),
         )
       : undefined,
+    powerSupplies: T.powerSupplies.size
+      ? Object.fromEntries(
+          [...T.powerSupplies].map(([k, p]) => [k, psuV2(p) ?? {}]),
+        )
+      : undefined,
   });
   return Object.keys(out).length ? out : undefined;
 }
 
-const psuV2 = (p: PowerSupply | null) =>
-  p
+function psuV2(p: PowerSupply | null) {
+  return p
     ? compact({
         name: p.name || undefined,
         currentMa: p.currentMa ?? undefined,
       })
     : undefined;
+}
 
 export function toV2(
   s: Scenario,

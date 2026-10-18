@@ -36,16 +36,31 @@ export const TOPOLOGY_TEMPLATES: Snippet[] = [
       while (n <= 15 && used.has(`${area}.${n}`)) n++;
       if (n > 15)
         throw new SnippetRefusal(t`area ${area} already has its 15 lines`);
+      const lines = [
+        ...doc.lines!,
+        {
+          address: `${area}.${n}`,
+          name: t`Line ${area}.${n}`,
+          powerSupply: { currentMa: 640 },
+        },
+      ];
+      // A second line of the area makes its TP main line appear, with its own supply.
+      const topo = { ...(doc.topology as Record<string, unknown> | undefined) };
+      const main = `${area}.0`;
+      const supplies = {
+        ...(topo.powerSupplies as Record<string, unknown> | undefined),
+      };
+      if (
+        topo.ip !== "lineCouplers" &&
+        lines.filter((l) => String(l.address).startsWith(`${area}.`)).length ===
+          2 &&
+        !(main in supplies)
+      )
+        topo.powerSupplies = { ...supplies, [main]: { currentMa: 640 } };
       return {
         ...doc,
-        lines: [
-          ...doc.lines!,
-          {
-            address: `${area}.${n}`,
-            name: t`Line ${area}.${n}`,
-            powerSupply: { currentMa: 640 },
-          },
-        ],
+        lines,
+        ...(Object.keys(topo).length ? { topology: topo } : {}),
       };
     },
   },

@@ -150,7 +150,10 @@ export class GuidedEditor extends LitElement implements Host {
     let mixed: [string, string[]][] = [];
     const refusal = this.commit(label, (d) => {
       const before = E.dptMixes(d);
+      const upper = E.upperLines(d);
       const out = mutate(d);
+      // A backbone or main line that the edit made appear gets its power supply.
+      E.followUpperLines(d, upper);
       // What the devices hold follows the project: a deleted device leaves the installation.
       pruneInstallation(d);
       mixed = [...E.dptMixes(d)].filter(
@@ -618,6 +621,7 @@ export class GuidedEditor extends LitElement implements Host {
               : nothing
           }
         </div>
+        ${this.upperPowerSupplies(doc)}
         ${
           lv.ip
             ? html`<div class="g-line g-ip">
@@ -824,12 +828,33 @@ export class GuidedEditor extends LitElement implements Host {
     </div>`;
   }
 
+  /** Power supplies of the TP backbone and main lines, beside those of the lines. */
+  private upperPowerSupplies(doc: Doc) {
+    const lines = E.upperLines(doc);
+    if (!lines.length) return nothing;
+    const psus = (doc.topology as E.Topo | undefined)?.powerSupplies ?? {};
+    return html`<div class="g-row">
+      ${lines.map((line) =>
+        this.psuSelect(
+          line === "0.0"
+            ? t`Power supply of the backbone 0.0`
+            : t`Power supply of the main line ${line}`,
+          psus[line] as { currentMa?: number } | undefined,
+          line,
+          false,
+          true,
+        ),
+      )}
+    </div>`;
+  }
+
   /** Power supply selector of a line or of its downstream segment. */
   private psuSelect(
     label: string,
     psu: { currentMa?: number } | undefined,
     line: string,
     downstream: boolean,
+    upper = false,
   ) {
     const currents = [160, 320, 640, 1280];
     const cur = psu ? String(psu.currentMa ?? "") : "none";
@@ -843,12 +868,18 @@ export class GuidedEditor extends LitElement implements Host {
       cur,
       (v) =>
         this.run(label, (d) =>
-          E.setLinePowerSupply(
-            d,
-            line,
-            v === "none" ? null : v ? Number(v) : 0,
-            downstream,
-          ),
+          upper
+            ? E.setUpperPowerSupply(
+                d,
+                line,
+                v === "none" ? null : v ? Number(v) : 0,
+              )
+            : E.setLinePowerSupply(
+                d,
+                line,
+                v === "none" ? null : v ? Number(v) : 0,
+                downstream,
+              ),
         ),
     );
   }

@@ -508,7 +508,11 @@ test("contact keys report press and release; a power supply cuts its line", asyn
 
   await page.goto(url("examples/bus-voltage.html"));
   const d2 = page.locator("bus-diagram").first();
-  await d2.locator("button.psu", { hasText: "640" }).click({ force: true });
+  // The supply of a line (its main line has one too).
+  await d2
+    .locator(".seglabel", { hasText: /^\s*Line 1\.\d/ })
+    .locator("button.psu", { hasText: "640" })
+    .click({ force: true });
   await expect(d2.locator("button.psu.off")).toHaveCount(1);
   await expect(d2.locator(".card.unpowered")).toHaveCount(1);
   await d2.locator("button.psu.off").click({ force: true });

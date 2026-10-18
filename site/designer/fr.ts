@@ -587,6 +587,9 @@ export const designerFr: Record<string, string> = {
   "Scripts adding behaviours, equipment or views, and the packages of devices imported from the Catalog panel. They are stored in this browser and embedded in the exported standalone page. A failing script leaves no definition loaded.":
     "Scripts ajoutant des comportements, équipements ou vues, et paquets de participants importés depuis le panneau Catalogue. Ils sont conservés dans ce navigateur et intégrés à la page autonome exportée. Un script en échec ne laisse aucune définition chargée.",
   "Reset the designer…": "Réinitialiser le designer…",
+  "Power supply of the backbone 0.0": "Alimentation de la ligne de zone 0.0",
+  "Power supply of the main line {0}":
+    "Alimentation de la ligne principale {0}",
   "Package {0} removed: its devices are no longer in the catalog; import it again to bring them back.":
     "Paquet {0} retiré : ses participants ne sont plus dans le catalogue ; importez-le à nouveau pour les retrouver.",
   "Reset the designer? Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it).":

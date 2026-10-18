@@ -1,7 +1,7 @@
 ---
 title: Topologie et supervision
 translationOf: guide/06-topology.md
-sourceHash: "60ce6615e8c8"
+sourceHash: "0e7953c8beea"
 order: 6.5
 ---
 # Topologie et supervision
@@ -36,6 +36,16 @@ Chaque ligne à paire torsadée, et chaque segment derrière un répéteur de li
 ```
 
 `currentMa` est le courant nominal (les valeurs courantes sont 160, 320, 640 et 1280 mA) ; les deux champs sont facultatifs. L'alimentation modélisée n'a ni adresse individuelle ni objets de communication (certaines alimentations avec diagnostic sont elles-mêmes des appareils KNX). BusDiagram ne calcule pas la charge du bus : la consommation de chaque appareil n'est pas modélisée. Le designer règle l'alimentation de chaque ligne dans sa section **Topologie**.
+
+Une ligne de zone TP et des lignes principales TP sont aussi des lignes, chacune avec sa propre alimentation. Elles se donnent dans `topology.powerSupplies`, par l'adresse de la ligne : `0.0` pour la ligne de zone, `1.0` pour la ligne principale de la zone 1 :
+
+```json
+"topology": {
+  "powerSupplies": { "0.0": { "currentMa": 640 }, "1.0": { "currentMa": 640 }, "2.0": {} }
+}
+```
+
+Une clé qui ne nomme aucune ligne de zone ou principale TP de l'installation est refusée (un réseau IP qui tient lieu de ligne de zone ou de lignes principales n'en a pas besoin). Sans son alimentation, une ligne de zone ou principale reçoit le même avertissement de configuration qu'une ligne. Sur le schéma, son alimentation est dessinée près de son nom, et un clic coupe sa tension de bus : les coupleurs qui s'y trouvent ne transmettent alors plus rien à travers elle. Quand une modification dans le designer fait apparaître une ligne de zone ou principale (une deuxième zone, une deuxième ligne dans une zone), elle reçoit une alimentation de 640 mA, comme une nouvelle ligne ; la section **Topologie** les règle.
 
 ## Routeurs KNXnet/IP
 
