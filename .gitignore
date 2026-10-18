@@ -37,6 +37,7 @@ test-results
 playwright-report
 blob-report
 coverage
+.vitest
 
 # Unused legacy sources
 src/components

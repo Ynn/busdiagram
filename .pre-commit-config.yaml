@@ -18,4 +18,9 @@ repos:
         name: Block local, generated, and credential files
         language: fail
         entry: "Move this file outside the public repository"
-        files: '(^|/)(\.local|node_modules|dist|tmp|coverage|test-results|playwright-report|blob-report|\.venv|venv|\.cache|\.aws|\.ssh|\.secrets|\.npmrc|\.netrc|\.envrc|credentials\.json)(/|$)|(^|/)\.env(\.|$)|\.(pem|key|p8|p12|pfx|kdbx|map|tsbuildinfo|bak|orig|rej|swo|swn|log)$'
+        files: '(^|/)(\.local|node_modules|dist|tmp|coverage|test-results|playwright-report|blob-report|\.vitest|\.venv|venv|\.cache|\.aws|\.ssh|\.secrets|\.npmrc|\.netrc|\.envrc|credentials\.json)(/|$)|(^|/)\.env(\.|$)|\.(pem|key|p8|p12|pfx|kdbx|map|tsbuildinfo|bak|orig|rej|swo|swn|log)$'
+      - id: no-local-paths
+        name: No absolute path of a local account
+        language: pygrep
+        entry: '[A-Za-z]:[\\/]+Users[\\/]+[^\\/\s"'']+[\\/]|/home/[a-z][\w.-]*/|/Users/[A-Za-z][\w.-]*/'
+        exclude: '^(package-lock\.json|ets-bridge/Cargo\.lock)$'
