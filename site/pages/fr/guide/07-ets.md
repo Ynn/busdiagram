@@ -1,7 +1,7 @@
 ---
 title: Liaison à ETS
 translationOf: guide/07-ets.md
-sourceHash: "ded6845fca1f"
+sourceHash: "9259205ff6da"
 order: 7.6
 ---
 

@@ -1,7 +1,7 @@
 ---
 title: Extensions
 translationOf: guide/12-extensions.md
-sourceHash: "7d1a01248035"
+sourceHash: "a6937c64d425"
 order: 12
 ---
 # Extensions
@@ -164,7 +164,7 @@ Les tests vérifient cette organisation : un participant ne dépend ni du regist
 
 ## Livrer des participants de fabricants dans un paquet
 
-BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu'il faut pour les écrire, et le designer les importe depuis un **paquet de participants** (`.bdpkg`), avec le bouton **Importer des participants…** du panneau Catalogue. Ces participants, calqués sur ceux d'un fabricant, sont programmés par ETS avec leur programme d'application.
+BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu'il faut pour les écrire, et le designer les importe depuis un **paquet de participants** (`.bdpkg`), avec le bouton **Importer des participants…** du panneau Catalogue. Ces participants, calqués sur ceux d'un fabricant, sont programmés par ETS avec leur programme d'application. [Écrire un participant de fabricant](manufacturer-devices.html) en écrit un pas à pas, avec un fabricant imaginaire.
 
 Un participant se construit avec la boîte à outils de `src/bcu`, exportée par la bibliothèque (`BusDiagram.defineProduct`…), qui fait ce que fait la partie système de tout participant, quelle que soit son application :
 

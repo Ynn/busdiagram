@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "f2598a908079"
+sourceHash: "d414f6c2c659"
 order: 7
 ---
 # Designer

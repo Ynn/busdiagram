@@ -164,7 +164,7 @@ The tests check this organization: a participant depends neither on the registry
 
 ## Deliver manufacturers' devices in a package
 
-BusDiagram delivers no manufacturer's device: their product databases come from the manufacturers' catalogs. It delivers what is needed to write them, and the designer imports them from a **package of devices** (`.bdpkg`), with the button **Import devices…** of the Catalog panel. Such devices, modeled on a manufacturer's, are programmed by ETS with their application program.
+BusDiagram delivers no manufacturer's device: their product databases come from the manufacturers' catalogs. It delivers what is needed to write them, and the designer imports them from a **package of devices** (`.bdpkg`), with the button **Import devices…** of the Catalog panel. Such devices, modeled on a manufacturer's, are programmed by ETS with their application program. [Write a manufacturer's device](manufacturer-devices.html) writes one step by step, with an imaginary manufacturer.
 
 A device is built with the toolkit of `src/bcu`, exported by the library (`BusDiagram.defineProduct`…), which does what the system part of every device does, whatever its application:
 
