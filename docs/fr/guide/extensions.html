@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/extensions.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -44,7 +44,7 @@
   <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
 
   <h4>Pour les développeurs</h4>
-  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li class="cur"><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li class="cur"><a href="../../fr/guide/extensions.html">Extensions</a></li><li><a href="../../fr/guide/manufacturer-devices.html">Écrire un participant de fabricant</a></li></ul>
 
   <h4>Modèle de simulation</h4>
   <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
@@ -52,7 +52,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-<p class="stale" role="note">Cette traduction a été faite sur une version antérieure de la page anglaise, qui a changé depuis : elle peut être incomplète ou dépassée. <a href="../../guide/extensions.html" hreflang="en">Lire la version anglaise de référence</a>.</p>
+
 <h1 id="extensions"><a class="anchor" href="#extensions">#</a>Extensions</h1><p>Une extension peut ajouter un comportement, un modèle d&#39;équipement ou une vue sans modifier le fichier de la bibliothèque. Chargez son script après <code>bus-diagram.js</code>, puis utilisez l&#39;identifiant enregistré dans un scénario. Voir l&#39;<a href="../examples/extension.html">exemple complet</a>.</p>
 <h2 id="register-a-behavior"><a class="anchor" href="#register-a-behavior">#</a>Enregistrer un comportement</h2><p>L&#39;exemple <a href="../examples/extension.html"><code>site/samples/extensions/delayed-switch.ts</code></a> définit une commutation temporisée :</p>
 <pre class="code"><code><span class="kw">export</span> <span class="kw">const</span> delayedSwitch: BehaviorDefinition&lt;State&gt; = {
@@ -388,7 +388,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </tbody></table>
 </div><p>Deux listes composent les participants livrés : <code>src/standard-model.ts</code> (entrées du modèle, installées par le registre) et <code>site/designer/standard-designer.ts</code> (entrées du designer). Ajouter un participant consiste à ajouter son dossier et une ligne à chaque liste ; le moteur, le schéma et le designer ne connaissent les participants que par ces déclarations. Le code partagé volontairement par plusieurs participants se trouve dans <code>src/participants/shared/</code>. Un équipement livré suit la même organisation dans <code>src/equipment/&lt;nom&gt;/</code> : <code>equipment.ts</code> (modèle physique), <code>size.ts</code> (taille de ses vues, lue par la disposition), <code>view.ts</code>, <code>messages.fr.ts</code> et <code>model.ts</code>, dont l&#39;entrée donne aussi les tailles de ses vues (<code>viewSizes</code>).</p>
 <p>Les tests vérifient cette organisation : un participant ne dépend ni du registre ni d&#39;un autre participant, son entrée du modèle n&#39;atteint jamais le designer, les modules partagés ne nomment aucun comportement, et ses textes sont dans ses propres catalogues.</p>
-<h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Livrer des participants de fabricants dans un paquet</h2><p>BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu&#39;il faut pour les écrire, et le designer les importe depuis un <strong>paquet de participants</strong> (<code>.bdpkg</code>), avec le bouton <strong>Importer des participants…</strong> du panneau Catalogue. Ces participants, calqués sur ceux d&#39;un fabricant, sont programmés par ETS avec leur programme d&#39;application.</p>
+<h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Livrer des participants de fabricants dans un paquet</h2><p>BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu&#39;il faut pour les écrire, et le designer les importe depuis un <strong>paquet de participants</strong> (<code>.bdpkg</code>), avec le bouton <strong>Importer des participants…</strong> du panneau Catalogue. Ces participants, calqués sur ceux d&#39;un fabricant, sont programmés par ETS avec leur programme d&#39;application. <a href="manufacturer-devices.html">Écrire un participant de fabricant</a> en écrit un pas à pas, avec un fabricant imaginaire.</p>
 <p>Un participant se construit avec la boîte à outils de <code>src/bcu</code>, exportée par la bibliothèque (<code>BusDiagram.defineProduct</code>…), qui fait ce que fait la partie système de tout participant, quelle que soit son application :</p>
 <ul>
 <li>Un <strong>profil de masque</strong> par famille de masques (BCU1 pour 0010h–0012h, BIM M112 pour 0700h–0705h avec ses machines d&#39;états de chargement, System B pour 07B0h avec les segments relatifs qu&#39;il alloue lui-même) donne la mémoire du participant, où sont son adresse individuelle et son mode programmation, comment ETS la charge, et comment se lisent ses tables : adresses de groupe, associations, objets de groupe. ETS l&#39;atteint par la gestion des participants de la simulation.</li>
@@ -430,7 +430,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 
 <nav class="pager">
 <a href="../../fr/guide/versions.html">← Versions et publications</a>
-<a href="../../fr/guide/time.html">Temps et mode pas à pas →</a>
+<a href="../../fr/guide/manufacturer-devices.html">Écrire un participant de fabricant →</a>
 </nav>
 </main>
 <aside class="toc"><h4>Sur cette page</h4><ul><li><a href="#register-a-behavior">Enregistrer un comportement</a></li><li><a href="#register-a-view">Enregistrer une vue</a></li><li><a href="#load-scripts">Charger les scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Livrer un participant avec la bibliothèque</a></li><li><a href="#deliver-manufacturers-devices-in-a-package">Livrer des participants de fabricants dans un paquet</a></li></ul></aside>

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mise en service · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/commissioning.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -44,7 +44,7 @@
   <ul><li><a href="../../fr/guide/embedding.html">Intégrer dans une page</a></li><li><a href="../../fr/guide/slides.html">Diapositives</a></li><li><a href="../../fr/guide/viewer.html">Page autonome et lien</a></li><li><a href="../../fr/guide/languages.html">Langues</a></li></ul>
 
   <h4>Pour les développeurs</h4>
-  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li></ul>
+  <ul><li><a href="../../fr/guide/api.html">API JavaScript</a></li><li><a href="../../fr/guide/versions.html">Versions et publications</a></li><li><a href="../../fr/guide/extensions.html">Extensions</a></li><li><a href="../../fr/guide/manufacturer-devices.html">Écrire un participant de fabricant</a></li></ul>
 
   <h4>Modèle de simulation</h4>
   <ul><li><a href="../../fr/guide/time.html">Temps et mode pas à pas</a></li><li><a href="../../fr/guide/errors.html">Diagnostiquer une erreur</a></li><li><a href="../../fr/guide/limits.html">Modèle et limites</a></li></ul>
@@ -52,7 +52,7 @@
 </aside>
 <main>
 <p class="crumb">Guide</p>
-<p class="stale" role="note">Cette traduction a été faite sur une version antérieure de la page anglaise, qui a changé depuis : elle peut être incomplète ou dépassée. <a href="../../guide/commissioning.html" hreflang="en">Lire la version anglaise de référence</a>.</p>
+
 <h1 id="commissioning"><a class="anchor" href="#commissioning">#</a>Mise en service</h1><p>Sur une maquette, les étudiants ne se contentent pas de concevoir un projet : ils programment l&#39;adresse individuelle de chaque participant avec son bouton de programmation, téléchargent les applications et cherchent pourquoi un participant ne répond pas. Un scénario peut simuler cette partie du travail. Les participants contiennent alors, à côté du projet, ce qui y a été téléchargé, comme de vrais participants.</p>
 <h2 id="turn-it-on"><a class="anchor" href="#turn-it-on">#</a>L&#39;activer</h2><p>Dans le <a href="designer.html">designer</a>, panneau <strong>Installation</strong>, cochez <strong>Simuler la mise en service</strong>. En JSON, ajoutez une section <code>installation</code> à la racine du scénario :</p>
 <pre class="code"><code><span class="k">"installation"</span>: {}</code></pre><p>Une section vide signifie que chaque participant et chaque coupleur est à l&#39;état de livraison : adresse individuelle 15.15.255 (15.15.0 pour un coupleur), sans application. Un participant sans application ne fait rien : ses touches n&#39;envoient aucun télégramme, ses sorties ne commutent pas, et sa carte dans le schéma indique <strong>non chargé</strong>. Un coupleur sans application ne transmet aucun télégramme de groupe.</p>

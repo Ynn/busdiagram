@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/extensions.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.6ef9ed3.modified.c9f058ea" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -44,7 +44,7 @@
   <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
 
   <h4>For developers</h4>
-  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li class="cur"><a href="../guide/extensions.html">Extensions</a></li></ul>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li class="cur"><a href="../guide/extensions.html">Extensions</a></li><li><a href="../guide/manufacturer-devices.html">Write a manufacturer&#39;s device</a></li></ul>
 
   <h4>Simulation model</h4>
   <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
@@ -388,7 +388,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </tbody></table>
 </div><p>Two lists compose the delivered participants: <code>src/standard-model.ts</code> (model entries, installed by the registry) and <code>site/designer/standard-designer.ts</code> (designer entries). Adding a participant means adding its folder and one line to each list; the engine, the diagram, and the designer know participants only through these declarations. Code shared on purpose by several participants is in <code>src/participants/shared/</code>. A delivered equipment follows the same layout in <code>src/equipment/&lt;name&gt;/</code>: <code>equipment.ts</code> (physical model), <code>size.ts</code> (size of its views, read by the layout), <code>view.ts</code>, <code>messages.fr.ts</code>, and <code>model.ts</code>, whose entry also gives the sizes of its views (<code>viewSizes</code>).</p>
 <p>The tests check this organization: a participant depends neither on the registry nor on another participant, its model entry never reaches the designer, shared modules name no behavior, and its texts are in its own catalogs.</p>
-<h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Deliver manufacturers&#39; devices in a package</h2><p>BusDiagram delivers no manufacturer&#39;s device: their product databases come from the manufacturers&#39; catalogs. It delivers what is needed to write them, and the designer imports them from a <strong>package of devices</strong> (<code>.bdpkg</code>), with the button <strong>Import devices…</strong> of the Catalog panel. Such devices, modeled on a manufacturer&#39;s, are programmed by ETS with their application program.</p>
+<h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Deliver manufacturers&#39; devices in a package</h2><p>BusDiagram delivers no manufacturer&#39;s device: their product databases come from the manufacturers&#39; catalogs. It delivers what is needed to write them, and the designer imports them from a <strong>package of devices</strong> (<code>.bdpkg</code>), with the button <strong>Import devices…</strong> of the Catalog panel. Such devices, modeled on a manufacturer&#39;s, are programmed by ETS with their application program. <a href="manufacturer-devices.html">Write a manufacturer&#39;s device</a> writes one step by step, with an imaginary manufacturer.</p>
 <p>A device is built with the toolkit of <code>src/bcu</code>, exported by the library (<code>BusDiagram.defineProduct</code>…), which does what the system part of every device does, whatever its application:</p>
 <ul>
 <li>A <strong>mask profile</strong> per family of masks (BCU1 for 0010h–0012h, BIM M112 for 0700h–0705h with its load state machines, System B for 07B0h with the relative segments it allocates itself) gives the memory of the device, where its individual address and programming mode are, how ETS loads it, and how its tables are read: group addresses, associations, group objects. ETS reaches it through the device management of the simulation.</li>
@@ -430,7 +430,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 
 <nav class="pager">
 <a href="../guide/versions.html">← Versions and releases</a>
-<a href="../guide/time.html">Time and step mode →</a>
+<a href="../guide/manufacturer-devices.html">Write a manufacturer&#39;s device →</a>
 </nav>
 </main>
 <aside class="toc"><h4>On this page</h4><ul><li><a href="#register-a-behavior">Register a behavior</a></li><li><a href="#register-a-view">Register a view</a></li><li><a href="#load-scripts">Load scripts</a></li><li><a href="#deliver-a-participant-with-the-library">Deliver a participant with the library</a></li><li><a href="#deliver-manufacturers-devices-in-a-package">Deliver manufacturers&#39; devices in a package</a></li></ul></aside>

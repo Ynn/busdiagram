@@ -1,0 +1,444 @@
+
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Write a manufacturer&#39;s device · BusDiagram</title>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../"></script>
+</head>
+<body class="guide">
+<header class="site">
+  <a class="brand" href="../index.html">Bus<span>Diagram</span></a>
+  <nav>
+    <a href="../guide/installation.html" class="cur">Guide</a>
+    <a href="../examples/index.html">Examples</a>
+    <a href="../reference/index.html">Reference</a>
+    <a href="../designer/index.html">Designer</a>
+  </nav>
+  <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
+  <a class="lang" href="../fr/guide/manufacturer-devices.html" hreflang="fr" lang="fr">Français</a>
+  <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Download</a>
+</header>
+<div class="layout">
+<aside class="side">
+
+  <h4>Getting started</h4>
+  <ul><li><a href="../guide/installation.html">Installation</a></li><li><a href="../guide/first-diagram.html">First diagram</a></li><li><a href="../guide/concepts.html">Concepts</a></li></ul>
+
+  <h4>Write a scenario</h4>
+  <ul><li><a href="../guide/scenario.html">Structure of a scenario</a></li><li><a href="../guide/devices.html">Push buttons and actuators</a></li><li><a href="../guide/shutters.html">Shutters</a></li><li><a href="../guide/dali.html">Dimming and DALI</a></li><li><a href="../guide/hvac.html">Heating</a></li><li><a href="../guide/topology.html">Topology and supervision</a></li><li><a href="../guide/couplers.html">Couplers and repeaters</a></li></ul>
+
+  <h4>Tools</h4>
+  <ul><li><a href="../guide/designer.html">Designer</a></li><li><a href="../guide/commissioning.html">Commissioning</a></li><li><a href="../guide/usb-interface.html">USB interface tool</a></li><li><a href="../guide/ets.html">Link to ETS</a></li><li><a href="../guide/language-models.html">Generate with a language model</a></li><li><a href="../guide/prompt-generator.html">Prompt generator</a></li></ul>
+
+  <h4>Integrate</h4>
+  <ul><li><a href="../guide/embedding.html">Embed in a page</a></li><li><a href="../guide/slides.html">Slides</a></li><li><a href="../guide/viewer.html">Standalone page and link</a></li><li><a href="../guide/languages.html">Languages</a></li></ul>
+
+  <h4>For developers</h4>
+  <ul><li><a href="../guide/api.html">JavaScript API</a></li><li><a href="../guide/versions.html">Versions and releases</a></li><li><a href="../guide/extensions.html">Extensions</a></li><li class="cur"><a href="../guide/manufacturer-devices.html">Write a manufacturer&#39;s device</a></li></ul>
+
+  <h4>Simulation model</h4>
+  <ul><li><a href="../guide/time.html">Time and step mode</a></li><li><a href="../guide/errors.html">Diagnosing an error</a></li><li><a href="../guide/limits.html">Model and limits</a></li></ul>
+
+</aside>
+<main>
+<p class="crumb">Guide</p>
+
+<h1 id="write-a-manufacturer-s-device"><a class="anchor" href="#write-a-manufacturer-s-device">#</a>Write a manufacturer&#39;s device</h1><p>A manufacturer&#39;s device is simulated as ETS sees the real one: it has the application program of the manufacturer&#39;s catalog, ETS downloads it, and the simulation runs what its memory then holds. BusDiagram delivers no such device. It delivers the toolkit to write them, and the designer imports them from a <strong>package of devices</strong> (<code>.bdpkg</code>, see <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>).</p>
+<p>This guide writes one, step by step, with the products of an imaginary manufacturer, <strong>Example Electric</strong> (manufacturer code FEh), that the tests of BusDiagram use: <code>tests/knx/fixtures/sample-devices</code>. Its <strong>SA 2</strong> is a switch actuator with two outputs on a BCU1 (mask 0012h), program <code>M-00FE_A-0001-10</code>. Its product database is written by hand, so the folder holds no manufacturer&#39;s data.</p>
+<p>A device has four parts:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Part</th>
+<th>What it is</th>
+<th>Where it comes from</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Product database</td>
+<td>What ETS shows and what the parameters and tables occupy in memory</td>
+<td>Generated from the manufacturer&#39;s catalog</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>The identity of the product, its channels, its group objects</td>
+<td>Written from the database and the product manual</td>
+</tr>
+<tr>
+<td>Firmware</td>
+<td>What the device does with its memory and its objects</td>
+<td>Written from the product manual</td>
+</tr>
+<tr>
+<td>Package</td>
+<td>The models compiled as a script, the databases, examples</td>
+<td>Built by the author of the package</td>
+</tr>
+</tbody></table>
+</div><p>The catalog and the manual belong to the manufacturer: keep the packages you make from them, and their sources, out of public repositories unless the manufacturer allows it.</p>
+<h2 id="what-you-need"><a class="anchor" href="#what-you-need">#</a>What you need</h2><ul>
+<li>The <strong>product catalog</strong> of the manufacturer (<code>.knxprod</code>), as ETS imports it, and the product&#39;s manual.</li>
+<li><strong>ETS</strong>, to compare the pages, download the device and check what it does (see <a href="ets.html">link to ETS</a>).</li>
+<li>A checkout of <strong>BusDiagram</strong> beside the folder of the package, with Node.js: the tests of the package run against its sources.</li>
+</ul>
+<h2 id="choose-the-program-and-its-mask"><a class="anchor" href="#choose-the-program-and-its-mask">#</a>Choose the program and its mask</h2><p>In the catalog, a product runs an application program (<code>ApplicationProgram</code>), named <code>M-&lt;manufacturer&gt;_A-&lt;number&gt;-&lt;version&gt;-&lt;hash&gt;</code>. The toolkit runs the programs of three families of masks (its <code>MaskVersion</code>):</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Mask</th>
+<th>Family</th>
+<th>How ETS downloads it</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0010h–0012h</td>
+<td>BCU1</td>
+<td>Memory writes, each verified by a read</td>
+</tr>
+<tr>
+<td>0700h–0705h</td>
+<td>BIM M112 (System 7)</td>
+<td>Load state machines, with the application identifier checked first</td>
+</tr>
+<tr>
+<td>07B0h</td>
+<td>System B</td>
+<td>Load state machines; the device places relative segments itself</td>
+</tr>
+</tbody></table>
+</div><p>KNX Secure programs are not simulated. A program shared by a range (several products, a parameter for the type of module) is generated for one product at a time, with the values that this product fixes.</p>
+<h2 id="generate-the-product-database"><a class="anchor" href="#generate-the-product-database">#</a>Generate the product database</h2><p>From the checkout of BusDiagram, with the identifier of the program in the catalog:</p>
+<pre class="code"><code>npm run product -- &lt;catalog.knxprod&gt; M-00FE_A-0001-10-0000 ../my-package/src/sa-2/database.json</code></pre><p>A program shared by a range takes, as a last argument, the values the product fixes, by parameter reference: <code>&#39;{&quot;P-57_R-57&quot;:&quot;8&quot;}&#39;</code>. Only their branches are kept.</p>
+<p>The database keeps what ETS shows and what the memory holds, without the application code:</p>
+<ul>
+<li>the segments of memory, with the octets of their default image that the device needs;</li>
+<li>the parameter types, the parameters and their place in memory (<code>memory</code>: segment, offset, bit offset), their references (<code>parameterRefs</code>, with their display order);</li>
+<li>the parameter dialog (<code>dynamic</code>): pages, branches, separators, in the order of ETS;</li>
+<li>the group objects and their references, the tables (addresses, associations, objects);</li>
+<li>the calculations with which ETS sets hidden parameters, and the texts in every language of the catalog;</li>
+<li>for a program converted from ETS3 (<code>preEts4Style</code>), the rule ETS follows for its pages: each parameter on the page that its display order gives.</li>
+</ul>
+<p>The designer draws the ETS pages from it, and computes the memory a complete download writes.</p>
+<h2 id="find-where-the-parameters-are"><a class="anchor" href="#find-where-the-parameters-are">#</a>Find where the parameters are</h2><p>The firmware reads its parameters in the memory, where ETS writes them. A parameter of the database says where:</p>
+<pre class="code"><code>{
+  <span class="k">"id"</span>: <span class="s">"P-1"</span>,
+  <span class="k">"text"</span>: <span class="s">"Contact"</span>,
+  <span class="k">"type"</span>: <span class="s">"PT-Contact"</span>,
+  <span class="k">"value"</span>: <span class="s">"0"</span>,
+  <span class="k">"memory"</span>: { <span class="k">"segment"</span>: <span class="s">"AS-0100"</span>, <span class="k">"offset"</span>: <span class="n">100</span>, <span class="k">"bitOffset"</span>: <span class="n">0</span> }
+}</code></pre><p>Segment <code>AS-0100</code> starts at 100h: the parameter is at 100h + 100 = 164h, its bit offset counted from the most significant bit, over the size of its type (1 bit for <code>PT-Contact</code>). For SA 2:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Address</th>
+<th>Bits</th>
+<th>Values</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Contact of output A</td>
+<td>164h</td>
+<td>offset 0, 1 bit</td>
+<td>0 normally open, 1 normally closed</td>
+</tr>
+<tr>
+<td>State at bus voltage recovery of A</td>
+<td>164h</td>
+<td>offset 6, 2 bits</td>
+<td>0 unchanged, 1 off, 2 on</td>
+</tr>
+<tr>
+<td>Contact of output B</td>
+<td>165h</td>
+<td>offset 0, 1 bit</td>
+<td>as A</td>
+</tr>
+<tr>
+<td>State at bus voltage recovery of B</td>
+<td>165h</td>
+<td>offset 6, 2 bits</td>
+<td>as A</td>
+</tr>
+</tbody></table>
+</div><p>Its group objects are numbered as in ETS: object 0 for output A, object 1 for output B, both switching (DPT 1.001).</p>
+<h2 id="write-the-model"><a class="anchor" href="#write-the-model">#</a>Write the model</h2><p><code>defineProduct</code> turns the product into a participant of the simulation:</p>
+<pre class="code"><code><span class="kw">import</span> { defineProduct } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> type { ProductObject } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> { sa2Firmware, OUTPUTS } <span class="kw">from</span> <span class="s">"./firmware"</span>;
+
+<span class="kw">export</span> <span class="kw">const</span> sa2Model = defineProduct({
+  id: <span class="s">"example/sa-2"</span>,
+  behavior: <span class="s">"example.sa2/v1"</span>,
+  kind: <span class="s">"switchActuator"</span>,
+  manufacturer: <span class="s">"Example Electric"</span>,
+  manufacturerId: 0xfe,
+  <span class="c">// What the delivered device holds: its manufacturer code at 104h, which ETS checks.</span>
+  delivered: [[0x104, [0xfe]]],
+  name: <span class="s">"SA 2"</span>,
+  description: <span class="s">"Example Electric SA 2: switch actuator, 2 outputs."</span>,
+  programs: [<span class="s">"M-00FE_A-0001-10"</span>],
+  masks: [0x0012],
+  <span class="c">// Where its parameters are: the pages of the designer set these octets.</span>
+  parameterMemory: [[0x100 + <span class="n">100</span>, <span class="n">2</span>]],
+  channels: OUTPUTS.map((c) =&gt; ({ id: c, label: c.toUpperCase() })),
+  output: <span class="s">"switch"</span>,
+  <span class="c">// The group objects of its application (a function of the memory when they depend</span>
+  <span class="c">// on parameters).</span>
+  objects: (): ProductObject[] =&gt;
+    OUTPUTS.map((ch, n) =&gt; ({ number: n, channel: ch, dpt: <span class="s">"1.001"</span> })),
+  firmware: sa2Firmware,
+});</code></pre><div class="table"><table>
+<thead>
+<tr>
+<th>Field</th>
+<th>What it says</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>id</code>, <code>behavior</code></td>
+<td>The product in its range, and the behavior a scenario names it by (<code>&quot;example.sa2/v1&quot;</code>)</td>
+</tr>
+<tr>
+<td><code>kind</code></td>
+<td>How the diagram draws it: <code>switchActuator</code>, <code>shutterActuator</code>, <code>buttonInterface</code>…</td>
+</tr>
+<tr>
+<td><code>manufacturerId</code>, <code>delivered</code></td>
+<td>What ETS reads before loading: the manufacturer code, and what the delivered device holds</td>
+</tr>
+<tr>
+<td><code>programs</code>, <code>masks</code></td>
+<td>The programs it runs (without their hash) and the masks of its coupler</td>
+</tr>
+<tr>
+<td><code>parameterMemory</code></td>
+<td>The octets of its parameters (<code>[address, length]</code>)</td>
+</tr>
+<tr>
+<td><code>channels</code>, <code>output</code>, <code>contactInputs</code></td>
+<td>Its hardware: outputs that drive loads (<code>switch</code>, <code>motor</code>, <code>dimmer</code>…), or contact inputs for wired push-buttons</td>
+</tr>
+<tr>
+<td><code>objects(memory)</code></td>
+<td>The group objects its application has with this memory</td>
+</tr>
+<tr>
+<td><code>firmware</code></td>
+<td>Its application (next section)</td>
+</tr>
+</tbody></table>
+</div><p>A BIM M112 (070xh) also says where its application has its group object table (<code>objectTable</code>), the application identifier it is delivered with (<code>applicationId</code>, which ETS compares), and the properties its program writes (<code>properties</code>). The second product of the folder, <strong>BE 1</strong>, a push-button interface on a BIM M112, shows them.</p>
+<p>The label of a channel names it in the tree of the designer&#39;s pages: a channel labelled <code>A</code>, <code>C1</code> or <code>Output 1</code> gets its loads with the ETS pages whose titles name it.</p>
+<h2 id="write-the-firmware"><a class="anchor" href="#write-the-firmware">#</a>Write the firmware</h2><p>The firmware has the hooks of a behavior (see <a href="extensions.html#register-a-behavior">extensions</a>), and reads its parameters in the memory each time: a download from ETS changes them, and the device starts again.</p>
+<pre class="code"><code><span class="kw">import</span> { bits, objectId } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> type { BehaviorContext, Firmware } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+
+<span class="kw">export</span> <span class="kw">const</span> OUTPUTS = [<span class="s">"a"</span>, <span class="s">"b"</span>] as <span class="kw">const</span>;
+interface State {
+  on: Record&lt;string, boolean&gt;;
+}
+
+<span class="c">// The parameters of an output, in its octet (164h for A, 165h for B).</span>
+<span class="kw">const</span> parametersOf = (ctx: BehaviorContext&lt;State&gt;, n: number) =&gt; ({
+  normallyClosed: bits(ctx, 0x164 + n, <span class="n">0</span>, <span class="n">1</span>) === <span class="n">1</span>,
+  recovery: bits(ctx, 0x164 + n, <span class="n">6</span>, <span class="n">2</span>),
+});
+
+<span class="c">// The relay of an output: a normally closed contact lets the current through when the</span>
+<span class="c">// relay is released.</span>
+<span class="kw">const</span> relay = (ctx: BehaviorContext&lt;State&gt;, n: number) =&gt; {
+  <span class="kw">const</span> ch = OUTPUTS[n]!;
+  ctx.setOutput(ch, {
+    type: <span class="s">"switch"</span>,
+    on: ctx.state.on[ch] !== parametersOf(ctx, n).normallyClosed,
+  });
+};
+
+<span class="kw">export</span> <span class="kw">const</span> sa2Firmware: Firmware&lt;State&gt; = {
+  createState: () =&gt; ({ on: { a: <span class="kw">false</span>, b: <span class="kw">false</span> } }),
+  <span class="c">// At the start, and after a download: the state at bus voltage recovery.</span>
+  onInit(ctx) {
+    OUTPUTS.forEach((ch, n) =&gt; {
+      <span class="kw">const</span> { recovery } = parametersOf(ctx, n);
+      <span class="kw">if</span> (recovery === <span class="n">1</span> || recovery === <span class="n">2</span>) ctx.state.on[ch] = recovery === <span class="n">2</span>;
+      relay(ctx, n);
+    });
+  },
+  <span class="c">// A telegram on the object of an output.</span>
+  onObjectWrite(ctx, e) {
+    <span class="kw">const</span> n = OUTPUTS.findIndex((_, i) =&gt; e.objectId === objectId(i));
+    <span class="kw">if</span> (n &lt; <span class="n">0</span>) <span class="kw">return</span>;
+    ctx.state.on[OUTPUTS[n]!] = e.newValue !== <span class="n">0</span>;
+    relay(ctx, n);
+  },
+  channelState: (s, ch) =&gt; ({ on: s.on[ch] ?? <span class="kw">false</span> }),
+};</code></pre><p>The helpers of the toolkit:</p>
+<div class="table"><table>
+<thead>
+<tr>
+<th>Helper</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>bits(ctx, address, bitOffset, count)</code></td>
+<td>Bits of the memory, most significant first</td>
+</tr>
+<tr>
+<td><code>readUnsigned(memoryOf(ctx), address, octets, littleEndian)</code></td>
+<td>A value of several octets, in the byte order of the program</td>
+</tr>
+<tr>
+<td><code>objectId(n)</code>, <code>numberOf(id)</code></td>
+<td>The identifier of group object <code>n</code> in the scenario (<code>&quot;o0&quot;</code>), and back</td>
+</tr>
+<tr>
+<td><code>send(ctx, n, value)</code></td>
+<td>Write object <code>n</code> and transmit it; nothing when the application has not enabled it</td>
+</tr>
+<tr>
+<td><code>valueOf(ctx, n)</code></td>
+<td>The value of object <code>n</code>, or null</td>
+</tr>
+</tbody></table>
+</div><p>A firmware runs only what its memory holds: a device that holds another program, or a download that stopped half-way, runs nothing, and the journal says which program it got.</p>
+<h2 id="say-what-is-not-simulated"><a class="anchor" href="#say-what-is-not-simulated">#</a>Say what is not simulated</h2><p>A product does more than its firmware simulates. <code>limits</code> says it, so that the designer marks the parameters that turn these functions on and lists them on a page <strong>Simulation limits</strong>:</p>
+<pre class="code"><code>limits: [
+  {
+    text: <span class="s">"Delay before switching on is not simulated."</span>,
+    parameters: [<span class="s">"P-9"</span>],
+  },
+  {
+    text: <span class="s">"Feedback object: only on change, not cyclically."</span>,
+    partial: <span class="kw">true</span>,
+    parameters: [<span class="s">"P-10"</span>],
+    values: [<span class="s">"1"</span>],
+  },
+],</code></pre><p><code>parameters</code> names parameters of the database (whatever their reference), and <code>values</code> the values that turn the function on (by default, any but the program&#39;s default).</p>
+<h2 id="texts-and-languages"><a class="anchor" href="#texts-and-languages">#</a>Texts and languages</h2><p>The texts of the database (pages, parameters, group objects) come with their translations from the catalog. Those of the model (description, labels of channels, limits) are written in English, and translated by messages the model brings:</p>
+<pre class="code"><code><span class="kw">export</span> <span class="kw">const</span> sa2 = {
+  ...sa2Model,
+  messages: {
+    fr: {
+      <span class="k">"Example Electric SA 2: switch actuator, 2 outputs."</span>:
+        <span class="s">"Example Electric SA 2 : actionneur de commutation, 2 sorties."</span>,
+    },
+  },
+};</code></pre><h2 id="build-the-package"><a class="anchor" href="#build-the-package">#</a>Build the package</h2><p>The script of the package registers the models with the library of the page, <code>window.BusDiagram</code>. Compile it as a classic script (IIFE) where <code>bus-diagram</code> is that global, for example with Vite:</p>
+<pre class="code"><code><span class="c">// vite.config.js of the package</span>
+<span class="kw">export</span> default {
+  build: {
+    lib: { entry: <span class="s">"src/devices.ts"</span>, name: <span class="s">"Devices"</span>, formats: [<span class="s">"iife"</span>] },
+    rollupOptions: {
+      external: [<span class="s">"bus-diagram"</span>],
+      output: { globals: { <span class="k">"bus-diagram"</span>: <span class="s">"BusDiagram"</span> } },
+    },
+  },
+};</code></pre><p>Its first module checks the contract with BusDiagram, before the models are defined:</p>
+<pre class="code"><code><span class="kw">import</span> * as BusDiagram <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> { sa2 } <span class="kw">from</span> <span class="s">"./sa-2/model"</span>;
+
+<span class="c">// A BusDiagram of an older contract cannot run these devices.</span>
+<span class="kw">if</span> (!((BusDiagram.PACKAGE_API ?? <span class="n">0</span>) &gt;= <span class="n">1</span>))
+  throw <span class="kw">new</span> Error(<span class="s">"these devices need BusDiagram 0.8 or later"</span>);
+
+BusDiagram.registerParticipant(sa2);</code></pre><p>The package is a zip of this script, of the databases and of a manifest:</p>
+<pre class="code"><code>{
+  <span class="k">"format"</span>: <span class="s">"bdpkg/1"</span>,
+  <span class="k">"name"</span>: <span class="s">"example-devices"</span>,
+  <span class="k">"version"</span>: <span class="s">"1.0.0"</span>,
+  <span class="k">"busdiagram"</span>: <span class="s">"0.8.0"</span>,
+  <span class="k">"api"</span>: <span class="n">1</span>,
+  <span class="k">"products"</span>: [
+    {
+      <span class="k">"behavior"</span>: <span class="s">"example.sa2/v1"</span>,
+      <span class="k">"manufacturer"</span>: <span class="s">"Example Electric"</span>,
+      <span class="k">"name"</span>: <span class="s">"SA 2"</span>,
+      <span class="k">"database"</span>: <span class="s">"databases/example.sa2-v1.json"</span>
+    }
+  ],
+  <span class="k">"scenarios"</span>: []
+}</code></pre><p>The <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions guide</a> lists every file of a package: a script by product, so that an exported page embeds only the products its scenario uses, and examples offered with the templates.</p>
+<h2 id="test-it"><a class="anchor" href="#test-it">#</a>Test it</h2><p>The tests of a package run against the sources of the BusDiagram checkout beside it. In Vitest, <code>bus-diagram</code> is its DOM-free entry point, and its sources are reached by an alias:</p>
+<pre class="code"><code><span class="c">// vitest.config.ts of the package</span>
+<span class="kw">import</span> { resolve } <span class="kw">from</span> <span class="s">"node:path"</span>;
+<span class="kw">import</span> { defineConfig } <span class="kw">from</span> <span class="s">"vitest/config"</span>;
+
+<span class="kw">const</span> busdiagram = resolve(<span class="kw">import</span>.meta.dirname, <span class="s">"../busdiagram"</span>);
+<span class="kw">export</span> default defineConfig({
+  resolve: {
+    alias: [
+      { find: /^bus-diagram$/, replacement: resolve(busdiagram, <span class="s">"src/core.ts"</span>) },
+      { find: /^@busdiagram\/(.*)$/, replacement: <span class="s">`${busdiagram}/$1`</span> },
+    ],
+  },
+  test: { environment: <span class="s">"node"</span>, setupFiles: [<span class="s">"tests/setup.ts"</span>] },
+});</code></pre><p>A setup registers the models and installs the databases, as the import of the package does; a test then inserts the product as the designer does, sets its ETS parameters, and runs the simulation:</p>
+<pre class="code"><code><span class="kw">import</span> { createSimulator, registerParticipant } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
+<span class="kw">import</span> { captureRegistry } <span class="kw">from</span> <span class="s">"@busdiagram/src/knx/registry"</span>;
+<span class="kw">import</span> { installPackage } <span class="kw">from</span> <span class="s">"@busdiagram/site/designer/packages"</span>;
+<span class="kw">import</span> {
+  addProductDevice,
+  setEtsParameter,
+} <span class="kw">from</span> <span class="s">"@busdiagram/site/designer/ets-device"</span>;
+<span class="kw">import</span> { programOfProduct } <span class="kw">from</span> <span class="s">"@busdiagram/site/designer/manufacturers"</span>;
+<span class="kw">import</span> { expect, it } <span class="kw">from</span> <span class="s">"vitest"</span>;
+<span class="kw">import</span> { sa2 } <span class="kw">from</span> <span class="s">"../src/sa-2/model"</span>;
+<span class="kw">import</span> database <span class="kw">from</span> <span class="s">"../src/sa-2/database.json"</span>;
+
+registerParticipant(sa2);
+installPackage({
+  manifest: { format: <span class="s">"bdpkg/1"</span>, name: <span class="s">"example-devices"</span>, version: <span class="s">"test"</span>, products: [] },
+  script: <span class="s">""</span>,
+  databases: <span class="kw">new</span> Map([[<span class="s">"example.sa2/v1"</span>, database]]),
+  scenarios: [],
+});
+
+it(<span class="s">"a normally closed output is on while its object is off"</span>, () =&gt; {
+  <span class="kw">const</span> doc = {
+    formatVersion: <span class="n">2</span>,
+    lines: [{ address: <span class="s">"1.1"</span>, powerSupply: { currentMa: <span class="n">640</span> } }],
+    devices: [],
+    groupAddresses: [],
+  };
+  <span class="kw">const</span> id = addProductDevice(doc, <span class="s">"example.sa2/v1"</span>, captureRegistry(), <span class="s">"1.1"</span>);
+  <span class="kw">const</span> app = programOfProduct(<span class="s">"example.sa2/v1"</span>)!;
+  setEtsParameter(doc, id, app, captureRegistry(), <span class="s">"P-1_R-1"</span>, <span class="s">"1"</span>);
+  <span class="kw">const</span> sim = createSimulator(doc);
+  sim.advance(<span class="n">100</span>);
+  expect(sim.output(id, <span class="s">"a"</span>)).toMatchObject({ on: <span class="kw">true</span> });
+});</code></pre><p>Worth testing for every product:</p>
+<ul>
+<li>each parameter that the firmware reads, at its value by default and at the others;</li>
+<li>the group objects that the memory enables, with several configurations;</li>
+<li>the memory read back from a download (<code>readBack</code>, in <code>src/knxprod/readback.ts</code>): the parameters found write the same octets again;</li>
+<li>a download recorded from ETS, kept as a fixture, run again.</li>
+</ul>
+<h2 id="check-it-with-ets"><a class="anchor" href="#check-it-with-ets">#</a>Check it with ETS</h2><ol>
+<li>Build the package, and import it in the designer (<strong>Import devices…</strong> of the Catalog panel; importing it again replaces it).</li>
+<li>Insert the product, and compare its pages with those of ETS for the same product, taken from the manufacturer&#39;s catalog: same pages, same parameters, same order.</li>
+<li>Turn on <strong>Simulate commissioning</strong>, link the diagram to ETS, program the individual address, then download the application (see <a href="ets.html#downloading-an-application-from-ets">link to ETS</a>).</li>
+<li>Change parameters in ETS, download again, and check what the device does in the diagram; the designer then writes what the memory holds into the project.</li>
+</ol>
+
+<nav class="pager">
+<a href="../guide/extensions.html">← Extensions</a>
+<a href="../guide/time.html">Time and step mode →</a>
+</nav>
+</main>
+<aside class="toc"><h4>On this page</h4><ul><li><a href="#what-you-need">What you need</a></li><li><a href="#choose-the-program-and-its-mask">Choose the program and its mask</a></li><li><a href="#generate-the-product-database">Generate the product database</a></li><li><a href="#find-where-the-parameters-are">Find where the parameters are</a></li><li><a href="#write-the-model">Write the model</a></li><li><a href="#write-the-firmware">Write the firmware</a></li><li><a href="#say-what-is-not-simulated">Say what is not simulated</a></li><li><a href="#texts-and-languages">Texts and languages</a></li><li><a href="#build-the-package">Build the package</a></li><li><a href="#test-it">Test it</a></li><li><a href="#check-it-with-ets">Check it with ETS</a></li></ul></aside>
+</div>
+<footer class="site">BusDiagram 0.7.0 · offline documentation · <a href="../designer/index.html">Designer</a> · <a href="https://github.com/Ynn/busdiagram">Source code (GitHub)</a> · <a href="https://github.com/Ynn/busdiagram/blob/main/CHANGELOG.md">Changes</a> · <a href="../THIRD_PARTY_NOTICES.txt">Third-party notices</a><br>BusDiagram is an independent educational project. It is not affiliated with, endorsed by, or sponsored by KNX Association. KNX and ETS are trademarks of KNX Association. BusDiagram simulates device behavior for teaching; it does not configure or commission real installations.</footer>
+</body>
+</html>
