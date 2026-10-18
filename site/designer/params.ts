@@ -299,26 +299,37 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
   // then what belongs to the installation: loads, wired push-buttons, and what is set on
   // the device itself (the switching times of a time switch).
   if (d.ets) {
-    pages.push(...etsPages(ed, doc, d));
+    const ets = etsPages(ed, doc, d);
+    const rest: Page[] = [];
     if (def) {
       (d.channels ?? []).forEach((c) => {
         const name = c.label ?? c.id;
+        // With the pages of its channel when the dialog has some, as the outputs of the
+        // devices of BusDiagram; else at the end, named by the channel.
+        const home = channelPage(ets, c, channelLabel(d, c));
+        const add = (page: Page) => {
+          if (home) (home.children ??= []).push(page);
+          else rest.push({ ...page, label: `${name} · ${page.label}` });
+        };
         if (def.output)
-          pages.push({
+          add({
             key: `ch:${c.id}:${LOADS}`,
-            label: `${name} · ${t`Connected loads`}`,
+            label: t`Connected loads`,
             installation: true,
             sum: loadsText(ed, def, c),
             body: () => connectedLoads(ed, doc, d, def, c),
           });
         if (def.contactInputs)
-          pages.push({
+          add({
             key: `ch:${c.id}:${KEY}`,
-            label: `${name} · ${t`Wired push-button`}`,
+            label: t`Wired push-button`,
             installation: true,
             body: () => keyPage(ed, d, c),
           });
       });
+    }
+    pages.push(...ets, ...rest);
+    if (def)
       layout.device.forEach((page) =>
         pages.push({
           key: `dev:${page.id}`,
@@ -327,7 +338,6 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
           body: () => layoutItems(ed, doc, d, def, undefined, page.items),
         }),
       );
-    }
   } else if (def?.ports.display && !(def.acceptsKeys ?? def.acceptsInputs))
     pages.push(displayPage(ed, doc, d));
   if (def && hasChannels(def) && !d.ets)
@@ -347,71 +357,96 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
   const inputs = def ? inputsPage(ed, d, def) : null;
   if (inputs) pages.push(inputs);
 
-  const leaves = pages.flatMap((p) => p.children ?? [p]);
-  const cur = leaves.find((p) => p.key === ed.pageOf.get(d.id)) ?? leaves[0]!;
-  const group = pages.find((p) => p.children?.includes(cur));
+  // Every page of the tree, and the way down to the open one.
+  const all: Page[] = [];
+  const collect = (list: Page[]) =>
+    list.forEach((p) => (all.push(p), collect(p.children ?? [])));
+  collect(pages);
+  const shown = all.filter((p) => p.body);
+  const cur = shown.find((p) => p.key === ed.pageOf.get(d.id)) ?? shown[0]!;
+  const pathTo = (list: Page[], to: Page): Page[] | null => {
+    for (const p of list) {
+      if (p === to) return [];
+      const below = pathTo(p.children ?? [], to);
+      if (below) return [p, ...below];
+    }
+    return null;
+  };
+  const path = pathTo(pages, cur) ?? [];
   const open = (key: string) => {
     ed.pageOf.set(d.id, key);
     ed.requestUpdate();
   };
   const isOpen = (p: Page) =>
-    p === group || ed.pageGroups.has(`${d.id}|${p.key}`);
+    path.includes(p) || ed.pageGroups.has(`${d.id}|${p.key}`);
   const toggle = (p: Page) => {
     const k = `${d.id}|${p.key}`;
     if (ed.pageGroups.has(k)) ed.pageGroups.delete(k);
     else ed.pageGroups.add(k);
     ed.requestUpdate();
   };
-  const item = (p: Page, sub: boolean) =>
+  // A page without commands of its own opens no menu (not that of the browser).
+  const menu = (p: Page) => (e: MouseEvent) =>
+    p.menu ? openMenu(ed, e, p.menu()) : e.preventDefault();
+  const first = (p: Page): Page | undefined =>
+    p.body ? p : (p.children ?? []).map(first).find(Boolean);
+  const item = (p: Page, depth: number) =>
     html`<button
-      class="w-pitem ${sub ? "sub" : ""} ${p.installation ? "inst" : ""}"
+      class="w-pitem ${depth ? "sub" : ""} ${p.installation ? "inst" : ""}"
+      style=${depth > 1 ? `padding-left:${30 + (depth - 1) * 16}px` : ""}
       aria-current=${p === cur ? "page" : "false"}
       title=${p.sum ?? p.label}
       data-page=${p.key}
       @click=${() => open(p.key)}
-      @contextmenu=${(e: MouseEvent) =>
-        p.menu ? openMenu(ed, e, p.menu()) : undefined}
+      @contextmenu=${menu(p)}
     >
       ${p.installation ? PLUG : nothing}${p.label}
     </button>`;
+  /** A page, or a group of pages that opens and closes (an output, a channel). */
+  const node = (p: Page, depth: number): unknown =>
+    p.children
+      ? html`<div
+            class="w-pgroup ${isOpen(p) ? "open" : ""}"
+            style=${depth ? `margin-left:${depth * 16}px` : ""}
+            data-page=${p.key}
+          >
+            <button
+              class="w-ptog"
+              aria-expanded=${String(isOpen(p))}
+              aria-label=${isOpen(p) ? t`Collapse` : t`Expand`}
+              @click=${() => toggle(p)}
+              @contextmenu=${menu(p)}
+            >
+              ${isOpen(p) ? "−" : "+"}
+            </button>
+            <button
+              class="w-pitem"
+              aria-current=${p === cur ? "page" : "false"}
+              title=${p.sum ?? p.label}
+              @click=${() => {
+                ed.pageGroups.add(`${d.id}|${p.key}`);
+                open(first(p)?.key ?? p.key);
+              }}
+              @contextmenu=${menu(p)}
+            >
+              ${p.label}
+            </button>
+          </div>
+          ${isOpen(p) ? items(p.children, depth + 1) : nothing}`
+      : item(p, depth);
   /** Pages of a list, with the divider before the first installation page. */
-  const items = (list: Page[], sub: boolean) =>
+  const items = (list: Page[], depth: number): unknown[] =>
     list.map(
       (p, i) =>
-        html`${p.installation && !list[i - 1]?.installation ? installationDivider() : nothing}${item(p, sub)}`,
+        html`${p.installation && !list[i - 1]?.installation ? installationDivider() : nothing}${node(p, depth)}`,
     );
   return html`<div class="w-params">
-    <nav class="w-pmenu" aria-label=${t`Parameter pages`}>
-      ${pages.map((p) =>
-        p.children
-          ? html`<div
-                class="w-pgroup ${isOpen(p) ? "open" : ""}"
-                data-page=${p.key}
-              >
-                <button
-                  class="w-ptog"
-                  aria-expanded=${String(isOpen(p))}
-                  aria-label=${isOpen(p) ? t`Collapse` : t`Expand`}
-                  @click=${() => toggle(p)}
-                >
-                  ${isOpen(p) ? "−" : "+"}
-                </button>
-                <button
-                  class="w-pitem"
-                  title=${p.sum ?? p.label}
-                  @click=${() => {
-                    ed.pageGroups.add(`${d.id}|${p.key}`);
-                    open(p.children![0]!.key);
-                  }}
-                  @contextmenu=${(e: MouseEvent) =>
-                    p.menu ? openMenu(ed, e, p.menu()) : undefined}
-                >
-                  ${p.label}
-                </button>
-              </div>
-              ${isOpen(p) ? items(p.children, true) : nothing}`
-          : items([p], false),
-      )}
+    <nav
+      class="w-pmenu"
+      aria-label=${t`Parameter pages`}
+      @contextmenu=${(e: MouseEvent) => e.preventDefault()}
+    >
+      ${items(pages, 0)}
     </nav>
     ${keyed(
       `${d.id}/${cur.key}`,
@@ -422,7 +457,7 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
             : html`<section class="g-sec ${cur.installation ? "inst" : ""}">
                 <h3>
                   ${cur.installation ? html`<span class="w-inst-tag">${PLUG} ${t`Installation`}</span>` : nothing}
-                  ${group ? html`${group.label} › ` : nothing}${cur.label}
+                  ${path.map((g) => html`${g.label} › `)}${cur.label}
                   ${cur.sum ? html`<small>${cur.sum}</small>` : nothing}
                 </h3>
                 ${cur.body!()}
@@ -431,6 +466,55 @@ export function deviceParameters(ed: GuidedEditor, doc: Doc, d: Dev) {
       </div>`,
     )}
   </div>`;
+}
+
+/**
+ * The page of the dialog of a product for one of its channels, where its installation
+ * pages go: the shallowest page whose title names it ("C1", "A", the number of "Output
+ * 1"); several of them side by side ("A: General", "A: Drive"…) are grouped under the
+ * channel, so that each channel shows as one branch of the tree. None when no title
+ * names it.
+ */
+function channelPage(
+  pages: Page[],
+  c: { id: string; label?: string },
+  name: string,
+): Page | undefined {
+  const label = (c.label ?? "").trim();
+  if (!label) return undefined;
+  // The mark of the channel in a title: its last word when it numbers it.
+  const last = label.split(/\s+/).at(-1)!;
+  const mark = /\d/.test(last) || /^\p{Lu}$/u.test(last) ? last : label;
+  const word = new RegExp(
+    `(^|[^\\p{L}\\p{N}])${mark.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}([^\\p{L}\\p{N}]|$)`,
+    "u",
+  );
+  const names = (p: Page) => !p.installation && word.test(p.label);
+  // Pages of several channels ("A-B: General"): their group is that of all of them.
+  const shared = pages.find(
+    (p) => p.key.startsWith("chg:") && p.children?.some(names),
+  );
+  if (shared) {
+    shared.label = `${shared.label}, ${name}`;
+    return shared;
+  }
+  let level: Page[][] = [pages];
+  while (level.length) {
+    for (const list of level) {
+      const hits = list.filter(names);
+      if (hits.length === 1) return hits[0];
+      if (hits.length > 1) {
+        const group: Page = { key: `chg:${c.id}`, label: name, children: hits };
+        list.splice(list.indexOf(hits[0]!), 0, group);
+        hits.forEach((h) => list.splice(list.indexOf(h), 1));
+        return group;
+      }
+    }
+    level = level.flatMap((l) =>
+      l.flatMap((p) => (p.children ? [p.children] : [])),
+    );
+  }
+  return undefined;
 }
 
 /**

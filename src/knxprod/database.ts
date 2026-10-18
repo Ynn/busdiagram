@@ -31,6 +31,8 @@ export interface ProductDatabase {
   version: number;
   mask: string;
   peiType: number;
+  /** Converted from the data of ETS3: see ApplicationProgram.preEts4Style. */
+  preEts4Style?: boolean;
   /** Values the product fixes (see DatabaseOptions), as it was generated. */
   fixed?: Record<string, string>;
   /** Segments: address, size, and the octets kept from their default image. */
@@ -225,6 +227,7 @@ export function databaseOf(
     version: app.version,
     mask: app.mask,
     peiType: app.peiType,
+    ...(app.preEts4Style ? { preEts4Style: true } : {}),
     ...(options.fixed ? { fixed: options.fixed } : {}),
     segments: [...app.segments.values()].map((s) => {
       const img = images.get(s.id) ?? s.data;
@@ -289,6 +292,7 @@ export function programOf(db: ProductDatabase): ApplicationProgram {
     mask: db.mask,
     peiType: db.peiType,
     loadProcedureStyle: "",
+    ...(db.preEts4Style ? { preEts4Style: true } : {}),
     segments: new Map(
       db.segments.map((s) => {
         const data = new Uint8Array(s.size);

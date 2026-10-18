@@ -1002,6 +1002,12 @@ export const designerFr: Record<string, string> = {
     "« {0} » ne tient pas dans le texte de {1}",
   "not simulated": "non simulé",
   "Simulation limits": "Limites de la simulation",
+  "Default values": "Valeurs par défaut",
+  "Default values of {0}": "Valeurs par défaut de {0}",
+  "These parameters have their default values":
+    "Ces paramètres ont leurs valeurs par défaut",
+  "Default values: the calculation {0} of the program cannot be done ({1})":
+    "Valeurs par défaut : le calcul {0} du programme ne peut pas être fait ({1})",
   "{0} in use": "{0} en service",
   "Functions of the program that the simulation lacks: ETS sets them, the diagram does not run them.":
     "Fonctions du programme que la simulation n'a pas : ETS les paramètre, le schéma ne les exécute pas.",

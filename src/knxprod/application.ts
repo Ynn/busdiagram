@@ -169,6 +169,13 @@ export interface ApplicationProgram {
   mask: string;
   peiType: number;
   loadProcedureStyle: string;
+  /**
+   * A program converted from the data of ETS3 (PreEts4Style): ETS puts each parameter on
+   * the page whose title comes last before it in the display order, orders the pages by
+   * the display order of their titles, and indents a page by the spaces its title starts
+   * with.
+   */
+  preEts4Style?: boolean;
   segments: Map<string, Segment>;
   types: Map<string, ParameterType>;
   parameters: Map<string, Parameter>;
@@ -543,6 +550,7 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
     mask: app.attrs.MaskVersion ?? "",
     peiType: num(app.attrs.PeiType),
     loadProcedureStyle: app.attrs.LoadProcedureStyle ?? "",
+    ...(app.attrs.PreEts4Style === "true" ? { preEts4Style: true } : {}),
     segments,
     types,
     parameters,

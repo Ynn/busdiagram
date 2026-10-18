@@ -5,14 +5,13 @@
 // function the simulation lacks is marked, and a first page lists these functions.
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
-import type {
-  ApplicationProgram,
-  DynNode,
-} from "../../src/knxprod/application";
+import type { ApplicationProgram } from "../../src/knxprod/application";
 import { textOf } from "../../src/knxprod/application";
-import { branch, valueOf } from "../../src/knxprod/config";
+import { valueOf } from "../../src/knxprod/config";
+import type { DialogEntry, DialogPage } from "../../src/knxprod/dialog";
+import { dialogPages } from "../../src/knxprod/dialog";
 import type { Dev, Doc } from "./edit";
-import { readBacks, setEtsParameter } from "./ets-device";
+import { readBacks, resetEtsParameters, setEtsParameter } from "./ets-device";
 import { programOfProduct } from "./manufacturers";
 import type { GuidedEditor } from "./guided";
 import { t, tt } from "./lang";
@@ -105,42 +104,55 @@ function field(
   >`;
 }
 
-/** Rows of a page, in the order ETS shows them: by the DisplayOrder of the parameters. */
-function items(
+/**
+ * Rows of a page, in the order ETS shows them: by the DisplayOrder of the parameters;
+ * and the parameters it sets.
+ */
+function rowsOf(
   ed: GuidedEditor,
   d: Dev,
   app: ApplicationProgram,
   values: Record<string, string>,
-  nodes: DynNode[],
+  entries: DialogEntry[],
   limits?: readonly ProductLimit[],
-): TemplateResult[] {
+): { rows: TemplateResult[]; refs: string[] } {
   const rows: { order: number; row: TemplateResult }[] = [];
-  // A row without an order of its own (a separator) follows the one before it.
-  let last = -Infinity;
-  const walk = (list: DynNode[]) => {
-    for (const n of list) {
-      if (n.kind === "param") {
-        const f = field(ed, d, app, values, n.ref, limits);
-        last = app.parameterRefs.get(n.ref)?.displayOrder ?? last;
-        if (f !== nothing) rows.push({ order: last, row: f as TemplateResult });
-      } else if (n.kind === "separator") {
-        const text = textOf(app, n.id, "Text", n.text, lang());
-        rows.push({
-          order: last,
-          row: text
-            ? html`<h4 class="w-psep">${text}</h4>`
-            : html`<hr class="w-psep" />`,
-        });
-      } else if (n.kind === "choose") walk(branch(app, values, n));
-      else if (n.kind === "block" && n.inline) walk(n.children);
+  const refs: string[] = [];
+  for (const e of entries) {
+    if (e.kind === "param") {
+      const f = field(ed, d, app, values, e.ref, limits);
+      if (f === nothing) continue;
+      rows.push({ order: e.order, row: f as TemplateResult });
+      refs.push(e.ref);
+    } else {
+      const text = textOf(app, e.id, "Text", e.text, lang());
+      rows.push({
+        order: e.order,
+        row: text
+          ? html`<h4 class="w-psep">${text}</h4>`
+          : html`<hr class="w-psep" />`,
+      });
     }
+  }
+  // A page of separators only shows nothing.
+  if (!refs.length) return { rows: [], refs };
+  return {
+    rows: rows
+      .map((r, i) => ({ ...r, i }))
+      .sort((a, b) => a.order - b.order || a.i - b.i)
+      .map((r) => r.row),
+    refs,
   };
-  walk(nodes);
-  return rows
-    .map((r, i) => ({ ...r, i }))
-    .sort((a, b) => a.order - b.order || a.i - b.i)
-    .map((r) => r.row);
 }
+
+/** The parameters of a page and of the pages below it. */
+const refsBelow = (p: EtsPage): string[] => [
+  ...p.refs,
+  ...(p.children ?? []).flatMap((c) => refsBelow(c as EtsPage)),
+];
+
+/** A page of the dialog, with the parameters it shows. */
+type EtsPage = Page & { refs: string[] };
 
 /** Pages of a manufacturer's product, as ETS shows them, from its product database. */
 export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
@@ -221,28 +233,38 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
         </div>`,
     });
   }
-  const top = (nodes: DynNode[]) => {
-    for (const n of nodes) {
-      if (n.kind === "channel") top(n.children);
-      else if (n.kind === "choose") top(branch(app, values, n));
-      else if (n.kind === "block" && n.access !== "None") {
-        const rows = items(ed, d, app, values, n.children, limits);
-        // ETS hides a block that shows nothing.
-        if (!rows.length) continue;
-        // A block without a text of its own takes that of its parameter (ParamRefId).
-        const r = n.text ? undefined : app.parameterRefs.get(n.paramRef);
-        const p = r && app.parameters.get(r.ref);
-        const title = p
-          ? textOf(app, p.id, "Text", r.text ?? p.text, lang())
-          : textOf(app, n.id, "Text", n.text || n.name, lang());
-        out.push({
-          key: `ets:${n.id}`,
-          label: title.trim() || n.name.trim(),
-          body: () => html`<div class="g-row g-ets-page">${rows}</div>`,
-        });
-      }
-    }
+  const reset = (refs: string[], what: string) => () => [
+    {
+      label: t`Default values`,
+      disabled: refs.some((r) => values[r] !== undefined)
+        ? undefined
+        : t`These parameters have their default values`,
+      run: () => {
+        ed.run(t`Default values of ${what}`, (x) =>
+          resetEtsParameters(x, d.id, app, ed.registry, refs),
+        );
+      },
+    },
+  ];
+  // A page shows its rows; one that shows nothing, nor pages below it, is hidden.
+  const pageOf = (p: DialogPage): EtsPage | null => {
+    const shown = rowsOf(ed, d, app, values, p.entries, limits);
+    const children = p.children.flatMap((c) => pageOf(c) ?? []);
+    if (!shown.rows.length && !children.length) return null;
+    const page: EtsPage = {
+      key: `ets:${p.id}`,
+      label: p.label,
+      refs: shown.refs,
+      ...(shown.rows.length
+        ? {
+            body: () => html`<div class="g-row g-ets-page">${shown.rows}</div>`,
+          }
+        : {}),
+      ...(children.length ? { children } : {}),
+    };
+    page.menu = reset(refsBelow(page), p.label);
+    return page;
   };
-  top(app.dynamic);
+  out.push(...dialogPages(app, values, lang()).flatMap((p) => pageOf(p) ?? []));
   return out;
 }

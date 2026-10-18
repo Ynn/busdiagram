@@ -229,23 +229,67 @@ export function setEtsParameter(
     case "text":
       throw new EditRefusal(t`“${value}” does not fit the text of ${ref}`);
   }
-  // The value, then the hidden parameters that ETS calculates from it; a value that is the
-  // default of its reference is not kept. A calculation it makes fail is refused: the
-  // hidden parameters would keep values that do not agree with it.
+  setValues(
+    d,
+    app,
+    registry,
+    { ...ets.parameters, [ref]: value },
+    (c, m) =>
+      t`“${value}” for ${ref}: the calculation ${c} of the program cannot be done (${m})`,
+  );
+}
+
+/**
+ * Give parameters of the project of a catalog device their default values again (those
+ * of a page of its dialog), and its application again.
+ */
+export function resetEtsParameters(
+  doc: Doc,
+  devId: string,
+  app: ApplicationProgram,
+  registry: Registry,
+  refs: readonly string[],
+) {
+  const d = doc.devices.find((x) => x.id === devId);
+  if (!d) throw new EditRefusal(t`device “${devId}” not found`);
+  const ets = d.ets as { parameters?: Record<string, string> } | undefined;
+  if (!ets) throw new EditRefusal(t`not a device of a product catalog`);
+  const drop = new Set(refs);
+  setValues(
+    d,
+    app,
+    registry,
+    Object.fromEntries(
+      Object.entries(ets.parameters ?? {}).filter(([k]) => !drop.has(k)),
+    ),
+    (c, m) =>
+      t`Default values: the calculation ${c} of the program cannot be done (${m})`,
+  );
+}
+
+/**
+ * The parameters of the project of a catalog device: these values, then the hidden
+ * parameters that ETS calculates from them; a value that is the default of its reference
+ * is not kept. A calculation they make fail is refused (`refusal`): the hidden parameters
+ * would keep values that do not agree with it.
+ */
+function setValues(
+  d: Dev,
+  app: ApplicationProgram,
+  registry: Registry,
+  next: Record<string, string>,
+  refusal: (calculation: string, message: string) => string,
+) {
+  const ets = d.ets as { parameters?: Record<string, string> };
   const before: CalculationProblem[] = [];
   effectiveValues(app, ets.parameters ?? {}, before);
   const problems: CalculationProblem[] = [];
-  const values = fitting(() =>
-    effectiveValues(app, { ...ets.parameters, [ref]: value }, problems),
-  );
+  const values = fitting(() => effectiveValues(app, next, problems));
   const known = new Set(before.map((p) => `${p.calculation}|${p.ref ?? ""}`));
   const added = problems.find(
     (p) => !known.has(`${p.calculation}|${p.ref ?? ""}`),
   );
-  if (added)
-    throw new EditRefusal(
-      t`“${value}” for ${ref}: the calculation ${added.calculation} of the program cannot be done (${added.message})`,
-    );
+  if (added) throw new EditRefusal(refusal(added.calculation, added.message));
   const kept = Object.fromEntries(
     Object.entries(values).filter(([k, v]) => {
       const rk = app.parameterRefs.get(k);
