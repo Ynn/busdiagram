@@ -16,14 +16,14 @@ ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:
 
 ## Get the program
 
-Download `BusDiagram-ETS.exe` from the [releases of BusDiagram](https://github.com/Ynn/busdiagram/releases/latest) and start it: a window opens, to keep open during the session. It shows whether ETS and a diagram are connected, what to enter in ETS (with a button that copies the address), and a journal. It needs no installation; by default it is reachable from this computer only.
+Download the archive `BusDiagram-ETS-<version>-windows-x64.zip` from the [releases of BusDiagram](https://github.com/Ynn/busdiagram/releases/latest) (its `.sha256` file gives its checksum), extract it in a folder, and start `BusDiagram-ETS.exe` from there: a window opens, to keep open during the session. It shows whether ETS and a diagram are connected, what to enter in ETS (with a button that copies the address), and a journal. It needs no installation; by default it is reachable from this computer only.
 
 Port 3672 is chosen so as not to compete with KNX Virtual, which uses 3671: both can run at the same time.
 
 ## Link the diagram
 
 1. Start BusDiagram-ETS.
-2. In the diagram's toolbar, click **Link to ETS**. The control shows *ETS: waiting for ETS*, then *ETS linked* once ETS is connected.
+2. In the diagram's toolbar, click **Link to ETS**. The control shows *ETS: waiting for ETS*, then *ETS linked* once ETS is connected, with the individual address of the interface ETS reaches (free at the top of the line of the access point). After a change of access point, ⏳ beside it says that ETS keeps the former address until it has closed its connections.
 3. In the ETS project, add the connection once (ETS 6.4: connection button at the right of the toolbar → *Manage configured connections* → *Add*): type *Tunneling IP*, address `127.0.0.1`, port `3672`, without NAT.
 4. Click **Addresses for ETS** in the toolbar and import the file in the ETS project (right-click *Group Addresses* → *Import Group Addresses*): the group monitor then decodes the values with the names and DPTs of the diagram.
 5. In ETS, open *Panels* → *Monitors* → *Group Monitor*, click *Start*, and choose the *Tunneling IP (127.0.0.1:3672)* connection.

@@ -17,14 +17,14 @@ ETS ──Tunneling IP 127.0.0.1:3672── BusDiagram-ETS ──ws://127.0.0.1:
 
 ## Obtenir le programme
 
-Télécharger `BusDiagram-ETS.exe` depuis les [versions publiées de BusDiagram](https://github.com/Ynn/busdiagram/releases/latest) et le lancer : une fenêtre s'ouvre, à garder ouverte pendant la séance. Elle indique si ETS et un schéma sont connectés, ce qu'il faut saisir dans ETS (avec un bouton qui copie l'adresse), et un journal. Le programme ne demande pas d'installation ; par défaut, il n'est joignable que depuis cet ordinateur.
+Télécharger l'archive `BusDiagram-ETS-<version>-windows-x64.zip` depuis les [versions publiées de BusDiagram](https://github.com/Ynn/busdiagram/releases/latest) (son fichier `.sha256` donne son empreinte), l'extraire dans un dossier et lancer `BusDiagram-ETS.exe` depuis celui-ci : une fenêtre s'ouvre, à garder ouverte pendant la séance. Elle indique si ETS et un schéma sont connectés, ce qu'il faut saisir dans ETS (avec un bouton qui copie l'adresse), et un journal. Le programme ne demande pas d'installation ; par défaut, il n'est joignable que depuis cet ordinateur.
 
 Le port 3672 est choisi pour ne pas gêner KNX Virtual, qui utilise 3671 : les deux peuvent tourner en même temps.
 
 ## Relier le schéma
 
 1. Lancer BusDiagram-ETS.
-2. Dans la barre d'outils du schéma, cliquer sur **Relier à ETS**. Le contrôle affiche *ETS : en attente d'ETS*, puis *ETS relié* une fois ETS connecté.
+2. Dans la barre d'outils du schéma, cliquer sur **Relier à ETS**. Le contrôle affiche *ETS : en attente d'ETS*, puis *ETS relié* une fois ETS connecté, avec l'adresse individuelle de l'interface qu'atteint ETS (libre en haut de la ligne du point d'accès). Après un changement de point d'accès, ⏳ à côté indique qu'ETS garde l'ancienne adresse jusqu'à ce qu'il ait fermé ses connexions.
 3. Dans le projet ETS, ajouter une fois la connexion (ETS 6.4 : bouton des connexions à droite de la barre d'outils → *Gérer les connexions configurées* → *Ajouter*) : type *Tunneling IP*, adresse `127.0.0.1`, port `3672`, sans NAT.
 4. Cliquer sur **Adresses pour ETS** dans la barre d'outils et importer le fichier dans le projet ETS (clic droit sur *Adresses de Groupe* → *Importer Adresses de Groupe*) : le moniteur de groupe décode alors les valeurs avec les noms et les DPT du schéma.
 5. Dans ETS, ouvrir *Panneaux* → *Moniteurs* → *Moniteur de Groupe*, cliquer sur *Démarrer* et choisir la connexion *Tunneling IP (127.0.0.1:3672)*.
