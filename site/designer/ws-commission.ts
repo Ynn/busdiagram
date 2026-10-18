@@ -28,6 +28,7 @@ import type { Dev, Doc } from "./edit";
 import { t } from "./lang";
 import type { Column } from "./ws-table";
 import type { Host, MenuItem } from "./ws-state";
+import { confirmAction } from "./confirm";
 
 /** What the workspace needs from the designer to commission. */
 export interface Commissioner {
@@ -194,11 +195,23 @@ export function downloadItems(
       t`Download: partial (application)`,
       (d, s) => downloadApplication(d, s, id, t),
     ],
-    [t`Unload the application`, (d, s) => unloadApplication(d, s, id, t)],
+    [t`Unload the application…`, (d, s) => unloadApplication(d, s, id, t)],
   ];
-  return items.map(([label, run]) => ({
+  return items.map(([label, run], i) => ({
     label,
-    run: () => runProcedure(host, `${label} — ${name}`, run),
+    run: async () => {
+      // Unloading leaves the device without application: said first.
+      if (
+        i === items.length - 1 &&
+        !(await confirmAction({
+          title: t`Unload the application of ${name}?`,
+          message: t`The device keeps its individual address and loses its application: it does nothing until the application is downloaded again (from the designer or from ETS).`,
+          confirm: t`Unload`,
+        }))
+      )
+        return;
+      runProcedure(host, `${label.replace(/…$/, "")} — ${name}`, run);
+    },
   }));
 }
 
@@ -316,9 +329,18 @@ export function commissionBar(
         ${t`Devices in programming mode`}
       </button>
       <button
-        class="g-btn small"
+        class="g-btn small danger"
         title=${t`Every device and coupler back to its delivery state: address 15.15.255 (15.15.0 for a coupler), no application.`}
-        @click=${() => {
+        @click=${async () => {
+          if (
+            !(await confirmAction({
+              title: t`Put every device back to its delivery state?`,
+              message: t`Every device and coupler loses what it holds: its individual address (15.15.255, 15.15.0 for a coupler) and its application, including what ETS downloaded. The project (parameters, group addresses) stays as it is.`,
+              confirm: t`Reset to delivery state`,
+              irreversible: true,
+            }))
+          )
+            return;
           c.pending = null;
           record(
             host,
@@ -329,12 +351,21 @@ export function commissionBar(
           host.commissioner.apply({}, true);
         }}
       >
-        ${t`Delivery state`}
+        ${t`All to delivery state…`}
       </button>
       <button
-        class="g-btn small"
+        class="g-btn small danger"
         title=${t`Every device and coupler holds the project, as after a complete download.`}
-        @click=${() => {
+        @click=${async () => {
+          if (
+            !(await confirmAction({
+              title: t`Load the project into every device?`,
+              message: t`Every device and coupler takes its individual address and its application from the project, as after a complete download of all of them: what they hold now, such as a download from ETS that differs from the project, is replaced.`,
+              confirm: t`Load the project`,
+              irreversible: true,
+            }))
+          )
+            return;
           c.pending = null;
           record(
             host,
@@ -345,7 +376,7 @@ export function commissionBar(
           host.commissioner.apply(installationAsProject(doc), true);
         }}
       >
-        ${t`As the project`}
+        ${t`All as the project…`}
       </button>
     </div>
     ${

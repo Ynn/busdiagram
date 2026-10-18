@@ -44,6 +44,7 @@ import "./guided";
 import { cursorContext, nodeForPath, parsePath } from "./json-tree";
 import { setDesignerLanguage, t } from "./lang";
 import { LAYOUT, initLayout } from "./layout";
+import { confirmAction } from "./confirm";
 import { PANELS } from "./ws-state";
 import { COLUMNS } from "./ws-table";
 import { SnippetRefusal } from "./snippet-kit";
@@ -616,6 +617,26 @@ guided.removePackage = (name) => {
  * the browser forgets it.
  */
 async function removeExtension(ext: LoadedExtension) {
+  // The devices of the project that it brings can no longer be shown.
+  const own = new Set(provided.get(ext.name) ?? []);
+  const used = (guided.doc?.devices ?? []).filter((d) => own.has(d.behavior));
+  if (
+    !(await confirmAction({
+      title: ext.package
+        ? t`Remove the package ${ext.name}?`
+        : t`Remove the extension ${ext.name}?`,
+      message:
+        (ext.package
+          ? t`Its devices leave the catalog, and the browser forgets the package: import it again to bring them back.`
+          : t`What it defines leaves the designer, and the browser forgets it: load it again to bring it back.`) +
+        (used.length
+          ? " " +
+            t`${String(used.length)} devices of the project use it: the scenario is refused until it is back.`
+          : ""),
+      confirm: t`Remove`,
+    }))
+  )
+    return;
   if (
     !(await applyExtensions(
       extensions.filter((x) => x !== ext),
@@ -1017,9 +1038,12 @@ $("#ext-close").addEventListener("click", () =>
 // and columns as delivered (the language stays).
 $("#ext-reset").addEventListener("click", async () => {
   if (
-    !confirm(
-      t`Reset the designer? Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it).`,
-    )
+    !(await confirmAction({
+      title: t`Reset the designer?`,
+      message: t`Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it). The designer opens again as on a first visit, in its language.`,
+      confirm: t`Reset`,
+      irreversible: true,
+    }))
   )
     return;
   const stored = await clearStoredPackages();

@@ -919,6 +919,35 @@ export const designerFr: Record<string, string> = {
   "Every device and coupler back to its delivery state: address 15.15.255 (15.15.0 for a coupler), no application.":
     "Tous les participants et coupleurs reviennent à l'état de livraison : adresse 15.15.255 (15.15.0 pour un coupleur), sans application.",
   "Delivery state": "État de livraison",
+  "All to delivery state…": "Tout en état de livraison…",
+  "All as the project…": "Tout conforme au projet…",
+  "Put every device back to its delivery state?":
+    "Remettre tous les participants en état de livraison ?",
+  "Every device and coupler loses what it holds: its individual address (15.15.255, 15.15.0 for a coupler) and its application, including what ETS downloaded. The project (parameters, group addresses) stays as it is.":
+    "Chaque participant et coupleur perd ce qu'il contient : son adresse individuelle (15.15.255, 15.15.0 pour un coupleur) et son application, y compris ce qu'ETS a téléchargé. Le projet (paramètres, adresses de groupe) reste tel quel.",
+  "Reset to delivery state": "Remettre en état de livraison",
+  "Load the project into every device?":
+    "Charger le projet dans tous les participants ?",
+  "Every device and coupler takes its individual address and its application from the project, as after a complete download of all of them: what they hold now, such as a download from ETS that differs from the project, is replaced.":
+    "Chaque participant et coupleur prend son adresse individuelle et son application dans le projet, comme après un téléchargement complet de tous : ce qu'ils contiennent maintenant, par exemple un téléchargement depuis ETS différent du projet, est remplacé.",
+  "Load the project": "Charger le projet",
+  "Unload the application…": "Décharger l'application…",
+  "Unload the application of {0}?": "Décharger l'application de {0} ?",
+  "The device keeps its individual address and loses its application: it does nothing until the application is downloaded again (from the designer or from ETS).":
+    "Le participant garde son adresse individuelle et perd son application : il ne fait plus rien jusqu'à ce que l'application soit téléchargée à nouveau (depuis le designer ou depuis ETS).",
+  Unload: "Décharger",
+  "This cannot be undone.": "Cette action ne peut pas être annulée.",
+  "Remove the package {0}?": "Retirer le paquet {0} ?",
+  "Remove the extension {0}?": "Retirer l'extension {0} ?",
+  "Its devices leave the catalog, and the browser forgets the package: import it again to bring them back.":
+    "Ses participants quittent le catalogue, et le navigateur oublie le paquet : importez-le à nouveau pour les retrouver.",
+  "What it defines leaves the designer, and the browser forgets it: load it again to bring it back.":
+    "Ce qu'elle définit quitte le designer, et le navigateur l'oublie : chargez-la à nouveau pour le retrouver.",
+  "{0} devices of the project use it: the scenario is refused until it is back.":
+    "{0} participants du projet l'utilisent : le scénario est refusé tant qu'il n'est pas revenu.",
+  "Reset the designer?": "Réinitialiser le designer ?",
+  "Every extension and package of devices is removed from this browser, and the project kept here is lost (export it first to keep it). The designer opens again as on a first visit, in its language.":
+    "Toutes les extensions et tous les paquets de participants sont retirés de ce navigateur, et le projet conservé ici est perdu (exportez-le d'abord pour le garder). Le designer se rouvre comme à la première visite, dans sa langue.",
   "Every device is back to its delivery state.":
     "Tous les participants sont revenus à l'état de livraison.",
   "Every device and coupler holds the project, as after a complete download.":

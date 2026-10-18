@@ -1134,6 +1134,8 @@ test.describe("guided designer", () => {
       .locator("#ext-dialog .ext-row", { hasText: "versioned-extension.js" })
       .getByRole("button", { name: "Remove" })
       .click();
+    // A removal is confirmed first.
+    await page.locator("dialog.confirm-dialog button.danger").click();
     await page.click("#ext-close");
     await expect(
       page.locator("select.g-add option[value='ext:versionedExtension/v1']"),
@@ -1346,6 +1348,8 @@ test.describe("guided designer", () => {
       .locator("#ext-dialog .ext-row", { hasText: "base.js" })
       .getByRole("button", { name: "Remove" })
       .click();
+    // A removal is confirmed first.
+    await page.locator("dialog.confirm-dialog button.danger").click();
     await expect(page.locator("#toast")).toContainText(
       "dependent.js would fail",
     );

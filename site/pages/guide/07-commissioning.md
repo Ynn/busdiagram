@@ -33,13 +33,13 @@ The context menu of a device (right-click in the Topology panel or in the device
 | Download all | Programs the individual address with the programming button, then downloads the application. When the device already answers at its address, only the application. |
 | Download: individual address | Waits for a programming button, checks that a single device is in programming mode and that no other device holds the address, writes it, and ends programming mode. |
 | Download: partial (application) | Downloads the application to the device that answers at the address of the project. |
-| Unload the application | Removes the application of the device at that address. |
+| Unload the application… | Removes the application of the device at that address, after a confirmation. |
 
 The context menu of a line adds **Scan the line**, which lists the devices that answer at the addresses of the line, with what they hold; a device as delivered (15.15.255) is not on it. The couplers of a line, and the area coupler of an area, have their own download commands in the same menus.
 
 The device list of a line shows the download state, as in the ETS topology: **Adr** (individual address programmed), **Prg** (application program loaded), **Par** (parameters up to date), **Grp** (group addresses up to date), and **Cfg** (flags, DPTs, and priorities up to date). A change of the project, such as a new association, turns the column red until the device is downloaded again: until then, the device keeps its former settings.
 
-The **Commissioning** bar above the panels keeps the history of the operations. When an operation waits for a programming button, the bar says which one; it goes on as soon as the button is pressed in the diagram, and **Cancel** stops it. **Devices in programming mode** lists the devices whose LED is on. **Delivery state** brings every device back as delivered, and **As the project** loads every device with its address and application, as after a complete download.
+The **Commissioning** bar above the panels keeps the history of the operations. When an operation waits for a programming button, the bar says which one; it goes on as soon as the button is pressed in the diagram, and **Cancel** stops it. **Devices in programming mode** lists the devices whose LED is on. **All to delivery state…** brings every device back as delivered, and **All as the project…** loads every device with its address and application, as after a complete download. Both replace what the devices hold, including what ETS downloaded, outside the undo history: a dialog asks first. So does **Unload the application…**.
 
 The state of the devices is kept in the scenario: a programming button, an address written, or a download does not add a step to the undo history of the project.
 

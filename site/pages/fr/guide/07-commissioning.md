@@ -1,7 +1,7 @@
 ---
 title: Mise en service
 translationOf: guide/07-commissioning.md
-sourceHash: "6733a416de63"
+sourceHash: "1cb55595ba96"
 order: 7.5
 ---
 
@@ -34,13 +34,13 @@ Le menu contextuel d'un participant (clic droit dans le panneau Topologie ou dan
 | Téléchargement complet | Programme l'adresse individuelle avec le bouton de programmation, puis télécharge l'application. Quand le participant répond déjà à son adresse, seulement l'application. |
 | Télécharger : adresse individuelle | Attend un bouton de programmation, vérifie qu'un seul participant est en mode programmation et qu'aucun autre participant n'a l'adresse, l'écrit et met fin au mode programmation. |
 | Télécharger : téléchargement partiel (application) | Télécharge l'application dans le participant qui répond à l'adresse du projet. |
-| Décharger l'application | Retire l'application du participant à cette adresse. |
+| Décharger l'application… | Retire l'application du participant à cette adresse, après confirmation. |
 
 Le menu contextuel d'une ligne ajoute **Scanner la ligne**, qui liste les participants qui répondent aux adresses de la ligne, avec ce qu'ils contiennent ; un participant à l'état de livraison (15.15.255) n'y figure pas. Les coupleurs d'une ligne, et le coupleur de zone d'une zone, ont leurs propres commandes de téléchargement dans les mêmes menus.
 
 La liste des participants d'une ligne montre l'état de téléchargement, comme la topologie d'ETS : **Adr** (adresse individuelle programmée), **Prg** (programme d'application chargé), **Par** (paramètres à jour), **Grp** (adresses de groupe à jour) et **Cfg** (indicateurs, DPT et priorités à jour). Une modification du projet, comme une nouvelle association, fait passer la colonne en rouge jusqu'au prochain téléchargement du participant : d'ici là, il garde ses anciens réglages.
 
-La barre **Mise en service** au-dessus des panneaux garde l'historique des opérations. Quand une opération attend un bouton de programmation, la barre dit laquelle ; elle reprend dès que le bouton est actionné dans le schéma, et **Annuler** l'arrête. **Participants en mode programmation** liste les participants dont la LED est allumée. **État de livraison** remet tous les participants à l'état de livraison, et **Conforme au projet** charge chaque participant avec son adresse et son application, comme après un téléchargement complet.
+La barre **Mise en service** au-dessus des panneaux garde l'historique des opérations. Quand une opération attend un bouton de programmation, la barre dit laquelle ; elle reprend dès que le bouton est actionné dans le schéma, et **Annuler** l'arrête. **Participants en mode programmation** liste les participants dont la LED est allumée. **Tout en état de livraison…** remet tous les participants à l'état de livraison, et **Tout conforme au projet…** charge chaque participant avec son adresse et son application, comme après un téléchargement complet. Les deux remplacent ce que contiennent les participants, y compris ce qu'ETS a téléchargé, hors de l'historique d'annulation : une fenêtre demande d'abord confirmation. **Décharger l'application…** aussi.
 
 L'état des participants est conservé dans le scénario : un bouton de programmation, une adresse écrite ou un téléchargement n'ajoutent pas d'étape à l'historique d'annulation du projet.
 
