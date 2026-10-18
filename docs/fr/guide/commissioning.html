@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mise en service · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.a5faa49.modified.9c268971">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a5faa49.modified.9c268971"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.a5faa49.modified.9c268971"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.a5faa49.modified.9c268971"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.a5faa49.modified.9c268971" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/commissioning.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.a5faa49.modified.9c268971" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -79,13 +79,13 @@
 <td>Télécharge l&#39;application dans le participant qui répond à l&#39;adresse du projet.</td>
 </tr>
 <tr>
-<td>Décharger l&#39;application</td>
-<td>Retire l&#39;application du participant à cette adresse.</td>
+<td>Décharger l&#39;application…</td>
+<td>Retire l&#39;application du participant à cette adresse, après confirmation.</td>
 </tr>
 </tbody></table>
 </div><p>Le menu contextuel d&#39;une ligne ajoute <strong>Scanner la ligne</strong>, qui liste les participants qui répondent aux adresses de la ligne, avec ce qu&#39;ils contiennent ; un participant à l&#39;état de livraison (15.15.255) n&#39;y figure pas. Les coupleurs d&#39;une ligne, et le coupleur de zone d&#39;une zone, ont leurs propres commandes de téléchargement dans les mêmes menus.</p>
 <p>La liste des participants d&#39;une ligne montre l&#39;état de téléchargement, comme la topologie d&#39;ETS : <strong>Adr</strong> (adresse individuelle programmée), <strong>Prg</strong> (programme d&#39;application chargé), <strong>Par</strong> (paramètres à jour), <strong>Grp</strong> (adresses de groupe à jour) et <strong>Cfg</strong> (indicateurs, DPT et priorités à jour). Une modification du projet, comme une nouvelle association, fait passer la colonne en rouge jusqu&#39;au prochain téléchargement du participant : d&#39;ici là, il garde ses anciens réglages.</p>
-<p>La barre <strong>Mise en service</strong> au-dessus des panneaux garde l&#39;historique des opérations. Quand une opération attend un bouton de programmation, la barre dit laquelle ; elle reprend dès que le bouton est actionné dans le schéma, et <strong>Annuler</strong> l&#39;arrête. <strong>Participants en mode programmation</strong> liste les participants dont la LED est allumée. <strong>État de livraison</strong> remet tous les participants à l&#39;état de livraison, et <strong>Conforme au projet</strong> charge chaque participant avec son adresse et son application, comme après un téléchargement complet.</p>
+<p>La barre <strong>Mise en service</strong> au-dessus des panneaux garde l&#39;historique des opérations. Quand une opération attend un bouton de programmation, la barre dit laquelle ; elle reprend dès que le bouton est actionné dans le schéma, et <strong>Annuler</strong> l&#39;arrête. <strong>Participants en mode programmation</strong> liste les participants dont la LED est allumée. <strong>Tout en état de livraison…</strong> remet tous les participants à l&#39;état de livraison, et <strong>Tout conforme au projet…</strong> charge chaque participant avec son adresse et son application, comme après un téléchargement complet. Les deux remplacent ce que contiennent les participants, y compris ce qu&#39;ETS a téléchargé, hors de l&#39;historique d&#39;annulation : une fenêtre demande d&#39;abord confirmation. <strong>Décharger l&#39;application…</strong> aussi.</p>
 <p>L&#39;état des participants est conservé dans le scénario : un bouton de programmation, une adresse écrite ou un téléchargement n&#39;ajoutent pas d&#39;étape à l&#39;historique d&#39;annulation du projet.</p>
 <h2 id="what-students-can-get-wrong"><a class="anchor" href="#what-students-can-get-wrong">#</a>Les erreurs possibles des étudiants</h2><p>Les procédures agissent sur le participant qui répond, pas sur celui que l&#39;étudiant visait. Elles refusent ce qu&#39;ETS refuse :</p>
 <ul>

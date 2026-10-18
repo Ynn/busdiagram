@@ -317,6 +317,22 @@ dialog .actions {
   gap: 8px;
   margin-top: 10px;
 }
+/* Confirmation of an action that cannot be undone (confirm.ts). */
+.confirm-dialog {
+  width: min(480px, 94vw);
+}
+.confirm-dialog p {
+  color: var(--ink);
+}
+.confirm-dialog .confirm-warn {
+  color: var(--red);
+  font-weight: 600;
+}
+.confirm-dialog .actions button.danger {
+  background: var(--red);
+  border-color: var(--red);
+  color: #fff;
+}
 dialog .actions a {
   font-size: 13px;
   font-weight: 600;
