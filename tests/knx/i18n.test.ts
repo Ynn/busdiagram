@@ -10,7 +10,12 @@ import { buildScenario } from "../../src/knx/scenario";
 import { frMessages } from "../../src/i18n/fr";
 import { designerFr } from "../../site/designer/fr";
 import { extractMessages } from "../../src/i18n/extract";
-import { registerMessages, translator } from "../../src/i18n";
+import {
+  registerMessages,
+  restoreMessages,
+  saveMessages,
+  translator,
+} from "../../src/i18n";
 import { STANDARD_MODEL } from "../../src/standard-model";
 import { DESIGNER } from "../../site/designer/standard-designer";
 import { raw } from "./helpers";
@@ -278,6 +283,25 @@ describe("locale behavior", () => {
     const german = translator("de-DE");
     expect(german`relay closed`).toBe("Relais geschlossen");
     expect(german`relay open`).toBe("relay open");
+  });
+
+  it("follows the messages added or taken back after the translator is made", () => {
+    const before = translator("fr");
+    const kept = saveMessages();
+    const text = "A description added by a package";
+    expect(before.s!(text)).toBe(text);
+    registerMessages("fr", { [text]: "Une description ajoutée par un paquet" });
+    expect(before.s!(text)).toBe("Une description ajoutée par un paquet");
+    restoreMessages(kept);
+    expect(before.s!(text)).toBe(text);
+    // A locale with no catalog yet, then one.
+    const dutch = translator("nl");
+    expect(dutch.lang).toBe("en");
+    registerMessages("nl", { "relay closed": "relais gesloten" });
+    expect(dutch`relay closed`).toBe("relais gesloten");
+    expect(dutch.lang).toBe("nl");
+    expect(dutch.number.format(1.5)).toBe("1,5");
+    restoreMessages(kept);
   });
 });
 

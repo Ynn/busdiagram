@@ -56,13 +56,16 @@ export function translator(
   const hit = cache.get(full);
   if (hit) return hit;
   const base = full.split("-")[0]!;
-  const chain = base === "en" ? [] : [catalogs.get(full), catalogs.get(base)];
-  const effective =
+  // The catalogs as they are when a message is translated: a translator made before
+  // an extension adds or restores messages follows them.
+  const chain = () =>
+    base === "en" ? [] : [catalogs.get(full), catalogs.get(base)];
+  const effective = () =>
     base === "en" || catalogs.has(full) || catalogs.has(base) ? full : "en";
   const t = ((strings: TemplateStringsArray, ...values: unknown[]) => {
     const key = messageKey(strings);
     let template = key;
-    for (const catalog of chain) {
+    for (const catalog of chain()) {
       const translated = catalog?.[key];
       if (translated !== undefined) {
         template = translated;
@@ -74,12 +77,26 @@ export function translator(
     );
   }) as Translate & { lang: string; number: Intl.NumberFormat };
   t.s = (source: string) => {
-    for (const catalog of chain)
+    for (const catalog of chain())
       if (catalog?.[source] !== undefined) return catalog[source]!;
     return source;
   };
-  t.lang = effective;
-  t.number = new Intl.NumberFormat(effective, { maximumFractionDigits: 3 });
+  let number: [string, Intl.NumberFormat] | undefined;
+  Object.defineProperties(t, {
+    lang: { enumerable: true, get: effective },
+    number: {
+      enumerable: true,
+      get: () => {
+        const lang = effective();
+        if (number?.[0] !== lang)
+          number = [
+            lang,
+            new Intl.NumberFormat(lang, { maximumFractionDigits: 3 }),
+          ];
+        return number[1];
+      },
+    },
+  });
   cache.set(full, t);
   return t;
 }
