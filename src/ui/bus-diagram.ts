@@ -104,6 +104,14 @@ const TIMELINE_SLICE_MS = 250;
 
 /** Maximum real-time step per frame; do not catch up after suspension. */
 const MAX_FRAME_MS = 100;
+/** Narrowest row of devices a line continues from (wrap), in logical units. */
+const MIN_ROW = 760;
+/** Scale at which the rows of a diagram fill the width of the component (wrap). */
+const WRAP_SCALE = 0.85;
+/** Bounds and step of the zoom. */
+const ZOOM_MIN = 0.2;
+const ZOOM_MAX = 4;
+const ZOOM_STEP = 1.25;
 
 interface Hold {
   dev: string;
@@ -279,6 +287,10 @@ export class BusDiagram extends LitElement {
   private model: Scenario | null = null;
   private topo: Topology | null = null;
   private geo: Geometry | null = null;
+  /** What the geometry was made for (scenario, space, wrap): made again when it changes. */
+  private geoKey: string | null = null;
+  /** The scale the reader zoomed to, or null: the one of `fit`. */
+  private zoom: number | null = null;
   private sim: Simulation | null = null;
   private unsubscribe: (() => void) | null = null;
   private error = "";
@@ -477,13 +489,11 @@ export class BusDiagram extends LitElement {
     try {
       const model = buildScenario(data, undefined, this.tr);
       const topo = buildTopology(model);
-      const geo = layout(model, topo, {
-        equipmentSize: (v) => equipmentView(v)?.size,
-        t: this.tr,
-      });
       this.model = model;
       this.topo = topo;
-      this.geo = geo;
+      this.geoKey = null;
+      this.zoom = null;
+      this.ensureLayout();
       this.speed = this.view.speed ?? model.options.speed;
       this.stepMode = this.view.stepMode;
       this.showTables = model.options.filterTables;
@@ -530,13 +540,67 @@ export class BusDiagram extends LitElement {
     this.source = data;
     this.model = model;
     this.topo = buildTopology(model);
-    this.geo = layout(model, this.topo, {
-      equipmentSize: (v) => equipmentView(v)?.size,
-      t: this.tr,
-    });
+    this.geoKey = null;
+    this.ensureLayout();
     this.prepareDesignerLink(model);
     this.requestUpdate();
     return true;
+  }
+
+  /** The diagram is shown in the whole space of the component (contain, full screen). */
+  private contained() {
+    return (
+      (this.view.fit === "contain" || this.fullscreen) &&
+      this.stageBox.w > 0 &&
+      this.stageBox.h > 0
+    );
+  }
+
+  /** Width of the space of the diagram, inside its frame. */
+  private inner() {
+    return this.stageBox.w || this.width - 2;
+  }
+
+  /** The geometry of the scenario, made again when its space or its wrap changes. */
+  private ensureLayout() {
+    const model = this.model;
+    const topo = this.topo;
+    if (!model || !topo) return;
+    const v = this.view;
+    const contain = this.contained();
+    // By steps, so that a few pixels do not lay the diagram out again.
+    const step = (n: number) => Math.round(n / 40) * 40;
+    const key =
+      v.wrap === "none"
+        ? "none"
+        : contain
+          ? `box ${step(this.stageBox.w)} ${step(this.stageBox.h)}`
+          : `width ${step(this.width)}`;
+    if (key === this.geoKey && this.geo) return;
+    const make = (rowWidth?: number) =>
+      layout(model, topo, {
+        equipmentSize: (e) => equipmentView(e)?.size,
+        t: this.tr,
+        rowWidth,
+      });
+    let geo = make();
+    if (v.wrap !== "none" && !contain) {
+      // Rows as wide as the component shows them at a legible scale.
+      const width = Math.max(MIN_ROW, this.inner() / WRAP_SCALE);
+      if (geo.W > width) geo = make(width);
+    } else if (v.wrap !== "none") {
+      // The width of row whose diagram the box shows the largest.
+      const { w, h } = this.stageBox;
+      const shown = (g: Geometry) => Math.min(w / g.W, h / g.H);
+      for (let width = geo.W * 0.8; width >= MIN_ROW; width *= 0.8) {
+        const g = make(width);
+        if (g.W >= geo.W) continue;
+        if (shown(g) > shown(geo) * 1.02) geo = g;
+        else if (g.H > geo.H * 1.5) break;
+      }
+    }
+    this.geo = geo;
+    this.geoKey = key;
   }
 
   /** Reset to initial state at t = 0, retaining speed and display settings. */
@@ -1416,10 +1480,15 @@ export class BusDiagram extends LitElement {
     }
     // In contain mode, scale depends on available diagram space.
     // The scroller is the space left for the diagram (below the clock bar, if any).
-    const wrap = this.renderRoot.querySelector(".scroller");
+    const wrap = this.renderRoot.querySelector<HTMLElement>(".scroller");
     if (wrap && wrap !== this.observedWrap) {
       this.stageRo?.disconnect();
       this.observedWrap = wrap;
+      wrap.addEventListener("wheel", this.onWheel, { passive: false });
+      wrap.addEventListener("pointerdown", this.onPanStart);
+      wrap.addEventListener("pointermove", this.onPanMove);
+      wrap.addEventListener("pointerup", this.onPanEnd);
+      wrap.addEventListener("pointercancel", this.onPanEnd);
       this.stageRo = new ResizeObserver((e) => {
         const r = e[0]?.contentRect;
         if (!r) return;
@@ -1441,6 +1510,7 @@ export class BusDiagram extends LitElement {
   // ── Rendu ───────────────────────────────────────────────────────────────
   override render() {
     if (this.error) return html`<div class="err">${this.error}</div>`;
+    this.ensureLayout();
     const s = this.model;
     const g = this.geo;
     const topo = this.topo;
@@ -1449,16 +1519,16 @@ export class BusDiagram extends LitElement {
       return html`<div class="empty">${this.tr`Loading KNX scenario…`}</div>`;
     const t = sim.timeMs;
     const v = this.view;
-    const contain =
-      (v.fit === "contain" || this.fullscreen) &&
-      this.stageBox.w > 0 &&
-      this.stageBox.h > 0;
+    const contain = this.contained();
     // In width mode, scroll below minScale rather than making the diagram unreadable.
     // Full screen may enlarge a small diagram beyond maxScale.
     const maxScale = this.fullscreen ? Math.max(v.maxScale, 2.5) : v.maxScale;
-    const scale = contain
+    const fitted = contain
       ? Math.min(maxScale, this.stageBox.w / g.W, this.stageBox.h / g.H)
-      : Math.min(v.maxScale, Math.max(v.minScale, this.width / g.W));
+      : Math.min(v.maxScale, Math.max(v.minScale, this.inner() / g.W));
+    this.fitted = fitted;
+    const zoomed = v.zoom && this.zoom !== null;
+    const scale = zoomed ? this.zoom! : fitted;
     const live = sim.visibleTelegrams();
     const anims = live.map((tel) => ({
       tel,
@@ -1487,7 +1557,15 @@ export class BusDiagram extends LitElement {
         @click=${() => ((this.info = null), this.requestUpdate())}
       >
         ${this.renderClock(sim)}
-        <div class="scroller">
+        <div
+          class="scroller ${zoomed ? "zoomed" : ""}"
+          style=${
+            // Zoomed in a page: the diagram scrolls in the height it had.
+            zoomed && !contain
+              ? `max-height:max(${Math.round(g.H * fitted)}px, 60vh)`
+              : ""
+          }
+        >
           <div
             class="stage-size"
             style="width:${g.W * scale}px;height:${g.H * scale}px;background-size:${24 * scale}px ${24 * scale}px"
@@ -1508,6 +1586,7 @@ export class BusDiagram extends LitElement {
           </div>
         </div>
         ${v.toolbar === "compact" && !fullBar ? this.renderCompactControls(sim) : nothing}
+        ${v.zoom ? this.renderZoom(scale) : nothing}
         ${
           typeof document !== "undefined" && document.fullscreenEnabled
             ? html`<button
@@ -1593,6 +1672,143 @@ export class BusDiagram extends LitElement {
       ${this.renderTelegramDialog(sim)}
     </div>`;
   }
+
+  /** The scale of `fit`, last shown: where the zoom starts from. */
+  private fitted = 1;
+
+  /** Zoom buttons: out, the scale (back to the one that fits), in. */
+  private renderZoom(scale: number) {
+    const by = (f: number) => (e: Event) => {
+      e.stopPropagation();
+      this.setZoom(scale * f);
+    };
+    return html`<div class="zoom" @click=${(e: Event) => e.stopPropagation()}>
+      <button
+        title=${this.tr`Zoom out`}
+        aria-label=${this.tr`Zoom out`}
+        ?disabled=${scale <= ZOOM_MIN}
+        @click=${by(1 / ZOOM_STEP)}
+      >
+        −
+      </button>
+      <button
+        class="pct"
+        title=${this.tr`Fit the diagram`}
+        aria-label=${this.tr`Fit the diagram`}
+        ?disabled=${this.zoom === null}
+        @click=${() => this.setZoom(null)}
+      >
+        ${Math.round(scale * 100)} %
+      </button>
+      <button
+        title=${this.tr`Zoom in`}
+        aria-label=${this.tr`Zoom in`}
+        ?disabled=${scale >= ZOOM_MAX}
+        @click=${by(ZOOM_STEP)}
+      >
+        +
+      </button>
+    </div>`;
+  }
+
+  /**
+   * Zoom to `scale` (null: the scale that fits), keeping the point of the diagram under
+   * `at` (client coordinates; the centre of the space by default) where it is.
+   */
+  setZoom(scale: number | null, at?: { x: number; y: number }) {
+    const scroller = this.renderRoot.querySelector<HTMLElement>(".scroller");
+    const size = this.renderRoot.querySelector<HTMLElement>(".stage-size");
+    const before = this.zoom ?? this.fitted;
+    let next =
+      scale === null || !Number.isFinite(scale)
+        ? null
+        : Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Number(scale.toFixed(3))));
+    if (next !== null && Math.abs(next - this.fitted) < 0.005) next = null;
+    if (next === this.zoom) return;
+    this.zoom = next;
+    if (!scroller || !size) return this.requestUpdate();
+    const box = scroller.getBoundingClientRect();
+    const p = at ?? {
+      x: box.left + box.width / 2,
+      y: box.top + box.height / 2,
+    };
+    const r = size.getBoundingClientRect();
+    const lx = (p.x - r.left) / before;
+    const ly = (p.y - r.top) / before;
+    this.requestUpdate();
+    void this.updateComplete.then(() => {
+      const after = this.zoom ?? this.fitted;
+      const n = size.getBoundingClientRect();
+      scroller.scrollLeft += n.left + lx * after - p.x;
+      scroller.scrollTop += n.top + ly * after - p.y;
+    });
+  }
+
+  /** Ctrl + wheel (a pinch of a touchpad) zooms on the pointer. */
+  private onWheel = (e: WheelEvent) => {
+    if (!this.view.zoom || !(e.ctrlKey || e.metaKey)) return;
+    e.preventDefault();
+    const scale = this.zoom ?? this.fitted;
+    this.setZoom(scale * Math.exp(-e.deltaY * 0.0025), {
+      x: e.clientX,
+      y: e.clientY,
+    });
+  };
+
+  /** Dragging the background of a zoomed diagram moves it (not a key, not a device). */
+  private pan: {
+    x: number;
+    y: number;
+    left: number;
+    top: number;
+    moved: boolean;
+  } | null = null;
+  private onPanStart = (e: PointerEvent) => {
+    const scroller = e.currentTarget as HTMLElement;
+    if (this.zoom === null || e.button !== 0 || e.pointerType === "touch")
+      return;
+    // The background: the space, the zones, the cables.
+    const target = e.composedPath()[0] as Element | undefined;
+    const background =
+      !!target?.matches &&
+      (target.matches(".scroller, .stage-size, .stage") ||
+        !!target.closest(".zone, svg.wires"));
+    if (!background) return;
+    this.pan = {
+      x: e.clientX,
+      y: e.clientY,
+      left: scroller.scrollLeft,
+      top: scroller.scrollTop,
+      moved: false,
+    };
+  };
+  private onPanMove = (e: PointerEvent) => {
+    const p = this.pan;
+    if (!p) return;
+    const scroller = e.currentTarget as HTMLElement;
+    const dx = e.clientX - p.x;
+    const dy = e.clientY - p.y;
+    if (!p.moved && Math.hypot(dx, dy) < 4) return;
+    if (!p.moved) {
+      p.moved = true;
+      scroller.setPointerCapture(e.pointerId);
+      scroller.classList.add("panning");
+    }
+    scroller.scrollLeft = p.left - dx;
+    scroller.scrollTop = p.top - dy;
+  };
+  private onPanEnd = (e: PointerEvent) => {
+    const p = this.pan;
+    this.pan = null;
+    const scroller = e.currentTarget as HTMLElement;
+    scroller.classList.remove("panning");
+    if (!p?.moved) return;
+    // The click that ends a drag does not close the panel of a device.
+    scroller.addEventListener("click", (c) => c.stopPropagation(), {
+      capture: true,
+      once: true,
+    });
+  };
 
   /** Parameters that disagree with the load they compensate (see consistency.ts). */
   private renderConfigWarnings(sim: Simulation) {
@@ -1881,7 +2097,7 @@ export class BusDiagram extends LitElement {
         ),
       ),
     );
-    return html`<svg width=${g.W} height=${g.H}>${parts}</svg>`;
+    return html`<svg class="wires" width=${g.W} height=${g.H}>${parts}</svg>`;
   }
 
   /**

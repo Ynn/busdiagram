@@ -137,7 +137,16 @@ export interface LayoutOptions {
   t?: Translate;
   /** Dimensions of an equipment view, provided by the view registry. */
   equipmentSize?: (view: string) => EquipmentSize | undefined;
+  /**
+   * Width, in logical units, of the diagram a line fits in: the devices of a line that
+   * go beyond continue on another row below, its cable turning back between the two
+   * (none: a line keeps its devices in one row).
+   */
+  rowWidth?: number;
 }
+
+/** Space between a row of a line and the cable turning back to the next. */
+const TURN = 30;
 
 const drawn = new WeakMap<Device, KnxObject[]>();
 
@@ -391,6 +400,11 @@ interface RowPlan {
   label: string;
   devices: Device[];
   busY: number;
+  /**
+   * The rows of a line that continues below (see rowWidth): its devices in each, and the
+   * height of each bus. The first is busY.
+   */
+  lanes?: { devices: Device[]; busY: number }[];
 }
 
 export function layout(
@@ -442,7 +456,11 @@ export function layout(
     );
 
   // Horizontal placement of a row (left to right order): returns the end abscisse.
-  const placeRow = (row: RowPlan, x0: number, order: Device[]): number => {
+  const placeRow = (
+    row: Pick<RowPlan, "seg" | "busY">,
+    x0: number,
+    order: Device[],
+  ): number => {
     let x = x0;
     order.forEach((d) => {
       const p = localParts(d, sizeOf);
@@ -483,13 +501,44 @@ export function layout(
     });
     return x - DEV_GAP;
   };
-  const rowExtent = (row: RowPlan) => {
+  const rowExtent = (row: Pick<RowPlan, "devices">) => {
     let need = 56;
     row.devices.forEach((d) => {
       const p = localParts(d, sizeOf);
       need = Math.max(need, DROP + p.h - p.minRel);
     });
     return need;
+  };
+  // The devices of a line in rows that fit rowWidth (in their order on the line), each
+  // row below the previous one: y is the top of the first; returns the bottom.
+  const width = (d: Device) => {
+    const p = localParts(d, sizeOf);
+    return p.left + CARD_W + p.right;
+  };
+  const room = opts.rowWidth ? opts.rowWidth - (devX0 + 60) : Infinity;
+  const placeLanes = (row: RowPlan, top: number): number => {
+    const lanes: Device[][] = [[]];
+    let used = 0;
+    row.devices.forEach((d) => {
+      const w = width(d);
+      const lane = lanes[lanes.length - 1]!;
+      if (lane.length && used + DEV_GAP + w > room) {
+        lanes.push([d]);
+        used = w;
+      } else {
+        used += (lane.length ? DEV_GAP : 0) + w;
+        lane.push(d);
+      }
+    });
+    let y = top;
+    row.lanes = lanes.map((devices, i) => {
+      const busY = y + (i ? TURN + 14 : 0) + rowExtent({ devices });
+      y = busY;
+      return { devices, busY };
+    });
+    row.busY = row.lanes[0]!.busY;
+    if (row.lanes.length === 1) delete row.lanes;
+    return y + 44 + 18;
   };
 
   let y = 16;
@@ -554,10 +603,9 @@ export function layout(
           devices: segDevices(`L${l.address}`),
           busY: 0,
         };
-        main.busY = y + rowExtent(main);
+        y = placeLanes(main, y);
         rows.push(main);
         lineYs.push(main.busY);
-        y = main.busY + 44 + 18;
         if (l.extension) {
           const down: RowPlan = {
             seg: `L${l.address}b`,
@@ -565,9 +613,8 @@ export function layout(
             devices: segDevices(`L${l.address}b`),
             busY: 0,
           };
-          down.busY = y + rowExtent(down);
+          y = placeLanes(down, y);
           rows.push(down);
-          y = down.busY + 44 + 18;
         }
       });
     if (corner && !corner.devices && lineYs.length)
@@ -578,19 +625,33 @@ export function layout(
 
   // The downstream segment starts from the extension (right): its first logical device is closest.
   rows.forEach((r) => {
-    const order = r.seg.endsWith("b") ? [...r.devices].reverse() : r.devices;
-    maxRight = Math.max(maxRight, placeRow(r, devX0, order));
+    const down = r.seg.endsWith("b");
+    for (const lane of r.lanes ?? [r]) {
+      const order = down ? [...lane.devices].reverse() : lane.devices;
+      maxRight = Math.max(
+        maxRight,
+        placeRow({ seg: r.seg, busY: lane.busY }, devX0, order),
+      );
+    }
   });
   const hasExt = s.lines.some((l) => l.extension);
   const lineEnd = Math.max(maxRight + (hasExt ? 96 : 60), lineX0 + 420);
 
+  // A line in several rows: its cable runs along each, and turns back below it to the
+  // start of the next (a downstream segment, from the right).
   rows.forEach((r) => {
-    const isDown = r.seg.endsWith("b");
-    const a: Pt = isDown ? [lineEnd, r.busY] : [lineX0, r.busY];
-    const b: Pt = isDown ? [lineX0, r.busY] : [lineEnd, r.busY];
+    const down = r.seg.endsWith("b");
+    const [start, end] = down ? [lineEnd, lineX0] : [lineX0, lineEnd];
+    const back = down ? lineEnd - 16 : lineX0 + 16;
+    const pts: Pt[] = [];
+    (r.lanes ?? [r]).forEach((lane, i, all) => {
+      pts.push([i ? back : start, lane.busY], [end, lane.busY]);
+      const next = all[i + 1];
+      if (next) pts.push([end, lane.busY + TURN], [back, lane.busY + TURN]);
+    });
     segs.set(
       r.seg,
-      polySeg(r.seg, "line", [a, b], r.label, [lineX0 + 14, r.busY + 9], "h"),
+      polySeg(r.seg, "line", pts, r.label, [lineX0 + 14, r.busY + 9], "h"),
     );
   });
 
@@ -604,10 +665,10 @@ export function layout(
       id: `EXT${l.address}`,
       kind: "extension",
       address: l.extension.address,
-      c: [lineEnd, (up.a[1] + down.a[1]) / 2],
+      c: [lineEnd, (up.b[1] + down.a[1]) / 2],
       w: COUPLER_W + 20,
       h: COUPLER_H,
-      A: { seg: up.id, p: [lineEnd, up.a[1]] },
+      A: { seg: up.id, p: [lineEnd, up.b[1]] },
       B: { seg: down.id, p: [lineEnd, down.a[1]] },
       line: l.address,
     });

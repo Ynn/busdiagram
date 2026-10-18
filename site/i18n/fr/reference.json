@@ -701,5 +701,11 @@
   "Value sent on the falling edge (key released); null sends nothing.": "Valeur envoyée sur le front descendant (touche relâchée) ; null n'envoie rien.",
   "The lock object locks the input; off, its telegrams are ignored (the object stays).": "L'objet de verrouillage verrouille l'entrée ; désactivé, ses télégrammes sont ignorés (l'objet reste).",
   "As when the contact closes": "Comme à la fermeture du contact",
-  "As when the contact opens": "Comme à l'ouverture du contact"
+  "As when the contact opens": "Comme à l'ouverture du contact",
+  "\"auto\" | \"none\"": "\"auto\" | \"none\"",
+  "\"auto\"": "\"auto\"",
+  "Lines too long for the diagram continue on rows below.": "Les lignes trop longues pour le schéma continuent sur des rangées en dessous.",
+  "‘auto’: the devices of a line that do not fit the width of the component (in ‘contain’ mode and in full screen, its whole space) continue on another row, the cable of the line turning back between the two, in the order of the devices on the line. ‘none’ keeps each line on one row, as wide as its devices.": "‘auto’ : les participants d'une ligne qui ne tiennent pas dans la largeur du composant (en mode ‘contain’ et en plein écran, tout son espace) continuent sur une autre rangée, le câble de la ligne revenant entre les deux, dans l'ordre des participants sur la ligne. ‘none’ garde chaque ligne sur une seule rangée, aussi large que ses participants.",
+  "Zoom of the diagram.": "Zoom du schéma.",
+  "Buttons in a corner of the diagram zoom in and out, and go back to the scale that fits; Ctrl + wheel (or the pinch of a touchpad) zooms on the pointer, and dragging the background of a zoomed diagram moves it. false keeps the scale of ‘fit’.": "Des boutons dans un coin du schéma l'agrandissent, le réduisent et reviennent à l'échelle qui l'ajuste ; Ctrl + molette (ou le pincement d'un pavé tactile) zoome sur le pointeur, et faire glisser le fond d'un schéma agrandi le déplace. false garde l'échelle de ‘fit’."
 }

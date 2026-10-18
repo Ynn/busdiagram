@@ -1,7 +1,13 @@
 // Diagram geometry: cards, key plates, and loads never overlap, and loads stay above the bus.
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
-import { PLATE_W, layout } from "../../src/knx/layout";
+import {
+  PLATE_W,
+  layout,
+  segPoint,
+  segPos,
+  type LayoutOptions,
+} from "../../src/knx/layout";
 import type { Scenario } from "../../src/knx/scenario";
 import { buildScenario } from "../../src/knx/scenario";
 import { toV2 } from "../../src/knx/export";
@@ -15,8 +21,8 @@ interface Box {
   y1: number;
 }
 
-function boxes(s: Scenario) {
-  const g = layout(s);
+function boxes(s: Scenario, opts?: LayoutOptions) {
+  const g = layout(s, undefined, opts);
   const out: Box[] = [];
   const above: { id: string; bottom: number; bus: number }[] = [];
   for (const d of s.devices) {
@@ -62,8 +68,8 @@ function boxes(s: Scenario) {
   return { out, above };
 }
 
-function expectNoOverlap(s: Scenario) {
-  const { out, above } = boxes(s);
+function expectNoOverlap(s: Scenario, opts?: LayoutOptions) {
+  const { out, above } = boxes(s, opts);
   const hits: string[] = [];
   out.forEach((a, i) =>
     out.slice(i + 1).forEach((b) => {
@@ -76,6 +82,57 @@ function expectNoOverlap(s: Scenario) {
   });
   expect(hits).toEqual([]);
 }
+
+describe("lines in several rows", () => {
+  const narrow = { rowWidth: 900 };
+  it.each(activeScenarios())(
+    "%s: no overlap, each device on its cable",
+    (f) => {
+      const s = buildScenario(readJson(resolve(scenariosDir, f)));
+      expectNoOverlap(s, narrow);
+      const g = layout(s, undefined, narrow);
+      for (const d of s.devices) {
+        const at = g.devices.get(d.id)!.at;
+        const seg = g.segs.get(g.devices.get(d.id)!.seg)!;
+        const p = segPoint(seg, segPos(seg, at));
+        expect(Math.hypot(p[0] - at[0], p[1] - at[1]), d.id).toBeLessThan(0.5);
+      }
+    },
+  );
+
+  it("continue below what does not fit, in the order of the line", () => {
+    // Twelve actuators of one line.
+    const doc = structuredClone(raw("lighting-control.json")) as {
+      lines: { address: string }[];
+      devices: { id: string; address?: string; behavior: string }[];
+    };
+    const model = doc.devices.find((d) => d.behavior === "switchActuator/v1")!;
+    const devices = Array.from({ length: 12 }, (_, i) => ({
+      ...structuredClone(model),
+      id: `a${i + 1}`,
+      address: `1.1.${100 + i}`,
+    }));
+    doc.lines = [{ address: "1.1" }];
+    doc.devices = devices;
+    const s = buildScenario(doc);
+    const one = layout(s);
+    const wrapped = layout(s, undefined, narrow);
+    expect(new Set([...one.devices.values()].map((d) => d.at[1])).size).toBe(1);
+    const rows = [
+      ...new Set([...wrapped.devices.values()].map((d) => d.at[1])),
+    ];
+    expect(rows.length).toBeGreaterThan(1);
+    expect(wrapped.W).toBeLessThan(one.W);
+    expect(wrapped.W).toBeLessThanOrEqual(900 + 60);
+    // Along the cable, the devices come in their order on the line.
+    const seg = wrapped.segs.get("L1.1")!;
+    const along = devices.map((d) =>
+      segPos(seg, wrapped.devices.get(d.id)!.at),
+    );
+    expect(along).toEqual([...along].sort((a, b) => a - b));
+    expectNoOverlap(s, narrow);
+  });
+});
 
 describe("diagram layout without overlaps", () => {
   it.each(activeScenarios())("%s", (f) =>

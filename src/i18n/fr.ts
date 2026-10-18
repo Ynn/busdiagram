@@ -381,6 +381,9 @@ export const frMessages: Record<string, string> = {
   "Main group {0}": "Groupe principal {0}",
   "Middle group {0}/{1}": "Groupe médian {0}/{1}",
   "ETS: waiting for ETS": "ETS : en attente d'ETS",
+  "Zoom out": "Réduire",
+  "Zoom in": "Agrandir",
+  "Fit the diagram": "Ajuster le schéma",
   "Interface address of this line: ETS keeps the former one until it has closed its connections":
     "Adresse d'interface de cette ligne : ETS garde l'ancienne jusqu'à ce qu'il ait fermé ses connexions",
   "Individual address of the interface ETS reaches":

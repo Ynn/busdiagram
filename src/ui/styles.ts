@@ -365,6 +365,54 @@ export const styles = css`
     color: ${unsafeCSS(C.ink)};
     cursor: pointer;
   }
+  .zoom {
+    position: absolute;
+    right: 44px;
+    bottom: 8px;
+    z-index: 7;
+    display: flex;
+    gap: 2px;
+  }
+  .zoom button {
+    min-width: 28px;
+    height: 28px;
+    padding: 0 6px;
+    border-radius: 8px;
+    border: 1px solid #cfccc1;
+    background: rgba(255, 255, 255, 0.92);
+    color: ${unsafeCSS(C.ink)};
+    font: inherit;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  .zoom button.pct {
+    min-width: 52px;
+    font-size: 12px;
+    font-variant-numeric: tabular-nums;
+  }
+  .zoom button:disabled {
+    cursor: default;
+    color: ${unsafeCSS(C.mute)};
+  }
+  .zoom button:not(:disabled):hover {
+    background: #fff;
+  }
+  .zoom button:focus-visible {
+    outline: 2px solid ${unsafeCSS(C.tg)};
+    outline-offset: 1px;
+  }
+  .scroller.zoomed,
+  .kv.contain .scroller.zoomed,
+  .kv.fs .scroller.zoomed {
+    overflow: auto;
+    justify-content: safe center;
+    align-items: safe center;
+    cursor: grab;
+  }
+  .scroller.panning {
+    cursor: grabbing;
+    user-select: none;
+  }
   .fsbtn:hover {
     background: #fff;
   }

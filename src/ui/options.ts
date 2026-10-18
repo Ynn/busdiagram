@@ -3,6 +3,7 @@
 
 export type ToolbarMode = "full" | "compact" | "none";
 export type FitMode = "width" | "contain";
+export type WrapMode = "auto" | "none";
 
 export interface ViewOptions {
   toolbar: ToolbarMode;
@@ -12,6 +13,10 @@ export interface ViewOptions {
   fit: FitMode;
   maxScale: number;
   minScale: number;
+  /** A line too long for the space of the diagram continues on rows below. */
+  wrap: WrapMode;
+  /** Zoom buttons, and Ctrl + wheel and dragging on the diagram. */
+  zoom: boolean;
   speed: number | "instant" | null;
   stepMode: boolean;
   /** Address of the designer opened by the toolbar icon, or "none" to hide the icon. */
@@ -43,6 +48,8 @@ export const DEFAULT_OPTIONS: ViewOptions = {
   fit: "width",
   maxScale: 1.2,
   minScale: 0.7,
+  wrap: "auto",
+  zoom: true,
   speed: null,
   stepMode: false,
   designer: PUBLISHED_DESIGNER,
@@ -131,6 +138,26 @@ export const OPTION_DOCS: OptionDoc[] = [
     example: '<bus-diagram min-scale="0.5">',
   },
   {
+    name: "wrap",
+    attribute: "wrap",
+    type: '"auto" | "none"',
+    default: '"auto"',
+    summary: "Lines too long for the diagram continue on rows below.",
+    details:
+      "‘auto’: the devices of a line that do not fit the width of the component (in ‘contain’ mode and in full screen, its whole space) continue on another row, the cable of the line turning back between the two, in the order of the devices on the line. ‘none’ keeps each line on one row, as wide as its devices.",
+    example: '<bus-diagram wrap="none">',
+  },
+  {
+    name: "zoom",
+    attribute: "zoom",
+    type: "boolean",
+    default: "true",
+    summary: "Zoom of the diagram.",
+    details:
+      "Buttons in a corner of the diagram zoom in and out, and go back to the scale that fits; Ctrl + wheel (or the pinch of a touchpad) zooms on the pointer, and dragging the background of a zoomed diagram moves it. false keeps the scale of ‘fit’.",
+    example: '<bus-diagram zoom="false">',
+  },
+  {
     name: "speed",
     attribute: "speed",
     type: 'number | "instant"',
@@ -210,6 +237,8 @@ function parseAttr(doc: OptionDoc, raw: string | null): unknown {
     return ["full", "compact", "none"].includes(raw) ? raw : undefined;
   if (doc.name === "fit")
     return ["width", "contain"].includes(raw) ? raw : undefined;
+  if (doc.name === "wrap")
+    return ["auto", "none"].includes(raw) ? raw : undefined;
   if (doc.name === "timeline") {
     const v = raw.trim();
     if (BOOL_FALSE.includes(v.toLowerCase()) || v.toLowerCase() === "none")
