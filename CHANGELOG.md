@@ -4,6 +4,8 @@ All notable changes to BusDiagram are documented in this file. The format follow
 
 ## [Unreleased]
 
+## [0.8.0] - 2026-10-18
+
 ### Added
 
 - Commissioning: with an `installation` section, a scenario keeps, apart from the project, what each device and coupler holds: its individual address, its programming mode, and the application it was downloaded with. Devices start as delivered (15.15.255, 15.15.0 for a coupler, no application): a device without an application does nothing, and a coupler without one forwards no group telegram. A device downloaded before a change of the project keeps its former settings and associations, and a coupler its former filter table. Guide page “Commissioning” (English and French).
