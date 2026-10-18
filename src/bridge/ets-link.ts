@@ -182,6 +182,7 @@ export class EtsLink {
         this.update({ sent: this.status.sent + 1 });
       },
       o.timers,
+      () => this.o.target()?.access ?? null,
     );
   }
 

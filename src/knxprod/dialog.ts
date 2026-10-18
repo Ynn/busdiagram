@@ -2,7 +2,7 @@
 // titles, and what each shows (parameters and separators of the branches that the values
 // select). DOM-free: a host renders the rows.
 import type { ApplicationProgram, DynNode } from "./application";
-import { textOf } from "./application";
+import { refTextOf, textOf } from "./application";
 import type { ParameterValues } from "./config";
 import { branch } from "./config";
 
@@ -30,11 +30,10 @@ type Block = Extract<DynNode, { kind: "block" }>;
  * before the name of a channel is entered.
  */
 function titleOf(app: ApplicationProgram, n: Block, lang: string): string {
-  const r = n.text ? undefined : app.parameterRefs.get(n.paramRef);
-  const p = r && app.parameters.get(r.ref);
-  const text = p
-    ? textOf(app, p.id, "Text", r.text ?? p.text, lang)
-    : textOf(app, n.id, "Text", n.text || n.name, lang);
+  const text =
+    !n.text && app.parameterRefs.has(n.paramRef)
+      ? refTextOf(app, n.paramRef, lang)
+      : textOf(app, n.id, "Text", n.text || n.name, lang);
   return text.replace(/\{\{\d+(?::([^}]*))?\}\}/g, (_, d: string | undefined) =>
     (d ?? "").trim(),
   );

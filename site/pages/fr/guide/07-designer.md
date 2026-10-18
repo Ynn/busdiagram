@@ -1,7 +1,7 @@
 ---
 title: Designer
 translationOf: guide/07-designer.md
-sourceHash: "d414f6c2c659"
+sourceHash: "a047b4b81066"
 order: 7
 ---
 # Designer
@@ -105,6 +105,8 @@ L'aperçu peut afficher une barre d'outils complète ou compacte, masquer le mon
 | Fichier JSON (sauvegarde complète) | Enregistrer le scénario pour la gestion de versions ou le charger avec `src` : en entier, mémoire téléchargée par ETS comprise. Pour partager, préférer la page, le code à coller ou le lien du lecteur. |
 | Lien de lecture | Mettre un scénario compressé dans le fragment d'une URL pour une iframe ou une autre visionneuse web. Voir [Visionneuse](viewer.html). |
 | Bibliothèque | Télécharger `bus-diagram.js` pour l'héberger à côté de votre page. |
+
+Un export d'un projet avec des participants de fabricants emporte ce dont ils ont besoin : le code de leurs produits, les données de leurs bases de produits (paramètres, textes) et, dans le fichier JSON, la mémoire qu'ETS a téléchargée. Un export n'est pas non plus anonymisé : il garde les noms donnés dans le projet. Ne le partagez que là où le paquet de participants peut l'être, et ne le collez pas par erreur dans une page publique ou un service extérieur à votre organisation.
 
 Pour préparer une variante d'un exemple, comme une adresse changée, un indicateur retiré ou un coupleur réglé pour bloquer, partez de cet exemple dans **Partir d'un modèle**, modifiez-le, puis partagez-le en lien de visionneuse ou en page autonome. Chaque copie s'exécute avec son propre état.
 

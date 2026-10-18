@@ -28,6 +28,9 @@
     "paths": {
       "bus-diagram": [
         "./src/index.ts"
+      ],
+      "@busdiagram/*": [
+        "./*"
       ]
     },
     "allowImportingTsExtensions": true,

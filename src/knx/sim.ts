@@ -2213,24 +2213,60 @@ export class Simulation {
   }
 
   /** Is the device or coupler on a segment with bus voltage? */
-  private reachable(target: string): boolean {
+  /**
+   * Is a device or coupler reached: it has bus voltage, and, from an access point (ETS
+   * through an interface), the way to it crosses only segments with bus voltage.
+   */
+  private reachable(target: string, from?: AccessPoint): boolean {
+    const topo = this.network.topology;
     const rt = this.devices.get(target);
-    if (rt) return !rt.down;
-    const c = this.network.topology.couplers.find(
-      (x) => couplerTarget(x.address) === target,
-    );
-    return (
-      !!c && (this.network.powered(c.A.seg) || this.network.powered(c.B.seg))
-    );
+    const c = rt
+      ? undefined
+      : topo.couplers.find((x) => couplerTarget(x.address) === target);
+    if (rt ? rt.down : !c) return false;
+    const sides = rt
+      ? [topo.deviceSegment.get(target)]
+      : [c!.A.seg, c!.B.seg].filter((s) => this.network.powered(s));
+    if (!sides.length) return false;
+    if (!from) return true;
+    const reached = this.reachedFrom(from);
+    return sides.some((s) => s !== undefined && reached.has(s));
+  }
+
+  /**
+   * The segments that the frames of device management from an access point reach: its
+   * own, then from coupler to coupler (repeaters too), each with bus voltage. None when
+   * the access point itself has none.
+   */
+  private reachedFrom(from: AccessPoint): Set<string> {
+    const topo = this.network.topology;
+    const start =
+      "device" in from ? topo.deviceSegment.get(from.device) : from.segment;
+    const reached = new Set<string>();
+    if (!start || !this.network.powered(start)) return reached;
+    reached.add(start);
+    for (let grew = true; grew;) {
+      grew = false;
+      for (const c of topo.couplers)
+        for (const [a, b] of [
+          [c.A.seg, c.B.seg],
+          [c.B.seg, c.A.seg],
+        ] as const)
+          if (reached.has(a) && !reached.has(b) && this.network.powered(b)) {
+            reached.add(b);
+            grew = true;
+          }
+    }
+    return reached;
   }
 
   /**
    * A_IndividualAddress_Read: the devices and couplers in programming mode answer with
    * their individual address. Only those with bus voltage answer.
    */
-  readAddressInProgrammingMode(): string[] {
+  readAddressInProgrammingMode(from?: AccessPoint): string[] {
     return [...this.physical.entries()]
-      .filter(([k, p]) => p.programmingMode && this.reachable(k))
+      .filter(([k, p]) => p.programmingMode && this.reachable(k, from))
       .map(([k]) => k);
   }
 
@@ -2238,8 +2274,8 @@ export class Simulation {
    * A_IndividualAddress_Write, sent to all: every device or coupler in programming mode
    * takes the address. Returns those that took it.
    */
-  writeIndividualAddress(address: string): string[] {
-    const hit = this.readAddressInProgrammingMode();
+  writeIndividualAddress(address: string, from?: AccessPoint): string[] {
+    const hit = this.readAddressInProgrammingMode(from);
     if (this.fault || !hit.length) return [];
     hit.forEach((k) => {
       this.physical.get(k)!.address = address;
@@ -2261,14 +2297,17 @@ export class Simulation {
     return hit;
   }
 
-  /** Devices and couplers that answer at an individual address (with bus voltage). */
-  reachableAt(address: string): string[] {
+  /**
+   * Devices and couplers that answer at an individual address (with bus voltage), from
+   * an access point when given: those its frames reach (see reachable).
+   */
+  reachableAt(address: string, from?: AccessPoint): string[] {
     if (!this.commissioning)
       return this.scenario.devices
-        .filter((d) => d.address === address && this.devicePowered(d.id))
+        .filter((d) => d.address === address && this.reachable(d.id, from))
         .map((d) => d.id);
     return [...this.physical.entries()]
-      .filter(([k, p]) => p.address === address && this.reachable(k))
+      .filter(([k, p]) => p.address === address && this.reachable(k, from))
       .map(([k]) => k);
   }
 

@@ -581,6 +581,28 @@ export function parseApplication(doc: XmlElement): ApplicationProgram {
 }
 
 /** Text of an element in a language (translation of `attr` of `id`), or its default. */
+/**
+ * The text of a parameter reference in a language, as ETS shows it: the translation of
+ * the reference; else, when the reference keeps the text of its parameter, the
+ * translation of the parameter; else the text of the reference (another text than the
+ * parameter's, which a translation of the parameter would not say). "" for an unknown
+ * reference.
+ */
+export function refTextOf(
+  app: ApplicationProgram,
+  refId: string,
+  lang = "en",
+): string {
+  const r = app.parameterRefs.get(refId);
+  const p = r && app.parameters.get(r.ref);
+  if (!r || !p) return "";
+  const own = textOf(app, r.id, "Text", "", lang);
+  if (own) return own;
+  return r.text === undefined || r.text === p.text
+    ? textOf(app, p.id, "Text", p.text, lang)
+    : r.text;
+}
+
 export function textOf(
   app: ApplicationProgram,
   id: string,

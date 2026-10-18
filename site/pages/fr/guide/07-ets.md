@@ -1,7 +1,7 @@
 ---
 title: Liaison à ETS
 translationOf: guide/07-ets.md
-sourceHash: "9259205ff6da"
+sourceHash: "3adb29181074"
 order: 7.6
 ---
 
@@ -70,10 +70,12 @@ Un produit pris dans le catalogue en ligne d'ETS fonctionne de même, quand son 
 | Téléchargement d'une application (mémoire, propriétés) | Oui pour les participants des fabricants importés d'un paquet (masques BCU1, System 7 et System B) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus |
 | Moniteur de groupe et moniteur de bus | Oui : le moniteur de bus montre toutes les trames du bus, d'ETS et du schéma ; la simulation n'a pas de couche physique, donc aucune trame n'est en erreur et les acquittements de la couche liaison ne sont pas montrés |
 | Recherche de participants (balayage d'une ligne, balayage rapide, vérification qu'une adresse individuelle est libre, participants en mode programmation) | Oui : une trame vers une adresse qu'aucun participant n'a est confirmée à ETS comme non acquittée, comme sur un bus ; une trame que le schéma ne confirme pas dans la demi-seconde (une page qui ne répond plus) ferme la connexion d'ETS au lieu d'être confirmée ; quand plusieurs participants ont la même adresse, l'adresse est occupée et la barre d'outils le signale : une lecture reçoit une réponse quand toutes leurs réponses concordent (elles n'en font qu'une sur un bus), pas quand elles diffèrent (elles se brouillent), et une modification (mémoire, propriétés, redémarrage) n'est faite dans aucun. Un participant ferme une connexion qu'ETS laisse 6 s sans trame, comme le fait la couche transport : le balayage rapide trouve les participants par là |
+| Chemin vers les participants | Un participant ne répond à ETS que si les trames d'ETS l'atteignent depuis le point d'accès par des segments sous tension : une ligne, une ligne principale ou une ligne de zone sans tension sur le chemin le cache aux recherches, aux informations du participant et aux téléchargements, comme elle arrête les télégrammes de groupe |
 | Informations du participant | Oui : version de masque, fabricant, mode programmation, programme d'application et ses états de chargement et d'exécution (Système B), tables, objets de groupe et leurs adresses. La tension du bus est celle d'une ligne TP1 (28,8 V). Pour un BCU1, ETS lit son état d'exécution dans l'octet de son mode programmation (60h) : il affiche « Arrêté » sauf si le participant est en mode programmation |
 | Adresses de l'interface | Celles de la ligne où ETS atteint le schéma, libres en haut de la ligne (1.1.254 pour l'interface, les suivantes libres pour ses tunnels), prises quand aucune connexion d'ETS n'est ouverte : ETS ne demande plus, à chaque opération, de modifier les paramètres d'une interface hors du projet |
 | Numéros de série | Synthétiques : le code de BusDiagram (00FA), puis un hash de l'identifiant du participant dans le scénario |
 | KNX Secure | Non |
+| Qualification | Les écrans ci-dessus ont été essayés avec ETS6 et les services avec la bibliothèque Falcon d'ETS, sur la simulation à travers BusDiagram-ETS ; ce n'est ni une certification KNX ni un essai sur du matériel |
 | Plusieurs schémas à la fois | Non, un seul à la fois |
 | Pages autorisées à se relier | Fichiers du disque, pages servies sur cet ordinateur, `https://ynn.github.io` ; les autres dans les réglages |
 

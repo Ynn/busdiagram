@@ -23,8 +23,15 @@ All notable changes to BusDiagram are documented in this file. The format follow
 - Diagram: a line too long for the space of the diagram **continues on rows below** (option `wrap`, `"auto"` by default; `layout` option `rowWidth`), its cable turning back between the rows, in the order of the devices on the line; in `contain` mode and in full screen, the rows take the width that shows the diagram the largest.
 - Link to ETS: the toolbar shows the address of the interface ETS reaches, and that ETS keeps the former one while it is connected after a change of access point.
 
+### Changed
+
+- A scenario whose TP main lines or backbone have no power supply gets the configuration warning `config-no-power-supply`, as a line without one already did: three examples of 0.7 (`bus-voltage`, `full-topology`, `usb-interface`) now declare theirs in `topology.powerSupplies`. Add them to scenarios written for 0.7; their simulation is unchanged.
+
 ### Fixed
 
+- Link to ETS: the devices answer the device management of ETS (searches, device information, downloads) only when its frames reach them from the access point through segments with bus voltage, as the group telegrams do; a main line cut no longer lets ETS find a device behind it.
+- Designer: the warning of a memory read back that the parameters do not explain follows the memory the device holds (another project with a device of the same identifier no longer shows it; undo and a new start show it again).
+- The title of a page of the ETS dialog taken from a parameter reference uses the translation of that reference first, as the parameters do.
 - Link to ETS: another access point gives the interface and its tunnels the free addresses of its line (none on an IP access point or a full line: those BusDiagram-ETS started with); they were those of the first access point until the page was reloaded.
 - A translator made before a package added or took back its messages follows them: the descriptions of the devices of a package show in French in the designer.
 - `Simulation.replaceDevices` makes the state of each device once, before any change: a device whose state cannot be made leaves the simulation as it was.

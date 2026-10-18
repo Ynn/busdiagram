@@ -12,7 +12,7 @@
 // properties cannot be written, so that ETS stops with an error rather than in a state
 // it does not know.
 import { iaText } from "./cemi";
-import type { Simulation } from "./sim";
+import type { AccessPoint, Simulation } from "./sim";
 
 /** Mask version of the simulated devices: TP1, System B (KNX Standard 03_05_01 §4.1). */
 export const MASK_VERSION = 0x07b0;
@@ -212,7 +212,16 @@ export class DeviceManagement {
     /** Frames the devices send of themselves (a T_Disconnect at the timeout). */
     private readonly emit: (frame: Uint8Array) => void = () => {},
     private readonly timers: ManagementTimers = realTimers,
+    /**
+     * Where ETS reaches the bus: only the devices its frames reach through segments with
+     * bus voltage answer (none to keep the voltage of each device only).
+     */
+    private readonly access: () => AccessPoint | null = () => null,
   ) {}
+
+  private get from(): AccessPoint | undefined {
+    return this.access() ?? undefined;
+  }
 
   /** Arm again the connection timeout of a device's connection. */
   private arm(target: string, c: Connection) {
@@ -248,7 +257,9 @@ export class DeviceManagement {
   acknowledges(f: LDataFrame): boolean {
     if (f.group) return true;
     const sim = this.sim();
-    return !!sim && sim.reachableAt(iaText(f.destination)).length > 0;
+    return (
+      !!sim && sim.reachableAt(iaText(f.destination), this.from).length > 0
+    );
   }
 
   /** Is this frame for device management (not a group telegram)? */
@@ -281,7 +292,7 @@ export class DeviceManagement {
     if (!sim) return [];
     if (f.group) return this.broadcast(sim, f);
     const address = iaText(f.destination);
-    const targets = sim.reachableAt(address);
+    const targets = sim.reachableAt(address, this.from);
     // Several devices at the same address: said (again if they come back after they
     // were not). The address is occupied; the transport layer of the first one stands
     // for theirs, whose identical acknowledgements make one on the bus.
@@ -389,7 +400,7 @@ export class DeviceManagement {
     const { apci, data } = apduOf(f.tpdu);
     const a = apci & 0x3c0;
     if (a === APCI.individualAddressRead)
-      return sim.readAddressInProgrammingMode().map((k) =>
+      return sim.readAddressInProgrammingMode(this.from).map((k) =>
         encodeLData({
           source: iaWord(sim.physicalAddress(k)),
           destination: 0,
@@ -399,7 +410,7 @@ export class DeviceManagement {
       );
     if (a === APCI.individualAddressWrite && data.length >= 2) {
       const w = (data[0]! << 8) | data[1]!;
-      sim.writeIndividualAddress(iaText(w));
+      sim.writeIndividualAddress(iaText(w), this.from);
     }
     return [];
   }

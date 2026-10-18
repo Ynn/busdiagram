@@ -6,12 +6,16 @@
 import { html, nothing } from "lit";
 import type { TemplateResult } from "lit";
 import type { ApplicationProgram } from "../../src/knxprod/application";
-import { textOf } from "../../src/knxprod/application";
+import { refTextOf, textOf } from "../../src/knxprod/application";
 import { valueOf } from "../../src/knxprod/config";
 import type { DialogEntry, DialogPage } from "../../src/knxprod/dialog";
 import { dialogPages } from "../../src/knxprod/dialog";
 import type { Dev, Doc } from "./edit";
-import { readBacks, resetEtsParameters, setEtsParameter } from "./ets-device";
+import {
+  resetEtsParameters,
+  setEtsParameter,
+  unexplainedOf,
+} from "./ets-device";
 import { programOfProduct } from "./manufacturers";
 import type { GuidedEditor } from "./guided";
 import { t, tt } from "./lang";
@@ -50,9 +54,7 @@ function field(
   const access = r.access ?? p.access;
   if (access === "None") return nothing;
   const type = app.types.get(p.type);
-  const label =
-    textOf(app, r.id, "Text", "", lang()) ||
-    textOf(app, p.id, "Text", r.text ?? p.text, lang());
+  const label = refTextOf(app, r.id, lang());
   const value = valueOf(app, values, ref);
   const readOnly = access === "Read";
   const set = (v: string) =>
@@ -171,7 +173,7 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
   const problems: CalculationProblem[] = [];
   calculate(app, values, problems);
   // What the memory read back from the device holds that these pages do not show.
-  const unexplained = readBacks.get(d.id)?.unexplained ?? [];
+  const unexplained = unexplainedOf(d, app);
   if (states.length || problems.length || unexplained.length) {
     const used =
       states.filter((s) => s.inUse).length +
@@ -215,11 +217,7 @@ export function etsPages(ed: GuidedEditor, _doc: Doc, d: Dev): Page[] {
                     ${t`The memory read back from the device holds, at these parameters, values that these pages do not write: its memory is kept as it is; an edit of its parameters writes what the pages show.`}
                     <ul>
                       ${unexplained.map((u) => {
-                        const r = app.parameterRefs.get(u.ref);
-                        const p = r && app.parameters.get(r.ref);
-                        const label = p
-                          ? textOf(app, p.id, "Text", r.text ?? p.text, lang())
-                          : u.ref;
+                        const label = refTextOf(app, u.ref, lang()) || u.ref;
                         return html`<li>
                           ${label}
                           <code>${u.address.toString(16).toUpperCase()}h</code>

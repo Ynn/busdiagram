@@ -106,6 +106,8 @@ The preview can show a full or compact toolbar, hide the monitor or description,
 | Viewer link | Put a compressed scenario in a URL fragment for an iframe or another web viewer. See [Viewer](viewer.html). |
 | Library | Download `bus-diagram.js` to host alongside your page. |
 
+An export of a project with manufacturers' devices carries what they need: the code of their products, the data of their product databases (parameters, texts) and, in the JSON file, the memory that ETS downloaded. An export is not anonymized either: it keeps the names given in the project. Share it only where the package of devices may be shared, and do not paste it into a public page or a service outside your organization by mistake.
+
 To prepare a variant of an example, such as an address changed, a flag removed, or a coupler set to block, start from it in **Start from a template**, change it, and share it as a viewer link or a standalone page. Each copy runs with its own state.
 
 ## Extensions

@@ -13,6 +13,7 @@ import {
 } from "../../src/knxprod/held-device";
 import type { CalculationProblem } from "../../src/knxprod/calculation";
 import type { ReadBack } from "../../src/knxprod/readback";
+import { readBack } from "../../src/knxprod/readback";
 import {
   ParameterValueError,
   effectiveValues,
@@ -63,12 +64,33 @@ export const objectTexts = (
   values: Record<string, string>,
 ) => textsOfObjects(app, values, t.lang ?? "en");
 
+/** Read backs of the memories shown, by program and memory (the last ones). */
+const readBackCache = new Map<string, ReadBack>();
+
 /**
- * The memory read back from a catalog device that its pages do not explain everywhere
- * (see ReadBack), by device identifier: shown with its pages until its parameters are
- * set again, its memory then being what they show.
+ * Where the memory of a catalog device holds what its pages do not write (see ReadBack):
+ * read back from the memory it holds now, for the program shown. It follows that memory
+ * whatever the document, its history or a new start: a download from ETS that the
+ * parameters do not explain shows until an edit writes what the pages show.
  */
-export const readBacks = new Map<string, ReadBack>();
+export function unexplainedOf(
+  d: Dev,
+  app: ApplicationProgram,
+): ReadBack["unexplained"] {
+  const memory = (d.ets as Ets | undefined)?.memory;
+  if (!memory) return [];
+  const key = `${app.id}|${JSON.stringify(memory)}`;
+  let r = readBackCache.get(key);
+  if (!r) {
+    const bytes = parseMemory(memory);
+    if (!bytes) return [];
+    r = readBack(app, bytes);
+    if (readBackCache.size >= 32)
+      readBackCache.delete(readBackCache.keys().next().value!);
+    readBackCache.set(key, r);
+  }
+  return r.unexplained;
+}
 
 /**
  * Set the application of a device from its parameter values and the group addresses of
@@ -139,8 +161,6 @@ export function applyConfiguration(
       projectMemory(ets.mask, image, d.objects, d.address ?? "15.15.255"),
     ),
   );
-  // Its memory is now what its pages show.
-  readBacks.delete(d.id);
   return problems;
 }
 
@@ -323,8 +343,6 @@ export function configurationFromMemory(
   const held = heldDevice(app, product, ets.mask, memory, t.lang ?? "en");
   if (!held) return null;
   report?.(held.readBack);
-  if (held.readBack.unexplained.length) readBacks.set(d.id, held.readBack);
-  else readBacks.delete(d.id);
   d.objects = held.objects as unknown as Obj[];
   if (Object.keys(held.parameters).length) ets.parameters = held.parameters;
   else delete ets.parameters;

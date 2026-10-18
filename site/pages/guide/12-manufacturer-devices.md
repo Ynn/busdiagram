@@ -310,6 +310,7 @@ A setup registers the models and installs the databases, as the import of the pa
 
 ```ts
 import { createSimulator, registerParticipant } from "bus-diagram";
+import type { ProductDatabase } from "@busdiagram/src/knxprod/database";
 import { captureRegistry } from "@busdiagram/src/knx/registry";
 import { installPackage } from "@busdiagram/site/designer/packages";
 import {
@@ -321,16 +322,25 @@ import { expect, it } from "vitest";
 import { sa2 } from "../src/sa-2/model";
 import database from "../src/sa-2/database.json";
 
+// The database of this example, written by hand, is known: a package read from
+// elsewhere is checked by the designer when it is imported.
+const sa2Database = database as unknown as ProductDatabase;
+
 registerParticipant(sa2);
 installPackage({
-  manifest: { format: "bdpkg/1", name: "example-devices", version: "test", products: [] },
+  manifest: {
+    format: "bdpkg/1",
+    name: "example-devices",
+    version: "test",
+    products: [],
+  },
   script: "",
-  databases: new Map([["example.sa2/v1", database]]),
+  databases: new Map([["example.sa2/v1", sa2Database]]),
   scenarios: [],
 });
 
 it("a normally closed output is on while its object is off", () => {
-  const doc = {
+  const doc: Parameters<typeof addProductDevice>[0] = {
     formatVersion: 2,
     lines: [{ address: "1.1", powerSupply: { currentMa: 640 } }],
     devices: [],

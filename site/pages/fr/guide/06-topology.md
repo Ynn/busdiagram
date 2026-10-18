@@ -1,7 +1,7 @@
 ---
 title: Topologie et supervision
 translationOf: guide/06-topology.md
-sourceHash: "0e7953c8beea"
+sourceHash: "212675535d74"
 order: 6.5
 ---
 # Topologie et supervision
@@ -44,6 +44,8 @@ Une ligne de zone TP et des lignes principales TP sont aussi des lignes, chacune
   "powerSupplies": { "0.0": { "currentMa": 640 }, "1.0": { "currentMa": 640 }, "2.0": {} }
 }
 ```
+
+Les scénarios écrits pour la 0.7, qui n'avait pas ce champ, reçoivent maintenant cet avertissement pour leurs lignes principales et leur ligne de zone TP : ajoutez leurs alimentations à `topology.powerSupplies` (ou dans le designer) ; la simulation elle-même ne change pas.
 
 Une clé qui ne nomme aucune ligne de zone ou principale TP de l'installation est refusée (un réseau IP qui tient lieu de ligne de zone ou de lignes principales n'en a pas besoin). Sans son alimentation, une ligne de zone ou principale reçoit le même avertissement de configuration qu'une ligne. Sur le schéma, son alimentation est dessinée près de son nom, et un clic coupe sa tension de bus : les coupleurs qui s'y trouvent ne transmettent alors plus rien à travers elle. Quand une modification dans le designer fait apparaître une ligne de zone ou principale (une deuxième zone, une deuxième ligne dans une zone), elle reçoit une alimentation de 640 mA, comme une nouvelle ligne ; la section **Topologie** les règle.
 

@@ -45,6 +45,8 @@ A TP backbone and TP main lines are lines too, each with its own power supply. T
 }
 ```
 
+Scenarios written for 0.7, which had no such field, now get this warning for their TP main lines and backbone: add their supplies to `topology.powerSupplies` (or in the designer); the simulation itself is unchanged.
+
 A key that names no TP backbone or main line of the installation is refused (an IP network that acts as the backbone or main lines needs none). Without its power supply, a backbone or main line gets the same configuration warning as a line. On the diagram, its supply is drawn by its name, and a click cuts its bus voltage: the couplers on it then forward nothing across it. When an edit in the designer makes a backbone or a main line appear (a second area, a second line in an area), it gets a 640 mA supply, as a new line does; the **Topology** section sets them.
 
 ## KNXnet/IP routers

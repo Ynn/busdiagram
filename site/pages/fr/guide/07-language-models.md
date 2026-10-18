@@ -1,7 +1,7 @@
 ---
 title: Générer avec un modèle de langage
 translationOf: guide/07-language-models.md
-sourceHash: "0fce7ec27554"
+sourceHash: "8b6e2aa7d7bb"
 order: 7.8
 ---
 # Générer des schémas avec un modèle de langage
@@ -68,4 +68,5 @@ Encodez tout le texte JSON en pourcentage, par exemple avec `encodeURIComponent(
 
 - La validation confirme qu'un scénario est cohérent, pas qu'il correspond à l'installation voulue. Vérifiez les adresses de groupe, les indicateurs et les fonctions des touches sur le schéma.
 - Les modèles peuvent utiliser des comportements, des ports ou des DPT qui n'existent pas. Le validateur les signale ; ne contournez pas une erreur en supprimant l'objet concerné sans vérifier l'intention.
+- Un scénario donné à un modèle de langage quitte votre ordinateur, avec les noms de son projet et, pour les participants de fabricants, leurs produits et paramètres : ne donnez que ce qui peut être envoyé à ce service.
 - Les longs scénarios peuvent dépasser la longueur pratique d'un lien. Enregistrez-les plutôt dans des fichiers et ouvrez-les dans le designer.

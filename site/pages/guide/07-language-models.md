@@ -68,4 +68,5 @@ Percent-encode the whole JSON text, for example with `encodeURIComponent(JSON.st
 
 - Validation confirms that a scenario is consistent, not that it matches the intended installation. Review group addresses, flags, and key functions in the diagram.
 - Models may use behaviors, ports, or DPTs that do not exist. The validator reports them; do not work around an error by removing the related object without checking the intent.
+- A scenario given to a language model leaves your computer, with the names of its project and, for manufacturers' devices, their products and parameters: give only what may be sent to that service.
 - Long scenarios can exceed the practical length of a link. Save them as files and open them in the designer instead.

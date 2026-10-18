@@ -1,7 +1,7 @@
 ---
 title: Écrire un participant de fabricant
 translationOf: guide/12-manufacturer-devices.md
-sourceHash: "660eccbcde35"
+sourceHash: "7552157510ff"
 order: 12.5
 ---
 
@@ -311,6 +311,7 @@ Un setup (`setupFiles`) enregistre les modèles et installe les bases, comme le 
 
 ```ts
 import { createSimulator, registerParticipant } from "bus-diagram";
+import type { ProductDatabase } from "@busdiagram/src/knxprod/database";
 import { captureRegistry } from "@busdiagram/src/knx/registry";
 import { installPackage } from "@busdiagram/site/designer/packages";
 import {
@@ -322,16 +323,25 @@ import { expect, it } from "vitest";
 import { sa2 } from "../src/sa-2/model";
 import database from "../src/sa-2/database.json";
 
+// La base de cet exemple, écrite à la main, est connue : un paquet lu ailleurs est
+// vérifié par le designer à son import.
+const sa2Database = database as unknown as ProductDatabase;
+
 registerParticipant(sa2);
 installPackage({
-  manifest: { format: "bdpkg/1", name: "example-devices", version: "test", products: [] },
+  manifest: {
+    format: "bdpkg/1",
+    name: "example-devices",
+    version: "test",
+    products: [],
+  },
   script: "",
-  databases: new Map([["example.sa2/v1", database]]),
+  databases: new Map([["example.sa2/v1", sa2Database]]),
   scenarios: [],
 });
 
 it("a normally closed output is on while its object is off", () => {
-  const doc = {
+  const doc: Parameters<typeof addProductDevice>[0] = {
     formatVersion: 2,
     lines: [{ address: "1.1", powerSupply: { currentMa: 640 } }],
     devices: [],

@@ -163,4 +163,37 @@ describe("pages of the dialog", () => {
       { label: "Output B", params: ["P-5_R"] },
     ]);
   });
+
+  it("titles a page by the text of its reference, then of its parameter", () => {
+    // P-1 keeps the text of its parameter; P-2's reference has a text of its own.
+    const app = program(
+      [
+        block("PB-1", [param("P-1")], { paramRef: "T-1_R" }),
+        block("PB-2", [param("P-2")], { paramRef: "T-2_R" }),
+        block("PB-3", [param("P-3")], { paramRef: "T-3_R" }),
+      ],
+      {
+        "T-1": ["General name", 10],
+        "T-2": ["General name", 20],
+        "T-3": ["General name", 30],
+        "P-1": ["Contact", 11],
+        "P-2": ["Contact", 21],
+        "P-3": ["Contact", 31],
+      },
+    );
+    const fr = new Map([
+      ["T-1|Text", "Nom général"],
+      ["T-2|Text", "Nom général"],
+      ["T-2_R|Text", "Nom spécifique"],
+      ["T-3|Text", "Nom général"],
+    ]);
+    app.translations.set("fr-FR", fr);
+    // T-3's reference says another text, without a translation of its own.
+    app.parameterRefs.get("T-3_R")!.text = "Specific name";
+    expect(dialogPages(app, {}, "fr").map((p) => p.label)).toEqual([
+      "Nom général",
+      "Nom spécifique",
+      "Specific name",
+    ]);
+  });
 });
