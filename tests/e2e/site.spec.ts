@@ -2718,6 +2718,28 @@ test.describe("designer workspace", () => {
     await number.fill("5");
     await number.press("Tab");
     await expect.poll(scenes).toEqual({ "1": 1, "2": 1, "5": 1 });
+    // The JSON changes before refresh() gives its document to the form.
+    // Wait for the corresponding form render before entering the next value.
+    await expect
+      .poll(() =>
+        page.evaluate(() => {
+          const guided = document.querySelector("bd-guided") as HTMLElement & {
+            doc: AnyDoc;
+          };
+          return guided.doc.devices.find(
+            (d: { id: string }) => d.id === "switchActuator",
+          ).channels[0].scenes;
+        }),
+      )
+      .toEqual({ "1": 1, "2": 1, "5": 1 });
+    await page.evaluate(
+      () =>
+        (
+          document.querySelector("bd-guided") as HTMLElement & {
+            updateComplete: Promise<boolean>;
+          }
+        ).updateComplete,
+    );
     // A number already assigned is refused.
     await number.fill("1");
     await number.press("Tab");
