@@ -78,7 +78,7 @@ export interface ProductSpec<S = unknown> {
    * before loading an application (manufacturer code, hardware configuration).
    */
   delivered: readonly (readonly [number, readonly number[]])[];
-  /** Manufacturer code of KNX Association (0x48 for Theben). */
+  /** Manufacturer code of KNX Association (two octets, given by KNX Association). */
   manufacturerId: number;
   /** Where its application has its group object table, for a BIM M112 (070xh). */
   objectTable?: number;

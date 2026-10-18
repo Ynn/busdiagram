@@ -188,8 +188,8 @@ function release(ctx: Ctx, ch: string) {
     case "blind": {
       const mode = p.blindMode ?? "single";
       // With one key, the step goes opposite to the last movement: after moving down the
-      // slats are closed, and a short press opens them (ABB US/U 4.2, one-key operation,
-      // short = slats).
+      // slats are closed, and a short press opens them (one-key operation of usual
+      // push-button interfaces, short = slats).
       const down = mode === "single" ? !st.lowered : mode === "down";
       if (short || p.stopOnRelease === true)
         send(ctx, ch, "stopStep", down ? 1 : 0);

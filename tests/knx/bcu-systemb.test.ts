@@ -1,5 +1,5 @@
-// System B (mask 07B0h), as ETS 6 loads a KNX Mini presence detector of Schneider
-// Electric: the load state machines through PID_LOAD_STATE_CONTROL, the relative segments
+// System B (mask 07B0h), as ETS 6 loads a small presence detector of this mask: the
+// load state machines through PID_LOAD_STATE_CONTROL, the relative segments
 // the device allocates, the tables written where PID_TABLE_REFERENCE puts them, the
 // memory control blocks and the application identifier as properties. The records and
 // tables are those of the frames ETS sent.

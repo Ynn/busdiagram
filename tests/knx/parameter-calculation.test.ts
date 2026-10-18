@@ -1,6 +1,6 @@
 // Parameter calculations: the scripts with which ETS sets hidden parameters, read with the
-// subset of JavaScript that programs use (those of the Switch/Blind Master 5800 of
-// Schneider Electric), and run in their order until none changes anything.
+// subset of JavaScript that programs use (those of a switch and blind actuator of System
+// B), and run in their order until none changes anything.
 import { describe, expect, it } from "vitest";
 import type { ApplicationProgram } from "../../src/knxprod/application";
 import {
@@ -54,7 +54,7 @@ else if ((PAR_INPUT1 > 32768 ) && (PAR_INPUT2 > 32768 )) PAR_OUTPUT    = 2`;
     expect(runScript(pin, { PAR_PIN: "4711" }).PAR_RESULT).toBe(0);
   });
 
-  it("declares, chooses with ? :, and combines bits, as the KNX Mini detector does", () => {
+  it("declares, chooses with ? :, and combines bits, as a presence detector program does", () => {
     const script = `var nResult = 0;
       nResult = ((ON > 0) ? 1:0) | (((OFF > 0) ? 1:0) & DAYLIGHT);
       USED = nResult;`;

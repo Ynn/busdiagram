@@ -50,7 +50,7 @@ describe("times", () => {
       ...type("time", 24),
       unit: "PackedDaysHoursMinutesAndSeconds",
     } as ParameterType;
-    // As ETS writes them for a KNX Mini presence detector: 10 s, 1 min, 5 min.
+    // As ETS writes them for a presence detector of System B: 10 s, 1 min, 5 min.
     expect([...encodeValue(t, "10")]).toEqual([10, 0, 0]);
     expect([...encodeValue(t, "60")]).toEqual([0, 1, 0]);
     expect(roundTrip(t, "300")).toBe("300");

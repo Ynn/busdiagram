@@ -1,7 +1,7 @@
 // A venetian blind on one push-button key: a long press moves, a short press stops or
-// turns the slats by a step, opposite to the last movement (ABB US/U 4.2, one-key
-// operation). The output must be set for slats, as the blind is (ABB JRA/S: blind with
-// or without slat adjustment).
+// turns the slats by a step, opposite to the last movement (one-key operation). The
+// output must be set for slats, as the blind is (a blind actuator: with or without
+// slat adjustment).
 import { describe, expect, it } from "vitest";
 import { createSimulator } from "../../../src/core";
 

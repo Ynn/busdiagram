@@ -238,8 +238,8 @@ export const system7: MaskProfile = {
       ]);
       return [s.memory[LOAD_STATE + object - 1]!];
     }
-    // Properties of its own that the application program writes (an ABB program writes
-    // its PID 204 of the application object): kept as written.
+    // Properties of its own that the application program writes (a program may write
+    // a PID of its own, such as 204, of the application object): kept as written.
     // Kept in the memory, which the installation keeps after a restart.
     const own = ownSlot(s, object, pid);
     if (
