@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Link to ETS · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.933c902.modified.73b7c139">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/ets.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -84,14 +84,15 @@
 <td>Simpler: every group address of the diagram is assigned to ETS, so couplers forward them to and from it while the link lasts; the filter tables show them.</td>
 </tr>
 </tbody></table>
-</div><p>Telegrams from ETS enter the bus there with their own source (the tunnel address, <code>15.15.251</code>), priority, routing counter and bytes. No DPT travels in a telegram: each receiving object decodes the bytes with its own DPT, and ignores a payload of another size, which the journal explains. Telegrams that reach the access point through the topology are sent to ETS, with the routing counter they have there.</p>
+</div><p>Telegrams from ETS enter the bus there with their own source (the address of their tunnel, free at the top of the line, such as <code>1.1.253</code>), priority, routing counter and bytes. No DPT travels in a telegram: each receiving object decodes the bytes with its own DPT, and ignores a payload of another size, which the journal explains. Telegrams that reach the access point through the topology are sent to ETS, with the routing counter they have there.</p>
 <h2 id="programming-individual-addresses-from-ets"><a class="anchor" href="#programming-individual-addresses-from-ets">#</a>Programming individual addresses from ETS</h2><p>In a diagram that simulates <a href="commissioning.html">commissioning</a>, the devices start at 15.15.255, as delivered. In ETS, right-click a device of the project → <em>Download</em> → <em>Individual Address</em>, then click the programming button of the device in the diagram (the small square beside its address): its LED lights up, ETS writes the address, restarts the device, and the LED goes out. The designer, when it shows the diagram, records the new address (column <strong>Adr</strong>). The usual mistakes have their effect: two LEDs on, and both devices answer; an address already used on the bus, and ETS finds it.</p>
 <p>The devices of BusDiagram answer with the device descriptor 07B0 (TP1, System B) and the manufacturer code of KNX Association, as those of KNX Virtual; their applications are downloaded from the designer.</p>
-<h2 id="downloading-an-application-from-ets"><a class="anchor" href="#downloading-an-application-from-ets">#</a>Downloading an application from ETS</h2><p>Manufacturers&#39; devices, which BusDiagram does not deliver, are imported from a package of devices (<code>.bdpkg</code>, button <strong>Import devices…</strong> of the Catalog panel; see <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>), and are programmed by ETS as the real ones. Turn on <strong>Simulate commissioning</strong> (Installation panel): without it, the devices hold no memory, and the toolbar says so when ETS tries to download one. Insert the device from the <strong>Programmed by ETS</strong> category of the designer&#39;s catalog, and create the same device in the ETS project, from the manufacturer&#39;s catalog. The device answers ETS with the mask of its application program (0011 or 0012 for a BCU1, 0701 for a System 7) and holds a memory: ETS writes the parameters, the group address table, the associations and the group objects there (for a System 7, through its load state machines), verifies each write by a read, starts the application, and restarts the device. As a delivered device, it holds the code of its manufacturer and the identifier of its application, which ETS checks first. The application code of a System 7 device is written too, which takes a few minutes, as on a real bus. The diagram then runs what the memory holds, as the device does: change a parameter in ETS, download, and the device behaves accordingly; download without the group addresses, and it sends nothing. The designer writes into the project what the download left in the device (its parameters, its group objects and their group addresses), so that the scenario says how the device is really configured; <strong>Undo</strong> brings the former project back. On the diagram, a manufacturer&#39;s device shows only the group objects linked to a group address or driving a load; its sheet lists them all.</p>
+<h2 id="downloading-an-application-from-ets"><a class="anchor" href="#downloading-an-application-from-ets">#</a>Downloading an application from ETS</h2><p>Manufacturers&#39; devices, which BusDiagram does not deliver, are imported from a package of devices (<code>.bdpkg</code>, button <strong>Import devices…</strong> of the Catalog panel; see <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>), and are programmed by ETS as the real ones. Turn on <strong>Simulate commissioning</strong> (Installation panel): without it, the devices hold no memory, and the toolbar says so when ETS tries to download one. Insert the device from the <strong>Programmed by ETS</strong> category of the designer&#39;s catalog, and create the same device in the ETS project, from the manufacturer&#39;s catalog. The device answers ETS with the mask of its application program (0011 or 0012 for a BCU1, 0701 or 0705 for a System 7, 07B0 for a System B) and holds a memory: ETS writes the parameters, the group address table, the associations and the group objects there (for a System 7 and a System B, through their load state machines; a System B allocates its segments itself), verifies each write by a read, starts the application, and restarts the device. As a delivered device, it holds the code of its manufacturer and the identifier of its application, which ETS checks first. The application code of a System 7 device is written too, which takes a few minutes, as on a real bus. The diagram then runs what the memory holds, as the device does, when it is one of the product&#39;s programs (another program, or one partly downloaded, runs nothing, and the journal says which program it got): change a parameter in ETS, download, and the device behaves accordingly; download without the group addresses, and it sends nothing. The designer writes into the project what the download left in the device (its parameters, its group objects and their group addresses), so that the scenario says how the device is really configured; <strong>Undo</strong> brings the former project back. On the diagram, a manufacturer&#39;s device shows only the group objects linked to a group address or driving a load; its sheet lists them all. The JSON file keeps all the memory the download wrote; the standalone page, the code to paste and the player link leave out the application code that ETS wrote from the manufacturer&#39;s catalog, and keep what the device runs from (system part, tables, parameters).</p>
 <p>The parameter pages of the device in the designer are those of ETS: same pages, same parameters and choices, in the same order, with the names and functions of its group objects. The designer can also download it (context menu → <em>Download</em>), as ETS would.</p>
+<p>A product taken from the online catalog of ETS works the same, when its application program is one the device simulates: same manufacturer, type and version, and not KNX Secure. A newer version of the program is downloaded by ETS but runs nothing in the diagram, until the package of devices brings it.</p>
 <h2 id="while-linked"><a class="anchor" href="#while-linked">#</a>While linked</h2><ul>
 <li>The simulation runs in real time, also when its tab is in the background, since ETS keeps sending and waits for answers.</li>
-<li>A telegram from ETS is refused while the simulation is paused; it is not played later in a batch.</li>
+<li>A group telegram from ETS is refused while the simulation is paused; it is not played later in a batch. The device management of ETS (individual addresses, downloads) goes on: a pause stops the applications, not the bus. Both are refused when the simulation is stopped by a fault.</li>
 <li>The speed is <strong>Instant</strong> when the link opens: telegrams take the time of a real bus (about 20 ms each, and as long again for each coupler crossed), and the cables they reach light up without anything travelling. <strong>Animated</strong> shows them travel at the pace of the diagram instead: a telegram that crosses couplers then takes a few seconds to arrive, which ETS accepts.</li>
 <li>Step by step is not available.</li>
 </ul>
@@ -112,10 +113,30 @@
 </tr>
 <tr>
 <td>Download of an application (memory, properties)</td>
-<td>Yes for the manufacturers&#39; devices imported from a package (BCU1 and System 7 masks); no for the devices of BusDiagram, whose parameters and associations are set in the diagram: ETS gets a refusal</td>
+<td>Yes for the manufacturers&#39; devices imported from a package (BCU1, System 7 and System B masks); no for the devices of BusDiagram, whose parameters and associations are set in the diagram: ETS gets a refusal</td>
 </tr>
 <tr>
-<td>Bus monitor, KNX Secure</td>
+<td>Group monitor and bus monitor</td>
+<td>Yes: the bus monitor shows every frame of the bus, from ETS and from the diagram; the simulation has no physical layer, so no frame is in error and the link layer acknowledgements are not shown</td>
+</tr>
+<tr>
+<td>Search of devices (line scan, fast line scan, check that an individual address is free, devices in programming mode)</td>
+<td>Yes: a frame to an address that no device has is confirmed to ETS as not acknowledged, as on a bus; a frame the diagram does not confirm within half a second (a page that no longer answers) closes the ETS connection rather than being confirmed; when several devices have the same address, the address is occupied and the toolbar says so: a read is answered when all their answers agree (they make one on a bus), not when they differ (they collide), and a change (memory, properties, restart) is made in none of them. A device ends a connection that ETS leaves without a frame for 6 s, as the transport layer does: the fast line scan finds the devices by it</td>
+</tr>
+<tr>
+<td>Device information</td>
+<td>Yes: mask version, manufacturer, programming mode, application program and its load and run states (System B), tables, group objects and their addresses. The bus voltage is that of a TP1 line (28.8 V). For a BCU1, ETS reads its run state in the octet of its programming mode (60h): it shows &quot;Halted&quot; unless the device is in programming mode</td>
+</tr>
+<tr>
+<td>Addresses of the interface</td>
+<td>Those of the line where ETS reaches the diagram, free at its top (1.1.254 for the interface, the next free ones for its tunnels), taken when no ETS connection is open: ETS does not ask, at each operation, to change the settings of an interface outside the project</td>
+</tr>
+<tr>
+<td>Serial numbers</td>
+<td>Synthetic: the code of BusDiagram (00FA), then a hash of the identifier of the device in the scenario</td>
+</tr>
+<tr>
+<td>KNX Secure</td>
 <td>No</td>
 </tr>
 <tr>

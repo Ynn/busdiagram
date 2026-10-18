@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.933c902.modified.73b7c139">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/extensions.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -391,8 +391,9 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Livrer des participants de fabricants dans un paquet</h2><p>BusDiagram ne livre aucun participant de fabricant : leurs bases produit viennent des catalogues des fabricants. Il livre ce qu&#39;il faut pour les écrire, et le designer les importe depuis un <strong>paquet de participants</strong> (<code>.bdpkg</code>), avec le bouton <strong>Importer des participants…</strong> du panneau Catalogue. Ces participants, calqués sur ceux d&#39;un fabricant, sont programmés par ETS avec leur programme d&#39;application.</p>
 <p>Un participant se construit avec la boîte à outils de <code>src/bcu</code>, exportée par la bibliothèque (<code>BusDiagram.defineProduct</code>…), qui fait ce que fait la partie système de tout participant, quelle que soit son application :</p>
 <ul>
-<li>Un <strong>profil de masque</strong> par famille de masques (BCU1 pour 0010h–0012h, BIM M112 pour 0700h–0705h avec ses machines d&#39;états de chargement) donne la mémoire du participant, où sont son adresse individuelle et son mode programmation, comment ETS la charge, et comment se lisent ses tables : adresses de groupe, associations, objets de groupe. ETS l&#39;atteint par la gestion des participants de la simulation.</li>
+<li>Un <strong>profil de masque</strong> par famille de masques (BCU1 pour 0010h–0012h, BIM M112 pour 0700h–0705h avec ses machines d&#39;états de chargement, System B pour 07B0h avec les segments relatifs qu&#39;il alloue lui-même) donne la mémoire du participant, où sont son adresse individuelle et son mode programmation, comment ETS la charge, et comment se lisent ses tables : adresses de groupe, associations, objets de groupe. ETS l&#39;atteint par la gestion des participants de la simulation.</li>
 <li><code>defineProduct(spec)</code> fait d&#39;un produit un participant : son identité (fabricant, nom, référence, programmes d&#39;application, masques), ce que contient le participant livré (<code>delivered</code> : son code fabricant et sa configuration matérielle à des adresses données ; <code>applicationId</code> pour un System 7), où sont ses paramètres (<code>parameterMemory</code>) et, pour un System 7, sa table des objets de groupe (<code>objectTable</code>) et les propriétés qu&#39;écrit son programme (<code>properties</code>), ses canaux, les objets de groupe qu&#39;a son application avec une mémoire donnée (<code>objects(memory)</code>), et son firmware, qui lit ses paramètres dans la mémoire (<code>bits</code>) et envoie ses objets par numéro (<code>send</code>, <code>valueOf</code>).</li>
+<li><code>limits</code> dit ce que le micrologiciel ne simule pas, ou en partie seulement (<code>partial</code>), et les paramètres du programme qui l&#39;activent (<code>parameters</code>, <code>values</code>). Le designer marque ces paramètres sur les pages ETS et liste les limites sur une page <strong>Limites de la simulation</strong> du participant, d&#39;abord celles qu&#39;activent les valeurs du projet.</li>
 </ul>
 <p>Sa <strong>base produit</strong> contient ce qu&#39;ETS affiche et ce qu&#39;occupent ses paramètres et ses tables : types de paramètres, paramètres et leur place en mémoire, boîte de dialogue des paramètres, objets de groupe, tables. Elle se génère depuis un catalogue que possède l&#39;auteur, sans le code applicatif : <code>npm run product -- &lt;catalogue.knxprod&gt; &lt;programme&gt; &lt;fichier.json&gt;</code>. Le designer en tire les pages d&#39;ETS et calcule la mémoire qu&#39;écrit un téléchargement complet ; la simulation lit l&#39;application du participant dans sa mémoire : les objets que son firmware y active, liés comme le disent les tables.</p>
 <p>Un paquet est un zip :</p>
@@ -405,11 +406,15 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </thead>
 <tbody><tr>
 <td><code>manifest.json</code></td>
-<td><code>format</code> (<code>&quot;bdpkg/1&quot;</code>), <code>name</code>, <code>version</code>, <code>busdiagram</code> (la version de BusDiagram qu&#39;il demande au minimum), <code>products</code> (<code>behavior</code>, <code>manufacturer</code>, <code>name</code>, <code>database</code> : le fichier de sa base produit) et <code>scenarios</code> (<code>id</code>, <code>file</code>, <code>title</code> par langue, <code>translations</code> : un fichier dictionnaire par langue)</td>
+<td><code>format</code> (<code>&quot;bdpkg/1&quot;</code>), <code>name</code>, <code>version</code>, <code>busdiagram</code> (la version de BusDiagram qu&#39;il demande au minimum, pour les lecteurs qui ne connaissent pas de contrat), <code>api</code> (le contrat avec BusDiagram qu&#39;il demande, <code>PACKAGE_API</code> : présent, c&#39;est lui qui décide), <code>common</code> (facultatif : le script dont les scripts des produits ont besoin d&#39;abord), <code>products</code> (<code>behavior</code>, <code>manufacturer</code>, <code>name</code>, <code>database</code> : le fichier de sa base produit, <code>script</code> : facultatif, le script qui enregistre ce seul produit) et <code>scenarios</code> (<code>id</code>, <code>file</code>, <code>title</code> par langue, <code>translations</code> : un fichier dictionnaire par langue)</td>
 </tr>
 <tr>
 <td><code>devices.js</code></td>
 <td>Script d&#39;extension qui enregistre les participants : <code>BusDiagram.registerParticipant(model)</code> pour chacun, compilé en IIFE avec <code>bus-diagram</code> comme la variable globale <code>BusDiagram</code></td>
+</tr>
+<tr>
+<td><code>scripts/*.js</code></td>
+<td>Facultatif : le script commun et un script par produit, compilés comme <code>devices.js</code>. Avec eux, une page exportée du designer embarque le code des produits qu&#39;utilise son scénario, pas celui de tout le paquet</td>
 </tr>
 <tr>
 <td><code>databases/*.json</code></td>
@@ -420,7 +425,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Des exemples, proposés avec les modèles une fois le paquet importé</td>
 </tr>
 </tbody></table>
-</div><p>Le designer vérifie le paquet, exécute son script comme une extension (refusé sans effet en cas d&#39;échec) et garde le paquet dans le navigateur : il est rechargé au démarrage, apparaît avec les extensions et se retire avec elles ; un export embarque son script. Un scénario qui utilise un participant d&#39;un paquet non importé est refusé avec le nom de ce qui manque. Les tests de BusDiagram utilisent les produits d&#39;un fabricant imaginaire (<code>tests/knx/fixtures/sample-devices</code>), dont les bases sont écrites à la main : ils montrent ce qu&#39;écrit l&#39;auteur d&#39;un paquet.</p>
+</div><p>Le designer vérifie le paquet, exécute son script comme une extension (refusé sans effet en cas d&#39;échec : une version précédente du paquet reste telle qu&#39;elle était) et garde le paquet dans le navigateur : il est rechargé au démarrage, apparaît avec les extensions et se retire avec elles ; un export embarque son script, et le signale avec le nom des paquets qu&#39;il embarque. Un scénario qui utilise un participant d&#39;un paquet non importé est refusé avec le nom de ce qui manque. Les tests de BusDiagram utilisent les produits d&#39;un fabricant imaginaire (<code>tests/knx/fixtures/sample-devices</code>), dont les bases sont écrites à la main : ils montrent ce qu&#39;écrit l&#39;auteur d&#39;un paquet.</p>
 
 <nav class="pager">
 <a href="../../fr/guide/versions.html">← Versions et publications</a>

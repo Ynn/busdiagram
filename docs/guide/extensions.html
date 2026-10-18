@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Extensions · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.933c902.modified.73b7c139">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/extensions.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -391,8 +391,9 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <h2 id="deliver-manufacturers-devices-in-a-package"><a class="anchor" href="#deliver-manufacturers-devices-in-a-package">#</a>Deliver manufacturers&#39; devices in a package</h2><p>BusDiagram delivers no manufacturer&#39;s device: their product databases come from the manufacturers&#39; catalogs. It delivers what is needed to write them, and the designer imports them from a <strong>package of devices</strong> (<code>.bdpkg</code>), with the button <strong>Import devices…</strong> of the Catalog panel. Such devices, modeled on a manufacturer&#39;s, are programmed by ETS with their application program.</p>
 <p>A device is built with the toolkit of <code>src/bcu</code>, exported by the library (<code>BusDiagram.defineProduct</code>…), which does what the system part of every device does, whatever its application:</p>
 <ul>
-<li>A <strong>mask profile</strong> per family of masks (BCU1 for 0010h–0012h, BIM M112 for 0700h–0705h with its load state machines) gives the memory of the device, where its individual address and programming mode are, how ETS loads it, and how its tables are read: group addresses, associations, group objects. ETS reaches it through the device management of the simulation.</li>
+<li>A <strong>mask profile</strong> per family of masks (BCU1 for 0010h–0012h, BIM M112 for 0700h–0705h with its load state machines, System B for 07B0h with the relative segments it allocates itself) gives the memory of the device, where its individual address and programming mode are, how ETS loads it, and how its tables are read: group addresses, associations, group objects. ETS reaches it through the device management of the simulation.</li>
 <li><code>defineProduct(spec)</code> turns a product into a participant: its identity (manufacturer, name, order number, application programs, masks), what the delivered device holds (<code>delivered</code>: its manufacturer code and hardware configuration at given addresses; <code>applicationId</code> for a System 7), where its parameters are (<code>parameterMemory</code>) and, for a System 7, its group object table (<code>objectTable</code>) and the properties its program writes (<code>properties</code>), its channels, the group objects its application has with a given memory (<code>objects(memory)</code>), and its firmware, which reads its parameters in the memory (<code>bits</code>) and sends its objects by number (<code>send</code>, <code>valueOf</code>).</li>
+<li><code>limits</code> says what the firmware does not simulate, or only in part (<code>partial</code>), and the parameters of the program that turn it on (<code>parameters</code>, <code>values</code>). The designer marks these parameters on the ETS pages and lists the limits on a page <strong>Simulation limits</strong> of the device, those that the values of the project turn on first.</li>
 </ul>
 <p>Its <strong>product database</strong> holds what ETS shows and what its parameters and tables occupy: parameter types, parameters and their place in memory, the parameter dialog, the group objects, the tables. It is generated from a catalog that the author holds, without the application code: <code>npm run product -- &lt;catalog.knxprod&gt; &lt;program&gt; &lt;file.json&gt;</code>. The designer shows the pages of ETS from it and computes the memory a complete download writes; the simulation reads the application of the device from its memory: the objects its firmware enables there, linked as the tables say.</p>
 <p>A package is a zip:</p>
@@ -405,11 +406,15 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 </thead>
 <tbody><tr>
 <td><code>manifest.json</code></td>
-<td><code>format</code> (<code>&quot;bdpkg/1&quot;</code>), <code>name</code>, <code>version</code>, <code>busdiagram</code> (the version of BusDiagram it needs at least), <code>products</code> (<code>behavior</code>, <code>manufacturer</code>, <code>name</code>, <code>database</code>: the file of its product database) and <code>scenarios</code> (<code>id</code>, <code>file</code>, <code>title</code> by language, <code>translations</code>: a dictionary file by language)</td>
+<td><code>format</code> (<code>&quot;bdpkg/1&quot;</code>), <code>name</code>, <code>version</code>, <code>busdiagram</code> (the version of BusDiagram it needs at least, for the readers that know no contract), <code>api</code> (the contract with BusDiagram it needs, <code>PACKAGE_API</code>: when present, it decides), <code>common</code> (optional: the script the scripts of the products need first), <code>products</code> (<code>behavior</code>, <code>manufacturer</code>, <code>name</code>, <code>database</code>: the file of its product database, <code>script</code>: optional, the script that registers this product alone) and <code>scenarios</code> (<code>id</code>, <code>file</code>, <code>title</code> by language, <code>translations</code>: a dictionary file by language)</td>
 </tr>
 <tr>
 <td><code>devices.js</code></td>
 <td>Extension script that registers the devices: <code>BusDiagram.registerParticipant(model)</code> for each, compiled as an IIFE with <code>bus-diagram</code> as the global <code>BusDiagram</code></td>
+</tr>
+<tr>
+<td><code>scripts/*.js</code></td>
+<td>Optional: the common script and one script by product, compiled as <code>devices.js</code>. With them, a page exported from the designer embeds the code of the products its scenario uses, not that of the whole package</td>
 </tr>
 <tr>
 <td><code>databases/*.json</code></td>
@@ -420,7 +425,7 @@ registerBehavior(<span class="s">"delayedSwitch/v1"</span>, delayedSwitch);</cod
 <td>Examples, offered with the templates once the package is imported</td>
 </tr>
 </tbody></table>
-</div><p>The designer checks the package, runs its script as an extension (refused without effect if it fails), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them; an export embeds its script. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (<code>tests/knx/fixtures/sample-devices</code>), whose databases are written by hand: they show what a package author writes.</p>
+</div><p>The designer checks the package, runs its script as an extension (refused without effect if it fails: a former version of the package stays as it was), and keeps the package in the browser: it is loaded again at start, appears with the extensions and is removed with them; an export embeds its script, and says so with the names of the packages it embeds. A scenario that uses a device of a package not imported is refused with the name of what is missing. The tests of BusDiagram use the products of an imaginary manufacturer (<code>tests/knx/fixtures/sample-devices</code>), whose databases are written by hand: they show what a package author writes.</p>
 
 <nav class="pager">
 <a href="../guide/versions.html">← Versions and releases</a>

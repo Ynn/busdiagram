@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Display options · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.933c902.modified.73b7c139">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../"></script>
 </head>
 <body class="reference">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/reference/options.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -163,7 +163,41 @@ diagram.options = { monitor: <span class="kw">true</span> }; <span class="c">// 
 </tr>
 </tbody></table>
 </div><p>Minimum scale in ‘width’ mode before horizontal scrolling. Below this scale, labels would become unreadable, so the diagram scrolls.</p>
-<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">min-scale</span>=<span class="s">"0.5"</span>&gt;</code></pre><h3 id="speed"><a class="anchor" href="#speed">#</a>speed</h3><div class="table"><table>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">min-scale</span>=<span class="s">"0.5"</span>&gt;</code></pre><h3 id="wrap"><a class="anchor" href="#wrap">#</a>wrap</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>wrap</code></td>
+<td><code>wrap</code></td>
+<td>&quot;auto&quot; | &quot;none&quot;</td>
+<td>&quot;auto&quot;</td>
+</tr>
+</tbody></table>
+</div><p>Lines too long for the diagram continue on rows below. ‘auto’: the devices of a line that do not fit the width of the component (in ‘contain’ mode and in full screen, its whole space) continue on another row, the cable of the line turning back between the two, in the order of the devices on the line. ‘none’ keeps each line on one row, as wide as its devices.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">wrap</span>=<span class="s">"none"</span>&gt;</code></pre><h3 id="zoom"><a class="anchor" href="#zoom">#</a>zoom</h3><div class="table"><table>
+<thead>
+<tr>
+<th>HTML attribute</th>
+<th>JavaScript option</th>
+<th>Type</th>
+<th>Default</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>zoom</code></td>
+<td><code>zoom</code></td>
+<td>boolean</td>
+<td>true</td>
+</tr>
+</tbody></table>
+</div><p>Zoom of the diagram. Buttons in a corner of the diagram zoom in and out, and go back to the scale that fits; Ctrl + wheel (or the pinch of a touchpad) zooms on the pointer, and dragging the background of a zoomed diagram moves it. false keeps the scale of ‘fit’.</p>
+<pre class="code"><code>&lt;<span class="t">bus-diagram</span> <span class="a">zoom</span>=<span class="s">"false"</span>&gt;</code></pre><h3 id="speed"><a class="anchor" href="#speed">#</a>speed</h3><div class="table"><table>
 <thead>
 <tr>
 <th>HTML attribute</th>

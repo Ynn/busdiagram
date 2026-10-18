@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Liaison à ETS · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.933c902.modified.73b7c139">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.933c902.modified.73b7c139"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/ets.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.933c902.modified.73b7c139" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.d1d2cf8.modified.b2700a48" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -84,14 +84,15 @@
 <td>Plus simple : toutes les adresses de groupe du schéma sont attribuées à ETS, et les coupleurs les transmettent vers lui et depuis lui pendant la liaison ; les tables de filtrage les montrent.</td>
 </tr>
 </tbody></table>
-</div><p>Les télégrammes d&#39;ETS entrent sur le bus à cet endroit avec leur propre source (l&#39;adresse du tunnel, <code>15.15.251</code>), leur priorité, leur compteur de routage et leurs octets. Aucun DPT ne voyage dans un télégramme : chaque objet récepteur décode les octets avec son propre DPT, et ignore des données d&#39;une autre taille, ce que le journal explique. Les télégrammes qui atteignent le point d&#39;accès par la topologie sont envoyés à ETS, avec le compteur de routage qu&#39;ils y ont.</p>
+</div><p>Les télégrammes d&#39;ETS entrent sur le bus à cet endroit avec leur propre source (l&#39;adresse de leur tunnel, libre en haut de la ligne, comme <code>1.1.253</code>), leur priorité, leur compteur de routage et leurs octets. Aucun DPT ne voyage dans un télégramme : chaque objet récepteur décode les octets avec son propre DPT, et ignore des données d&#39;une autre taille, ce que le journal explique. Les télégrammes qui atteignent le point d&#39;accès par la topologie sont envoyés à ETS, avec le compteur de routage qu&#39;ils y ont.</p>
 <h2 id="programming-individual-addresses-from-ets"><a class="anchor" href="#programming-individual-addresses-from-ets">#</a>Programmer les adresses individuelles depuis ETS</h2><p>Dans un schéma qui simule la <a href="commissioning.html">mise en service</a>, les participants démarrent en 15.15.255, comme à la livraison. Dans ETS, clic droit sur un participant du projet → <em>Télécharger</em> → <em>Adresse individuelle</em>, puis cliquez sur le bouton de programmation du participant dans le schéma (le petit carré à côté de son adresse) : sa LED s&#39;allume, ETS écrit l&#39;adresse, redémarre le participant, et la LED s&#39;éteint. Le designer, quand il affiche le schéma, enregistre la nouvelle adresse (colonne <strong>Adr</strong>). Les erreurs habituelles ont leur effet : deux LED allumées, et les deux participants répondent ; une adresse déjà utilisée sur le bus, et ETS la trouve.</p>
 <p>Les participants de BusDiagram répondent avec le descripteur 07B0 (TP1, System B) et le code fabricant de la KNX Association, comme ceux de KNX Virtual ; leurs applications se téléchargent depuis le designer.</p>
-<h2 id="downloading-an-application-from-ets"><a class="anchor" href="#downloading-an-application-from-ets">#</a>Télécharger une application depuis ETS</h2><p>Les participants des fabricants, que BusDiagram ne livre pas, s&#39;importent depuis un paquet de participants (<code>.bdpkg</code>, bouton <strong>Importer des participants…</strong> du panneau Catalogue ; voir les <a href="extensions.html#livrer-des-participants-de-fabricants-dans-un-paquet">extensions</a>), et se programment depuis ETS comme les vrais. Activez <strong>Simuler la mise en service</strong> (panneau Installation) : sans elle, les participants n&#39;ont pas de mémoire, et la barre d&#39;outils le signale quand ETS essaie d&#39;en télécharger un. Insérez le participant depuis la catégorie <strong>Programmés par ETS</strong> du catalogue du designer, et créez le même participant dans le projet ETS, depuis le catalogue du fabricant. Le participant répond à ETS avec le masque de son programme d&#39;application (0011 ou 0012 pour un BCU1, 0701 pour un System 7) et possède une mémoire : ETS y écrit les paramètres, la table des adresses de groupe, les associations et les objets de groupe (pour un System 7, par ses machines d&#39;états de chargement), vérifie chaque écriture par une lecture, démarre l&#39;application et redémarre le participant. Comme un participant livré, il contient le code de son fabricant et l&#39;identifiant de son application, qu&#39;ETS vérifie d&#39;abord. Le code applicatif d&#39;un participant System 7 est écrit lui aussi, ce qui prend quelques minutes, comme sur un vrai bus. Le schéma exécute alors ce que contient la mémoire, comme le participant : modifiez un paramètre dans ETS, téléchargez, et le participant se comporte en conséquence ; téléchargez sans les adresses de groupe, et il n&#39;envoie rien. Le designer reporte dans le projet ce que le téléchargement a laissé dans le participant (ses paramètres, ses objets de groupe et leurs adresses de groupe), pour que le scénario dise comment le participant est réellement configuré ; <strong>Annuler</strong> rétablit le projet précédent. Sur le schéma, un participant de fabricant ne montre que les objets de groupe liés à une adresse de groupe ou qui commandent une charge ; sa fiche les liste tous.</p>
+<h2 id="downloading-an-application-from-ets"><a class="anchor" href="#downloading-an-application-from-ets">#</a>Télécharger une application depuis ETS</h2><p>Les participants des fabricants, que BusDiagram ne livre pas, s&#39;importent depuis un paquet de participants (<code>.bdpkg</code>, bouton <strong>Importer des participants…</strong> du panneau Catalogue ; voir les <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>), et se programment depuis ETS comme les vrais. Activez <strong>Simuler la mise en service</strong> (panneau Installation) : sans elle, les participants n&#39;ont pas de mémoire, et la barre d&#39;outils le signale quand ETS essaie d&#39;en télécharger un. Insérez le participant depuis la catégorie <strong>Programmés par ETS</strong> du catalogue du designer, et créez le même participant dans le projet ETS, depuis le catalogue du fabricant. Le participant répond à ETS avec le masque de son programme d&#39;application (0011 ou 0012 pour un BCU1, 0701 ou 0705 pour un System 7, 07B0 pour un System B) et possède une mémoire : ETS y écrit les paramètres, la table des adresses de groupe, les associations et les objets de groupe (pour un System 7 et un System B, par leurs machines d&#39;états de chargement ; un System B alloue lui-même ses segments), vérifie chaque écriture par une lecture, démarre l&#39;application et redémarre le participant. Comme un participant livré, il contient le code de son fabricant et l&#39;identifiant de son application, qu&#39;ETS vérifie d&#39;abord. Le code applicatif d&#39;un participant System 7 est écrit lui aussi, ce qui prend quelques minutes, comme sur un vrai bus. Le schéma exécute alors ce que contient la mémoire, comme le participant, quand c&#39;est l&#39;un des programmes du produit (un autre programme, ou un programme téléchargé en partie, n&#39;exécute rien, et le journal dit quel programme il a reçu) : modifiez un paramètre dans ETS, téléchargez, et le participant se comporte en conséquence ; téléchargez sans les adresses de groupe, et il n&#39;envoie rien. Le designer reporte dans le projet ce que le téléchargement a laissé dans le participant (ses paramètres, ses objets de groupe et leurs adresses de groupe), pour que le scénario dise comment le participant est réellement configuré ; <strong>Annuler</strong> rétablit le projet précédent. Sur le schéma, un participant de fabricant ne montre que les objets de groupe liés à une adresse de groupe ou qui commandent une charge ; sa fiche les liste tous. Le fichier JSON garde toute la mémoire que le téléchargement a écrite ; la page autonome, le code à coller et le lien du lecteur laissent de côté le code d&#39;application qu&#39;ETS a écrit depuis le catalogue du fabricant, et gardent ce dont le participant a besoin pour fonctionner (partie système, tables, paramètres).</p>
 <p>Les pages de paramètres du participant dans le designer sont celles d&#39;ETS : mêmes pages, mêmes paramètres et choix, dans le même ordre, avec les noms et fonctions de ses objets de groupe. Le designer peut aussi le télécharger (menu contextuel → <em>Télécharger</em>), comme ETS le ferait.</p>
+<p>Un produit pris dans le catalogue en ligne d&#39;ETS fonctionne de même, quand son programme d&#39;application est l&#39;un de ceux que le participant simule : même fabricant, même type et même version, et pas KNX Secure. Une version plus récente du programme est téléchargée par ETS mais n&#39;exécute rien dans le schéma, tant que le paquet de participants ne l&#39;apporte pas.</p>
 <h2 id="while-linked"><a class="anchor" href="#while-linked">#</a>Pendant la liaison</h2><ul>
 <li>La simulation tourne en temps réel, même quand son onglet est en arrière-plan, puisqu&#39;ETS continue d&#39;envoyer et attend des réponses.</li>
-<li>Un télégramme d&#39;ETS est refusé tant que la simulation est en pause ; il n&#39;est pas rejoué plus tard avec d&#39;autres.</li>
+<li>Un télégramme de groupe d&#39;ETS est refusé tant que la simulation est en pause ; il n&#39;est pas rejoué plus tard avec d&#39;autres. La gestion des participants par ETS (adresses individuelles, téléchargements) continue : une pause arrête les applications, pas le bus. L&#39;une et l&#39;autre sont refusées quand la simulation est arrêtée par une faute.</li>
 <li>La vitesse est <strong>Instantané</strong> à l&#39;ouverture de la liaison : les télégrammes prennent le temps d&#39;un vrai bus (environ 20 ms chacun, et autant pour chaque coupleur traversé), et les câbles qu&#39;ils atteignent s&#39;allument sans que rien ne se déplace. <strong>Animé</strong> les montre au contraire voyager au rythme du schéma : un télégramme qui traverse des coupleurs met alors quelques secondes à arriver, ce qu&#39;ETS accepte.</li>
 <li>Le pas à pas n&#39;est pas disponible.</li>
 </ul>
@@ -112,10 +113,30 @@
 </tr>
 <tr>
 <td>Téléchargement d&#39;une application (mémoire, propriétés)</td>
-<td>Oui pour les participants des fabricants importés d&#39;un paquet (masques BCU1 et System 7) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus</td>
+<td>Oui pour les participants des fabricants importés d&#39;un paquet (masques BCU1, System 7 et System B) ; non pour les participants de BusDiagram, dont les paramètres et associations se règlent dans le schéma : ETS reçoit un refus</td>
 </tr>
 <tr>
-<td>Moniteur de bus, KNX Secure</td>
+<td>Moniteur de groupe et moniteur de bus</td>
+<td>Oui : le moniteur de bus montre toutes les trames du bus, d&#39;ETS et du schéma ; la simulation n&#39;a pas de couche physique, donc aucune trame n&#39;est en erreur et les acquittements de la couche liaison ne sont pas montrés</td>
+</tr>
+<tr>
+<td>Recherche de participants (balayage d&#39;une ligne, balayage rapide, vérification qu&#39;une adresse individuelle est libre, participants en mode programmation)</td>
+<td>Oui : une trame vers une adresse qu&#39;aucun participant n&#39;a est confirmée à ETS comme non acquittée, comme sur un bus ; une trame que le schéma ne confirme pas dans la demi-seconde (une page qui ne répond plus) ferme la connexion d&#39;ETS au lieu d&#39;être confirmée ; quand plusieurs participants ont la même adresse, l&#39;adresse est occupée et la barre d&#39;outils le signale : une lecture reçoit une réponse quand toutes leurs réponses concordent (elles n&#39;en font qu&#39;une sur un bus), pas quand elles diffèrent (elles se brouillent), et une modification (mémoire, propriétés, redémarrage) n&#39;est faite dans aucun. Un participant ferme une connexion qu&#39;ETS laisse 6 s sans trame, comme le fait la couche transport : le balayage rapide trouve les participants par là</td>
+</tr>
+<tr>
+<td>Informations du participant</td>
+<td>Oui : version de masque, fabricant, mode programmation, programme d&#39;application et ses états de chargement et d&#39;exécution (Système B), tables, objets de groupe et leurs adresses. La tension du bus est celle d&#39;une ligne TP1 (28,8 V). Pour un BCU1, ETS lit son état d&#39;exécution dans l&#39;octet de son mode programmation (60h) : il affiche « Arrêté » sauf si le participant est en mode programmation</td>
+</tr>
+<tr>
+<td>Adresses de l&#39;interface</td>
+<td>Celles de la ligne où ETS atteint le schéma, libres en haut de la ligne (1.1.254 pour l&#39;interface, les suivantes libres pour ses tunnels), prises quand aucune connexion d&#39;ETS n&#39;est ouverte : ETS ne demande plus, à chaque opération, de modifier les paramètres d&#39;une interface hors du projet</td>
+</tr>
+<tr>
+<td>Numéros de série</td>
+<td>Synthétiques : le code de BusDiagram (00FA), puis une empreinte de l&#39;identifiant du participant dans le scénario</td>
+</tr>
+<tr>
+<td>KNX Secure</td>
 <td>Non</td>
 </tr>
 <tr>
