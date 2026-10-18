@@ -611,6 +611,7 @@ function topologyList(host: Host, doc: Doc, p: Panel): TemplateResult {
     );
     return html`<div class="w-content">
         ${l && !seg ? host.lineSettings(doc, l) : nothing}
+        ${!l && !seg && E.upperLines(doc).includes(line) ? host.upperLineSettings(doc, line) : nothing}
         <div>
           ${dataTable<Dev>(
             host,

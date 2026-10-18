@@ -1810,11 +1810,26 @@ export class BusDiagram extends LitElement {
     });
   };
 
+  /** The warnings the reader closed: shown again when they change. */
+  private closedWarnings: string | null = null;
+
   /** Parameters that disagree with the load they compensate (see consistency.ts). */
   private renderConfigWarnings(sim: Simulation) {
     const list = sim.diagnostics.filter((d) => d.code.startsWith("config-"));
-    if (!list.length) return nothing;
+    const key = list.map((d) => d.message).join("|");
+    if (!list.length || key === this.closedWarnings) return nothing;
     return html`<div class="cfgwarn" role="note">
+      <button
+        class="cfgx"
+        title=${this.tr`Close: shown again when the warnings change`}
+        aria-label=${this.tr`Close the configuration check`}
+        @click=${() => {
+          this.closedWarnings = key;
+          this.requestUpdate();
+        }}
+      >
+        ×
+      </button>
       <b>${this.tr`Configuration check`}</b>
       <ul>
         ${list.map((d) => html`<li>${d.message}</li>`)}

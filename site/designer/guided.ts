@@ -229,6 +229,19 @@ export class GuidedEditor extends LitElement implements Host {
       ${this.lineExtension(l, line)}`;
   }
 
+  upperLineSettings(doc: Doc, line: string) {
+    const psus = (doc.topology as E.Topo | undefined)?.powerSupplies ?? {};
+    return html`<div class="g-row g-ext">
+      ${this.psuSelect(
+        t`Power supply`,
+        psus[line] as { currentMa?: number } | undefined,
+        line,
+        false,
+        true,
+      )}
+    </div>`;
+  }
+
   installation(doc: Doc) {
     return this.home(doc);
   }

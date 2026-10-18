@@ -381,6 +381,9 @@ export const frMessages: Record<string, string> = {
   "Main group {0}": "Groupe principal {0}",
   "Middle group {0}/{1}": "Groupe médian {0}/{1}",
   "ETS: waiting for ETS": "ETS : en attente d'ETS",
+  "Close: shown again when the warnings change":
+    "Fermer : réaffiché quand les avertissements changent",
+  "Close the configuration check": "Fermer le contrôle de configuration",
   "this installation has no TP backbone 0.0":
     "cette installation n'a pas de ligne de zone TP 0.0",
   "this installation has no TP main line {0}":

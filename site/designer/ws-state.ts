@@ -69,6 +69,8 @@ export interface Host {
   installation(doc: Doc): TemplateResult;
   topologySettings(doc: Doc): TemplateResult;
   lineSettings(doc: Doc, l: Doc["lines"][number]): TemplateResult;
+  /** Settings of the TP backbone ("0.0") or of a TP main line ("A.0"): its power supply. */
+  upperLineSettings(doc: Doc, line: string): TemplateResult;
   typeLabel(d: Dev): string;
   /** Commissioning on the preview's simulation. */
   commissioner: Commissioner;

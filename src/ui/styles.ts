@@ -314,6 +314,31 @@ export const styles = css`
     font-size: 13px;
     color: ${unsafeCSS(C.ink)};
   }
+  .cfgwarn {
+    position: relative;
+    padding-right: 32px;
+  }
+  .cfgx {
+    position: absolute;
+    top: 4px;
+    right: 6px;
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: none;
+    font-size: 17px;
+    line-height: 1;
+    color: ${unsafeCSS(C.mute)};
+    cursor: pointer;
+  }
+  .cfgx:hover {
+    color: ${unsafeCSS(C.ink)};
+  }
+  .cfgx:focus-visible {
+    outline: 2px solid ${unsafeCSS(C.tg)};
+    border-radius: 4px;
+  }
   .cfgwarn ul {
     margin: 4px 0 0;
     padding-left: 18px;
