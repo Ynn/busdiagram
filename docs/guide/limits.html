@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Model and limits · BusDiagram</title>
-<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
-<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<link rel="stylesheet" href="../assets/docs.css?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4">
+<script src="../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
 
-<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<script defer src="../assets/search-index.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
 
-<script defer src="../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../"></script>
+<script defer src="../assets/docs.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" data-base="../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Search…" aria-label="Search documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../fr/guide/limits.html" hreflang="fr" lang="fr">Français</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Download</a>
+  <a class="dl" href="../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" download="bus-diagram.js">Download</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -57,11 +57,11 @@
 <p>What runs and what is only shown: the functions of the devices, their objects and flags, the group services, and the routing through couplers run in the simulation; the TP frame and its signal are computed for display; the electrical bus and the other media are not simulated. Commissioning (individual addresses and downloads) is simulated only in a scenario with an <code>installation</code> section, at the level of the procedures: see <a href="commissioning.html">commissioning</a>.</p>
 <ul>
 <li><strong>Timing:</strong> propagation is slowed for inspection; it does not reproduce real twisted-pair bus timing.</li>
-<li><strong>Group services:</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code>, and <code>GroupValueResponse</code> are modeled. With commissioning, the programming mode, the reading and writing of individual addresses, and downloads are modeled as procedures, without their telegrams on the bus.</li>
+<li><strong>Group services:</strong> <code>GroupValueWrite</code>, <code>GroupValueRead</code>, and <code>GroupValueResponse</code> are modeled. With commissioning, the programming mode, the reading and writing of individual addresses, and downloads are modeled as procedures, without their telegrams on the bus of the diagram; linked to ETS, the devices answer the frames of device management that ETS sends (see <a href="ets.html#limits">link to ETS</a>).</li>
 <li><strong>TP exchange:</strong> the frame view shows a group data frame, with the priority of the sending object (low by default; the KNX data link layer gives normal as the default for short frames, and the priority is a setting of each object). Bus arbitration, priority scheduling, TP acknowledgments (<code>ACK</code>, <code>NACK</code>, <code>BUSY</code>), and automatic retransmissions are outside the model; the telegram details draw the acknowledgement for illustration, and their TP1 signal is schematic, not an electrical simulation.</li>
 <li><strong>Object flags:</strong> C, R, W, T, U, and I are modeled. Read on initialisation (I) runs when a device starts: at the start of the simulation and after a bus voltage failure; like any request to send, it needs C and T. As in the KNX Application Layer, a read is answered by one object per device: the first one, in the order of its objects, that has the R flag and a known value; the response is sent on its sending address.</li>
 <li><strong>Internal associations:</strong> when a device sends, its other objects on the same group address are informed, as the KNX Application Layer specifies, and handled as for a telegram from the bus: an object takes the value only with its W flag (U for a response).</li>
-<li><strong>Power supplies:</strong> drawn on lines and segments that declare one; a TP segment without one gets the warning <code>config-no-power-supply</code>. Main lines and the backbone are not given one, and the bus load (consumption against rated current) and voltage drop are not computed.</li>
+<li><strong>Power supplies:</strong> drawn on the lines, segments, TP main lines and TP backbone that declare one (<code>topology.powerSupplies</code> for the last two); a TP line or segment without one gets the warning <code>config-no-power-supply</code>. The bus load (consumption against rated current) and voltage drop are not computed.</li>
 <li><strong>Topology:</strong> lines 0.1 to 0.15, connected directly to the backbone, are allowed in KNX but not supported; lines belong to areas 1 to 15.</li>
 <li><strong>Couplers:</strong> filter tables derive from declared associations. The routing counter starts at 6 and decreases at each modeled coupler. A repeater does not filter. Each line has at most one extension (repeater or segment coupler), connected to its main segment; see <a href="couplers.html">couplers and repeaters</a>.</li>
 <li><strong>KNXnet/IP:</strong> the model routes between IP routers with filter tables; it does not model tunneling that bypasses those tables.</li>
@@ -70,7 +70,7 @@
 <li><strong>Clock:</strong> the simulated clock has no time zone and no summer time change; DPT 19.001 (date and time with quality flags) is not supported. See the <a href="../examples/time-schedule.html">time schedule example</a> for a clock master and a time switch.</li>
 <li><strong>Relay feedback:</strong> it reports the controlled relay state, not a measured mains voltage.</li>
 <li><strong>Scenes:</strong> recall (DPT 17.001 and 18.001) and storing by the learn bit (DPT 18.001) are modeled; a stored scene lasts until the simulation restarts.</li>
-<li><strong>Bus voltage:</strong> a line or segment can lose its bus voltage from its power supply on the diagram; devices then stop and run their failure and recovery behavior. Behavior after a download of the configuration is outside the model, and the simulation starts with the installation already in operation, without a recovery reaction.</li>
+<li><strong>Bus voltage:</strong> a line, a segment, a main line or the backbone can lose its bus voltage from its power supply on the diagram; devices then stop and run their failure and recovery behavior, programming mode ends, and couplers forward nothing to it. The simulation starts with the installation already in operation, without a recovery reaction. A download from ETS restarts the device that received it, with what its memory then holds; the other devices and the time go on.</li>
 <li><strong>Push-button interface:</strong> contact inputs measure presses in simulated time; while the simulation is paused, a press cannot become long. Debounce and telegram rate limits are not modeled; the contact type of the push-button (normally open or closed) and the contact expected by the input are.</li>
 <li><strong>DPTs:</strong> only the <a href="../reference/dpt.html">listed data types</a> are simulated; passive and display devices can show other standard DPTs as raw bytes.</li>
 <li><strong>Other systems:</strong> a gateway models only its KNX side; Modbus, BACnet, and M-Bus are not simulated.</li>
@@ -84,6 +84,8 @@
 <li><strong>Presence detector:</strong> brightness is entered by the reader; there is no light model and no constant light regulation.</li>
 <li><strong>Weather station:</strong> measurements are entered by the reader; there is no weather model. Wind, brightness, and frost thresholds and a rain alarm with delays are provided; there are no generic comparators on every measurement, no minimum exceedance times, and no lock per threshold.</li>
 <li><strong>Logic module:</strong> one-bit AND, OR, XOR, and NOT, with inversion of each input and of the result, an enable object, and an optional daily time window; no delay blocks or numeric comparisons.</li>
+<li><strong>Manufacturers&#39; devices:</strong> imported from packages of devices; their firmware simulates the functions its author wrote, and the designer marks the parameters of the others (page <strong>Simulation limits</strong> of the device). The pages, parameters and memory are those of the product database; a memory read back from the device that its parameters do not explain is kept as it is and listed. The masks 0010h–0012h, 0700h–0705h and 07B0h are supported, without KNX Secure. See <a href="manufacturer-devices.html">write a manufacturer&#39;s device</a>.</li>
+<li><strong>Link to ETS:</strong> one diagram at a time, through the BusDiagram-ETS program on the same computer; ETS does not find it by the discovery of interfaces. The diagnostics of ETS and their limits are listed in <a href="ets.html#limits">link to ETS</a>.</li>
 <li><strong>Outside scope:</strong> BACnet, KNX Secure, and connection to a real bus.</li>
 </ul>
 

@@ -7,12 +7,12 @@
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='7' fill='%231e9a6d'/><path d='M5 23h22' stroke='%23fff' stroke-width='3' stroke-linecap='round'/><rect x='7' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><rect x='18' y='8' width='7' height='9' rx='2' fill='%23fff2cc'/><path d='M10.5 17v6M21.5 17v6' stroke='%23fff' stroke-width='2'/></svg>">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Écrire un participant de fabricant · BusDiagram</title>
-<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.8d88b87.modified.71dff841">
-<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
+<link rel="stylesheet" href="../../assets/docs.css?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4">
+<script src="../../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
 
-<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
-<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841"></script>
-<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" data-base="../../"></script>
+<script defer src="../../assets/search-index.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
+<script defer src="../../assets/search-index-fr.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4"></script>
+<script defer src="../../assets/docs.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" data-base="../../"></script>
 </head>
 <body class="guide">
 <header class="site">
@@ -26,7 +26,7 @@
   <div class="search"><input type="search" placeholder="Rechercher…" aria-label="Rechercher dans la documentation"><ul class="results" hidden></ul></div>
   <a class="lang" href="../../guide/manufacturer-devices.html" hreflang="en" lang="en">English</a>
   <a class="repo" href="https://github.com/Ynn/busdiagram">GitHub</a>
-  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.8d88b87.modified.71dff841" download="bus-diagram.js">Télécharger</a>
+  <a class="dl" href="../../assets/bus-diagram.js?v=0.7.0%2Bdev.aca02bc.modified.9806a8e4" download="bus-diagram.js">Télécharger</a>
 </header>
 <div class="layout">
 <aside class="side">
@@ -53,7 +53,7 @@
 <main>
 <p class="crumb">Guide</p>
 
-<h1 id="write-a-manufacturer-s-device"><a class="anchor" href="#write-a-manufacturer-s-device">#</a>Écrire un participant de fabricant</h1><p>Un participant de fabricant est simulé comme ETS voit le vrai : il a le programme d&#39;application du catalogue du fabricant, ETS le télécharge, et la simulation exécute ce que sa mémoire contient alors. BusDiagram ne livre aucun participant de ce genre. Il livre l&#39;outillage pour les écrire, et le designer les importe depuis un <strong>paquet de participants</strong> (<code>.bdpkg</code>, voir <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>).</p>
+<h1 id="write-a-manufacturer-s-device"><a class="anchor" href="#write-a-manufacturer-s-device">#</a>Écrire un participant de fabricant</h1><p>Un participant de fabricant est simulé comme ETS voit le vrai : il a le programme d&#39;application du catalogue du fabricant, ETS le télécharge, et la simulation exécute ce que sa mémoire contient alors. BusDiagram ne livre aucun participant de ce genre. Il livre le toolkit pour les écrire, et le designer les importe depuis un <strong>paquet de participants</strong> (<code>.bdpkg</code>, voir <a href="extensions.html#deliver-manufacturers-devices-in-a-package">extensions</a>).</p>
 <p>Ce guide en écrit un, pas à pas, avec les produits d&#39;un fabricant imaginaire, <strong>Example Electric</strong> (code fabricant FEh), qu&#39;utilisent les tests de BusDiagram : <code>tests/knx/fixtures/sample-devices</code>. Son <strong>SA 2</strong> est un actionneur de commutation à deux sorties sur un BCU1 (masque 0012h), programme <code>M-00FE_A-0001-10</code>. Sa base de produit est écrite à la main : le dossier ne contient aucune donnée de fabricant.</p>
 <p>Un participant a quatre parties :</p>
 <div class="table"><table>
@@ -91,7 +91,7 @@
 <li><strong>ETS</strong>, pour comparer les pages, télécharger le participant et vérifier ce qu&#39;il fait (voir <a href="ets.html">relier à ETS</a>).</li>
 <li>Un clone de <strong>BusDiagram</strong> à côté du dossier du paquet, avec Node.js : les tests du paquet s&#39;exécutent sur ses sources.</li>
 </ul>
-<h2 id="choose-the-program-and-its-mask"><a class="anchor" href="#choose-the-program-and-its-mask">#</a>Choisir le programme et son masque</h2><p>Dans le catalogue, un produit exécute un programme d&#39;application (<code>ApplicationProgram</code>), nommé <code>M-&lt;fabricant&gt;_A-&lt;numéro&gt;-&lt;version&gt;-&lt;empreinte&gt;</code>. L&#39;outillage exécute les programmes de trois familles de masques (son <code>MaskVersion</code>) :</p>
+<h2 id="choose-the-program-and-its-mask"><a class="anchor" href="#choose-the-program-and-its-mask">#</a>Choisir le programme et son masque</h2><p>Dans le catalogue, un produit exécute un programme d&#39;application (<code>ApplicationProgram</code>), nommé <code>M-&lt;fabricant&gt;_A-&lt;numéro&gt;-&lt;version&gt;-&lt;hash&gt;</code>. Le toolkit exécute les programmes de trois familles de masques (son <code>MaskVersion</code>) :</p>
 <div class="table"><table>
 <thead>
 <tr>
@@ -219,7 +219,7 @@
 </tr>
 <tr>
 <td><code>programs</code>, <code>masks</code></td>
-<td>Les programmes qu&#39;il exécute (sans leur empreinte) et les masques de son coupleur</td>
+<td>Les programmes qu&#39;il exécute (sans leur hash) et les masques de son coupleur</td>
 </tr>
 <tr>
 <td><code>parameterMemory</code></td>
@@ -240,7 +240,7 @@
 </tbody></table>
 </div><p>Un BIM M112 (070xh) dit aussi où son application a sa table des objets de groupe (<code>objectTable</code>), l&#39;identifiant d&#39;application avec lequel il est livré (<code>applicationId</code>, qu&#39;ETS compare), et les propriétés qu&#39;écrit son programme (<code>properties</code>). Le second produit du dossier, <strong>BE 1</strong>, une interface de boutons-poussoirs sur un BIM M112, les montre.</p>
 <p>Le libellé d&#39;un canal le nomme dans l&#39;arbre des pages du designer : un canal libellé <code>A</code>, <code>C1</code> ou <code>Output 1</code> reçoit ses charges avec les pages ETS dont le titre le nomme.</p>
-<h2 id="write-the-firmware"><a class="anchor" href="#write-the-firmware">#</a>Écrire le firmware</h2><p>Le firmware a les crochets d&#39;un comportement (voir <a href="extensions.html#register-a-behavior">extensions</a>), et lit ses paramètres dans la mémoire à chaque fois : un téléchargement depuis ETS les change, et le participant redémarre.</p>
+<h2 id="write-the-firmware"><a class="anchor" href="#write-the-firmware">#</a>Écrire le firmware</h2><p>Le firmware est fait des hooks d&#39;un comportement (<code>createState</code>, <code>onInit</code>, <code>onObjectWrite</code>…, voir <a href="extensions.html#register-a-behavior">extensions</a>). Il lit ses paramètres dans la mémoire du participant chaque fois qu&#39;il s&#39;en sert, plutôt qu&#39;une seule fois : un téléchargement depuis ETS change cette mémoire, puis le participant redémarre et son hook <code>onInit</code> s&#39;exécute à nouveau.</p>
 <pre class="code"><code><span class="kw">import</span> { bits, objectId } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
 <span class="kw">import</span> type { BehaviorContext, Firmware } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
 
@@ -283,12 +283,12 @@ interface State {
     relay(ctx, n);
   },
   channelState: (s, ch) =&gt; ({ on: s.on[ch] ?? <span class="kw">false</span> }),
-};</code></pre><p>Les aides de l&#39;outillage :</p>
+};</code></pre><p>Les helpers du toolkit :</p>
 <div class="table"><table>
 <thead>
 <tr>
-<th>Aide</th>
-<th>Ce qu&#39;elle fait</th>
+<th>Helper</th>
+<th>Ce qu&#39;il fait</th>
 </tr>
 </thead>
 <tbody><tr>
@@ -370,7 +370,7 @@ BusDiagram.registerParticipant(sa2);</code></pre><p>Le paquet est un zip de ce s
   ],
   <span class="k">"scenarios"</span>: []
 }</code></pre><p>Le <a href="extensions.html#deliver-manufacturers-devices-in-a-package">guide des extensions</a> liste tous les fichiers d&#39;un paquet : un script par produit, pour qu&#39;une page exportée n&#39;embarque que les produits qu&#39;utilise son scénario, et des exemples proposés avec les modèles.</p>
-<h2 id="test-it"><a class="anchor" href="#test-it">#</a>Le tester</h2><p>Les tests d&#39;un paquet s&#39;exécutent sur les sources du clone de BusDiagram placé à côté. Dans Vitest, <code>bus-diagram</code> est son point d&#39;entrée sans DOM, et ses sources s&#39;atteignent par un alias :</p>
+<h2 id="test-it"><a class="anchor" href="#test-it">#</a>Le tester</h2><p>Les tests d&#39;un paquet s&#39;exécutent sur les sources du clone de BusDiagram placé à côté. Dans Vitest, <code>bus-diagram</code> est son entry point sans DOM, et ses sources s&#39;atteignent par un alias :</p>
 <pre class="code"><code><span class="c">// vitest.config.ts du paquet</span>
 <span class="kw">import</span> { resolve } <span class="kw">from</span> <span class="s">"node:path"</span>;
 <span class="kw">import</span> { defineConfig } <span class="kw">from</span> <span class="s">"vitest/config"</span>;
@@ -384,7 +384,7 @@ BusDiagram.registerParticipant(sa2);</code></pre><p>Le paquet est un zip de ce s
     ],
   },
   test: { environment: <span class="s">"node"</span>, setupFiles: [<span class="s">"tests/setup.ts"</span>] },
-});</code></pre><p>Une préparation enregistre les modèles et installe les bases, comme le fait l&#39;import du paquet ; un test insère ensuite le produit comme le designer, règle ses paramètres ETS, et lance la simulation :</p>
+});</code></pre><p>Un setup (<code>setupFiles</code>) enregistre les modèles et installe les bases, comme le fait l&#39;import du paquet ; un test insère ensuite le produit comme le designer, règle ses paramètres ETS, et lance la simulation :</p>
 <pre class="code"><code><span class="kw">import</span> { createSimulator, registerParticipant } <span class="kw">from</span> <span class="s">"bus-diagram"</span>;
 <span class="kw">import</span> { captureRegistry } <span class="kw">from</span> <span class="s">"@busdiagram/src/knx/registry"</span>;
 <span class="kw">import</span> { installPackage } <span class="kw">from</span> <span class="s">"@busdiagram/site/designer/packages"</span>;
